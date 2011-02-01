@@ -40,7 +40,7 @@ void widening_ex(ap_manager_t* man) {
 	ap_lincons1_array_set(&array,0,&cons);
 
 	/* y=0 */
-	expr = ap_linexpr1_make(env,AP_LINEXPR_SPARSE,2);
+	expr = ap_linexpr1_make(env,AP_LINEXPR_SPARSE,1);
 	cons = ap_lincons1_make(AP_CONS_EQ,&expr,NULL);
 		
 	ap_lincons1_set_list(&cons,
