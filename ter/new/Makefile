@@ -8,9 +8,9 @@ LDFLAGS		=
 EXEC		= llvm2smt
 
 
-CPPFLAGS += `llvm-config-2.7 --cxxflags jit bitreader bitwriter native`
+CPPFLAGS += `llvm-config --cxxflags jit bitreader bitwriter native`
 
-LDFLAGS  += `llvm-config-2.7 --ldflags --libs jit bitreader bitwriter native`
+LDFLAGS  += `llvm-config --ldflags --libs jit bitreader bitwriter native`
 
 all: $(EXEC)
 
