@@ -34,7 +34,6 @@
 #include "llvm/Config/config.h"
 
 #include "SMTBackend.h"
-#include "SMTBackend_decl.h"
 
 // #define COMMENT
 
@@ -51,45 +50,29 @@ const char *SMTBackend::getPassName() const {
 
 bool SMTBackend::runOnModule(Module &M){
 
-	Out << "(benchmark VERIMAG\n";
-	Out << ":category { random }\n";
-	Out << ":status unknown\n";
-	Out << ":source { VERIMAG, Synchrone } \n\n"; 
-
-	SMTBackend_decl * declaration = new SMTBackend_decl(Out,&locals_name);
-	// this first pass creates the definitions of variables
-	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		Function* F = &*mIt;
-		declaration->printFunction(F);
-	}
-	// creation of formula
-	Out << ":formula\n";
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		Function* F = &*mIt;
 		printFunction(F);
 	}
 
-	Out << ")\n";
 	return 0;
 }
 
 void SMTBackend::printFunction(Function* F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		// Out << "Basic block (name=" << i->getName() << ") has "
-		//        << i->size() << " instructions.\n";
+		 Out << "Basic block (name=" << i->getNameStr() << ") has "
+		        << i->size() << " instructions.\n";
 		printBasicBlock(i);
 	}
 }
 
 void SMTBackend::printBasicBlock(BasicBlock* blk) {
 
-	Out << "(and " << blk->getName() << "\n" ;
 	for (BasicBlock::iterator i = blk->begin(), e = blk->end();
 			i != e; ++i) {
 		visit(*i);
-		// Out << *i << "\n";
+		Out << *i << "\n";
 	}
-	Out << ")\n";
 }
 
 string GetConstantName(const Constant * Value) {

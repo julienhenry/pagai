@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	run.exec(filename,"out.smt");
+	run.exec(filename,"file.out");
 	
 	return 0;
 }
