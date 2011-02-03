@@ -1,7 +1,6 @@
 #include "ap_global1.h"
 #include "pkeq.h"
 #include "pk.h"
-#include "ap_ppl.h"
 
 #include <iostream>
 #include <string>
