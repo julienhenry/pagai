@@ -1,68 +1,71 @@
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/LinkAllVMCore.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Target/TargetData.h"
+#include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Transforms/Scalar.h"
 
-#include "SMTBackend.h"
+
+#include "initVerif.h"
+#include "node.h"
 #include "execute.h"
 
 using namespace llvm;
 
 void execute::exec(std::string InputFilename, std::string OutputFilename) {
-	
-   Module *M = NULL;
-	
-   LLVMContext & Context = getGlobalContext();
 
-   std::string ErrorMessage;
+	Module *M = NULL;
 
-   if (MemoryBuffer * Buffer
-       = MemoryBuffer::getFileOrSTDIN(InputFilename, &ErrorMessage)) {
-       M = ParseBitcodeFile(Buffer, Context, &ErrorMessage);
-       delete Buffer;
-   } else {
-	   std::cout << "Not able to initialize module from bitcode\n";
-	   // ERROR("Not able to initialize module from bitcode\n");
-   }
+	LLVMContext & Context = getGlobalContext();
 
-   if (OutputFilename != "-") {
+	std::string ErrorMessage;
 
-       std::string error;
-       raw_fd_ostream *FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
-       if (!error.empty()) {
-           errs() << error << '\n';
-           delete FDOut;
-           return;
-       }
-       Out = new formatted_raw_ostream(*FDOut,    formatted_raw_ostream::DELETE_STREAM);
+	if (MemoryBuffer * Buffer
+			= MemoryBuffer::getFileOrSTDIN(InputFilename, &ErrorMessage)) {
+		M = ParseBitcodeFile(Buffer, Context, &ErrorMessage);
+		delete Buffer;
+	} else {
+		fouts() << "Not able to initialize module from bitcode\n";
+		// ERROR("Not able to initialize module from bitcode\n");
+	}
 
-       // Make sure that the Output file gets unlinked from the disk if we get a
-       // SIGINT
-       sys::RemoveFileOnSignal(sys::Path(OutputFilename));
-   }
+	if (OutputFilename != "-") {
 
-   // Build up all of the passes that we want to do to the module.
-   PassManager Passes;
+		std::string error;
+		raw_fd_ostream *FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
+		if (!error.empty()) {
+			errs() << error << '\n';
+			delete FDOut;
+			return;
+		}
+		Out = new formatted_raw_ostream(*FDOut,    formatted_raw_ostream::DELETE_STREAM);
 
-   ModulePass *MB = new SMTBackend(*Out);
+		// Make sure that the Output file gets unlinked from the disk if we get a
+		// SIGINT
+		sys::RemoveFileOnSignal(sys::Path(OutputFilename));
+	}
 
-   Passes.add(new TargetData(M));
-   Passes.add(createVerifierPass());
-   Passes.add(createGCLoweringPass());
-   Passes.add(createLowerInvokePass());
-   Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
-   Passes.add(MB);
-   Passes.add(createGCInfoDeleter());
+	// Build up all of the passes that we want to do to the module.
+	PassManager Passes;
 
-   Passes.run(*M);
+	ModulePass *InitVerifPass = new initVerif();
 
-   Out->flush();
+	Passes.add(new TargetData(M));
+	Passes.add(createVerifierPass());
+	Passes.add(createGCLoweringPass());
+	Passes.add(createLowerInvokePass());
+	Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
+	Passes.add(InitVerifPass);
+	Passes.add(createGCInfoDeleter());
+
+	Passes.run(*M);
+
+	Out->flush();
 
 }
