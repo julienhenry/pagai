@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 
-#include "execute.h" 
+#include "Execute.h" 
 
 char* check_args(int argc, char* argv[]) {
 

@@ -13,6 +13,8 @@ OPTION :
 "
 }
 
+PRINT=
+
 while getopts “hpi:o:” opt ; do
 	case $opt in
 		h)

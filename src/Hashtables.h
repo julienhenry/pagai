@@ -2,7 +2,7 @@
 #define _HASHTABLES_H
 
 #include "llvm/BasicBlock.h"
-#include "node.h"
+#include "Node.h"
 #include <map>
 
 using namespace llvm;

@@ -3,7 +3,7 @@ BIN_REP		= ../bin/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
-CPPFLAGS	= -Wall -g
+CPPFLAGS	= -Wall -g -DDEBUG
 LDFLAGS		=
 IDFLAGS		= -I/local/jhenry/llvm-2.8/include
 EXEC		= analyzer

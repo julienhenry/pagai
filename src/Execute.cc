@@ -12,9 +12,10 @@
 #include "llvm/Transforms/Scalar.h"
 
 
-#include "initVerif.h"
-#include "node.h"
-#include "execute.h"
+#include "InitVerif.h"
+#include "AI.h"
+#include "Node.h"
+#include "Execute.h"
 
 using namespace llvm;
 
@@ -31,8 +32,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		M = ParseBitcodeFile(Buffer, Context, &ErrorMessage);
 		delete Buffer;
 	} else {
-		fouts() << "Not able to initialize module from bitcode\n";
-		// ERROR("Not able to initialize module from bitcode\n");
+		ferrs() << "Not able to initialize module from bitcode\n";
 	}
 
 	if (OutputFilename != "-") {
@@ -55,13 +55,17 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	PassManager Passes;
 
 	ModulePass *InitVerifPass = new initVerif();
+	ModulePass *AIPass = new AI();
 
 	Passes.add(new TargetData(M));
 	Passes.add(createVerifierPass());
 	Passes.add(createGCLoweringPass());
 	Passes.add(createLowerInvokePass());
 	Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
+
 	Passes.add(InitVerifPass);
+	Passes.add(AIPass);
+
 	Passes.add(createGCInfoDeleter());
 
 	Passes.run(*M);

@@ -1,8 +1,7 @@
 #include "llvm/BasicBlock.h"
 
-#include "node.h"
-#include "hashtables.h"
+#include "Node.h"
+#include "Hashtables.h"
 #include <map>
-
 
 std::map<BasicBlock *,node *> nodes;

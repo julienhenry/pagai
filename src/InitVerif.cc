@@ -1,11 +1,20 @@
+#include<stack>
+
 #include "llvm/Module.h"
 #include "llvm/Instructions.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Support/FormattedStream.h"
 
-#include "initVerif.h"
-#include "hashtables.h"
+#include "InitVerif.h"
+#include "Hashtables.h"
+
+
+#ifdef DEBUG
+#define DEBUG_MODE(x) x 
+#else
+#define DEBUG_MODE(x)
+#endif
 
 using namespace llvm;
 
@@ -35,25 +44,25 @@ void initVerif::computeFunction(Function * F) {
 		n = new node(i);
 		nodes[i] = n;
 	}
-	/*we find the loop heads*/
 	if (F->size() > 0) {
+		/*we find the loop heads and the Strongly Connected Components*/
 		node * front = nodes[&(F->front())];
-		front->compute_loop_heads();
+		front->computeSCC();
 	}
-
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		computeBasicBlock(i);
-	}
+	DEBUG_MODE(
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+		printBasicBlock(i);
+	)
 }
 
 
 
 
-void initVerif::computeBasicBlock(BasicBlock* b) {
+void initVerif::printBasicBlock(BasicBlock* b) {
 	node * n = nodes[b];
 	if (n->getLoop()) {
-		fouts() << b << ": LOOP HEAD" << *b;
+		fouts() << b << ": SCC=" << n->getSccId() << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ":" << *b;
+		fouts() << b << ": SCC=" << n->getSccId() << ":" << *b;
 	}
 }

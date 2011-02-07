@@ -23,7 +23,7 @@ public:
 	bool runOnModule(Module &M);
 	
 	void computeFunction(Function * F);
-	void computeBasicBlock(BasicBlock* b);
+	void printBasicBlock(BasicBlock* b);
 };
 
 #endif
