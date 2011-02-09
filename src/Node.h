@@ -2,13 +2,16 @@
 #define _NODE_H
 
 #include<stack>
+#include<map>
 
 #include "llvm/BasicBlock.h"
 
+#include "ap_global1.h"
 
 using namespace llvm;
 
-class node {
+
+class Node {
 private:
 	BasicBlock * bb;
 	int sccId;
@@ -19,10 +22,14 @@ private:
 	int index;
 	int lowlink;
 	bool isInStack;
-	void computeSCC_rec(int n,std::stack<node*> * S);
+	void computeSCC_rec(int n,std::stack<Node*> * S);
+
+	/*Abstract domains */
+	ap_abstract1_t X_begin;
+	ap_abstract1_t X_end;
 
 public:
-	node(BasicBlock * _bb) : bb(_bb), loop(false), color(0), index(0), lowlink(0), isInStack(false) {}
+	Node(BasicBlock * _bb) : bb(_bb), loop(false), color(0), index(0), lowlink(0), isInStack(false) {}
 
 	void computeSCC();
 
@@ -42,5 +49,7 @@ public:
 	int getLoop();
 	void setLoop(bool b);
 };
+
+extern std::map<BasicBlock *,Node *> Nodes;
 
 #endif

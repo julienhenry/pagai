@@ -1,19 +1,22 @@
 #include<stack>
+#include<map>
 
 #include "llvm/BasicBlock.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
 
 #include "Node.h"
-#include "Hashtables.h"
+#include "Expr.h"
 
 using namespace llvm;
+
+std::map<BasicBlock *,Node *> Nodes;
 
 /**
  * compute the strongly connected components and the loop heads of the graph.
  */
-void node::computeSCC() {
-	std::stack<node*> * S = new std::stack<node*>();
+void Node::computeSCC() {
+	std::stack<Node*> * S = new std::stack<Node*>();
 	computeSCC_rec(1,S);
 }
 
@@ -22,8 +25,8 @@ void node::computeSCC() {
  * compute both the loop heads and the Strongly connected components
  * Must be called with n=1 and and empty allocated stack
  */
-void node::computeSCC_rec(int n,std::stack<node*> * S) {
-	node * nsucc;
+void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
+	Node * nsucc;
 
 	index=n;
 	lowlink=n;
@@ -32,7 +35,7 @@ void node::computeSCC_rec(int n,std::stack<node*> * S) {
 	isInStack=true;
 	for (succ_iterator s = succ_begin(bb), E = succ_end(bb); s != E; ++s) {
 		BasicBlock * succ = *s;
-		nsucc = nodes[succ];
+		nsucc = Nodes[succ];
 		switch (nsucc->getIndex()) {
 			case 0:
 				nsucc->computeSCC_rec(n+1,S);
@@ -57,43 +60,43 @@ void node::computeSCC_rec(int n,std::stack<node*> * S) {
 	}
 }
 
-bool node::inStack() {
+bool Node::inStack() {
 	return isInStack;
 }
 
-int node::getSccId() {
+int Node::getSccId() {
 	return sccId;
 }
 
 
-int node::getColor() {
+int Node::getColor() {
 	return color;
 }
 
-void node::setColor(int n) {
+void Node::setColor(int n) {
 	color = n;
 }
 
-int node::getIndex() {
+int Node::getIndex() {
 	return index;
 }
 
-void node::setIndex(int n) {
+void Node::setIndex(int n) {
 	index = n;
 }
 
-int node::getLowlink() {
+int Node::getLowlink() {
 	return lowlink;
 }
 
-void node::setLowlink(int n) {
+void Node::setLowlink(int n) {
 	lowlink = n;
 }
 
-int node::getLoop() {
+int Node::getLoop() {
 	return loop;
 }
 
-void node::setLoop(bool b) {
+void Node::setLoop(bool b) {
 	loop = b;
 }

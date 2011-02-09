@@ -7,7 +7,8 @@
 #include "llvm/Support/FormattedStream.h"
 
 #include "InitVerif.h"
-#include "Hashtables.h"
+#include "Expr.h"
+#include "Node.h"
 
 
 #ifdef DEBUG
@@ -37,16 +38,16 @@ bool initVerif::runOnModule(Module &M) {
 }
 
 void initVerif::computeFunction(Function * F) {
-	node * n;
+	Node * n;
 	
-	/*we create the node objects associated to each basicblock*/
+	/*we create the Node objects associated to each basicblock*/
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		n = new node(i);
-		nodes[i] = n;
+		n = new Node(i);
+		Nodes[i] = n;
 	}
 	if (F->size() > 0) {
 		/*we find the loop heads and the Strongly Connected Components*/
-		node * front = nodes[&(F->front())];
+		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
 	DEBUG_MODE(
@@ -59,10 +60,10 @@ void initVerif::computeFunction(Function * F) {
 
 
 void initVerif::printBasicBlock(BasicBlock* b) {
-	node * n = nodes[b];
+	Node * n = Nodes[b];
 	if (n->getLoop()) {
-		fouts() << b << ": SCC=" << n->getSccId() << ": LOOP HEAD" << *b;
+		fdbgs() << b << ": SCC=" << n->getSccId() << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ": SCC=" << n->getSccId() << ":" << *b;
+		fdbgs() << b << ": SCC=" << n->getSccId() << ":" << *b;
 	}
 }

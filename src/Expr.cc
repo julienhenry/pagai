@@ -1,0 +1,77 @@
+#include <map>
+
+#include "llvm/BasicBlock.h"
+#include "llvm/Type.h"
+#include "llvm/Support/CFG.h"
+#include "llvm/Support/FormattedStream.h"
+
+
+#include "ap_global1.h"
+
+#include "Expr.h"
+#include "ap_debug.h"
+
+std::map<Value *,ap_texpr1_t *> Exprs;
+
+ap_texpr1_t * Expr::get_ap_expr(Value * val) {
+	if (Exprs.count(val) > 0) {
+		print_texpr(Exprs[val]);
+		return Exprs[val];
+	} else {
+		/*val is not yet in the Expr map
+		 * We have to create it */
+		if (isa<Constant>(val)) {
+			return create_ap_expr(dyn_cast<Constant>(val));
+		} else {
+			// NOT IMPLEMENTED
+			//return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
+			return NULL;
+		}
+	}
+}
+
+ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
+	if (isa<ConstantInt>(val)) {
+		ConstantInt * Int = dyn_cast<ConstantInt>(val);
+		/*it is supposed we use signed int */
+		int64_t n = Int->getSExtValue();
+		return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
+	} else if (isa<ConstantFP>(val)) {
+		ConstantFP * FP = dyn_cast<ConstantFP>(val);
+		// NOT IMPLEMENTED
+		return NULL;
+	}
+}
+
+void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
+	Exprs[val] = exp;
+}
+
+
+
+ap_texpr_rtype_t Expr::get_ap_type(Value * val) {
+	ap_texpr_rtype_t res;
+	
+	switch (val->getType()->getTypeID()) {
+	case Type::FloatTyID:
+		res = AP_RTYPE_SINGLE;
+		break;
+	case Type::DoubleTyID:
+		res = AP_RTYPE_DOUBLE;
+		break;
+	case Type::IntegerTyID:
+		res = AP_RTYPE_INT;
+		break;
+	case Type::X86_FP80TyID:
+		res = AP_RTYPE_EXTENDED;
+		break;
+	case Type::PPC_FP128TyID:
+		res = AP_RTYPE_QUAD;
+		break;
+	default:
+		fouts() << "Warning: Unknown type " << val->getType() << "\n";
+		res = AP_RTYPE_REAL;
+		break;
+	}
+	return res;
+}
