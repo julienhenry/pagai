@@ -9,15 +9,17 @@
 #include "ap_global1.h"
 
 #include "Expr.h"
-#include "ap_debug.h"
+#include "apron.h"
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
 ap_texpr1_t * Expr::get_ap_expr(Value * val) {
 	if (Exprs.count(val) > 0) {
-		print_texpr(Exprs[val]);
-		return Exprs[val];
+		if (Exprs[val] == NULL)
+			fouts() << "NULL pointer in table Exprs !\n";
+		return ap_texpr1_copy(Exprs[val]);
 	} else {
+		fouts() << "Missing apron expression for " << *val << "\n";
 		/*val is not yet in the Expr map
 		 * We have to create it */
 		if (isa<Constant>(val)) {

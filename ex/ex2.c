@@ -11,6 +11,8 @@ int main(int argc, char ** argv) {
 	while (x < 100000 && x > 0) {
 	x = 2;
 	y = x + 50;
+	y = y + 6;
+	y = x + y + 5;
 
 	for (i=0; i < y; i++) {
 		x = x + 2;

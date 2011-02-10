@@ -11,6 +11,7 @@
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Transforms/Scalar.h"
 
+#include "llvm/Analysis/Passes.h"
 
 #include "InitVerif.h"
 #include "AI.h"
@@ -44,7 +45,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			delete FDOut;
 			return;
 		}
-		Out = new formatted_raw_ostream(*FDOut,    formatted_raw_ostream::DELETE_STREAM);
+		Out = new formatted_raw_ostream(*FDOut, formatted_raw_ostream::DELETE_STREAM);
 
 		// Make sure that the Output file gets unlinked from the disk if we get a
 		// SIGINT
@@ -59,15 +60,17 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.add(new TargetData(M));
 	Passes.add(createVerifierPass());
-	Passes.add(createGCLoweringPass());
-	Passes.add(createLowerInvokePass());
+	//Passes.add(createGCLoweringPass());
+	//Passes.add(createLowerInvokePass());
 	Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
 	Passes.add(createPromoteMemoryToRegisterPass());
-
+	
+	Passes.add(createLiveValuesPass());
+	
 	Passes.add(InitVerifPass);
 	Passes.add(AIPass);
 
-	Passes.add(createGCInfoDeleter());
+	//Passes.add(createGCInfoDeleter());
 
 	Passes.run(*M);
 

@@ -3,6 +3,8 @@
 
 #include "ap_global1.h"
 
+extern void init_apron();
+
 extern void print_texpr(ap_texpr1_t * exp);
 
 #endif

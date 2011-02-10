@@ -5,6 +5,9 @@
 #include "llvm/PassManager.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Analysis/LiveValues.h"
+
+#include "llvm/Analysis/Passes.h"
 
 #include "ap_global1.h"
 #include "pk.h"
@@ -12,7 +15,8 @@
 #include "AI.h"
 #include "Expr.h"
 #include "Node.h"
-#include "ap_debug.h"
+#include "apron.h"
+#include "InitVerif.h"
 
 using namespace llvm;
 
@@ -20,6 +24,12 @@ char AI::ID = 0;
 
 const char * AI::getPassName() const {
 	return "AI";
+}
+
+void AI::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LiveValues>();
+	AU.addRequired<initVerif>();
 }
 
 bool AI::runOnModule(Module &M) {
@@ -39,6 +49,8 @@ bool AI::runOnModule(Module &M) {
 
 void AI::computeFunction(Function * F) {
 
+	LV = &(getAnalysis<LiveValues>(*F));
+	
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		if (!(a->use_empty()))
 			fouts() << "non empty ! : NOT IMPLEMENTED\n";
@@ -58,8 +70,6 @@ void AI::computeBasicBlock(BasicBlock* b) {
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
-
-
 	}
 
 	/* */
@@ -123,10 +133,11 @@ void AI::visitGetElementPtrInst (GetElementPtrInst &I){
 
 void AI::visitPHINode (PHINode &I){
 	fouts() << "PHINode\n" << I << "\n";	
-	ap_var_t var = (void*) &I; 
+	ap_var_t var = (Value *) &I; 
 	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	Expr::set_ap_expr(&I,exp);
+	print_texpr(Expr::get_ap_expr(&I));
 
 }
 
@@ -184,10 +195,11 @@ void AI::visitSelectInst (SelectInst &I){
 
 void AI::visitCallInst(CallInst &I){
 	fouts() << "CallInst\n" << I << "\n";	
-	ap_var_t var = (void*) &I; 
+	ap_var_t var = (Value *) &I; 
 	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	Expr::set_ap_expr(&I,exp);
+	print_texpr(exp);
 }
 
 void AI::visitVAArgInst (VAArgInst &I){
@@ -245,7 +257,7 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 		case Instruction::FRem: 
 			op = AP_TEXPR_MOD;
 			break;
-		// Logical operators
+			// Logical operators
 		case Instruction::Shl : // Shift left  (logical)
 		case Instruction::LShr: // Shift right (logical)
 		case Instruction::AShr: // Shift right (arithmetic)
@@ -261,10 +273,21 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 	Value * op1 = I.getOperand(0);
 	Value * op2 = I.getOperand(1);
 
-
 	ap_texpr1_t * exp1 = Expr::get_ap_expr(op1);
 	ap_texpr1_t * exp2 = Expr::get_ap_expr(op2);
-	ap_texpr1_t * exp = ap_texpr1_binop(op, exp1, exp2, type, dir);
+
+	/* we compute the least common environment for the two expressions */
+	ap_dimchange_t ** dimchange1;
+	ap_dimchange_t ** dimchange2;
+	ap_environment_t* lcenv = ap_environment_lce(	exp1->env,
+			exp2->env,
+			dimchange1,
+			dimchange2);
+	/* we extend the environments such that both expressions have the same one */
+	exp1 = ap_texpr1_extend_environment(exp1,lcenv);
+	exp2 = ap_texpr1_extend_environment(exp2,lcenv);
+	/* we create the expression associated to the binary op */
+	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
 	Expr::set_ap_expr(&I,exp);
 
 	print_texpr(exp);

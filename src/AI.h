@@ -14,6 +14,9 @@ using namespace llvm;
 
 class AI : public ModulePass, public InstVisitor<AI> {
 
+	private:
+		LiveValues * LV;
+
 	public:
 		static char ID;	
 
@@ -21,6 +24,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		~AI () {}
 
 		const char *getPassName() const;
+		void getAnalysisUsage(AnalysisUsage &AU) const;
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);

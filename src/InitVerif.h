@@ -6,6 +6,7 @@
 #include "llvm/PassManager.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Analysis/LiveValues.h"
 
 using namespace llvm;
 
@@ -20,6 +21,7 @@ public:
 	~initVerif () {}
 		
 	const char *getPassName() const;
+	void getAnalysisUsage(AnalysisUsage &AU) const;
 	bool runOnModule(Module &M);
 	
 	void computeFunction(Function * F);

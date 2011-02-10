@@ -5,11 +5,12 @@
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Analysis/LiveValues.h"
 
 #include "InitVerif.h"
 #include "Expr.h"
 #include "Node.h"
-
+#include "apron.h"
 
 #ifdef DEBUG
 #define DEBUG_MODE(x) x 
@@ -25,10 +26,17 @@ const char *initVerif::getPassName() const {
 	return "initVerif";
 }
 
+void initVerif::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LiveValues>();
+}
+
+
 
 bool initVerif::runOnModule(Module &M) {
 
-	
+	init_apron();
+
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		Function* F = &*mIt;
 		fouts() << "1 function found, of size " << F->size() << "\n";	
