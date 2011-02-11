@@ -30,7 +30,6 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 
 	index=n;
 	lowlink=n;
-	color=1;
 	S->push(this);
 	isInStack=true;
 	for (succ_iterator s = succ_begin(bb), E = succ_end(bb); s != E; ++s) {
@@ -41,15 +40,11 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 				nsucc->computeSCC_rec(n+1,S);
 				lowlink = std::min(lowlink,nsucc->getLowlink());
 			default:
-				if (nsucc->getColor() == 1) {
-					nsucc->setLoop(true);
-				}
 				if (nsucc->inStack()) {
 					lowlink = std::min(lowlink,nsucc->getIndex());
 				}
 		}
 	}
-	color=2;
 	if (lowlink == index) {
 		do {
 			nsucc = S->top();
@@ -68,15 +63,6 @@ int Node::getSccId() {
 	return sccId;
 }
 
-
-int Node::getColor() {
-	return color;
-}
-
-void Node::setColor(int n) {
-	color = n;
-}
-
 int Node::getIndex() {
 	return index;
 }
@@ -93,10 +79,3 @@ void Node::setLowlink(int n) {
 	lowlink = n;
 }
 
-int Node::getLoop() {
-	return loop;
-}
-
-void Node::setLoop(bool b) {
-	loop = b;
-}

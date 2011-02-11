@@ -12,6 +12,7 @@
 #include "llvm/Transforms/Scalar.h"
 
 #include "llvm/Analysis/Passes.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 #include "InitVerif.h"
 #include "AI.h"
@@ -64,8 +65,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createLowerInvokePass());
 	Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
 	Passes.add(createPromoteMemoryToRegisterPass());
-	
+	Passes.add(createLoopSimplifyPass());	
 	Passes.add(createLiveValuesPass());
+	Passes.add(new LoopInfo());
 	
 	Passes.add(InitVerifPass);
 	Passes.add(AIPass);

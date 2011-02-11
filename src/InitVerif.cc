@@ -6,6 +6,7 @@
 #include "llvm/PassManager.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Analysis/LiveValues.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 #include "InitVerif.h"
 #include "Expr.h"
@@ -29,9 +30,8 @@ const char *initVerif::getPassName() const {
 void initVerif::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LiveValues>();
+	AU.addRequired<LoopInfo>();
 }
-
-
 
 bool initVerif::runOnModule(Module &M) {
 
@@ -69,7 +69,8 @@ void initVerif::computeFunction(Function * F) {
 
 void initVerif::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
-	if (n->getLoop()) {
+	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
+	if (LI.isLoopHeader(b)) {
 		fdbgs() << b << ": SCC=" << n->getSccId() << ": LOOP HEAD" << *b;
 	} else {
 		fdbgs() << b << ": SCC=" << n->getSccId() << ":" << *b;

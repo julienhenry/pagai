@@ -15,10 +15,8 @@ class Node {
 private:
 	BasicBlock * bb;
 	int sccId;
-	bool loop;
 
 	/* used by computeSCC */
-	int color;
 	int index;
 	int lowlink;
 	bool isInStack;
@@ -29,14 +27,12 @@ private:
 	ap_abstract1_t X_end;
 
 public:
-	Node(BasicBlock * _bb) : bb(_bb), loop(false), color(0), index(0), lowlink(0), isInStack(false) {}
+	Node(BasicBlock * _bb) : bb(_bb), index(0), lowlink(0), isInStack(false) {}
 
 	void computeSCC();
 
 	int getSccId();
 
-	int getColor();
-	void setColor(int n);
 
 	int getLowlink();
 	void setLowlink(int n);
@@ -45,9 +41,6 @@ public:
 	void setIndex(int n);
 
 	bool inStack();
-
-	int getLoop();
-	void setLoop(bool b);
 };
 
 extern std::map<BasicBlock *,Node *> Nodes;
