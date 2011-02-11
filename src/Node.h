@@ -13,8 +13,8 @@ using namespace llvm;
 
 class Node {
 private:
+	/*Basicblock associated to the node*/
 	BasicBlock * bb;
-	int sccId;
 
 	/* used by computeSCC */
 	int index;
@@ -23,24 +23,18 @@ private:
 	void computeSCC_rec(int n,std::stack<Node*> * S);
 
 	/*Abstract domains */
-	ap_abstract1_t X_begin;
-	ap_abstract1_t X_end;
+	ap_abstract1_t X;
+
+public:
+	/*identifies the strongly connected component the node is in*/
+	int sccId;
+
 
 public:
 	Node(BasicBlock * _bb) : bb(_bb), index(0), lowlink(0), isInStack(false) {}
 
+	/*compute the strongly connected components of the CFG*/
 	void computeSCC();
-
-	int getSccId();
-
-
-	int getLowlink();
-	void setLowlink(int n);
-
-	int getIndex();
-	void setIndex(int n);
-
-	bool inStack();
 };
 
 extern std::map<BasicBlock *,Node *> Nodes;

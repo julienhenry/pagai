@@ -35,13 +35,13 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 	for (succ_iterator s = succ_begin(bb), E = succ_end(bb); s != E; ++s) {
 		BasicBlock * succ = *s;
 		nsucc = Nodes[succ];
-		switch (nsucc->getIndex()) {
+		switch (nsucc->index) {
 			case 0:
 				nsucc->computeSCC_rec(n+1,S);
-				lowlink = std::min(lowlink,nsucc->getLowlink());
+				lowlink = std::min(lowlink,nsucc->lowlink);
 			default:
-				if (nsucc->inStack()) {
-					lowlink = std::min(lowlink,nsucc->getIndex());
+				if (nsucc->isInStack) {
+					lowlink = std::min(lowlink,nsucc->index);
 				}
 		}
 	}
@@ -54,28 +54,3 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 		} while (nsucc != this);
 	}
 }
-
-bool Node::inStack() {
-	return isInStack;
-}
-
-int Node::getSccId() {
-	return sccId;
-}
-
-int Node::getIndex() {
-	return index;
-}
-
-void Node::setIndex(int n) {
-	index = n;
-}
-
-int Node::getLowlink() {
-	return lowlink;
-}
-
-void Node::setLowlink(int n) {
-	lowlink = n;
-}
-

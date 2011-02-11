@@ -29,7 +29,6 @@ const char *initVerif::getPassName() const {
 
 void initVerif::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<LiveValues>();
 	AU.addRequired<LoopInfo>();
 }
 
@@ -54,7 +53,7 @@ void initVerif::computeFunction(Function * F) {
 		Nodes[i] = n;
 	}
 	if (F->size() > 0) {
-		/*we find the loop heads and the Strongly Connected Components*/
+		/*we find the Strongly Connected Components*/
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
@@ -64,15 +63,12 @@ void initVerif::computeFunction(Function * F) {
 	)
 }
 
-
-
-
 void initVerif::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
 	if (LI.isLoopHeader(b)) {
-		fdbgs() << b << ": SCC=" << n->getSccId() << ": LOOP HEAD" << *b;
+		fdbgs() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	} else {
-		fdbgs() << b << ": SCC=" << n->getSccId() << ":" << *b;
+		fdbgs() << b << ": SCC=" << n->sccId << ":" << *b;
 	}
 }
