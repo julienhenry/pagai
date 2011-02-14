@@ -1,12 +1,17 @@
 #ifndef _AI_H
 #define _AI_H
 
+#include <queue>
+#include <vector>
+
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
+
+#include "Node.h"
 
 using namespace llvm;
 
@@ -16,6 +21,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 	private:
 		LiveValues * LV;
+		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
+		ap_manager_t* man;
 
 	public:
 		static char ID;	
@@ -28,8 +35,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);
-		void computeBasicBlock(BasicBlock* b);
-
+		void computeNode(Node* n);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

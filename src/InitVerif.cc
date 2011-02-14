@@ -38,6 +38,7 @@ bool initVerif::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		Function* F = &*mIt;
+		
 		fouts() << "1 function found, of size " << F->size() << "\n";	
 		computeFunction(F);
 	}

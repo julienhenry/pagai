@@ -17,7 +17,7 @@ ap_texpr1_t * Expr::get_ap_expr(Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			fouts() << "NULL pointer in table Exprs !\n";
-		return ap_texpr1_copy(Exprs[val]);
+		return Exprs[val];
 	} else {
 		fouts() << "Missing apron expression for " << *val << "\n";
 		/*val is not yet in the Expr map
@@ -48,8 +48,6 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
 	Exprs[val] = exp;
 }
-
-
 
 ap_texpr_rtype_t Expr::get_ap_type(Value * val) {
 	ap_texpr_rtype_t res;

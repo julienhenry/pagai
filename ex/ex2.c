@@ -8,7 +8,7 @@ int main(int argc, char ** argv) {
 	int y;
 	int i;
 
-	while (x < 100000 && x > 0) {
+	while (argc < 100000 && x > 0) {
 	x = 2;
 	y = x + 50;
 	y = y + 6;

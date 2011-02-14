@@ -1,5 +1,6 @@
 #include<stack>
 #include<map>
+#include<set>
 
 #include "llvm/BasicBlock.h"
 #include "llvm/Support/CFG.h"
@@ -27,7 +28,6 @@ void Node::computeSCC() {
  */
 void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 	Node * nsucc;
-
 	index=n;
 	lowlink=n;
 	S->push(this);
@@ -53,4 +53,31 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 			nsucc->sccId = index;
 		} while (nsucc != this);
 	}
+}
+
+
+void Node::add_var(Value * val) {
+	
+	switch (Expr::get_ap_type(val)) {
+		case AP_RTYPE_INT:
+			intVar.insert((ap_var_t)val);
+			break;
+		default:
+			realVar.insert((ap_var_t)val);
+			break;
+	}
+}
+
+ap_environment_t * Node::create_env() {
+	ap_var_t * intvars = new ap_var_t [intVar.size()];
+	ap_var_t * realvars = new ap_var_t [realVar.size()];
+	copy (intVar.begin(),intVar.end(),intvars);
+	copy (realVar.begin(),realVar.end(),realvars);
+	return ap_environment_alloc(intvars,intVar.size(),
+								realvars,realVar.size());
+
+}
+
+bool NodeCompare::operator() (Node* n1, Node* n2) {
+	return (n1->sccId < n2->sccId);
 }

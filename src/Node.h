@@ -3,6 +3,7 @@
 
 #include<stack>
 #include<map>
+#include<set>
 
 #include "llvm/BasicBlock.h"
 
@@ -12,31 +13,44 @@ using namespace llvm;
 
 
 class Node {
-private:
-	/*Basicblock associated to the node*/
-	BasicBlock * bb;
+	private:
+		/* used by computeSCC */
+		int index;
+		int lowlink;
+		bool isInStack;
+		void computeSCC_rec(int n,std::stack<Node*> * S);
+	public:
+		/* Basicblock associated to the node */
+		BasicBlock * bb;
+		/* identifies the strongly connected component the node is in */
+		int sccId;
+		/* Abstract domain */
+		ap_abstract1_t * X;
 
-	/* used by computeSCC */
-	int index;
-	int lowlink;
-	bool isInStack;
-	void computeSCC_rec(int n,std::stack<Node*> * S);
+		/* vector of int and real variables */
+		std::set<ap_var_t> intVar;
+		std::set<ap_var_t> realVar;
 
-	/*Abstract domains */
-	ap_abstract1_t X;
+	public:
+		Node(BasicBlock * _bb): index(0), 
+								lowlink(0), 
+								isInStack(false), 
+								bb(_bb), 
+								X(NULL) {}
 
-public:
-	/*identifies the strongly connected component the node is in*/
-	int sccId;
+		/* compute the strongly connected components of the CFG */
+		void computeSCC();
 
+		void add_var(Value * val);
+		
+		ap_environment_t * create_env();
 
-public:
-	Node(BasicBlock * _bb) : bb(_bb), index(0), lowlink(0), isInStack(false) {}
-
-	/*compute the strongly connected components of the CFG*/
-	void computeSCC();
 };
 
 extern std::map<BasicBlock *,Node *> Nodes;
 
+class NodeCompare {
+	public:
+		bool operator() (Node* n1, Node* n2);
+};
 #endif
