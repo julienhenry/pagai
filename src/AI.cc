@@ -88,7 +88,10 @@ void AI::computeNode(Node* n) {
 	ap_environment_t * env;
 	bool update = false;
 
-	fouts() << "Computing node:\n" << *b << "\n";
+	fouts() << "#######################################################\n";
+	fouts() << "Computing node:\n";
+	fouts() << *b << "\n";
+	fouts() << "-------------------------------------------------------\n";
 
 	/* creation of the polyhedron at the beginning of the basicblock */
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
@@ -114,7 +117,6 @@ void AI::computeNode(Node* n) {
 		//ap_abstract1_fprint(stdout,man,n->X);
 		//ap_environment_fdump(stdout,env);
 	}
-
 	if (n->X == NULL) {
 		n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));	
 		*(n->X) = Xtemp;
@@ -131,7 +133,6 @@ void AI::computeNode(Node* n) {
 			update = true;
 		}
 	}
-
 	if (update) {
 		/* update the successors of n */
 		for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {

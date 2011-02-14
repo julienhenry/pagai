@@ -26,6 +26,9 @@ char* ap_var_to_string(ap_var_t var) {
 	return cname;
 }
 
+/*
+ * new compare function, working with Value * type
+ */
 int ap_var_compare(ap_var_t v1, ap_var_t v2) {
 	int n1,n2;
 	n1 = (unsigned) v1;
@@ -35,16 +38,16 @@ int ap_var_compare(ap_var_t v1, ap_var_t v2) {
 	return -1;
 }
 
+/*
+ * hash function for ap_var_t
+ */
 int ap_var_hash(ap_var_t v) {
 	return (int)(v);
 }
 
-ap_var_t ap_var_copy(ap_var_t var) {
-	return var;
-}
-
-void ap_var_free(ap_var_t var) {
-}
+/* no copy, no free ! */
+ap_var_t ap_var_copy(ap_var_t var) {return var;}
+void ap_var_free(ap_var_t var) {}
 
 /*
  * This function aims to change the functions for the apron var manager,
@@ -60,7 +63,9 @@ void init_apron() {
 	ap_var_operations = &var_op_manager;
 }
 
-/* Print the apron expression in stdout */
+/*
+ * Print the apron expression in stdout 
+ */
 void print_texpr(ap_texpr1_t * exp) {
 	printf("Apron expression:\n");
 	ap_texpr1_fprint(stdout,exp);
