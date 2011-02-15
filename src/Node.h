@@ -31,6 +31,9 @@ class Node {
 		std::set<ap_var_t> intVar;
 		std::set<ap_var_t> realVar;
 
+		/* contains the constraints for the outgoing transitions */
+		std::map<Node*,ap_tcons1_array_t*> tcons;
+
 	public:
 		Node(BasicBlock * _bb): index(0), 
 								lowlink(0), 
@@ -51,6 +54,6 @@ extern std::map<BasicBlock *,Node *> Nodes;
 
 class NodeCompare {
 	public:
-		bool operator() (Node* n1, Node* n2);
+		bool operator() (Node * n1, Node * n2);
 };
 #endif

@@ -81,25 +81,53 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-void AI::computeNode(Node* n) {
+void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Node * pred;
 	ap_abstract1_t Xtemp;
 	ap_environment_t * env;
 	bool update = false;
 
+	std::vector<ap_abstract1_t> X_pred;
+
 	fouts() << "#######################################################\n";
 	fouts() << "Computing node:\n";
 	fouts() << *b << "\n";
 	fouts() << "-------------------------------------------------------\n";
 
-	/* creation of the polyhedron at the beginning of the basicblock */
+	/* creation of the polyhedron at the beginning of the basicblock 
+	 *
+	 * compute the polyhedra associated to each predecessors
+	 */
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 
-		n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
-		n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
+		if (pred->X != NULL) {
+			ap_abstract1_t X = *(pred->X);
+			/* intersect with the transition's condition */
+			if (pred->tcons.count(n))
+				X = ap_abstract1_meet_tcons_array(man,false,&X,pred->tcons[n]);
+
+			X_pred.push_back(X);
+
+			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
+			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
+		}
+	}
+
+	/* Xtemp is the join of all predecessors */
+	if (X_pred.size() > 0) {
+		Xtemp = ap_abstract1_join_array(man,&X_pred[0],X_pred.size());	
+		env = Xtemp.env;
+	} else {
+		ap_var_t * intVars = new ap_var_t[n->intVar.size()];
+		ap_var_t * realVars = new ap_var_t[n->realVar.size()];
+		std::copy(n->intVar.begin(),n->intVar.end(),intVars);
+		std::copy(n->realVar.begin(),n->realVar.end(),realVars);
+		env = ap_environment_alloc(	intVars,n->intVar.size(),
+								realVars,n->realVar.size());
+		Xtemp = ap_abstract1_bottom(man,env);
 	}
 
 	/* visit instructions */
@@ -108,10 +136,6 @@ void AI::computeNode(Node* n) {
 		visit(*i);
 	}
 
-	/* TO BE MODIFIED */
-	env = n->create_env();
-	Xtemp = ap_abstract1_bottom(man,env);
-	
 	if (n->X != NULL) {
 		//ap_environment_fdump(stdout,n->X->env);
 		//ap_abstract1_fprint(stdout,man,n->X);
@@ -122,7 +146,7 @@ void AI::computeNode(Node* n) {
 		*(n->X) = Xtemp;
 		update = true;
 	} else {
-		/* environment may be bigger since last computation of this node */
+		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(n->X->env,env)) {
 			*(n->X) = ap_abstract1_change_environment(man,true,n->X,env,false);
 			update = true;
@@ -261,12 +285,15 @@ void AI::visitSelectInst (SelectInst &I){
 }
 
 void AI::visitCallInst(CallInst &I){
+	Node * n = Nodes[I.getParent()];
+
 	fouts() << "CallInst\n" << I << "\n";	
 	ap_var_t var = (Value *) &I; 
 	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	Expr::set_ap_expr(&I,exp);
 	//print_texpr(exp);
+	n->add_var((Value*)var);
 }
 
 void AI::visitVAArgInst (VAArgInst &I){

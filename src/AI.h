@@ -35,7 +35,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);
-		void computeNode(Node* n);
+		void computeNode(Node * n);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

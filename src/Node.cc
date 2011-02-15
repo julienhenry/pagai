@@ -78,6 +78,6 @@ ap_environment_t * Node::create_env() {
 
 }
 
-bool NodeCompare::operator() (Node* n1, Node* n2) {
+bool NodeCompare::operator() (Node * n1, Node * n2) {
 	return (n1->sccId < n2->sccId);
 }
