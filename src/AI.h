@@ -37,6 +37,10 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		void computeFunction(Function * F);
 		void computeNode(Node * n);
 
+		void computeCondition(	CmpInst * inst, 
+				ap_tcons1_array_t * true_cons, 
+				ap_tcons1_array_t * false_cons);
+
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);
 		void visitBranchInst (BranchInst &I);

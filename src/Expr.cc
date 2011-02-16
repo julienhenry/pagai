@@ -13,7 +13,7 @@
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
-ap_texpr1_t * Expr::get_ap_expr(Value * val) {
+ap_texpr1_t * Expr::get_ap_expr(Node * n, Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			fouts() << "NULL pointer in table Exprs !\n";
@@ -23,8 +23,10 @@ ap_texpr1_t * Expr::get_ap_expr(Value * val) {
 		/*val is not yet in the Expr map
 		 * We have to create it */
 		if (isa<Constant>(val)) {
-			return create_ap_expr(dyn_cast<Constant>(val));
+			return create_ap_expr(n,dyn_cast<Constant>(val));
 		} else {
+			fouts() << "NOT IMPLEMENTED : get_ap_expr call "
+					<< "with missing non constant expression\n";
 			// NOT IMPLEMENTED
 			//return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
 			return NULL;
@@ -32,16 +34,21 @@ ap_texpr1_t * Expr::get_ap_expr(Value * val) {
 	}
 }
 
-ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
+ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantInt>(val)) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
 		/*it is supposed we use signed int */
 		int64_t n = Int->getSExtValue();
 		return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
-	} else if (isa<ConstantFP>(val)) {
+	} 
+	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
 		// NOT IMPLEMENTED
 		return NULL;
+	}
+	if (isa<UndefValue>(val)) {
+		n->add_var(val);
+		return Exprs[val];
 	}
 }
 

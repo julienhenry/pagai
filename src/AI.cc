@@ -70,8 +70,7 @@ void AI::computeFunction(Function * F) {
 	}
 	/* first abstract value is top */
 	ap_environment_t * env = n->create_env();
-	n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));	
-	*(n->X) = ap_abstract1_top(man,env);
+	n->X = new ap_abstract1_t(ap_abstract1_top(man,env));
 
 	/* Simple Abstract Interpretation algorithm */
 	while (!A.empty()) {
@@ -95,6 +94,16 @@ void AI::computeNode(Node * n) {
 	fouts() << *b << "\n";
 	fouts() << "-------------------------------------------------------\n";
 
+	if (n->X != NULL) {
+		ap_abstract1_fprint(stdout,man,n->X);
+	}
+
+	/* visit instructions */
+	for (BasicBlock::iterator i = b->begin(), e = b->end();
+			i != e; ++i) {
+		visit(*i);
+	}
+
 	/* creation of the polyhedron at the beginning of the basicblock 
 	 *
 	 * compute the polyhedra associated to each predecessors
@@ -104,55 +113,56 @@ void AI::computeNode(Node * n) {
 		pred = Nodes[pb];
 
 		if (pred->X != NULL) {
-			ap_abstract1_t X = *(pred->X);
-			/* intersect with the transition's condition */
-			if (pred->tcons.count(n))
-				X = ap_abstract1_meet_tcons_array(man,false,&X,pred->tcons[n]);
-
-			X_pred.push_back(X);
-
+			
 			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
 			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
+
+			ap_abstract1_t X = *(pred->X);
+
+			env = n->create_env();
+			X = ap_abstract1_change_environment(man,false,&X,env,false);
+
+			/* intersect with the transition's condition */
+			if (pred->tcons.count(n) && pred->tcons[n] != NULL)
+				X = ap_abstract1_meet_tcons_array(man,false,&X,pred->tcons[n]);
+			/* we still need to add phi variables into our domain 
+			 * and assign them to the right value
+			 */
+			X = ap_abstract1_assign_texpr_array(man,false,&X,
+					&n->phi_vars[pred].name[0],
+					&n->phi_vars[pred].expr[0],
+					n->phi_vars[pred].name.size(),
+					NULL);
+
+			X_pred.push_back(X);
 		}
 	}
 
 	/* Xtemp is the join of all predecessors */
+	env = n->create_env();
+
 	if (X_pred.size() > 0) {
 		Xtemp = ap_abstract1_join_array(man,&X_pred[0],X_pred.size());	
-		env = Xtemp.env;
+		Xtemp = ap_abstract1_change_environment(man,false,&Xtemp,env,false);
 	} else {
-		ap_var_t * intVars = new ap_var_t[n->intVar.size()];
-		ap_var_t * realVars = new ap_var_t[n->realVar.size()];
-		std::copy(n->intVar.begin(),n->intVar.end(),intVars);
-		std::copy(n->realVar.begin(),n->realVar.end(),realVars);
-		env = ap_environment_alloc(	intVars,n->intVar.size(),
-								realVars,n->realVar.size());
+		/* we are in the first basicblock of the function */
 		Xtemp = ap_abstract1_bottom(man,env);
+		update = true;
 	}
 
-	/* visit instructions */
-	for (BasicBlock::iterator i = b->begin(), e = b->end();
-			i != e; ++i) {
-		visit(*i);
-	}
-
-	if (n->X != NULL) {
-		//ap_environment_fdump(stdout,n->X->env);
-		//ap_abstract1_fprint(stdout,man,n->X);
-		//ap_environment_fdump(stdout,env);
-	}
 	if (n->X == NULL) {
-		n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));	
-		*(n->X) = Xtemp;
+		n->X = new ap_abstract1_t(Xtemp);	
 		update = true;
 	} else {
 		/* environment may be bigger since the last computation of this node */
-		if (!ap_environment_is_eq(n->X->env,env)) {
-			*(n->X) = ap_abstract1_change_environment(man,true,n->X,env,false);
-			update = true;
+		if (!ap_environment_is_eq(env,n->X->env)) {
+			fouts() << "change environment\n";
+			*(n->X) = ap_abstract1_change_environment(man,false,n->X,env,false);
+			//ap_environment_fdump(stdout,n->X->env);
+			//update = true;
 		}
 		/* update the abstract value if it is bigger than the previous one */
-		if (!ap_abstract1_is_leq(man,n->X,&Xtemp)) {
+		if (!ap_abstract1_is_leq(man,&Xtemp,n->X)) {
 			*(n->X) = Xtemp;
 			update = true;
 		}
@@ -164,15 +174,42 @@ void AI::computeNode(Node * n) {
 			A.push(Nodes[sb]);
 		}
 	}
+	//fouts() << "n->X->env = \n";
+	ap_environment_fdump(stdout,n->X->env);
+	ap_abstract1_fprint(stdout,man,n->X);
 }
-
 
 void AI::visitReturnInst (ReturnInst &I){
 	fouts() << "returnInst\n" << I << "\n";
 }
 
+void AI::computeCondition(	CmpInst * inst, 
+		ap_tcons1_array_t * true_cons, 
+		ap_tcons1_array_t * false_cons) {
+	true_cons = NULL;
+	false_cons = NULL;
+
+}
+
 void AI::visitBranchInst (BranchInst &I){
+	Node * n = Nodes[I.getParent()];
+	Node * iftrue;
+	Node * iffalse;
+
 	fouts() << "BranchInst\n" << I << "\n";	
+	if (I.isUnconditional()) {
+		/* no constraints */
+		return;
+	}
+	/* branch under condition */
+	iftrue = Nodes[I.getSuccessor(0)];
+	iffalse = Nodes[I.getSuccessor(1)];
+	ap_tcons1_array_t * true_cons;
+	ap_tcons1_array_t * false_cons;
+	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),true_cons,false_cons);
+	/* insert into the tcons array of the node */
+	n->tcons[iftrue] = true_cons;
+	n->tcons[iffalse] = false_cons;
 }
 
 void AI::visitSwitchInst (SwitchInst &I){
@@ -220,16 +257,22 @@ void AI::visitGetElementPtrInst (GetElementPtrInst &I){
 }
 
 void AI::visitPHINode (PHINode &I){
-	Node * n = Nodes[I.getParent()];
-
-	fouts() << "PHINode\n" << I << "\n";	
 	ap_var_t var = (Value *) &I; 
-	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
-	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	Expr::set_ap_expr(&I,exp);
-	//print_texpr(Expr::get_ap_expr(&I));
-	n->add_var((Value*)var);
+	BasicBlock * b = I.getParent();
+	Node * n = Nodes[b];
 
+	fouts() << "PHINode\n" << I << "\n";
+	n->add_var((Value*)var);
+	
+	for (int i = 0; i < I.getNumIncomingValues(); i++) {
+		Value * pv = I.getIncomingValue(i);
+		Node * nb = Nodes[I.getIncomingBlock(i)];
+		if (nb->X != NULL){
+		//if (nb->X != NULL && !ap_abstract1_is_bottom(man,nb->X)) {
+			n->phi_vars[nb].name.push_back(var);
+			n->phi_vars[nb].expr.push_back(*Expr::get_ap_expr(n,pv));
+		}
+	}
 }
 
 void AI::visitTruncInst (TruncInst &I){
@@ -325,6 +368,8 @@ void AI::visitTerminatorInst (TerminatorInst &I){
 }
 
 void AI::visitBinaryOperator (BinaryOperator &I){
+	Node * n = Nodes[I.getParent()];
+
 	fouts() << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
 	switch(I.getOpcode()) {
@@ -367,24 +412,23 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 	Value * op1 = I.getOperand(0);
 	Value * op2 = I.getOperand(1);
 
-	//ap_texpr1_t * exp1 = Expr::get_ap_expr(op1);
-	//ap_texpr1_t * exp2 = Expr::get_ap_expr(op2);
+	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
+	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
 
-	///* we compute the least common environment for the two expressions */
-	//ap_dimchange_t ** dimchange1;
-	//ap_dimchange_t ** dimchange2;
-	//ap_environment_t* lcenv = ap_environment_lce(	exp1->env,
-	//		exp2->env,
-	//		dimchange1,
-	//		dimchange2);
-	///* we extend the environments such that both expressions have the same one */
-	//exp1 = ap_texpr1_extend_environment(exp1,lcenv);
-	//exp2 = ap_texpr1_extend_environment(exp2,lcenv);
-	///* we create the expression associated to the binary op */
-	//ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
-	//Expr::set_ap_expr(&I,exp);
-
-	//print_texpr(exp);
+	/* we compute the least common environment for the two expressions */
+	ap_dimchange_t * dimchange1;
+	ap_dimchange_t * dimchange2;
+	ap_environment_t* lcenv = ap_environment_lce(
+			exp1->env,
+			exp2->env,
+			&dimchange1,
+			&dimchange2);
+	/* we extend the environments such that both expressions have the same one */
+	exp1 = ap_texpr1_extend_environment(exp1,lcenv);
+	exp2 = ap_texpr1_extend_environment(exp2,lcenv);
+	/* we create the expression associated to the binary op */
+	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
+	Expr::set_ap_expr(&I,exp);
 }
 
 void AI::visitCmpInst (CmpInst &I){

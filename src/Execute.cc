@@ -63,7 +63,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(createVerifierPass());
 	//Passes.add(createGCLoweringPass());
 	//Passes.add(createLowerInvokePass());
-	Passes.add(createCFGSimplificationPass());    // clean up after lower invoke.
 	Passes.add(createPromoteMemoryToRegisterPass());
 	Passes.add(createLoopSimplifyPass());	
 	Passes.add(createLiveValuesPass());

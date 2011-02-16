@@ -11,6 +11,10 @@
 
 using namespace llvm;
 
+typedef struct _phivar {
+	std::vector<ap_var_t> name;
+	std::vector<ap_texpr1_t> expr;
+} phivar;
 
 class Node {
 	private:
@@ -33,6 +37,7 @@ class Node {
 
 		/* contains the constraints for the outgoing transitions */
 		std::map<Node*,ap_tcons1_array_t*> tcons;
+		std::map<Node*,phivar> phi_vars;
 
 	public:
 		Node(BasicBlock * _bb): index(0), 

@@ -19,7 +19,10 @@ char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
 	std::string s_string;
 	raw_string_ostream * s = new raw_string_ostream(s_string);
-	*s << val->getName();
+	if (val->hasName())
+		*s << val->getName();
+	else
+		*s << "unnamed_var";
 	std::string & name = s->str();
 	char * cname = new char [name.size()+1];
 	strcpy(cname,name.c_str());

@@ -8,15 +8,17 @@
 
 #include "ap_global1.h"
 
+#include "Node.h"
+
 using namespace llvm;
 
 extern std::map<Value *,ap_texpr1_t *> Exprs;
 
 class Expr {
 public:
-	static ap_texpr1_t * get_ap_expr(Value * val);
+	static ap_texpr1_t * get_ap_expr(Node * n, Value * val);
 
-	static ap_texpr1_t * create_ap_expr(Constant * val);
+	static ap_texpr1_t * create_ap_expr(Node * n, Constant * val);
 
 	static void set_ap_expr(Value * val, ap_texpr1_t * exp);
 
