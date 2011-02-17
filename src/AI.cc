@@ -97,6 +97,7 @@ void AI::computeNode(Node * n) {
 	n->phi_vars.clear();
 	n->intVar.clear();
 	n->realVar.clear();
+	n->tcons.clear();
 
 	/* visit instructions */
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
@@ -114,7 +115,7 @@ void AI::computeNode(Node * n) {
 		pred = Nodes[pb];
 
 		if (pred->X != NULL) {
-			
+
 			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
 			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
 
@@ -124,8 +125,9 @@ void AI::computeNode(Node * n) {
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
 			/* intersect with the transition's condition */
-			if (pred->tcons.count(n) && pred->tcons[n] != NULL)
+			if (pred->tcons.count(n) && pred->tcons[n] != NULL) {
 				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
+			}
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
 			 */
@@ -135,6 +137,7 @@ void AI::computeNode(Node * n) {
 					n->phi_vars[pred].name.size(),
 					NULL);
 
+			ap_abstract1_canonicalize(man,&X);
 			X_pred.push_back(ap_abstract1_copy(man,&X));
 		}
 	}
@@ -187,11 +190,109 @@ void AI::visitReturnInst (ReturnInst &I){
 }
 
 void AI::computeCondition(	CmpInst * inst, 
-		ap_tcons1_array_t * true_cons, 
-		ap_tcons1_array_t * false_cons) {
-	true_cons = NULL;
-	false_cons = NULL;
+		ap_tcons1_array_t ** true_cons, 
+		ap_tcons1_array_t ** false_cons) {
 
+	Node * n = Nodes[inst->getParent()];
+	ap_constyp_t constyp;
+	ap_constyp_t nconstyp;
+	Value * op1 = inst->getOperand(0);
+	Value * op2 = inst->getOperand(1);
+
+	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
+	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
+
+	/* we compute the least common environment for the two expressions */
+	ap_dimchange_t * dimchange1;
+	ap_dimchange_t * dimchange2;
+	ap_environment_t* lcenv = ap_environment_lce(
+			exp1->env,
+			exp2->env,
+			&dimchange1,
+			&dimchange2);
+	/* we extend the environments such that both expressions have the same one */
+	exp1 = ap_texpr1_extend_environment(exp1,lcenv);
+	exp2 = ap_texpr1_extend_environment(exp2,lcenv);
+
+	ap_texpr1_t * expr;
+	ap_texpr1_t * nexpr;
+	ap_texpr1_t * swap;
+
+	expr = ap_texpr1_binop(AP_TEXPR_SUB,
+			ap_texpr1_copy(exp1),
+			ap_texpr1_copy(exp2),
+			Expr::get_ap_type(op1),
+			AP_RDIR_NEAREST);
+
+	nexpr = ap_texpr1_binop(AP_TEXPR_SUB,
+			exp2,
+			exp1,
+			Expr::get_ap_type(op1),
+			AP_RDIR_NEAREST);
+
+	switch (inst->getPredicate()) {
+		case CmpInst::FCMP_FALSE:
+		case CmpInst::FCMP_OEQ: 
+		case CmpInst::FCMP_UEQ: 
+		case CmpInst::FCMP_TRUE: 
+		case CmpInst::ICMP_EQ:
+			constyp = AP_CONS_EQ; /* equality constraint */
+			nconstyp = AP_CONS_DISEQ;
+			break;
+		case CmpInst::FCMP_OGT:
+		case CmpInst::FCMP_UGT:
+		case CmpInst::ICMP_UGT: 
+		case CmpInst::ICMP_SGT: 
+			constyp = AP_CONS_SUP; /* > constraint */
+			nconstyp = AP_CONS_SUPEQ;
+			break;
+		case CmpInst::FCMP_OLT: 
+		case CmpInst::FCMP_ULT: 
+		case CmpInst::ICMP_ULT: 
+		case CmpInst::ICMP_SLT: 
+			swap = expr;
+			expr = nexpr;
+			nexpr = swap;
+			constyp = AP_CONS_SUP; /* > constraint */
+			nconstyp = AP_CONS_SUPEQ; 
+			break;
+		case CmpInst::FCMP_OGE:
+		case CmpInst::FCMP_UGE:
+		case CmpInst::ICMP_UGE: 
+		case CmpInst::ICMP_SGE: 
+			constyp = AP_CONS_SUPEQ; /* >= constraint */
+			nconstyp = AP_CONS_SUP;
+			break;
+		case CmpInst::FCMP_OLE:
+		case CmpInst::FCMP_ULE:
+		case CmpInst::ICMP_ULE: 
+		case CmpInst::ICMP_SLE: 
+			swap = expr;
+			expr = nexpr;
+			nexpr = swap;
+			constyp = AP_CONS_SUPEQ; /* >= constraint */
+			nconstyp = AP_CONS_SUP;
+			break;
+		case CmpInst::FCMP_ONE:
+		case CmpInst::FCMP_UNE: 
+		case CmpInst::ICMP_NE: 
+			constyp = AP_CONS_DISEQ; /* disequality constraint */
+			nconstyp = AP_CONS_EQ;
+			break;
+		case CmpInst::FCMP_ORD: 
+		case CmpInst::FCMP_UNO:
+		case CmpInst::BAD_ICMP_PREDICATE:
+		case CmpInst::BAD_FCMP_PREDICATE:
+			fouts() << "ERROR : Unknown predicate\n";
+			break;
+	}
+	ap_tcons1_t * cons = new ap_tcons1_t(ap_tcons1_make(constyp,expr,ap_scalar_alloc_set_double(0)));
+	*true_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
+	ap_tcons1_array_set(*true_cons,0,cons);
+
+	cons = new ap_tcons1_t(ap_tcons1_make(nconstyp,nexpr,ap_scalar_alloc_set_double(0)));
+	*false_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
+	ap_tcons1_array_set(*false_cons,0,cons);
 }
 
 void AI::visitBranchInst (BranchInst &I){
@@ -209,7 +310,7 @@ void AI::visitBranchInst (BranchInst &I){
 	iffalse = Nodes[I.getSuccessor(1)];
 	ap_tcons1_array_t * true_cons;
 	ap_tcons1_array_t * false_cons;
-	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),true_cons,false_cons);
+	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
 	/* insert into the tcons array of the node */
 	n->tcons[iftrue] = true_cons;
 	n->tcons[iffalse] = false_cons;
@@ -266,180 +367,180 @@ void AI::visitPHINode (PHINode &I){
 
 	fouts() << "PHINode\n" << I << "\n";
 	n->add_var((Value*)var);
-	
+
 	for (int i = 0; i < I.getNumIncomingValues(); i++) {
 		Value * pv = I.getIncomingValue(i);
 		Node * nb = Nodes[I.getIncomingBlock(i)];
 		if (nb->X != NULL){
-		//if (nb->X != NULL && !ap_abstract1_is_bottom(man,nb->X)) {
+			//if (nb->X != NULL && !ap_abstract1_is_bottom(man,nb->X)) {
 			n->phi_vars[nb].name.push_back(var);
 			n->phi_vars[nb].expr.push_back(*Expr::get_ap_expr(n,pv));
 		}
+		}
 	}
-}
 
-void AI::visitTruncInst (TruncInst &I){
-	fouts() << "TruncInst\n" << I << "\n";	
-}
-
-void AI::visitZExtInst (ZExtInst &I){
-	fouts() << "ZExtInst\n" << I << "\n";	
-}
-
-void AI::visitSExtInst (SExtInst &I){
-	fouts() << "SExtInst\n" << I << "\n";	
-}
-
-void AI::visitFPTruncInst (FPTruncInst &I){
-	fouts() << "FPTruncInst\n" << I << "\n";	
-}
-
-void AI::visitFPExtInst (FPExtInst &I){
-	fouts() << "FPExtInst\n" << I << "\n";	
-}
-
-void AI::visitFPToUIInst (FPToUIInst &I){
-	fouts() << "FPToUIInst\n" << I << "\n";	
-}
-
-void AI::visitFPToSIInst (FPToSIInst &I){
-	fouts() << "FPToSIInst\n" << I << "\n";	
-}
-
-void AI::visitUIToFPInst (UIToFPInst &I){
-	fouts() << "UIToFPInst\n" << I << "\n";	
-}
-
-void AI::visitSIToFPInst (SIToFPInst &I){
-	fouts() << "SIToFPInst\n" << I << "\n";	
-}
-
-void AI::visitPtrToIntInst (PtrToIntInst &I){
-	fouts() << "PtrToIntInst\n" << I << "\n";	
-}
-
-void AI::visitIntToPtrInst (IntToPtrInst &I){
-	fouts() << "IntToPtrInst\n" << I << "\n";	
-}
-
-void AI::visitBitCastInst (BitCastInst &I){
-	fouts() << "BitCastInst\n" << I << "\n";	
-}
-
-void AI::visitSelectInst (SelectInst &I){
-	fouts() << "SelectInst\n" << I << "\n";	
-}
-
-void AI::visitCallInst(CallInst &I){
-	Node * n = Nodes[I.getParent()];
-
-	fouts() << "CallInst\n" << I << "\n";	
-	ap_var_t var = (Value *) &I; 
-	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
-	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	Expr::set_ap_expr(&I,exp);
-	//print_texpr(exp);
-	n->add_var((Value*)var);
-}
-
-void AI::visitVAArgInst (VAArgInst &I){
-	fouts() << "VAArgInst\n" << I << "\n";	
-}
-
-void AI::visitExtractElementInst (ExtractElementInst &I){
-	fouts() << "ExtractElementInst\n" << I << "\n";	
-}
-
-void AI::visitInsertElementInst (InsertElementInst &I){
-	fouts() << "InsertElementInst\n" << I << "\n";	
-}
-
-void AI::visitShuffleVectorInst (ShuffleVectorInst &I){
-	fouts() << "ShuffleVectorInst\n" << I << "\n";	
-}
-
-void AI::visitExtractValueInst (ExtractValueInst &I){
-	fouts() << "ExtractValueInst\n" << I << "\n";	
-}
-
-void AI::visitInsertValueInst (InsertValueInst &I){
-	fouts() << "InsertValueInst\n" << I << "\n";	
-}
-
-void AI::visitTerminatorInst (TerminatorInst &I){
-	fouts() << "TerminatorInst\n" << I << "\n";	
-}
-
-void AI::visitBinaryOperator (BinaryOperator &I){
-	Node * n = Nodes[I.getParent()];
-
-	fouts() << "BinaryOperator\n" << I << "\n";	
-	ap_texpr_op_t op;
-	switch(I.getOpcode()) {
-		// Standard binary operators...
-		case Instruction::Add : 
-		case Instruction::FAdd: 
-			op = AP_TEXPR_ADD;
-			break;
-		case Instruction::Sub : 
-		case Instruction::FSub: 
-			op = AP_TEXPR_SUB;
-			break;
-		case Instruction::Mul : 
-		case Instruction::FMul: 
-			op = AP_TEXPR_MUL;
-			break;
-		case Instruction::UDiv: 
-		case Instruction::SDiv: 
-		case Instruction::FDiv: 
-			op = AP_TEXPR_DIV;
-			break;
-		case Instruction::URem: 
-		case Instruction::SRem: 
-		case Instruction::FRem: 
-			op = AP_TEXPR_MOD;
-			break;
-			// Logical operators
-		case Instruction::Shl : // Shift left  (logical)
-		case Instruction::LShr: // Shift right (logical)
-		case Instruction::AShr: // Shift right (arithmetic)
-		case Instruction::And :
-		case Instruction::Or  :
-		case Instruction::Xor :
-		case Instruction::BinaryOpsEnd:
-			// NOT IMPLEMENTED
-			return;
+	void AI::visitTruncInst (TruncInst &I){
+		fouts() << "TruncInst\n" << I << "\n";	
 	}
-	ap_texpr_rtype_t type = Expr::get_ap_type(&I);
-	ap_texpr_rdir_t dir = AP_RDIR_NEAREST;
-	Value * op1 = I.getOperand(0);
-	Value * op2 = I.getOperand(1);
 
-	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
-	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
+	void AI::visitZExtInst (ZExtInst &I){
+		fouts() << "ZExtInst\n" << I << "\n";	
+	}
 
-	/* we compute the least common environment for the two expressions */
-	ap_dimchange_t * dimchange1;
-	ap_dimchange_t * dimchange2;
-	ap_environment_t* lcenv = ap_environment_lce(
-			exp1->env,
-			exp2->env,
-			&dimchange1,
-			&dimchange2);
-	/* we extend the environments such that both expressions have the same one */
-	exp1 = ap_texpr1_extend_environment(exp1,lcenv);
-	exp2 = ap_texpr1_extend_environment(exp2,lcenv);
-	/* we create the expression associated to the binary op */
-	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
-	Expr::set_ap_expr(&I,exp);
-}
+	void AI::visitSExtInst (SExtInst &I){
+		fouts() << "SExtInst\n" << I << "\n";	
+	}
 
-void AI::visitCmpInst (CmpInst &I){
-	fouts() << "CmpInst\n" << I << "\n";	
-}
+	void AI::visitFPTruncInst (FPTruncInst &I){
+		fouts() << "FPTruncInst\n" << I << "\n";	
+	}
 
-void AI::visitCastInst (CastInst &I){
-	fouts() << "CastInst\n" << I << "\n";	
-}
+	void AI::visitFPExtInst (FPExtInst &I){
+		fouts() << "FPExtInst\n" << I << "\n";	
+	}
+
+	void AI::visitFPToUIInst (FPToUIInst &I){
+		fouts() << "FPToUIInst\n" << I << "\n";	
+	}
+
+	void AI::visitFPToSIInst (FPToSIInst &I){
+		fouts() << "FPToSIInst\n" << I << "\n";	
+	}
+
+	void AI::visitUIToFPInst (UIToFPInst &I){
+		fouts() << "UIToFPInst\n" << I << "\n";	
+	}
+
+	void AI::visitSIToFPInst (SIToFPInst &I){
+		fouts() << "SIToFPInst\n" << I << "\n";	
+	}
+
+	void AI::visitPtrToIntInst (PtrToIntInst &I){
+		fouts() << "PtrToIntInst\n" << I << "\n";	
+	}
+
+	void AI::visitIntToPtrInst (IntToPtrInst &I){
+		fouts() << "IntToPtrInst\n" << I << "\n";	
+	}
+
+	void AI::visitBitCastInst (BitCastInst &I){
+		fouts() << "BitCastInst\n" << I << "\n";	
+	}
+
+	void AI::visitSelectInst (SelectInst &I){
+		fouts() << "SelectInst\n" << I << "\n";	
+	}
+
+	void AI::visitCallInst(CallInst &I){
+		Node * n = Nodes[I.getParent()];
+
+		fouts() << "CallInst\n" << I << "\n";	
+		ap_var_t var = (Value *) &I; 
+		ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
+		ap_texpr1_t * exp = ap_texpr1_var(env,var);
+		Expr::set_ap_expr(&I,exp);
+		//print_texpr(exp);
+		n->add_var((Value*)var);
+	}
+
+	void AI::visitVAArgInst (VAArgInst &I){
+		fouts() << "VAArgInst\n" << I << "\n";	
+	}
+
+	void AI::visitExtractElementInst (ExtractElementInst &I){
+		fouts() << "ExtractElementInst\n" << I << "\n";	
+	}
+
+	void AI::visitInsertElementInst (InsertElementInst &I){
+		fouts() << "InsertElementInst\n" << I << "\n";	
+	}
+
+	void AI::visitShuffleVectorInst (ShuffleVectorInst &I){
+		fouts() << "ShuffleVectorInst\n" << I << "\n";	
+	}
+
+	void AI::visitExtractValueInst (ExtractValueInst &I){
+		fouts() << "ExtractValueInst\n" << I << "\n";	
+	}
+
+	void AI::visitInsertValueInst (InsertValueInst &I){
+		fouts() << "InsertValueInst\n" << I << "\n";	
+	}
+
+	void AI::visitTerminatorInst (TerminatorInst &I){
+		fouts() << "TerminatorInst\n" << I << "\n";	
+	}
+
+	void AI::visitBinaryOperator (BinaryOperator &I){
+		Node * n = Nodes[I.getParent()];
+
+		fouts() << "BinaryOperator\n" << I << "\n";	
+		ap_texpr_op_t op;
+		switch(I.getOpcode()) {
+			// Standard binary operators...
+			case Instruction::Add : 
+			case Instruction::FAdd: 
+				op = AP_TEXPR_ADD;
+				break;
+			case Instruction::Sub : 
+			case Instruction::FSub: 
+				op = AP_TEXPR_SUB;
+				break;
+			case Instruction::Mul : 
+			case Instruction::FMul: 
+				op = AP_TEXPR_MUL;
+				break;
+			case Instruction::UDiv: 
+			case Instruction::SDiv: 
+			case Instruction::FDiv: 
+				op = AP_TEXPR_DIV;
+				break;
+			case Instruction::URem: 
+			case Instruction::SRem: 
+			case Instruction::FRem: 
+				op = AP_TEXPR_MOD;
+				break;
+				// Logical operators
+			case Instruction::Shl : // Shift left  (logical)
+			case Instruction::LShr: // Shift right (logical)
+			case Instruction::AShr: // Shift right (arithmetic)
+			case Instruction::And :
+			case Instruction::Or  :
+			case Instruction::Xor :
+			case Instruction::BinaryOpsEnd:
+				// NOT IMPLEMENTED
+				return;
+		}
+		ap_texpr_rtype_t type = Expr::get_ap_type(&I);
+		ap_texpr_rdir_t dir = AP_RDIR_NEAREST;
+		Value * op1 = I.getOperand(0);
+		Value * op2 = I.getOperand(1);
+
+		ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
+		ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
+
+		/* we compute the least common environment for the two expressions */
+		ap_dimchange_t * dimchange1;
+		ap_dimchange_t * dimchange2;
+		ap_environment_t* lcenv = ap_environment_lce(
+				exp1->env,
+				exp2->env,
+				&dimchange1,
+				&dimchange2);
+		/* we extend the environments such that both expressions have the same one */
+		exp1 = ap_texpr1_extend_environment(exp1,lcenv);
+		exp2 = ap_texpr1_extend_environment(exp2,lcenv);
+		/* we create the expression associated to the binary op */
+		ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
+		Expr::set_ap_expr(&I,exp);
+	}
+
+	void AI::visitCmpInst (CmpInst &I){
+		fouts() << "CmpInst\n" << I << "\n";	
+	}
+
+	void AI::visitCastInst (CastInst &I){
+		fouts() << "CastInst\n" << I << "\n";	
+	}
 
 
