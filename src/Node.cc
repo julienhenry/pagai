@@ -19,6 +19,7 @@ std::map<BasicBlock *,Node *> Nodes;
 void Node::computeSCC() {
 	std::stack<Node*> * S = new std::stack<Node*>();
 	computeSCC_rec(1,S);
+	delete S;
 }
 
 /**
@@ -74,8 +75,10 @@ void Node::add_var(Value * val) {
 }
 
 ap_environment_t * Node::create_env() {
-	ap_var_t * intvars = new ap_var_t [intVar.size()];
-	ap_var_t * realvars = new ap_var_t [realVar.size()];
+	//ap_var_t * intvars = new ap_var_t [intVar.size()];
+	//ap_var_t * realvars = new ap_var_t [realVar.size()];
+	ap_var_t * intvars = (ap_var_t*)malloc(intVar.size()*sizeof(ap_var_t));
+	ap_var_t * realvars = (ap_var_t*)malloc(realVar.size()*sizeof(ap_var_t));
 	copy (intVar.begin(),intVar.end(),intvars);
 	copy (realVar.begin(),realVar.end(),realvars);
 	return ap_environment_alloc(intvars,intVar.size(),

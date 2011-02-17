@@ -24,8 +24,9 @@ char* ap_var_to_string(ap_var_t var) {
 	else
 		*s << "unnamed_var";
 	std::string & name = s->str();
-	char * cname = new char [name.size()+1];
+	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());
+	delete s;
 	return cname;
 }
 
