@@ -94,9 +94,11 @@ void AI::computeNode(Node * n) {
 	fouts() << *b << "\n";
 	fouts() << "-------------------------------------------------------\n";
 
-	if (n->X != NULL) {
-		ap_abstract1_fprint(stdout,man,n->X);
-	}
+	n->phi_vars.clear();
+
+	//if (n->X != NULL) {
+	//	ap_abstract1_fprint(stdout,man,n->X);
+	//}
 
 	/* visit instructions */
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
@@ -128,11 +130,13 @@ void AI::computeNode(Node * n) {
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
 			 */
+			fouts() << "1\n";
 			X = ap_abstract1_assign_texpr_array(man,false,&X,
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
 					n->phi_vars[pred].name.size(),
 					NULL);
+			fouts() << "2\n";
 
 			X_pred.push_back(X);
 		}
