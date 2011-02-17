@@ -98,10 +98,6 @@ void AI::computeNode(Node * n) {
 	n->intVar.clear();
 	n->realVar.clear();
 
-	if (n->X != NULL) {
-		ap_abstract1_fprint(stdout,man,n->X);
-	}
-
 	/* visit instructions */
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
 			i != e; ++i) {
@@ -133,13 +129,11 @@ void AI::computeNode(Node * n) {
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
 			 */
-			fouts() << "1\n";
 			X = ap_abstract1_assign_texpr_array(man,true,&X,
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
 					n->phi_vars[pred].name.size(),
 					NULL);
-			fouts() << "2\n";
 
 			X_pred.push_back(ap_abstract1_copy(man,&X));
 		}
@@ -149,7 +143,11 @@ void AI::computeNode(Node * n) {
 	env = n->create_env();
 
 	if (X_pred.size() > 0) {
-		Xtemp = ap_abstract1_join_array(man,&X_pred[0],X_pred.size());	
+		ap_abstract1_t  Xpreds[X_pred.size()];
+		for (int i=0; i < X_pred.size(); i++) {
+			Xpreds[i] = ap_abstract1_change_environment(man,false,&X_pred[i],env,false);
+		}
+		Xtemp = ap_abstract1_join_array(man,Xpreds,X_pred.size());	
 		Xtemp = ap_abstract1_change_environment(man,false,&Xtemp,env,false);
 	} else {
 		/* we are in the first basicblock of the function */
@@ -160,28 +158,19 @@ void AI::computeNode(Node * n) {
 	if (n->X == NULL) {
 		n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));
 		*(n->X) = Xtemp;
-		//n->X = new ap_abstract1_t(Xtemp);	
 		update = true;
 	} else {
-			ap_environment_fdump(stdout,n->X->env);
-			ap_environment_fdump(stdout,Xtemp.env);
 		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(env,n->X->env)) {
-			fouts() << "change environment\n";
 			*(n->X) = ap_abstract1_change_environment(man,false,n->X,env,false);
 			//update = true;
 		}
 		/* update the abstract value if it is bigger than the previous one */
-		fouts() << "toto\n";
-		fouts() << "is eq " <<  ap_environment_compare(Xtemp.env,n->X->env) << "\n";
 		if (!ap_abstract1_is_leq(man,&Xtemp,n->X)) {
-			fouts() << "tata\n";
 			n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));
 			*(n->X) = Xtemp;
-			//n->X = new ap_abstract1_t(Xtemp);	
 			update = true;
 		}
-		fouts() << "toti\n";
 	}
 	if (update) {
 		/* update the successors of n */
@@ -190,9 +179,7 @@ void AI::computeNode(Node * n) {
 			A.push(Nodes[sb]);
 		}
 	}
-	//fouts() << "n->X->env = \n";
-	//ap_environment_fdump(stdout,n->X->env);
-	//ap_abstract1_fprint(stdout,man,n->X);
+	ap_abstract1_fprint(stdout,man,n->X);
 }
 
 void AI::visitReturnInst (ReturnInst &I){
