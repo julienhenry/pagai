@@ -74,15 +74,18 @@ void Node::add_var(Value * val) {
 	Expr::set_ap_expr(val,exp);
 }
 
-ap_environment_t * Node::create_env() {
-	//ap_var_t * intvars = new ap_var_t [intVar.size()];
-	//ap_var_t * realvars = new ap_var_t [realVar.size()];
+void Node::create_env(ap_environment_t ** env) {
+
 	ap_var_t * intvars = (ap_var_t*)malloc(intVar.size()*sizeof(ap_var_t));
 	ap_var_t * realvars = (ap_var_t*)malloc(realVar.size()*sizeof(ap_var_t));
 	copy (intVar.begin(),intVar.end(),intvars);
 	copy (realVar.begin(),realVar.end(),realvars);
-	return ap_environment_alloc(intvars,intVar.size(),
-								realvars,realVar.size());
+
+	if (*env != NULL)
+		ap_environment_free(*env);
+	*env = ap_environment_alloc(intvars,intVar.size(),realvars,realVar.size());
+	free(intvars);
+	free(realvars);
 
 }
 

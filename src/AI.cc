@@ -69,7 +69,8 @@ void AI::computeFunction(Function * F) {
 		}
 	}
 	/* first abstract value is top */
-	ap_environment_t * env = n->create_env();
+	ap_environment_t * env = NULL;
+	n->create_env(&env);
 	n->X = new ap_abstract1_t(ap_abstract1_top(man,env));
 
 	/* Simple Abstract Interpretation algorithm */
@@ -84,7 +85,7 @@ void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Node * pred;
 	ap_abstract1_t Xtemp;
-	ap_environment_t * env;
+	ap_environment_t * env = NULL;
 	bool update = false;
 
 	std::vector<ap_abstract1_t> X_pred;
@@ -121,12 +122,14 @@ void AI::computeNode(Node * n) {
 
 			X = ap_abstract1_copy(man,pred->X);
 
-			env = n->create_env();
+			
+			n->create_env(&env);
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
 			/* intersect with the transition's condition */
 			if (pred->tcons.count(n) && pred->tcons[n] != NULL) {
 				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
+				//ap_tcons1_array_clear(pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
@@ -139,19 +142,23 @@ void AI::computeNode(Node * n) {
 
 			ap_abstract1_canonicalize(man,&X);
 			X_pred.push_back(ap_abstract1_copy(man,&X));
+			ap_abstract1_clear(man,&X);
 		}
 	}
 
 	/* Xtemp is the join of all predecessors */
-	env = n->create_env();
+	n->create_env(&env);
 
 	if (X_pred.size() > 0) {
 		ap_abstract1_t  Xpreds[X_pred.size()];
 		for (int i=0; i < X_pred.size(); i++) {
-			Xpreds[i] = ap_abstract1_change_environment(man,false,&X_pred[i],env,false);
+			Xpreds[i] = ap_abstract1_change_environment(man,true,&X_pred[i],env,false);
 		}
 		Xtemp = ap_abstract1_join_array(man,Xpreds,X_pred.size());	
-		Xtemp = ap_abstract1_change_environment(man,false,&Xtemp,env,false);
+		for (int i=0; i < X_pred.size(); i++) {
+			ap_abstract1_clear(man,&Xpreds[i]);
+		}
+		Xtemp = ap_abstract1_change_environment(man,true,&Xtemp,env,false);
 	} else {
 		/* we are in the first basicblock of the function */
 		Xtemp = ap_abstract1_bottom(man,env);
@@ -159,19 +166,19 @@ void AI::computeNode(Node * n) {
 	}
 
 	if (n->X == NULL) {
-		n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));
-		*(n->X) = Xtemp;
+		n->X = new ap_abstract1_t(Xtemp);
 		update = true;
 	} else {
 		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(env,n->X->env)) {
-			*(n->X) = ap_abstract1_change_environment(man,false,n->X,env,false);
+			*(n->X) = ap_abstract1_change_environment(man,true,n->X,env,false);
 			//update = true;
 		}
 		/* update the abstract value if it is bigger than the previous one */
 		if (!ap_abstract1_is_leq(man,&Xtemp,n->X)) {
-			n->X = (ap_abstract1_t*)malloc(sizeof(ap_abstract1_t));
-			*(n->X) = Xtemp;
+			ap_abstract1_clear(man,n->X);
+			delete n->X;
+			n->X = new ap_abstract1_t(Xtemp);
 			update = true;
 		}
 	}
@@ -311,6 +318,11 @@ void AI::visitBranchInst (BranchInst &I){
 	ap_tcons1_array_t * true_cons;
 	ap_tcons1_array_t * false_cons;
 	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
+	/* free the previous tcons */
+	if (n->tcons.count(iftrue))
+		ap_tcons1_array_clear(n->tcons[iftrue]);
+	if (n->tcons.count(iffalse))
+		ap_tcons1_array_clear(n->tcons[iffalse]);
 	/* insert into the tcons array of the node */
 	n->tcons[iftrue] = true_cons;
 	n->tcons[iffalse] = false_cons;

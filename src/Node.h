@@ -51,7 +51,7 @@ class Node {
 
 		void add_var(Value * val);
 		
-		ap_environment_t * create_env();
+		void create_env(ap_environment_t ** env);
 
 };
 

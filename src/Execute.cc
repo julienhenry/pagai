@@ -24,7 +24,8 @@ using namespace llvm;
 void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Module *M = NULL;
-
+	raw_fd_ostream *FDOut = NULL;
+	
 	LLVMContext & Context = getGlobalContext();
 
 	std::string ErrorMessage;
@@ -40,7 +41,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	if (OutputFilename != "-") {
 
 		std::string error;
-		raw_fd_ostream *FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
+		FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
 		if (!error.empty()) {
 			errs() << error << '\n';
 			delete FDOut;
@@ -58,6 +59,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	ModulePass *InitVerifPass = new initVerif();
 	ModulePass *AIPass = new AI();
+	FunctionPass *LoopInfoPass = new LoopInfo();
 
 	Passes.add(new TargetData(M));
 	Passes.add(createVerifierPass());
@@ -66,7 +68,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(createPromoteMemoryToRegisterPass());
 	Passes.add(createLoopSimplifyPass());	
 	Passes.add(createLiveValuesPass());
-	Passes.add(new LoopInfo());
+	Passes.add(LoopInfoPass);
 	
 	Passes.add(InitVerifPass);
 	Passes.add(AIPass);
@@ -77,4 +79,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Out->flush();
 
+	delete FDOut;
+	//delete Out;
+	//delete InitVerifPass;
+	//delete AIPass;
+	//delete LoopInfoPass;
 }

@@ -17,7 +17,7 @@ ap_texpr1_t * Expr::get_ap_expr(Node * n, Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			fouts() << "NULL pointer in table Exprs !\n";
-		return ap_texpr1_copy(Exprs[val]);
+		return Exprs[val];
 	} else {
 		fouts() << "Missing apron expression for " << *val << "\n";
 		/*val is not yet in the Expr map
@@ -49,6 +49,7 @@ ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
 		return ap_texpr1_copy(Exprs[val]);
+		return Exprs[val];
 	}
 }
 
