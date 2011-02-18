@@ -127,7 +127,7 @@ void AI::computeNode(Node * n) {
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
 			/* intersect with the transition's condition */
-			if (pred->tcons.count(n) && pred->tcons[n] != NULL) {
+			if (pred->tcons.count(n)) {
 				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
@@ -227,6 +227,7 @@ void AI::computeCondition(	CmpInst * inst,
 			Expr::get_ap_type(op1),
 			AP_RDIR_NEAREST);
 
+
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
 		case CmpInst::FCMP_OEQ: 
@@ -283,19 +284,22 @@ void AI::computeCondition(	CmpInst * inst,
 			fouts() << "ERROR : Unknown predicate\n";
 			break;
 	}
-	ap_tcons1_t * cons = new ap_tcons1_t(ap_tcons1_make(
+	/* creating the TRUE constraint */
+	ap_tcons1_t cons = ap_tcons1_make(
 				constyp,
 				expr,
-				ap_scalar_alloc_set_double(0)));
-	*true_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
-	ap_tcons1_array_set(*true_cons,0,cons);
+				ap_scalar_alloc_set_double(0));
+	*true_cons = new ap_tcons1_array_t();
+	**true_cons = ap_tcons1_array_make(cons.env,1);
+	ap_tcons1_array_set(*true_cons,0,&cons);
 
-	cons = new ap_tcons1_t(ap_tcons1_make(
+	/* creating the FALSE constraint */
+	cons = ap_tcons1_make(
 				nconstyp,
 				nexpr,
-				ap_scalar_alloc_set_double(0)));
-	*false_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
-	ap_tcons1_array_set(*false_cons,0,cons);
+				ap_scalar_alloc_set_double(0));
+	*false_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons.env,1));
+	ap_tcons1_array_set(*false_cons,0,&cons);
 }
 
 void AI::visitBranchInst (BranchInst &I){
@@ -315,10 +319,12 @@ void AI::visitBranchInst (BranchInst &I){
 	ap_tcons1_array_t * false_cons;
 	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
 	/* free the previous tcons */
-	if (n->tcons.count(iftrue))
-		ap_tcons1_array_clear(n->tcons[iftrue]);
-	if (n->tcons.count(iffalse))
-		ap_tcons1_array_clear(n->tcons[iffalse]);
+	if (n->tcons.count(iftrue)) {
+		n->tcons.erase(iftrue);
+	}
+	if (n->tcons.count(iffalse)) {
+		n->tcons.erase(iffalse);
+	}
 	/* insert into the tcons array of the node */
 	n->tcons[iftrue] = true_cons;
 	n->tcons[iffalse] = false_cons;

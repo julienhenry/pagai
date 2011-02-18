@@ -79,7 +79,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Out->flush();
 
-	delete FDOut;
+	//delete FDOut;
 	//delete Out;
 	//delete InitVerifPass;
 	//delete AIPass;
