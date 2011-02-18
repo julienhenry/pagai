@@ -21,7 +21,9 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 	private:
 		LiveValues * LV;
+		LoopInfo * LI;
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
+		std::map<Node*,bool> is_computed;
 		ap_manager_t* man;
 
 	public:

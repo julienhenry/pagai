@@ -56,14 +56,34 @@ void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
 	Exprs[val] = exp;
 }
 
+ap_environment_t * Expr::common_environment(
+	ap_environment_t * env1, 
+	ap_environment_t * env2) {
+
+	ap_dimchange_t * dimchange1 = NULL;
+	ap_dimchange_t * dimchange2 = NULL;
+	ap_environment_t * lcenv = ap_environment_lce(
+		env1,
+		env2,
+		&dimchange1,
+		&dimchange2);
+
+	if (dimchange1 != NULL)
+		ap_dimchange_free(dimchange1);
+	if (dimchange2 != NULL)
+		ap_dimchange_free(dimchange2);
+
+	return lcenv;
+}
+
 /*
  * modifies exp1 and exp2 such that they have the same common environment
  */
 void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	
 	/* we compute the least common environment for the two expressions */
-	ap_dimchange_t * dimchange1;
-	ap_dimchange_t * dimchange2;
+	ap_dimchange_t * dimchange1 = NULL;
+	ap_dimchange_t * dimchange2 = NULL;
 	ap_environment_t* lcenv = ap_environment_lce(
 			(*exp1)->env,
 			(*exp2)->env,

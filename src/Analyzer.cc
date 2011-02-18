@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	run.exec(filename,"file.out");
+	run.exec(filename,"");
 	
 	return 0;
 }

@@ -6,12 +6,21 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
 
+#include "ap_global1.h"
+
 #include "Node.h"
 #include "Expr.h"
 
 using namespace llvm;
 
 std::map<BasicBlock *,Node *> Nodes;
+
+
+Node::~Node() {
+	ap_manager_t* man = ap_abstract0_manager(X->abstract0);
+	ap_abstract1_fprint(stdout,man,X);
+	ap_abstract1_clear(man,X);
+}
 
 /**
  * compute the strongly connected components and the loop heads of the graph.
@@ -86,9 +95,8 @@ void Node::create_env(ap_environment_t ** env) {
 	*env = ap_environment_alloc(intvars,intVar.size(),realvars,realVar.size());
 	free(intvars);
 	free(realvars);
-
 }
 
 bool NodeCompare::operator() (Node * n1, Node * n2) {
-	return (n1->sccId < n2->sccId);
+	return (n1->sccId > n2->sccId);
 }

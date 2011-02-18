@@ -38,7 +38,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		ferrs() << "Not able to initialize module from bitcode\n";
 	}
 
-	if (OutputFilename != "-") {
+	if (OutputFilename != "") {
 
 		std::string error;
 		FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
@@ -77,8 +77,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.run(*M);
 
-	Out->flush();
-
+	//Out->flush();
 	//delete FDOut;
 	//delete Out;
 	//delete InitVerifPass;

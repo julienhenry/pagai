@@ -8,6 +8,7 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Analysis/LiveValues.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 #include "llvm/Analysis/Passes.h"
 
@@ -31,6 +32,7 @@ const char * AI::getPassName() const {
 void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LiveValues>();
+	AU.addRequired<LoopInfo>();
 	AU.addRequired<initVerif>();
 }
 
@@ -44,6 +46,11 @@ bool AI::runOnModule(Module &M) {
 		fouts() << "main function found\n";
 		computeFunction(F);
 	}
+
+	std::map<BasicBlock*,Node*>::iterator it;
+	for ( it=Nodes.begin() ; it != Nodes.end(); it++ )
+		delete (*it).second;
+
 	ap_manager_free(man);
 	return 0;
 }
@@ -59,6 +66,7 @@ void AI::computeFunction(Function * F) {
 
 	/* get the information about live variables from the LiveValues pass*/
 	LV = &(getAnalysis<LiveValues>(*F));
+	LI = &(getAnalysis<LoopInfo>(*(b->getParent())));
 	/* add all function's arguments into the environment of the first bb */
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -90,6 +98,8 @@ void AI::computeNode(Node * n) {
 
 	std::vector<ap_abstract1_t> X_pred;
 
+	if (is_computed.count(n) && is_computed[n]) return;
+
 	fouts() << "#######################################################\n";
 	fouts() << "Computing node:\n";
 	fouts() << *b << "\n";
@@ -98,7 +108,7 @@ void AI::computeNode(Node * n) {
 	n->phi_vars.clear();
 	n->intVar.clear();
 	n->realVar.clear();
-	n->tcons.clear();
+	is_computed[n] = true;
 
 	/* visit instructions */
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
@@ -116,18 +126,18 @@ void AI::computeNode(Node * n) {
 		pred = Nodes[pb];
 
 		if (pred->X != NULL) {
-
 			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
 			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
-
 			X = ap_abstract1_copy(man,pred->X);
-
-
 			n->create_env(&env);
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
 			/* intersect with the transition's condition */
 			if (pred->tcons.count(n)) {
+				ap_environment_t * lcenv = Expr::common_environment(
+					X.env,
+					ap_tcons1_array_envref(pred->tcons[n]));
+				X = ap_abstract1_change_environment(man,true,&X,lcenv,false);
 				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
@@ -157,7 +167,6 @@ void AI::computeNode(Node * n) {
 		for (int i=0; i < X_pred.size(); i++) {
 			ap_abstract1_clear(man,&Xpreds[i]);
 		}
-		//Xtemp = ap_abstract1_change_environment(man,true,&Xtemp,env,false);
 	} else {
 		/* we are in the first basicblock of the function */
 		Xtemp = ap_abstract1_bottom(man,env);
@@ -170,8 +179,17 @@ void AI::computeNode(Node * n) {
 	} else {
 		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(env,n->X->env)) {
-			*(n->X) = ap_abstract1_change_environment(man,true,n->X,env,false);
-			//update = true;
+			ap_abstract1_t nX;
+			nX = ap_abstract1_change_environment(man,true,n->X,env,false);
+			delete n->X;
+			n->X = new ap_abstract1_t(nX);
+		}
+		/* if it is a loop header, then widening */
+		if (LI->isLoopHeader(b)) {
+			ap_abstract1_t X_widening;
+			X_widening = ap_abstract1_widening(man,n->X,&Xtemp);
+			ap_abstract1_clear(man,&Xtemp);
+			Xtemp = X_widening;
 		}
 		/* update the abstract value if it is bigger than the previous one */
 		if (!ap_abstract1_is_leq(man,&Xtemp,n->X)) {
@@ -188,9 +206,10 @@ void AI::computeNode(Node * n) {
 		for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
 			BasicBlock *sb = *s;
 			A.push(Nodes[sb]);
+			is_computed[Nodes[sb]] = false;
 		}
 	}
-	ap_abstract1_fprint(stdout,man,n->X);
+	//ap_abstract1_fprint(stdout,man,n->X);
 }
 
 void AI::visitReturnInst (ReturnInst &I){
@@ -222,8 +241,8 @@ void AI::computeCondition(	CmpInst * inst,
 			AP_RDIR_NEAREST);
 
 	nexpr = ap_texpr1_binop(AP_TEXPR_SUB,
-			exp2,
-			exp1,
+			ap_texpr1_copy(exp2),
+			ap_texpr1_copy(exp1),
 			Expr::get_ap_type(op1),
 			AP_RDIR_NEAREST);
 
@@ -320,9 +339,17 @@ void AI::visitBranchInst (BranchInst &I){
 	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
 	/* free the previous tcons */
 	if (n->tcons.count(iftrue)) {
+		//ap_tcons1_array_t * tcons = n->tcons[iftrue];
+		//ap_tcons1_t cons = ap_tcons1_array_get(tcons,0);
+		//ap_texpr1_t expr = ap_tcons1_texpr1ref(&cons);
+		//ap_texpr1_free(&expr);
 		n->tcons.erase(iftrue);
 	}
 	if (n->tcons.count(iffalse)) {
+		//ap_tcons1_array_t * tcons = n->tcons[iffalse];
+		//ap_tcons1_t cons = ap_tcons1_array_get(tcons,0);
+		//ap_texpr1_t expr = ap_tcons1_texpr1ref(&cons);
+		//ap_texpr1_free(&expr);
 		n->tcons.erase(iffalse);
 	}
 	/* insert into the tcons array of the node */

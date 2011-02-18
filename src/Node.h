@@ -45,6 +45,7 @@ class Node {
 								isInStack(false), 
 								bb(_bb), 
 								X(NULL) {}
+		~Node();
 
 		/* compute the strongly connected components of the CFG */
 		void computeSCC();
