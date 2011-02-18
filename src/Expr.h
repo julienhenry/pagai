@@ -22,6 +22,8 @@ public:
 
 	static void set_ap_expr(Value * val, ap_texpr1_t * exp);
 
+	static void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
+
 	static ap_texpr_rtype_t get_ap_type(Value * val);
 };
 #endif

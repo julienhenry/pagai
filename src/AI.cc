@@ -122,14 +122,13 @@ void AI::computeNode(Node * n) {
 
 			X = ap_abstract1_copy(man,pred->X);
 
-			
+
 			n->create_env(&env);
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
 			/* intersect with the transition's condition */
 			if (pred->tcons.count(n) && pred->tcons[n] != NULL) {
 				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
-				//ap_tcons1_array_clear(pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
@@ -158,7 +157,7 @@ void AI::computeNode(Node * n) {
 		for (int i=0; i < X_pred.size(); i++) {
 			ap_abstract1_clear(man,&Xpreds[i]);
 		}
-		Xtemp = ap_abstract1_change_environment(man,true,&Xtemp,env,false);
+		//Xtemp = ap_abstract1_change_environment(man,true,&Xtemp,env,false);
 	} else {
 		/* we are in the first basicblock of the function */
 		Xtemp = ap_abstract1_bottom(man,env);
@@ -180,6 +179,8 @@ void AI::computeNode(Node * n) {
 			delete n->X;
 			n->X = new ap_abstract1_t(Xtemp);
 			update = true;
+		} else {
+			ap_abstract1_clear(man,&Xtemp);
 		}
 	}
 	if (update) {
@@ -208,18 +209,7 @@ void AI::computeCondition(	CmpInst * inst,
 
 	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
 	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
-
-	/* we compute the least common environment for the two expressions */
-	ap_dimchange_t * dimchange1;
-	ap_dimchange_t * dimchange2;
-	ap_environment_t* lcenv = ap_environment_lce(
-			exp1->env,
-			exp2->env,
-			&dimchange1,
-			&dimchange2);
-	/* we extend the environments such that both expressions have the same one */
-	exp1 = ap_texpr1_extend_environment(exp1,lcenv);
-	exp2 = ap_texpr1_extend_environment(exp2,lcenv);
+	Expr::common_environment(&exp1,&exp2);
 
 	ap_texpr1_t * expr;
 	ap_texpr1_t * nexpr;
@@ -293,11 +283,17 @@ void AI::computeCondition(	CmpInst * inst,
 			fouts() << "ERROR : Unknown predicate\n";
 			break;
 	}
-	ap_tcons1_t * cons = new ap_tcons1_t(ap_tcons1_make(constyp,expr,ap_scalar_alloc_set_double(0)));
+	ap_tcons1_t * cons = new ap_tcons1_t(ap_tcons1_make(
+				constyp,
+				expr,
+				ap_scalar_alloc_set_double(0)));
 	*true_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
 	ap_tcons1_array_set(*true_cons,0,cons);
 
-	cons = new ap_tcons1_t(ap_tcons1_make(nconstyp,nexpr,ap_scalar_alloc_set_double(0)));
+	cons = new ap_tcons1_t(ap_tcons1_make(
+				nconstyp,
+				nexpr,
+				ap_scalar_alloc_set_double(0)));
 	*false_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons->env,1));
 	ap_tcons1_array_set(*false_cons,0,cons);
 }
@@ -530,18 +526,8 @@ void AI::visitPHINode (PHINode &I){
 
 		ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
 		ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
+		Expr::common_environment(&exp1,&exp2);
 
-		/* we compute the least common environment for the two expressions */
-		ap_dimchange_t * dimchange1;
-		ap_dimchange_t * dimchange2;
-		ap_environment_t* lcenv = ap_environment_lce(
-				exp1->env,
-				exp2->env,
-				&dimchange1,
-				&dimchange2);
-		/* we extend the environments such that both expressions have the same one */
-		exp1 = ap_texpr1_extend_environment(exp1,lcenv);
-		exp2 = ap_texpr1_extend_environment(exp2,lcenv);
 		/* we create the expression associated to the binary op */
 		ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
 		Expr::set_ap_expr(&I,exp);

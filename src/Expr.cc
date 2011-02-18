@@ -39,7 +39,7 @@ ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
 		/*it is supposed we use signed int */
 		int64_t n = Int->getSExtValue();
-		return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
+		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
 	} 
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
@@ -48,13 +48,36 @@ ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 	}
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
-		return ap_texpr1_copy(Exprs[val]);
-		return Exprs[val];
 	}
+	return Exprs[val];
 }
 
 void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
 	Exprs[val] = exp;
+}
+
+/*
+ * modifies exp1 and exp2 such that they have the same common environment
+ */
+void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
+	
+	/* we compute the least common environment for the two expressions */
+	ap_dimchange_t * dimchange1;
+	ap_dimchange_t * dimchange2;
+	ap_environment_t* lcenv = ap_environment_lce(
+			(*exp1)->env,
+			(*exp2)->env,
+			&dimchange1,
+			&dimchange2);
+	/* we extend the environments such that both expressions have the same one */
+	*exp1 = ap_texpr1_extend_environment(*exp1,lcenv);
+	*exp2 = ap_texpr1_extend_environment(*exp2,lcenv);
+
+	if (dimchange1 != NULL)
+		ap_dimchange_free(dimchange1);
+	if (dimchange2 != NULL)
+		ap_dimchange_free(dimchange2);
+	ap_environment_free(lcenv);
 }
 
 ap_texpr_rtype_t Expr::get_ap_type(Value * val) {
