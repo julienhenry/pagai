@@ -1,8 +1,3 @@
-
-int f(int x) {
-	return x+2;
-}
-
 int main(int argc, char ** argv) {
 	int x;
 	int y;

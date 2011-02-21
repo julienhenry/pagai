@@ -17,9 +17,8 @@ std::map<BasicBlock *,Node *> Nodes;
 
 
 Node::~Node() {
-	ap_manager_t* man = ap_abstract0_manager(X->abstract0);
-	ap_abstract1_fprint(stdout,man,X);
-	ap_abstract1_clear(man,X);
+	ap_manager_t* man = ap_abstract0_manager(this->X->abstract0);
+	ap_abstract1_clear(man,this->X);
 }
 
 /**

@@ -48,8 +48,9 @@ bool AI::runOnModule(Module &M) {
 	}
 
 	std::map<BasicBlock*,Node*>::iterator it;
-	for ( it=Nodes.begin() ; it != Nodes.end(); it++ )
-		delete (*it).second;
+	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
+		delete it->second;
+	}
 
 	ap_manager_free(man);
 	return 0;
@@ -87,18 +88,33 @@ void AI::computeFunction(Function * F) {
 		A.pop();
 		computeNode(n);
 	}
+
+	fouts()	<< "###########################################################\n"
+			<< "END OF COMPUTATION\n"
+			<< "###########################################################\n";
+	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+	for (std::map<BasicBlock *,Node *>::iterator it = Nodes.begin(); it != Nodes.end();++it) {
+		//b = i;
+		//n = Nodes[b];
+		b = it->first;
+		n = Nodes[b];
+		fouts() << "RESULTS ----------------------------------" << *b;
+		ap_abstract1_fprint(stdout,man,n->X);
+	}
 }
 
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
-	Node * pred;
+	Node * pred = NULL;
 	ap_abstract1_t Xtemp;
 	ap_environment_t * env = NULL;
 	bool update = false;
 
 	std::vector<ap_abstract1_t> X_pred;
 
-	if (is_computed.count(n) && is_computed[n]) return;
+	if (is_computed.count(n) && is_computed[n]) {
+		return;
+	}
 
 	fouts() << "#######################################################\n";
 	fouts() << "Computing node:\n";
@@ -209,7 +225,7 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
-	//ap_abstract1_fprint(stdout,man,n->X);
+	ap_abstract1_fprint(stdout,man,n->X);
 }
 
 void AI::visitReturnInst (ReturnInst &I){
