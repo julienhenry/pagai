@@ -16,10 +16,9 @@ std::map<Value *,ap_texpr1_t *> Exprs;
 ap_texpr1_t * Expr::get_ap_expr(Node * n, Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
-			fouts() << "NULL pointer in table Exprs !\n";
+			fouts() << "ERROR: NULL pointer in table Exprs !\n";
 		return Exprs[val];
 	} else {
-		fouts() << "Missing apron expression for " << *val << "\n";
 		/*val is not yet in the Expr map
 		 * We have to create it */
 		if (isa<Constant>(val)) {
@@ -43,8 +42,8 @@ ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 	} 
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
-		// NOT IMPLEMENTED
-		return NULL;
+		double x = FP->getValueAPF().convertToDouble();
+		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
 	}
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
@@ -53,6 +52,9 @@ ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
 }
 
 void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
+	if (Exprs.count(val)) {
+		Exprs.erase(val);
+	}
 	Exprs[val] = exp;
 }
 

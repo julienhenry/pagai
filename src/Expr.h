@@ -12,8 +12,6 @@
 
 using namespace llvm;
 
-extern std::map<Value *,ap_texpr1_t *> Exprs;
-
 class Expr {
 public:
 	static ap_texpr1_t * get_ap_expr(Node * n, Value * val);
