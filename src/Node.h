@@ -16,6 +16,11 @@ typedef struct _phivar {
 	std::vector<ap_texpr1_t> expr;
 } phivar;
 
+typedef struct _abstract {
+		ap_abstract1_t * main;
+		ap_abstract1_t * pilot;
+} abstract;
+
 class Node {
 	private:
 		/* used by computeSCC */
@@ -29,7 +34,7 @@ class Node {
 		/* identifies the strongly connected component the node is in */
 		int sccId;
 		/* Abstract domain */
-		ap_abstract1_t * X;
+		abstract X;
 
 		/* vector of int and real variables */
 		std::set<ap_var_t> intVar;
@@ -43,8 +48,10 @@ class Node {
 		Node(BasicBlock * _bb): index(0), 
 								lowlink(0), 
 								isInStack(false), 
-								bb(_bb), 
-								X(NULL) {}
+								bb(_bb) {
+									X.main = NULL;
+									X.pilot = NULL;
+									}
 		~Node();
 
 		/* compute the strongly connected components of the CFG */

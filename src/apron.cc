@@ -75,3 +75,20 @@ void print_texpr(ap_texpr1_t * exp) {
 	ap_texpr1_fprint(stdout,exp);
 	printf("\n");
 }
+
+
+bool abstract_inclusion_LA (
+		ap_manager_t * man,
+		abstract *c,
+		abstract *d
+		) {
+	if (ap_abstract1_is_eq(man,c->main,d->main)) {
+		if (ap_abstract1_is_leq(man,c->pilot,d->pilot)) 
+			return true; 
+		else 
+			return false;
+		if (ap_abstract1_is_leq(man,c->main,d->main))
+			return true;
+		return false;
+	}
+}

@@ -55,7 +55,7 @@ bool AI::runOnModule(Module &M) {
 		b = it->first;
 		n = Nodes[b];
 		fouts() << "RESULTS ----------------------------------" << *b;
-		ap_abstract1_fprint(stdout,man,n->X);
+		ap_abstract1_fprint(stdout,man,n->X.main);
 		delete it->second;
 	}
 
@@ -87,7 +87,8 @@ void AI::computeFunction(Function * F) {
 	/* first abstract value is top */
 	ap_environment_t * env = NULL;
 	n->create_env(&env);
-	n->X = new ap_abstract1_t(ap_abstract1_top(man,env));
+	n->X.main = new ap_abstract1_t(ap_abstract1_top(man,env));
+	n->X.pilot = new ap_abstract1_t(ap_abstract1_top(man,env));
 
 	/* Simple Abstract Interpretation algorithm */
 	while (!A.empty()) {
@@ -134,10 +135,10 @@ void AI::computeNode(Node * n) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 
-		if (pred->X != NULL) {
+		if (pred->X.main != NULL) {
 			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
 			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
-			X = ap_abstract1_copy(man,pred->X);
+			X = ap_abstract1_copy(man,pred->X.main);
 			n->create_env(&env);
 			X = ap_abstract1_change_environment(man,true,&X,env,false);
 
@@ -182,29 +183,30 @@ void AI::computeNode(Node * n) {
 		update = true;
 	}
 
-	if (n->X == NULL) {
-		n->X = new ap_abstract1_t(Xtemp);
+	if (n->X.main == NULL) {
+		n->X.main = new ap_abstract1_t(Xtemp);
+		n->X.pilot = new ap_abstract1_t(Xtemp);
 		update = true;
 	} else {
 		/* environment may be bigger since the last computation of this node */
-		if (!ap_environment_is_eq(env,n->X->env)) {
+		if (!ap_environment_is_eq(env,n->X.main->env)) {
 			ap_abstract1_t nX;
-			nX = ap_abstract1_change_environment(man,true,n->X,env,true);
-			delete n->X;
-			n->X = new ap_abstract1_t(nX);
+			nX = ap_abstract1_change_environment(man,true,n->X.main,env,true);
+			delete n->X.main;
+			n->X.main = new ap_abstract1_t(nX);
 		}
 		/* if it is a loop header, then widening */
 		if (LI->isLoopHeader(b)) {
 			ap_abstract1_t X_widening;
-			X_widening = ap_abstract1_widening(man,n->X,&Xtemp);
+			X_widening = ap_abstract1_widening(man,n->X.main,&Xtemp);
 			ap_abstract1_clear(man,&Xtemp);
 			Xtemp = X_widening;
 		}
 		/* update the abstract value if it is bigger than the previous one */
-		if (!ap_abstract1_is_leq(man,&Xtemp,n->X)) {
-			ap_abstract1_clear(man,n->X);
-			delete n->X;
-			n->X = new ap_abstract1_t(Xtemp);
+		if (!ap_abstract1_is_leq(man,&Xtemp,n->X.main)) {
+			ap_abstract1_clear(man,n->X.main);
+			delete n->X.main;
+			n->X.main = new ap_abstract1_t(Xtemp);
 			update = true;
 		} else {
 			ap_abstract1_clear(man,&Xtemp);
@@ -218,7 +220,7 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
-	ap_abstract1_fprint(stdout,man,n->X);
+	ap_abstract1_fprint(stdout,man,n->X.main);
 }
 
 void AI::visitReturnInst (ReturnInst &I){
@@ -415,7 +417,7 @@ void AI::visitPHINode (PHINode &I){
 	for (int i = 0; i < I.getNumIncomingValues(); i++) {
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];
-		if (nb->X != NULL && !ap_abstract1_is_bottom(man,nb->X)) {
+		if (nb->X.main != NULL && !ap_abstract1_is_bottom(man,nb->X.main)) {
 			IncomingValues.push_back(i);
 		}
 	}
