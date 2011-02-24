@@ -10,6 +10,8 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
+#include "llvm/Analysis/LiveValues.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 #include "Node.h"
 
@@ -37,6 +39,10 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);
+		void initFunction(Function * F);
+
+		void printBasicBlock(BasicBlock * b);
+		
 		void computeNode(Node * n);
 
 		void computeCondition(	CmpInst * inst, 

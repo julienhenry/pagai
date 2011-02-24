@@ -15,11 +15,24 @@ using namespace llvm;
 
 std::map<BasicBlock *,Node *> Nodes;
 
+int i = 0;
+
+Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
+	index = 0;
+	lowlink = 0;
+	isInStack = false;
+	bb = _bb;
+	id = i++;
+	man = _man;
+	ap_environment_t * env = ap_environment_alloc_empty();
+	X.main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+	X.pilot = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+}
 
 Node::~Node() {
 	ap_manager_t* man = ap_abstract0_manager(this->X.main->abstract0);
 	ap_abstract1_clear(man,this->X.main);
-	//ap_abstract1_clear(man,this->X.pilot);
+	ap_abstract1_clear(man,this->X.pilot);
 }
 
 /**
@@ -98,5 +111,7 @@ void Node::create_env(ap_environment_t ** env) {
 }
 
 bool NodeCompare::operator() (Node * n1, Node * n2) {
-	return (n1->sccId > n2->sccId);
+	if (n1->sccId > n2->sccId) return true;
+	//return (n1->id < n2->id);
+	return false;
 }

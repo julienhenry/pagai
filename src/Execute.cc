@@ -14,7 +14,6 @@
 #include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/LoopInfo.h"
 
-#include "InitVerif.h"
 #include "AI.h"
 #include "Node.h"
 #include "Execute.h"
@@ -57,7 +56,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
 
-	ModulePass *InitVerifPass = new initVerif();
+	//ModulePass *InitVerifPass = new initVerif();
 	ModulePass *AIPass = new AI();
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
@@ -70,7 +69,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(createLiveValuesPass());
 	Passes.add(LoopInfoPass);
 	
-	Passes.add(InitVerifPass);
+	//Passes.add(InitVerifPass);
 	Passes.add(AIPass);
 
 	//Passes.add(createGCInfoDeleter());

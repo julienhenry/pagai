@@ -27,12 +27,14 @@ class Node {
 		int index;
 		int lowlink;
 		bool isInStack;
+		ap_manager_t * man;
 		void computeSCC_rec(int n,std::stack<Node*> * S);
 	public:
 		/* Basicblock associated to the node */
 		BasicBlock * bb;
 		/* identifies the strongly connected component the node is in */
 		int sccId;
+		int id;
 		/* Abstract domain */
 		abstract X;
 
@@ -45,13 +47,7 @@ class Node {
 		std::map<Node*,phivar> phi_vars;
 
 	public:
-		Node(BasicBlock * _bb): index(0), 
-								lowlink(0), 
-								isInStack(false), 
-								bb(_bb) {
-									X.main = NULL;
-									X.pilot = NULL;
-									}
+		Node(ap_manager_t * man, BasicBlock * _bb);
 		~Node();
 
 		/* compute the strongly connected components of the CFG */

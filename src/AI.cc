@@ -20,7 +20,6 @@
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
-#include "InitVerif.h"
 
 using namespace llvm;
 
@@ -34,15 +33,24 @@ void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LiveValues>();
 	AU.addRequired<LoopInfo>();
-	AU.addRequired<initVerif>();
 }
 
 bool AI::runOnModule(Module &M) {
-	Function * F = M.getFunction("main");
+	Function * F;
 	BasicBlock * b;
 	Node * n;
 
+	init_apron();
 	man = pk_manager_alloc(true);
+	
+	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		F = &*mIt;
+		
+		fouts() << "1 function found, of size " << F->size() << "\n";	
+		initFunction(F);
+	}
+
+	F = M.getFunction("main");
 	if (F == NULL) {
 		fouts() << "main function not found\n";
 	} else {
@@ -61,6 +69,32 @@ bool AI::runOnModule(Module &M) {
 
 	ap_manager_free(man);
 	return 0;
+}
+
+void AI::initFunction(Function * F) {
+	Node * n;
+	/*we create the Node objects associated to each basicblock*/
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		n = new Node(man,i);
+		Nodes[i] = n;
+	}
+	if (F->size() > 0) {
+		/*we find the Strongly Connected Components*/
+		Node * front = Nodes[&(F->front())];
+		front->computeSCC();
+	}
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+		printBasicBlock(i);
+}
+
+void AI::printBasicBlock(BasicBlock* b) {
+	Node * n = Nodes[b];
+	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
+	if (LI.isLoopHeader(b)) {
+		fouts() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
+	} else {
+		fouts() << b << ": SCC=" << n->sccId << ":" << *b;
+	}
 }
 
 void AI::computeFunction(Function * F) {
@@ -161,7 +195,7 @@ void AI::computeNode(Node * n) {
 				*X.pilot = ap_abstract1_meet_tcons_array(man,true,X.pilot,pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
-			 * and assign them to the right value
+			 * and assign them the the right value
 			 */
 			*X.main = ap_abstract1_assign_texpr_array(man,true,X.main,
 					&n->phi_vars[pred].name[0],
@@ -205,15 +239,6 @@ void AI::computeNode(Node * n) {
 		update = true;
 	}
 
-	if (n->X.main == NULL) {
-		n->X.main = new ap_abstract1_t(*Xtemp.main);
-		n->X.pilot = new ap_abstract1_t(*Xtemp.pilot);
-		update = true;
-	} else {
-		fouts() << "Xtemp.main =\n";
-		ap_abstract1_fprint(stdout,man,Xtemp.main);
-		fouts() << "Xtemp.pilot =\n";
-		ap_abstract1_fprint(stdout,man,Xtemp.pilot);
 		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(env,n->X.main->env)) {
 			ap_abstract1_t nX;
@@ -228,24 +253,17 @@ void AI::computeNode(Node * n) {
 			n->X.pilot = new ap_abstract1_t(nX);
 		}
 
-		fouts() << "n->X.main =\n";
-		ap_abstract1_fprint(stdout,man,n->X.main);
-		fouts() << "n->X.pilot =\n";
-		ap_abstract1_fprint(stdout,man,n->X.pilot);
 		/* if it is a loop header, then widening */
 		if (LI->isLoopHeader(b)) {
 			ap_abstract1_t Xmain_widening;
 			ap_abstract1_t Xpilot_widening;
 			if (abstract_inclusion(man,&Xtemp,&n->X)) {
-				fouts() << "case 1\n";
 				Xmain_widening = *n->X.main;
 				Xpilot_widening = *n->X.pilot;
 			} else if (ap_abstract1_is_leq(man,Xtemp.pilot,n->X.pilot)) {
-				fouts() << "case 2\n";
 				Xmain_widening = *Xtemp.pilot;
 				Xpilot_widening = ap_abstract1_copy(man,Xtemp.pilot);
 			} else {
-				fouts() << "case 3\n";
 				Xmain_widening = ap_abstract1_join(man,false,n->X.main,Xtemp.main);
 				Xpilot_widening = ap_abstract1_widening(man,n->X.pilot,Xtemp.pilot);
 				ap_abstract1_clear(man,Xtemp.pilot);
@@ -265,11 +283,10 @@ void AI::computeNode(Node * n) {
 			n->X.pilot = new ap_abstract1_t(*Xtemp.pilot);
 			update = true;
 		} else {
-			fouts() << "inclusion!\n";
+			fouts() << "not included\n";
 			//ap_abstract1_clear(man,Xtemp.main);
 			//ap_abstract1_clear(man,Xtemp.pilot);
 		}
-	}
 
 	if (update) {
 		/* update the successors of n */
