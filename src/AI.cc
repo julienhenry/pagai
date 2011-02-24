@@ -182,8 +182,8 @@ void AI::computeNode(Node * n) {
 			X.pilot = new ap_abstract1_t(ap_abstract1_copy(man,pred->X.pilot));
 			
 			n->create_env(&env);
-			*X.main = ap_abstract1_change_environment(man,true,X.main,env,false);
-			*X.pilot = ap_abstract1_change_environment(man,true,X.pilot,env,false);
+			*X.main = ap_abstract1_change_environment(man,true,X.main,env,true);
+			*X.pilot = ap_abstract1_change_environment(man,true,X.pilot,env,true);
 
 			/* intersect with the transition's condition */
 			if (pred->tcons.count(n)) {
@@ -508,12 +508,12 @@ void AI::visitPHINode (PHINode &I){
 		}
 	}
 	
-	if (IncomingValues.size() == 1) {
-		int i = IncomingValues.front();
-		pv = I.getIncomingValue(i);
-		nb = Nodes[I.getIncomingBlock(i)];	
-		Expr::set_ap_expr(&I,Expr::get_ap_expr(nb,pv));
-	} else {
+	//if (IncomingValues.size() == 1) {
+	//	int i = IncomingValues.front();
+	//	pv = I.getIncomingValue(i);
+	//	nb = Nodes[I.getIncomingBlock(i)];	
+	//	Expr::set_ap_expr(&I,Expr::get_ap_expr(nb,pv));
+	//} else {
 		n->add_var((Value*)var);
 		//for (int i = 0; i < I.getNumIncomingValues(); i++) {
 		while (!IncomingValues.empty()) {
@@ -524,7 +524,7 @@ void AI::visitPHINode (PHINode &I){
 			n->phi_vars[nb].name.push_back(var);
 			n->phi_vars[nb].expr.push_back(*Expr::get_ap_expr(nb,pv));
 		}
-	}
+	//}
 }
 
 void AI::visitTruncInst (TruncInst &I){
