@@ -19,7 +19,7 @@ std::map<BasicBlock *,Node *> Nodes;
 Node::~Node() {
 	ap_manager_t* man = ap_abstract0_manager(this->X.main->abstract0);
 	ap_abstract1_clear(man,this->X.main);
-	//ap_abstract1_clear(man,this->Xpilot);
+	//ap_abstract1_clear(man,this->X.pilot);
 }
 
 /**

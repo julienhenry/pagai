@@ -77,7 +77,7 @@ void print_texpr(ap_texpr1_t * exp) {
 }
 
 
-bool abstract_inclusion_LA (
+bool abstract_inclusion (
 		ap_manager_t * man,
 		abstract *c,
 		abstract *d
@@ -87,8 +87,8 @@ bool abstract_inclusion_LA (
 			return true; 
 		else 
 			return false;
-		if (ap_abstract1_is_leq(man,c->main,d->main))
-			return true;
-		return false;
 	}
+	if (ap_abstract1_is_leq(man,c->main,d->main))
+		return true;
+	return false;
 }

@@ -101,11 +101,11 @@ void AI::computeFunction(Function * F) {
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
-	ap_abstract1_t Xtemp;
+	abstract Xtemp;
 	ap_environment_t * env = NULL;
 	bool update = false;
 
-	std::vector<ap_abstract1_t> X_pred;
+	std::vector<abstract> X_pred;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
@@ -130,7 +130,7 @@ void AI::computeNode(Node * n) {
 	 *
 	 * compute the polyhedra associated to each predecessors
 	 */
-	ap_abstract1_t X; 
+	abstract X;
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
@@ -138,30 +138,47 @@ void AI::computeNode(Node * n) {
 		if (pred->X.main != NULL) {
 			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
 			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
-			X = ap_abstract1_copy(man,pred->X.main);
+			
+			X.main = new ap_abstract1_t(ap_abstract1_copy(man,pred->X.main));
+			X.pilot = new ap_abstract1_t(ap_abstract1_copy(man,pred->X.pilot));
+			
 			n->create_env(&env);
-			X = ap_abstract1_change_environment(man,true,&X,env,false);
+			*X.main = ap_abstract1_change_environment(man,true,X.main,env,false);
+			*X.pilot = ap_abstract1_change_environment(man,true,X.pilot,env,false);
 
 			/* intersect with the transition's condition */
 			if (pred->tcons.count(n)) {
 				ap_environment_t * lcenv = Expr::common_environment(
-						X.env,
+						X.main->env,
 						ap_tcons1_array_envref(pred->tcons[n]));
-				X = ap_abstract1_change_environment(man,true,&X,lcenv,false);
-				X = ap_abstract1_meet_tcons_array(man,true,&X,pred->tcons[n]);
+				*X.main = ap_abstract1_change_environment(man,true,X.main,lcenv,false);
+				*X.main = ap_abstract1_meet_tcons_array(man,true,X.main,pred->tcons[n]);
+	
+				lcenv = Expr::common_environment(
+						X.pilot->env,
+						ap_tcons1_array_envref(pred->tcons[n]));
+				*X.pilot = ap_abstract1_change_environment(man,true,X.pilot,lcenv,false);
+				*X.pilot = ap_abstract1_meet_tcons_array(man,true,X.pilot,pred->tcons[n]);
 			}
 			/* we still need to add phi variables into our domain 
 			 * and assign them to the right value
 			 */
-			X = ap_abstract1_assign_texpr_array(man,true,&X,
+			*X.main = ap_abstract1_assign_texpr_array(man,true,X.main,
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
 					n->phi_vars[pred].name.size(),
 					NULL);
 
-			ap_abstract1_canonicalize(man,&X);
-			X_pred.push_back(ap_abstract1_copy(man,&X));
-			ap_abstract1_clear(man,&X);
+			*X.pilot = ap_abstract1_assign_texpr_array(man,true,X.pilot,
+					&n->phi_vars[pred].name[0],
+					&n->phi_vars[pred].expr[0],
+					n->phi_vars[pred].name.size(),
+					NULL);
+
+			ap_abstract1_canonicalize(man,X.main);
+			ap_abstract1_canonicalize(man,X.pilot);
+
+			X_pred.push_back(X);
 		}
 	}
 
@@ -169,25 +186,34 @@ void AI::computeNode(Node * n) {
 	n->create_env(&env);
 
 	if (X_pred.size() > 0) {
-		ap_abstract1_t  Xpreds[X_pred.size()];
+		ap_abstract1_t  Xmain_preds[X_pred.size()];
+		ap_abstract1_t  Xpilot_preds[X_pred.size()];
 		for (int i=0; i < X_pred.size(); i++) {
-			Xpreds[i] = ap_abstract1_change_environment(man,true,&X_pred[i],env,false);
+			Xmain_preds[i] = ap_abstract1_change_environment(man,true,X_pred[i].main,env,false);
+			Xpilot_preds[i] = ap_abstract1_change_environment(man,true,X_pred[i].pilot,env,false);
 		}
-		Xtemp = ap_abstract1_join_array(man,Xpreds,X_pred.size());	
+		Xtemp.main = new ap_abstract1_t(ap_abstract1_join_array(man,Xmain_preds,X_pred.size()));	
+		Xtemp.pilot = new ap_abstract1_t(ap_abstract1_join_array(man,Xpilot_preds,X_pred.size()));	
 		for (int i=0; i < X_pred.size(); i++) {
-			ap_abstract1_clear(man,&Xpreds[i]);
+			ap_abstract1_clear(man,&Xmain_preds[i]);
+			ap_abstract1_clear(man,&Xpilot_preds[i]);
 		}
 	} else {
 		/* we are in the first basicblock of the function */
-		Xtemp = ap_abstract1_bottom(man,env);
+		Xtemp.main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+		Xtemp.pilot = new ap_abstract1_t(ap_abstract1_bottom(man,env));
 		update = true;
 	}
 
 	if (n->X.main == NULL) {
-		n->X.main = new ap_abstract1_t(Xtemp);
-		n->X.pilot = new ap_abstract1_t(Xtemp);
+		n->X.main = new ap_abstract1_t(*Xtemp.main);
+		n->X.pilot = new ap_abstract1_t(*Xtemp.pilot);
 		update = true;
 	} else {
+		fouts() << "Xtemp.main =\n";
+		ap_abstract1_fprint(stdout,man,Xtemp.main);
+		fouts() << "Xtemp.pilot =\n";
+		ap_abstract1_fprint(stdout,man,Xtemp.pilot);
 		/* environment may be bigger since the last computation of this node */
 		if (!ap_environment_is_eq(env,n->X.main->env)) {
 			ap_abstract1_t nX;
@@ -195,23 +221,56 @@ void AI::computeNode(Node * n) {
 			delete n->X.main;
 			n->X.main = new ap_abstract1_t(nX);
 		}
+		if (!ap_environment_is_eq(env,n->X.pilot->env)) {
+			ap_abstract1_t nX;
+			nX = ap_abstract1_change_environment(man,true,n->X.pilot,env,true);
+			delete n->X.pilot;
+			n->X.pilot = new ap_abstract1_t(nX);
+		}
+
+		fouts() << "n->X.main =\n";
+		ap_abstract1_fprint(stdout,man,n->X.main);
+		fouts() << "n->X.pilot =\n";
+		ap_abstract1_fprint(stdout,man,n->X.pilot);
 		/* if it is a loop header, then widening */
 		if (LI->isLoopHeader(b)) {
-			ap_abstract1_t X_widening;
-			X_widening = ap_abstract1_widening(man,n->X.main,&Xtemp);
-			ap_abstract1_clear(man,&Xtemp);
-			Xtemp = X_widening;
+			ap_abstract1_t Xmain_widening;
+			ap_abstract1_t Xpilot_widening;
+			if (abstract_inclusion(man,&Xtemp,&n->X)) {
+				fouts() << "case 1\n";
+				Xmain_widening = *n->X.main;
+				Xpilot_widening = *n->X.pilot;
+			} else if (ap_abstract1_is_leq(man,Xtemp.pilot,n->X.pilot)) {
+				fouts() << "case 2\n";
+				Xmain_widening = *Xtemp.pilot;
+				Xpilot_widening = ap_abstract1_copy(man,Xtemp.pilot);
+			} else {
+				fouts() << "case 3\n";
+				Xmain_widening = ap_abstract1_join(man,false,n->X.main,Xtemp.main);
+				Xpilot_widening = ap_abstract1_widening(man,n->X.pilot,Xtemp.pilot);
+				ap_abstract1_clear(man,Xtemp.pilot);
+			}
+			Xtemp.main = new ap_abstract1_t(Xmain_widening);
+			Xtemp.pilot = new ap_abstract1_t(Xpilot_widening);
 		}
+
 		/* update the abstract value if it is bigger than the previous one */
-		if (!ap_abstract1_is_leq(man,&Xtemp,n->X.main)) {
+		//if (!ap_abstract1_is_leq(man,Xtemp.main,n->X.main)) {
+		if (!abstract_inclusion(man,&Xtemp,&n->X)) {
 			ap_abstract1_clear(man,n->X.main);
+			ap_abstract1_clear(man,n->X.pilot);
 			delete n->X.main;
-			n->X.main = new ap_abstract1_t(Xtemp);
+			delete n->X.pilot;
+			n->X.main = new ap_abstract1_t(*Xtemp.main);
+			n->X.pilot = new ap_abstract1_t(*Xtemp.pilot);
 			update = true;
 		} else {
-			ap_abstract1_clear(man,&Xtemp);
+			fouts() << "inclusion!\n";
+			//ap_abstract1_clear(man,Xtemp.main);
+			//ap_abstract1_clear(man,Xtemp.pilot);
 		}
 	}
+
 	if (update) {
 		/* update the successors of n */
 		for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
@@ -220,7 +279,10 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
+	fouts() << "MAIN VALUE:\n";
 	ap_abstract1_fprint(stdout,man,n->X.main);
+	fouts() << "PILOT VALUE:\n";
+	ap_abstract1_fprint(stdout,man,n->X.pilot);
 }
 
 void AI::visitReturnInst (ReturnInst &I){
