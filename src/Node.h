@@ -28,7 +28,7 @@ class Node {
 		int lowlink;
 		bool isInStack;
 		ap_manager_t * man;
-		void computeSCC_rec(int n,std::stack<Node*> * S);
+		void computeSCC_rec(int & n,std::stack<Node*> * S);
 	public:
 		/* Basicblock associated to the node */
 		BasicBlock * bb;

@@ -17,6 +17,7 @@ std::map<BasicBlock *,Node *> Nodes;
 
 int i = 0;
 
+
 Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	index = 0;
 	lowlink = 0;
@@ -40,19 +41,21 @@ Node::~Node() {
  */
 void Node::computeSCC() {
 	std::stack<Node*> * S = new std::stack<Node*>();
-	computeSCC_rec(1,S);
+	int n = 1;
+	computeSCC_rec(n,S);
 	delete S;
 }
 
 /**
- * recursive version of the trojan's algorithm
+ * recursive version of the tarjan's algorithm
  * compute both the loop heads and the Strongly connected components
  * Must be called with n=1 and and empty allocated stack
  */
-void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
+void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 	Node * nsucc;
 	index=n;
 	lowlink=n;
+	n++;
 	S->push(this);
 	isInStack=true;
 	for (succ_iterator s = succ_begin(bb), E = succ_end(bb); s != E; ++s) {
@@ -60,7 +63,7 @@ void Node::computeSCC_rec(int n,std::stack<Node*> * S) {
 		nsucc = Nodes[succ];
 		switch (nsucc->index) {
 			case 0:
-				nsucc->computeSCC_rec(n+1,S);
+				nsucc->computeSCC_rec(n,S);
 				lowlink = std::min(lowlink,nsucc->lowlink);
 			default:
 				if (nsucc->isInStack) {
@@ -111,7 +114,7 @@ void Node::create_env(ap_environment_t ** env) {
 }
 
 bool NodeCompare::operator() (Node * n1, Node * n2) {
-	if (n1->sccId > n2->sccId) return true;
-	//return (n1->id < n2->id);
-	return false;
+	if (n1->sccId < n2->sccId) return true;
+	return (n1->id < n2->id);
+	//return false;
 }

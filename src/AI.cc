@@ -104,7 +104,6 @@ void AI::computeFunction(Function * F) {
 	/*A = {first basicblock} */
 	b = F->begin();
 	n = Nodes[b];
-	A.push(n);
 
 	/* get the information about live variables from the LiveValues pass*/
 	LV = &(getAnalysis<LiveValues>(*F));
@@ -123,12 +122,18 @@ void AI::computeFunction(Function * F) {
 	n->create_env(&env);
 	n->X.main = new ap_abstract1_t(ap_abstract1_top(man,env));
 	n->X.pilot = new ap_abstract1_t(ap_abstract1_top(man,env));
+	A.push(n);
 
 	/* Simple Abstract Interpretation algorithm */
 	while (!A.empty()) {
 		n = A.top();
 		A.pop();
 		computeNode(n);
+	//	b = n->bb;
+	//	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
+	//		BasicBlock *sb = *s;
+	//		computeNode(Nodes[sb]);
+	//	}
 	}
 }
 
@@ -295,6 +300,8 @@ void AI::computeNode(Node * n) {
 			A.push(Nodes[sb]);
 			is_computed[Nodes[sb]] = false;
 		}
+		//A.push(n);
+		//is_computed[n] = false;
 	}
 	fouts() << "MAIN VALUE:\n";
 	ap_abstract1_fprint(stdout,man,n->X.main);
