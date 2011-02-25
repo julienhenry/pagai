@@ -49,7 +49,7 @@ if [ -z $OUTPUT ] ; then
 fi
 
 clang -emit-llvm -c $FILENAME -o $NAME.o
-opt -mem2reg -loop-simplify $NAME.o -o $OUTPUT
+opt -mem2reg -loopsimplify $NAME.o -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT
