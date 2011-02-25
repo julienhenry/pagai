@@ -5,7 +5,7 @@ OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
 CPPFLAGS	= -Wall -g -DDEBUG
 LDFLAGS		=
-ICFLAGS		= -I/local/jhenry/llvm-2.8/include
+#ICFLAGS		= -I/local/jhenry/llvm-2.8/include
 ICFLAGS		= 
 EXEC		= analyzer
 
