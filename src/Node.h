@@ -4,10 +4,13 @@
 #include<stack>
 #include<map>
 #include<set>
+#include<vector>
 
 #include "llvm/BasicBlock.h"
 
 #include "ap_global1.h"
+
+#include "Abstract.h"
 
 using namespace llvm;
 
@@ -15,11 +18,6 @@ typedef struct _phivar {
 	std::vector<ap_var_t> name;
 	std::vector<ap_texpr1_t> expr;
 } phivar;
-
-typedef struct _abstract {
-		ap_abstract1_t * main;
-		ap_abstract1_t * pilot;
-} abstract;
 
 class Node {
 	private:
@@ -36,7 +34,7 @@ class Node {
 		int sccId;
 		int id;
 		/* Abstract domain */
-		abstract X;
+		Abstract * X;
 
 		/* vector of int and real variables */
 		std::set<ap_var_t> intVar;

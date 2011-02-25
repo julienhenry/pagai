@@ -13,9 +13,4 @@ void init_apron();
 
 void print_texpr(ap_texpr1_t * exp);
 
-bool abstract_inclusion (
-		ap_manager_t * man,
-		abstract *c,
-		abstract *d
-		);
 #endif

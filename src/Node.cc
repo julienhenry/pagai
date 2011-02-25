@@ -10,6 +10,7 @@
 
 #include "Node.h"
 #include "Expr.h"
+#include "Abstract.h"
 
 using namespace llvm;
 
@@ -25,15 +26,11 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	bb = _bb;
 	id = i++;
 	man = _man;
-	ap_environment_t * env = ap_environment_alloc_empty();
-	X.main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
-	X.pilot = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+	X = new Abstract(_man);
 }
 
 Node::~Node() {
-	ap_manager_t* man = ap_abstract0_manager(this->X.main->abstract0);
-	ap_abstract1_clear(man,this->X.main);
-	ap_abstract1_clear(man,this->X.pilot);
+	delete X;
 }
 
 /**
