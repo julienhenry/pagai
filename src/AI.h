@@ -14,6 +14,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "Node.h"
+#include "Live.h"
 
 using namespace llvm;
 
@@ -21,7 +22,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 	private:
 		/// LV - result of the LiveValues pass
-		LiveValues * LV;
+		Live * LV;
 		/// LI - result of the LoopInfo pass
 		LoopInfo * LI;
 		/// A - list of active Nodes, that still have to be computed

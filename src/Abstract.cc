@@ -60,6 +60,8 @@ bool Abstract::is_leq (Abstract *d) {
 	return false;
 }
 
+/// widening - Compute the widening operation according to the Gopan & Reps
+/// approach
 void Abstract::widening(Node * n) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;

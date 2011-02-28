@@ -20,6 +20,7 @@
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
+#include "Live.h"
 
 using namespace llvm;
 
@@ -31,7 +32,7 @@ const char * AI::getPassName() const {
 
 void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<LiveValues>();
+	AU.addRequired<Live>();
 	AU.addRequired<LoopInfo>();
 }
 
@@ -104,8 +105,8 @@ void AI::computeFunction(Function * F) {
 	n = Nodes[b];
 
 	/* get the information about live variables from the LiveValues pass*/
-	LV = &(getAnalysis<LiveValues>(*F));
-	LI = &(getAnalysis<LoopInfo>(*(b->getParent())));
+	LV = &(getAnalysis<Live>(*F));
+	LI = &(getAnalysis<LoopInfo>(*F));
 	/* add all function's arguments into the environment of the first bb */
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -128,14 +129,12 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-
 void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 	std::vector<Abstract*> X_pred;
 	Abstract * X;
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 	ap_environment_t * env = NULL;
-
 
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
@@ -170,6 +169,15 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 		}
 	}
 
+	for (std::set<ap_var_t>::iterator i = n->intVar.begin(), e = n->intVar.end();i != e; ++i) {
+		Value * v = (Value *) *i;	
+		if (LV->isKilledInBlock(v,b)) {
+			fouts() << "Value is killed :" << *v << "\n";
+		} else {
+			fouts() << "Value is NOT killed :" << *v << "\n";
+		}
+	}
+
 	/* Xtemp is the join of all predecessors */
 	n->create_env(&env);
 
@@ -184,7 +192,6 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
-	Node * pred = NULL;
 	Abstract * Xtemp = new Abstract(man);
 	ap_environment_t * env = NULL;
 	bool update = false;

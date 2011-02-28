@@ -17,6 +17,7 @@
 #include "AI.h"
 #include "Node.h"
 #include "Execute.h"
+#include "Live.h"
 
 using namespace llvm;
 
@@ -65,8 +66,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createGCLoweringPass());
 	//Passes.add(createLowerInvokePass());
 	Passes.add(createPromoteMemoryToRegisterPass());
+	Passes.run(*M);
 	Passes.add(createLoopSimplifyPass());	
-	Passes.add(createLiveValuesPass());
+	//Passes.add(createLivePass());
+	Passes.add(new Live());
 	Passes.add(LoopInfoPass);
 	
 	//Passes.add(InitVerifPass);
