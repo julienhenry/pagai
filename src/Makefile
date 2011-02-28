@@ -5,13 +5,13 @@ OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
 CPPFLAGS	= -Wall -g -DDEBUG
 LDFLAGS		=
-#ICFLAGS		= -I/local/jhenry/llvm-2.8/include
-ICFLAGS		= 
+ICFLAGS		= -I/local/jhenry/llvm-2.8/include
+#ICFLAGS		= 
 EXEC		= analyzer
 
 GMP_PREFIX=/usr
-MPFR_PREFIX=/local/jhenry/apron
-APRON_PREFIX=/local/jhenry/apron
+MPFR_PREFIX=/net/cezanne/local/jhenry/apron
+APRON_PREFIX=/net/cezanne/local/jhenry/apron
 PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 

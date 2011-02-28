@@ -17,15 +17,19 @@
 
 using namespace llvm;
 
-
-
 class AI : public ModulePass, public InstVisitor<AI> {
 
 	private:
+		/// LV - result of the LiveValues pass
 		LiveValues * LV;
+		/// LI - result of the LoopInfo pass
 		LoopInfo * LI;
+		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
+		/// is_computed - remember the Nodes that don't need to be recomputed.
+		/// This is used to remove duplicates in the A list.
 		std::map<Node*,bool> is_computed;
+		
 		ap_manager_t* man;
 
 	public:

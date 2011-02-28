@@ -84,13 +84,13 @@ void Abstract::widening(Node * n) {
 
 void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
 
-	ap_environment_t * lcenv = Expr::common_environment(
+	ap_environment_t * lcenv = common_environment(
 			main->env,
 			ap_tcons1_array_envref(tcons));
 	*main = ap_abstract1_change_environment(man,true,main,lcenv,false);
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons);
 
-	lcenv = Expr::common_environment(
+	lcenv = common_environment(
 			pilot->env,
 			ap_tcons1_array_envref(tcons));
 	*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv,false);

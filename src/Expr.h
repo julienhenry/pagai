@@ -12,20 +12,24 @@
 
 using namespace llvm;
 
-class Expr {
-public:
-	static ap_texpr1_t * get_ap_expr(Node * n, Value * val);
+/// get_ap_expr - returns the expression associated to a specific value in a
+/// Node.
+ap_texpr1_t * get_ap_expr(Node * n, Value * val);
 
-	static ap_texpr1_t * create_ap_expr(Node * n, Constant * val);
+/// set_ap_expr - associate an Apron expression to a Value, which will be
+/// remembered for future uses.
+void set_ap_expr(Value * val, ap_texpr1_t * exp);
 
-	static void set_ap_expr(Value * val, ap_texpr1_t * exp);
-
-	static ap_environment_t * common_environment(
+/// common_environment - computes and returns the least common environment of
+/// two environments.
+ap_environment_t * common_environment(
 		ap_environment_t * env1,
 		ap_environment_t * env2);
 
-	static void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
+/// common_environment - modifies the two expression by giving them the same
+/// least common environment.
+void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
 
-	static ap_texpr_rtype_t get_ap_type(Value * val);
-};
+/// get_ap_type - returns the Apron type of the LLVM Value
+ap_texpr_rtype_t get_ap_type(Value * val);
 #endif

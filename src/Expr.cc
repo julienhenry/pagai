@@ -13,7 +13,25 @@
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
-ap_texpr1_t * Expr::get_ap_expr(Node * n, Value * val) {
+ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
+	if (isa<ConstantInt>(val)) {
+		ConstantInt * Int = dyn_cast<ConstantInt>(val);
+		/*it is supposed we use signed int */
+		int64_t n = Int->getSExtValue();
+		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
+	} 
+	if (isa<ConstantFP>(val)) {
+		ConstantFP * FP = dyn_cast<ConstantFP>(val);
+		double x = FP->getValueAPF().convertToDouble();
+		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
+	}
+	if (isa<UndefValue>(val)) {
+		n->add_var(val);
+	}
+	return Exprs[val];
+}
+
+ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			fouts() << "ERROR: NULL pointer in table Exprs !\n";
@@ -33,32 +51,14 @@ ap_texpr1_t * Expr::get_ap_expr(Node * n, Value * val) {
 	}
 }
 
-ap_texpr1_t * Expr::create_ap_expr(Node * n, Constant * val) {
-	if (isa<ConstantInt>(val)) {
-		ConstantInt * Int = dyn_cast<ConstantInt>(val);
-		/*it is supposed we use signed int */
-		int64_t n = Int->getSExtValue();
-		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
-	} 
-	if (isa<ConstantFP>(val)) {
-		ConstantFP * FP = dyn_cast<ConstantFP>(val);
-		double x = FP->getValueAPF().convertToDouble();
-		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
-	}
-	if (isa<UndefValue>(val)) {
-		n->add_var(val);
-	}
-	return Exprs[val];
-}
-
-void Expr::set_ap_expr(Value * val, ap_texpr1_t * exp) {
+void set_ap_expr(Value * val, ap_texpr1_t * exp) {
 	if (Exprs.count(val)) {
 		Exprs.erase(val);
 	}
 	Exprs[val] = exp;
 }
 
-ap_environment_t * Expr::common_environment(
+ap_environment_t * common_environment(
 	ap_environment_t * env1, 
 	ap_environment_t * env2) {
 
@@ -81,7 +81,7 @@ ap_environment_t * Expr::common_environment(
 /*
  * modifies exp1 and exp2 such that they have the same common environment
  */
-void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
+void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	
 	/* we compute the least common environment for the two expressions */
 	ap_dimchange_t * dimchange1 = NULL;
@@ -102,7 +102,7 @@ void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	ap_environment_free(lcenv);
 }
 
-ap_texpr_rtype_t Expr::get_ap_type(Value * val) {
+ap_texpr_rtype_t get_ap_type(Value * val) {
 	ap_texpr_rtype_t res;
 	
 	switch (val->getType()->getTypeID()) {

@@ -51,12 +51,10 @@ bool AI::runOnModule(Module &M) {
 	}
 
 	F = M.getFunction("main");
-	if (F == NULL) {
-		fouts() << "main function not found\n";
-	} else {
-		fouts() << "main function found\n";
+	if (F == NULL)
+		ferrs() << "main function not found\n";
+	else
 		computeFunction(F);
-	}
 
 	std::map<BasicBlock*,Node*>::iterator it;
 	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
@@ -111,11 +109,10 @@ void AI::computeFunction(Function * F) {
 	/* add all function's arguments into the environment of the first bb */
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
-		if (!(arg->use_empty())) {
+		if (!(arg->use_empty()))
 			n->add_var(arg);
-		} else {
+		else 
 			fouts() << "argument " << *a << " never used !\n";
-		}
 	}
 	/* first abstract value is top */
 	ap_environment_t * env = NULL;
@@ -258,9 +255,9 @@ void AI::computeCondition(	CmpInst * inst,
 	Value * op1 = inst->getOperand(0);
 	Value * op2 = inst->getOperand(1);
 
-	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
-	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
-	Expr::common_environment(&exp1,&exp2);
+	ap_texpr1_t * exp1 = get_ap_expr(n,op1);
+	ap_texpr1_t * exp2 = get_ap_expr(n,op2);
+	common_environment(&exp1,&exp2);
 
 	ap_texpr1_t * expr;
 	ap_texpr1_t * nexpr;
@@ -269,13 +266,13 @@ void AI::computeCondition(	CmpInst * inst,
 	expr = ap_texpr1_binop(AP_TEXPR_SUB,
 			ap_texpr1_copy(exp1),
 			ap_texpr1_copy(exp2),
-			Expr::get_ap_type(op1),
+			get_ap_type(op1),
 			AP_RDIR_RND);
 
 	nexpr = ap_texpr1_binop(AP_TEXPR_SUB,
 			ap_texpr1_copy(exp2),
 			ap_texpr1_copy(exp1),
-			Expr::get_ap_type(op1),
+			get_ap_type(op1),
 			AP_RDIR_RND);
 
 
@@ -443,23 +440,22 @@ void AI::visitPHINode (PHINode &I){
 		}
 	}
 
-	//if (IncomingValues.size() == 1) {
-	//	int i = IncomingValues.front();
-	//	pv = I.getIncomingValue(i);
-	//	nb = Nodes[I.getIncomingBlock(i)];	
-	//	Expr::set_ap_expr(&I,Expr::get_ap_expr(nb,pv));
-	//} else {
-	n->add_var((Value*)var);
-	//for (int i = 0; i < I.getNumIncomingValues(); i++) {
-	while (!IncomingValues.empty()) {
+	if (IncomingValues.size() == 1) {
 		int i = IncomingValues.front();
-		IncomingValues.pop_front();
 		pv = I.getIncomingValue(i);
-		nb = Nodes[I.getIncomingBlock(i)];
-		n->phi_vars[nb].name.push_back(var);
-		n->phi_vars[nb].expr.push_back(*Expr::get_ap_expr(nb,pv));
+		nb = Nodes[I.getIncomingBlock(i)];	
+		set_ap_expr(&I,get_ap_expr(nb,pv));
+	} else {
+		n->add_var((Value*)var);
+		while (!IncomingValues.empty()) {
+			int i = IncomingValues.front();
+			IncomingValues.pop_front();
+			pv = I.getIncomingValue(i);
+			nb = Nodes[I.getIncomingBlock(i)];
+			n->phi_vars[nb].name.push_back(var);
+			n->phi_vars[nb].expr.push_back(*get_ap_expr(nb,pv));
+		}
 	}
-	//}
 }
 
 void AI::visitTruncInst (TruncInst &I){
@@ -521,7 +517,7 @@ void AI::visitCallInst(CallInst &I){
 	ap_var_t var = (Value *) &I; 
 	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	Expr::set_ap_expr(&I,exp);
+	set_ap_expr(&I,exp);
 	//print_texpr(exp);
 	n->add_var((Value*)var);
 }
@@ -594,18 +590,18 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 			// NOT IMPLEMENTED
 			return;
 	}
-	ap_texpr_rtype_t type = Expr::get_ap_type(&I);
+	ap_texpr_rtype_t type = get_ap_type(&I);
 	ap_texpr_rdir_t dir = AP_RDIR_RND;
 	Value * op1 = I.getOperand(0);
 	Value * op2 = I.getOperand(1);
 
-	ap_texpr1_t * exp1 = Expr::get_ap_expr(n,op1);
-	ap_texpr1_t * exp2 = Expr::get_ap_expr(n,op2);
-	Expr::common_environment(&exp1,&exp2);
+	ap_texpr1_t * exp1 = get_ap_expr(n,op1);
+	ap_texpr1_t * exp2 = get_ap_expr(n,op2);
+	common_environment(&exp1,&exp2);
 
 	/* we create the expression associated to the binary op */
 	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
-	Expr::set_ap_expr(&I,exp);
+	set_ap_expr(&I,exp);
 }
 
 void AI::visitCmpInst (CmpInst &I){
