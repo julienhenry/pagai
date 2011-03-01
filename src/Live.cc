@@ -1,8 +1,9 @@
+#include <stack>
+
 #include "Live.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/CFG.h"
-#include <stack>
 
 using namespace llvm;
 
@@ -115,29 +116,39 @@ Live::Memo &Live::compute( Value *V) {
 			if (L->contains(UseBB))
 				break;
 
-		if (isa<PHINode>(U)) {
+		std::stack< BasicBlock *> S;
+		
+		if (PHINode * phi = dyn_cast<PHINode>(U)) {
 			// The value is used by a PHI, so it is live-out of the defining block.
 			LiveOutOfDefBB = true;
+
+			// we should add to LiveThrough Block the predecessors of the block,
+			// which comes to the right path (phi-variable)
+			M.LiveThrough.insert(UseBB);
+			
+			BasicBlock * Pred = phi->getIncomingBlock(I);
+			S.push(Pred);
+
 		} else if (UseBB != DefBB) {
 			// A use outside the defining block has been found.
 			LiveOutOfDefBB = true;
 
 			// We add to LiveThrough blocks all the blocks that are located
 			// between the definition of the value and its use.
-			std::stack< BasicBlock *> S;
 			S.push(UseBB);
-			while (!S.empty()) {
-				BasicBlock * BB = S.top();
-				S.pop();
-				if (!M.LiveThrough.count(BB)) {
-					M.LiveThrough.insert(BB);
-					if (BB != DefBB) {
-						for (pred_iterator p = pred_begin(BB), e = pred_end(BB); 
-								p != e; 
-								++p){
-							BasicBlock * Pred = *p;
-							S.push(Pred);
-						}
+		}
+
+		while (!S.empty()) {
+			BasicBlock * BB = S.top();
+			S.pop();
+			if (!M.LiveThrough.count(BB)) {
+				M.LiveThrough.insert(BB);
+				if (BB != DefBB) {
+					for (pred_iterator p = pred_begin(BB), e = pred_end(BB); 
+							p != e; 
+							++p){
+						BasicBlock * Pred = *p;
+						S.push(Pred);
 					}
 				}
 			}
@@ -151,9 +162,8 @@ Live::Memo &Live::compute( Value *V) {
 		SmallVector<BasicBlock *, 4> ExitingBlocks;
 		L->getExitingBlocks(ExitingBlocks);
 		for (unsigned i = 0, e = ExitingBlocks.size(); i != e; ++i) {
-			BasicBlock *ExitingBlock = ExitingBlocks[i];
-			for (succ_iterator SI = succ_begin(ExitingBlock), E = succ_end(ExitingBlock); 
-					SI != E; ++SI) {
+			BasicBlock *Exit = ExitingBlocks[i];
+			for (succ_iterator SI = succ_begin(Exit), E = succ_end(Exit) ; SI != E; ++SI) {
 				BasicBlock *Succ = *SI;
 				if (!L->contains(Succ))
 					M.Killed.insert(Succ);
