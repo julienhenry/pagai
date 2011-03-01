@@ -48,6 +48,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 		void printBasicBlock(BasicBlock * b);
 		
+		void computeEnv(Node * n);
 		void computeHull(Node * n, Abstract &Xtemp, bool &update);
 		void computeNode(Node * n);
 

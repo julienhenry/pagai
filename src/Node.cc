@@ -83,11 +83,11 @@ void Node::add_var(Value * val) {
 	ap_var_t var = val; 
 	switch (get_ap_type(val)) {
 		case AP_RTYPE_INT:
-			intVar.insert(var);
+			intVar[var].insert(val);
 			env = ap_environment_alloc(&var,1,NULL,0);
 			break;
 		default:
-			realVar.insert(var);
+			realVar[var].insert(val);
 			env = ap_environment_alloc(NULL,0,&var,1);
 			break;
 	}
@@ -99,12 +99,29 @@ void Node::create_env(ap_environment_t ** env) {
 
 	ap_var_t * intvars = (ap_var_t*)malloc(intVar.size()*sizeof(ap_var_t));
 	ap_var_t * realvars = (ap_var_t*)malloc(realVar.size()*sizeof(ap_var_t));
-	copy (intVar.begin(),intVar.end(),intvars);
-	copy (realVar.begin(),realVar.end(),realvars);
+
+	int j = 0;
+	for (std::map<ap_var_t,std::set<Value*> >::iterator i = intVar.begin(),
+			e = intVar.end(); i != e; ++i) {
+		intvars[j] = (*i).first;
+		j++;
+	}
+
+	j = 0;
+	for (std::map<ap_var_t,std::set<Value*> >::iterator i = realVar.begin(), 
+			e = realVar.end(); i != e; ++i) {
+		realvars[j] = (*i).first;
+		j++;
+	}
+
+
+	//	copy (intVar.begin(),intVar.end(),intvars);
+	//	copy (realVar.begin(),realVar.end(),realvars);
 
 	if (*env != NULL)
 		ap_environment_free(*env);
 	*env = ap_environment_alloc(intvars,intVar.size(),realvars,realVar.size());
+	
 	free(intvars);
 	free(realvars);
 }

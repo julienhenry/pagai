@@ -37,8 +37,10 @@ class Node {
 		Abstract * X;
 
 		/// intVar and realVar - vector of int and real variables 
-		std::set<ap_var_t> intVar;
-		std::set<ap_var_t> realVar;
+		//std::set<ap_var_t> intVar;
+		//std::set<ap_var_t> realVar;
+		std::map<ap_var_t,std::set<Value*> > intVar;
+		std::map<ap_var_t,std::set<Value*> > realVar;
 
 		/// tcons - contains the constraints for the outgoing transitions 
 		std::map<Node*,ap_tcons1_array_t*> tcons;

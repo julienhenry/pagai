@@ -46,12 +46,8 @@ bool AI::runOnModule(Module &M) {
 	init_apron();
 	man = pk_manager_alloc(true);
 
-	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		F = &*mIt;
-
-		fouts() << "1 function found, of size " << F->size() << "\n";	
-		initFunction(F);
-	}
+	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) 
+		initFunction(&*mIt);
 
 	F = M.getFunction("main");
 	if (F == NULL)
@@ -131,12 +127,12 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
-	std::vector<Abstract*> X_pred;
-	Abstract * X;
+void AI::computeEnv(Node * n) {
+
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
-	ap_environment_t * env = NULL;
+	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
+	std::set<Value*>::iterator it, et;
 
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
@@ -144,8 +140,55 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 
 		if (pred->X->main != NULL) {
 
-			n->intVar.insert(pred->intVar.begin(),pred->intVar.end());
-			n->realVar.insert(pred->realVar.begin(),pred->realVar.end());
+			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
+				std::set<Value*> S;
+				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
+					Value * v = *it;
+					if (LV->isLiveThroughBlock(v,b)) 
+						S.insert(v);
+				}
+				n->intVar[(*i).first].insert(S.begin(),S.end());
+			}
+
+			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
+				std::set<Value*> S;
+				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
+					Value * v = *it;
+					if (LV->isLiveThroughBlock(v,b)) 
+						S.insert(v);
+				}
+				n->realVar[(*i).first].insert(S.begin(),S.end());
+			}
+		}
+	}
+
+	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(),
+			e = n->intVar.end(); i != e; ++i) {
+		if ((*i).second.empty()) {
+			n->intVar.erase((*i).first);
+		}
+	}
+	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->realVar.begin(),
+			e = n->realVar.end(); i != e; ++i) {
+		if ((*i).second.empty()) {
+			n->realVar.erase((*i).first);
+		}
+	}
+}
+
+void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
+	std::vector<Abstract*> X_pred;
+	Abstract * X;
+	BasicBlock * b = n->bb;
+	Node * pred = NULL;
+	ap_environment_t * env = NULL;
+
+
+	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+		BasicBlock *pb = *p;
+		pred = Nodes[pb];
+
+		if (pred->X->main != NULL) {
 
 			X = new Abstract(pred->X);
 
@@ -171,14 +214,16 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 		}
 	}
 
-	for (std::set<ap_var_t>::iterator i = n->intVar.begin(), e = n->intVar.end();i != e; ++i) {
-		Value * v = (Value *) *i;	
+	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(), 
+			e = n->intVar.end();i != e; ++i) {
+		Value * v = (Value *) (*i).first;	
 		if (LV->isLiveThroughBlock(v,b)) {
 			fouts() << "Value is Live :" << *v << "\n";
 		} else {
 			fouts() << "Value is NOT Live :" << *v << "\n";
 		}
 	}
+
 
 	/* Xtemp is the join of all predecessors */
 	n->create_env(&env);
@@ -217,6 +262,9 @@ void AI::computeNode(Node * n) {
 		visit(*i);
 	}
 
+	/* compute the environement we will use to create our abstract domain */
+	computeEnv(n);
+
 	/* computing the new abstract value, by doing the convex hull of all
 	 * predecessors */
 	computeHull(n,*Xtemp,update);
@@ -248,6 +296,21 @@ void AI::computeNode(Node * n) {
 		}
 	}
 	n->X->print();
+}
+
+/// insert_env_vars_into_node_vars - this function takes all apron variables of
+/// an environment, and adds them into the Node's variables, with a Value V as
+/// a use.
+void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V) {
+	ap_var_t var;
+	for (size_t i = 0; i < env->intdim; i++) {
+		var = ap_environment_var_of_dim(env,i);
+		n->intVar[var].insert(V);
+	}
+	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
+		var = ap_environment_var_of_dim(env,i);
+		n->realVar[var].insert(V);
+	}
 }
 
 void AI::visitReturnInst (ReturnInst &I){
@@ -452,8 +515,13 @@ void AI::visitPHINode (PHINode &I){
 	if (IncomingValues.size() == 1) {
 		int i = IncomingValues.front();
 		pv = I.getIncomingValue(i);
-		nb = Nodes[I.getIncomingBlock(i)];	
-		set_ap_expr(&I,get_ap_expr(nb,pv));
+		nb = Nodes[I.getIncomingBlock(i)];
+		ap_texpr1_t * expr = get_ap_expr(nb,pv);
+		set_ap_expr(&I,expr);
+		ap_environment_t * env = expr->env;
+
+		/* this instruction may use some apron variables */
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 	} else {
 		n->add_var((Value*)var);
 		while (!IncomingValues.empty()) {
@@ -611,6 +679,13 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 	/* we create the expression associated to the binary op */
 	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
 	set_ap_expr(&I,exp);
+
+	/* this value may use some apron variables 
+	 * we add these variables in the Node's variable structure, such that we
+	 * remember that instruction I uses these variables
+	 */
+	ap_environment_t * env = exp->env;
+	insert_env_vars_into_node_vars(env,n,(Value*)&I);
 }
 
 void AI::visitCmpInst (CmpInst &I){
@@ -620,5 +695,3 @@ void AI::visitCmpInst (CmpInst &I){
 void AI::visitCastInst (CastInst &I){
 	//fouts() << "CastInst\n" << I << "\n";	
 }
-
-
