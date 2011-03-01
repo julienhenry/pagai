@@ -16,7 +16,7 @@ std::map<Value *,ap_texpr1_t *> Exprs;
 ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantInt>(val)) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
-		/*it is supposed we use signed int */
+		// it is supposed we use signed int
 		int64_t n = Int->getSExtValue();
 		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
 	} 
@@ -37,8 +37,8 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 			fouts() << "ERROR: NULL pointer in table Exprs !\n";
 		return Exprs[val];
 	} else {
-		/*val is not yet in the Expr map
-		 * We have to create it */
+		// val is not yet in the Expr map
+		// We have to create it
 		if (isa<Constant>(val)) {
 			return create_ap_expr(n,dyn_cast<Constant>(val));
 		} else {
@@ -78,12 +78,13 @@ ap_environment_t * common_environment(
 	return lcenv;
 }
 
-/*
- * modifies exp1 and exp2 such that they have the same common environment
- */
+
+/// common_environment = modifies exp1 and exp2 such that 
+/// they have the same common environment
+///
 void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	
-	/* we compute the least common environment for the two expressions */
+	// we compute the least common environment for the two expressions
 	ap_dimchange_t * dimchange1 = NULL;
 	ap_dimchange_t * dimchange2 = NULL;
 	ap_environment_t* lcenv = ap_environment_lce(
@@ -91,7 +92,7 @@ void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 			(*exp2)->env,
 			&dimchange1,
 			&dimchange2);
-	/* we extend the environments such that both expressions have the same one */
+	// we extend the environments such that both expressions have the same one
 	*exp1 = ap_texpr1_extend_environment(*exp1,lcenv);
 	*exp2 = ap_texpr1_extend_environment(*exp2,lcenv);
 

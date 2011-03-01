@@ -27,6 +27,7 @@ Abstract::~Abstract() {
 	delete pilot;
 }
 
+/// set_top - sets the abstract to top on the environment env
 void Abstract::set_top(ap_environment_t * env) {
 		delete main;
 		delete pilot;
@@ -34,6 +35,7 @@ void Abstract::set_top(ap_environment_t * env) {
 		pilot = new ap_abstract1_t(ap_abstract1_top(man,env));
 }
 
+/// set_bottom - sets the abstract to bottom on the environment env
 void Abstract::set_bottom(ap_environment_t * env) {
 		delete main;
 		delete pilot;

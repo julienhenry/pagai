@@ -36,10 +36,14 @@ class Node {
 		/// X - Abstract domain 
 		Abstract * X;
 
-		/// intVar and realVar - vector of int and real variables 
-		//std::set<ap_var_t> intVar;
-		//std::set<ap_var_t> realVar;
+		/// intVar - contains all the int variables that have to be used as
+		/// dimensions for the abstract value. Each variable is associated to a
+		/// list of Values, that directly use this variable : if one of these
+		/// Value is live, then the variable should not be removed from the Abstract
+		/// domain's dimensions
 		std::map<ap_var_t,std::set<Value*> > intVar;
+		
+		/// realVar - same as intVar, but for real variables
 		std::map<ap_var_t,std::set<Value*> > realVar;
 
 		/// tcons - contains the constraints for the outgoing transitions 

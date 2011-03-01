@@ -33,9 +33,9 @@ Node::~Node() {
 	delete X;
 }
 
-/**
- * compute the strongly connected components and the loop heads of the graph.
- */
+/// computeSCC - compute the strongly connected components and the loop 
+/// heads of the graph.
+///
 void Node::computeSCC() {
 	std::stack<Node*> * S = new std::stack<Node*>();
 	int n = 1;
@@ -43,11 +43,10 @@ void Node::computeSCC() {
 	delete S;
 }
 
-/**
- * recursive version of the tarjan's algorithm
- * compute both the loop heads and the Strongly connected components
- * Must be called with n=1 and and empty allocated stack
- */
+/// computeSCC_rec -  recursive version of the tarjan's algorithm
+/// compute both the loop heads and the Strongly connected components
+/// Must be called with n=1 and and empty allocated stack
+///
 void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 	Node * nsucc;
 	index=n;
@@ -114,10 +113,6 @@ void Node::create_env(ap_environment_t ** env) {
 		j++;
 	}
 
-
-	//	copy (intVar.begin(),intVar.end(),intvars);
-	//	copy (realVar.begin(),realVar.end(),realvars);
-
 	if (*env != NULL)
 		ap_environment_free(*env);
 	*env = ap_environment_alloc(intvars,intVar.size(),realvars,realVar.size());
@@ -129,5 +124,4 @@ void Node::create_env(ap_environment_t ** env) {
 bool NodeCompare::operator() (Node * n1, Node * n2) {
 	if (n1->sccId < n2->sccId) return true;
 	return (n1->id > n2->id);
-	//return false;
 }

@@ -70,13 +70,13 @@ bool AI::runOnModule(Module &M) {
 
 void AI::initFunction(Function * F) {
 	Node * n;
-	/*we create the Node objects associated to each basicblock*/
+	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		n = new Node(man,i);
 		Nodes[i] = n;
 	}
 	if (F->size() > 0) {
-		/*we find the Strongly Connected Components*/
+		// we find the Strongly Connected Components
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
@@ -98,14 +98,14 @@ void AI::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
 
-	/*A = {first basicblock} */
+	// A = {first basicblock}
 	b = F->begin();
 	n = Nodes[b];
 
-	/* get the information about live variables from the LiveValues pass*/
+	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
-	/* add all function's arguments into the environment of the first bb */
+	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
 		if (!(arg->use_empty()))
@@ -113,13 +113,13 @@ void AI::computeFunction(Function * F) {
 		else 
 			fouts() << "argument " << *a << " never used !\n";
 	}
-	/* first abstract value is top */
+	// first abstract value is top
 	ap_environment_t * env = NULL;
 	n->create_env(&env);
 	n->X->set_top(env);
 	A.push(n);
 
-	/* Simple Abstract Interpretation algorithm */
+	// Simple Abstract Interpretation algorithm
 	while (!A.empty()) {
 		n = A.top();
 		A.pop();
@@ -195,13 +195,12 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 			n->create_env(&env);
 			X->change_environment(env);
 
-			/* intersect with the transition's condition */
+			// intersect with the transition's condition
 			if (pred->tcons.count(n)) {
 				X->meet_tcons_array(pred->tcons[n]);
 			}
-			/* we still need to add phi variables into our domain 
-			 * and assign them the the right value
-			 */
+			// we still need to add phi variables into our domain 
+			// and assign them the the right value
 			X->assign_texpr_array(
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
@@ -225,13 +224,13 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 	}
 
 
-	/* Xtemp is the join of all predecessors */
+	// Xtemp is the join of all predecessors
 	n->create_env(&env);
 
 	if (X_pred.size() > 0) {
 		Xtemp.join_array(env,X_pred);
 	} else {
-		/* we are in the first basicblock of the function */
+		// we are in the first basicblock of the function
 		Xtemp.set_bottom(env);
 		update = true;
 	}
@@ -256,30 +255,29 @@ void AI::computeNode(Node * n) {
 	n->realVar.clear();
 	is_computed[n] = true;
 
-	/* visit instructions */
+	// visit instructions
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
 			i != e; ++i) {
 		visit(*i);
 	}
 
-	/* compute the environement we will use to create our abstract domain */
+	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
 
-	/* computing the new abstract value, by doing the convex hull of all
-	 * predecessors */
+	// computing the new abstract value, by doing the convex hull of all
+	// predecessors
 	computeHull(n,*Xtemp,update);
 
 	n->create_env(&env);
-	/* environment may be bigger since the last computation of this node */
+	// environment may be bigger since the last computation of this node
 	n->X->change_environment(env);
 
-	/* if it is a loop header, then widening */
+	// if it is a loop header, then widening */
 	if (LI->isLoopHeader(b)) {
 		Xtemp->widening(n);
 	}
 
-	/* update the abstract value if it is bigger than the previous one */
-	//if (!ap_abstract1_is_leq(man,Xtemp.main,n->X->main)) {
+	// update the abstract value if it is bigger than the previous one
 	if (!Xtemp->is_leq(n->X)) {
 		delete n->X;
 		n->X = new Abstract(Xtemp);
@@ -288,7 +286,7 @@ void AI::computeNode(Node * n) {
 	delete Xtemp;
 
 	if (update) {
-		/* update the successors of n */
+		// update the successors of n 
 		for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
 			BasicBlock *sb = *s;
 			A.push(Nodes[sb]);
@@ -354,14 +352,14 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_UEQ: 
 		case CmpInst::FCMP_TRUE: 
 		case CmpInst::ICMP_EQ:
-			constyp = AP_CONS_EQ; /* equality constraint */
+			constyp = AP_CONS_EQ; // equality constraint
 			nconstyp = AP_CONS_DISEQ;
 			break;
 		case CmpInst::FCMP_OGT:
 		case CmpInst::FCMP_UGT:
 		case CmpInst::ICMP_UGT: 
 		case CmpInst::ICMP_SGT: 
-			constyp = AP_CONS_SUP; /* > constraint */
+			constyp = AP_CONS_SUP; // > constraint
 			nconstyp = AP_CONS_SUPEQ;
 			break;
 		case CmpInst::FCMP_OLT: 
@@ -371,14 +369,14 @@ void AI::computeCondition(	CmpInst * inst,
 			swap = expr;
 			expr = nexpr;
 			nexpr = swap;
-			constyp = AP_CONS_SUP; /* > constraint */
+			constyp = AP_CONS_SUP; // > constraint
 			nconstyp = AP_CONS_SUPEQ; 
 			break;
 		case CmpInst::FCMP_OGE:
 		case CmpInst::FCMP_UGE:
 		case CmpInst::ICMP_UGE: 
 		case CmpInst::ICMP_SGE: 
-			constyp = AP_CONS_SUPEQ; /* >= constraint */
+			constyp = AP_CONS_SUPEQ; // >= constraint
 			nconstyp = AP_CONS_SUP;
 			break;
 		case CmpInst::FCMP_OLE:
@@ -388,13 +386,13 @@ void AI::computeCondition(	CmpInst * inst,
 			swap = expr;
 			expr = nexpr;
 			nexpr = swap;
-			constyp = AP_CONS_SUPEQ; /* >= constraint */
+			constyp = AP_CONS_SUPEQ; // >= constraint
 			nconstyp = AP_CONS_SUP;
 			break;
 		case CmpInst::FCMP_ONE:
 		case CmpInst::FCMP_UNE: 
 		case CmpInst::ICMP_NE: 
-			constyp = AP_CONS_DISEQ; /* disequality constraint */
+			constyp = AP_CONS_DISEQ; // disequality constraint
 			nconstyp = AP_CONS_EQ;
 			break;
 		case CmpInst::FCMP_ORD: 
@@ -404,7 +402,7 @@ void AI::computeCondition(	CmpInst * inst,
 			fouts() << "ERROR : Unknown predicate\n";
 			break;
 	}
-	/* creating the TRUE constraint */
+	// creating the TRUE constraint
 	ap_tcons1_t cons = ap_tcons1_make(
 			constyp,
 			expr,
@@ -413,7 +411,7 @@ void AI::computeCondition(	CmpInst * inst,
 	**true_cons = ap_tcons1_array_make(cons.env,1);
 	ap_tcons1_array_set(*true_cons,0,&cons);
 
-	/* creating the FALSE constraint */
+	// creating the FALSE constraint
 	cons = ap_tcons1_make(
 			nconstyp,
 			nexpr,
@@ -432,20 +430,20 @@ void AI::visitBranchInst (BranchInst &I){
 		/* no constraints */
 		return;
 	}
-	/* branch under condition */
+	// branch under condition
 	iftrue = Nodes[I.getSuccessor(0)];
 	iffalse = Nodes[I.getSuccessor(1)];
 	ap_tcons1_array_t * true_cons;
 	ap_tcons1_array_t * false_cons;
 	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
-	/* free the previous tcons */
+	// free the previous tcons
 	if (n->tcons.count(iftrue)) {
 		n->tcons.erase(iftrue);
 	}
 	if (n->tcons.count(iffalse)) {
 		n->tcons.erase(iffalse);
 	}
-	/* insert into the tcons array of the node */
+	// insert into the tcons array of the node
 	n->tcons[iftrue] = true_cons;
 	n->tcons[iffalse] = false_cons;
 }
@@ -513,6 +511,9 @@ void AI::visitPHINode (PHINode &I){
 	}
 
 	if (IncomingValues.size() == 1) {
+		// only one incoming value is possible : it is useless to add a new
+		// variable, since Value I is directly equal to the associated incoming
+		// value
 		int i = IncomingValues.front();
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];
@@ -520,7 +521,9 @@ void AI::visitPHINode (PHINode &I){
 		set_ap_expr(&I,expr);
 		ap_environment_t * env = expr->env;
 
-		/* this instruction may use some apron variables */
+		// this instruction may use some apron variables 
+		// we add these variables in the Node's variable structure, such that we
+		// remember that instruction I uses these variables
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 	} else {
 		n->add_var((Value*)var);
@@ -676,14 +679,14 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 	ap_texpr1_t * exp2 = get_ap_expr(n,op2);
 	common_environment(&exp1,&exp2);
 
-	/* we create the expression associated to the binary op */
+	// we create the expression associated to the binary op
 	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
 	set_ap_expr(&I,exp);
 
-	/* this value may use some apron variables 
-	 * we add these variables in the Node's variable structure, such that we
-	 * remember that instruction I uses these variables
-	 */
+	// this value may use some apron variables 
+	// we add these variables in the Node's variable structure, such that we
+	// remember that instruction I uses these variables
+	//
 	ap_environment_t * env = exp->env;
 	insert_env_vars_into_node_vars(env,n,(Value*)&I);
 }
