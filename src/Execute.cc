@@ -66,13 +66,12 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createGCLoweringPass());
 	//Passes.add(createLowerInvokePass());
 	Passes.add(createPromoteMemoryToRegisterPass());
-	Passes.run(*M);
 	Passes.add(createLoopSimplifyPass());	
 	//Passes.add(createLivePass());
-	Passes.add(new Live());
 	Passes.add(LoopInfoPass);
 	
 	//Passes.add(InitVerifPass);
+	Passes.add(new Live());
 	Passes.add(AIPass);
 
 	//Passes.add(createGCInfoDeleter());

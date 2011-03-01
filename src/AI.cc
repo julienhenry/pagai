@@ -26,6 +26,8 @@ using namespace llvm;
 
 char AI::ID = 0;
 
+static RegisterPass<AI> X("AI", "Abstract Interpretation Pass", false, true);
+
 const char * AI::getPassName() const {
 	return "AI";
 }
@@ -171,10 +173,10 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 
 	for (std::set<ap_var_t>::iterator i = n->intVar.begin(), e = n->intVar.end();i != e; ++i) {
 		Value * v = (Value *) *i;	
-		if (LV->isKilledInBlock(v,b)) {
-			fouts() << "Value is killed :" << *v << "\n";
+		if (LV->isLiveThroughBlock(v,b)) {
+			fouts() << "Value is Live :" << *v << "\n";
 		} else {
-			fouts() << "Value is NOT killed :" << *v << "\n";
+			fouts() << "Value is NOT Live :" << *v << "\n";
 		}
 	}
 
@@ -201,7 +203,7 @@ void AI::computeNode(Node * n) {
 	}
 
 	fouts() << "#######################################################\n";
-	fouts() << "Computing node:\n";
+	fouts() << "Computing node: " << b << "\n";
 	fouts() << *b << "\n";
 
 	n->phi_vars.clear();

@@ -4,83 +4,78 @@
 #include "llvm/Pass.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/Analysis/Dominators.h"
+#include "llvm/Analysis/LoopInfo.h"
 
-namespace llvm {
-
-class DominatorTree;
-class LoopInfo;
-class Value;
+using namespace llvm;
 
 /// Live - Analysis that provides liveness information for
 /// LLVM IR Values.
 ///
 class Live : public FunctionPass {
-  DominatorTree *DT;
-  LoopInfo *LI;
+	LoopInfo *LI;
 
-  /// Memo - A bunch of state to be associated with a value.
-  ///
-  struct Memo {
-    /// Used - The set of blocks which contain a use of the value.
-    ///
-    SmallPtrSet<const BasicBlock *, 4> Used;
+	/// Memo - A bunch of state to be associated with a value.
+	///
+	struct Memo {
+		/// Used - The set of blocks which contain a use of the value.
+		///
+		SmallPtrSet< BasicBlock *, 4> Used;
 
-    /// LiveThrough - A conservative approximation of the set of blocks in
-    /// which the value is live-through, meaning blocks properly dominated
-    /// by the definition, and from which blocks containing uses of the
-    /// value are reachable.
-    ///
-    SmallPtrSet<const BasicBlock *, 4> LiveThrough;
+		/// LiveThrough - A conservative approximation of the set of blocks in
+		/// which the value is live-through, meaning blocks dominated
+		/// by the definition, and from which blocks containing uses of the
+		/// value are reachable.
+		///
+		SmallPtrSet< BasicBlock *, 4> LiveThrough;
 
-    /// Killed - A conservative approximation of the set of blocks in which
-    /// the value is used and not live-out.
-    ///
-    SmallPtrSet<const BasicBlock *, 4> Killed;
-  };
+		/// Killed - the set of blocks in which
+		/// the value is not live-out.
+		///
+		SmallPtrSet< BasicBlock *, 4> Killed;
+	};
 
-  /// Memos - Remembers the Memo for each Value. This is populated on
-  /// demand.
-  ///
-  DenseMap<const Value *, Memo> Memos;
+	/// Memos - Remembers the Memo for each Value. This is populated on
+	/// demand.
+	///
+	DenseMap< Value *, Memo> Memos;
 
-  /// getMemo - Retrieve an existing Memo for the given value if one
-  /// is available, otherwise compute a new one.
-  ///
-  Memo &getMemo(const Value *V);
+	/// getMemo - Retrieve an existing Memo for the given value if one
+	/// is available, otherwise compute a new one.
+	///
+	Memo &getMemo( Value *V);
 
-  /// compute - Compute a new Memo for the given value.
-  ///
-  Memo &compute(const Value *V);
+	/// compute - Compute a new Memo for the given value.
+	///
+	Memo &compute( Value *V);
 
-public:
-  static char ID;
-  Live();
+	public:
+	static char ID;
+	Live();
 
-  virtual void getAnalysisUsage(AnalysisUsage &AU) const;
-  virtual bool runOnFunction(Function &F);
-  virtual void releaseMemory();
+	const char * getPassName() const;
+	virtual void getAnalysisUsage(AnalysisUsage &AU) const;
+	virtual bool runOnFunction(Function &F);
+	virtual void releaseMemory();
 
-  /// isUsedInBlock - Test if the given value is used in the given block.
-  ///
-  bool isUsedInBlock(const Value *V, const BasicBlock *BB);
+	/// isUsedInBlock - Test if the given value is used in the given block.
+	///
+	bool isUsedInBlock( Value *V,  BasicBlock *BB);
 
-  /// isLiveThroughBlock - Test if the given value is known to be
-  /// live-through the given block, meaning that the block is properly
-  /// dominated by the value's definition, and there exists a block
-  /// reachable from it that contains a use. This uses a conservative
-  /// approximation that errs on the side of returning false.
-  ///
-  bool isLiveThroughBlock(const Value *V, const BasicBlock *BB);
+	/// isLiveThroughBlock - Test if the given value is known to be
+	/// live-through the given block, meaning that the block is properly
+	/// dominated by the value's definition, and there exists a block
+	/// reachable from it that contains a use. 	
+	///
+	bool isLiveThroughBlock( Value *V,  BasicBlock *BB);
 
-  /// isKilledInBlock - Test if the given value is known to be killed in
-  /// the given block, meaning that the block contains a use of the value,
-  /// and no blocks reachable from the block contain a use. This uses a
-  /// conservative approximation that errs on the side of returning false.
-  ///
-  bool isKilledInBlock(const Value *V, const BasicBlock *BB);
+	/// isKilledInBlock - Test if the given value is known to be killed in
+	/// the given block, meaning that the block contains a use of the value,
+	/// and no blocks reachable from the block contain a use.
+	///
+	bool isKilledInBlock( Value *V,  BasicBlock *BB);
 };
 
-}  // end namespace llvm
 
 #endif
 
