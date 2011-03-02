@@ -187,11 +187,14 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
-
-		if (pred->X->main != NULL) {
+		
+		// we only take pred as a predecessor if its main value is not bottom
+		if (pred->X->main != NULL && !ap_abstract1_is_bottom(man,pred->X->main)) {
 
 			X = new Abstract(pred->X);
 
+			// we transform the abstract domain such that it fits the
+			// environment of the new one.
 			n->create_env(&env);
 			X->change_environment(env);
 
@@ -268,8 +271,10 @@ void AI::computeNode(Node * n) {
 	// predecessors
 	computeHull(n,*Xtemp,update);
 
-	n->create_env(&env);
 	// environment may be bigger since the last computation of this node
+	// indeed, there may be some Phi-vars with more than 1 possible incoming
+	// edge, whereas only one possible incoming edge was possible before
+	n->create_env(&env);
 	n->X->change_environment(env);
 
 	// if it is a loop header, then widening */
@@ -523,7 +528,7 @@ void AI::visitPHINode (PHINode &I){
 
 		// this instruction may use some apron variables 
 		// we add these variables in the Node's variable structure, such that we
-		// remember that instruction I uses these variables
+		// remember that the instruction I uses these variables
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 	} else {
 		n->add_var((Value*)var);
