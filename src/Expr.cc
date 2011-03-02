@@ -13,6 +13,8 @@
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
+std::map<Value *,ap_texpr1_t *> Phivar_first_Expr;
+
 ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantInt>(val)) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
@@ -51,8 +53,22 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	}
 }
 
+ap_texpr1_t * get_phivar_first_expr(Value * val) {
+	if (Phivar_first_Expr.count(val)) {
+		return Phivar_first_Expr[val];
+	}
+	return NULL;
+}
+
+void set_phivar_first_expr(Value * val, ap_texpr1_t * exp) {
+	if (Phivar_first_Expr.count(val)) {
+		Phivar_first_Expr.erase(val);
+	}
+	Phivar_first_Expr[val] = exp;
+}
+
 void set_ap_expr(Value * val, ap_texpr1_t * exp) {
-	if (Exprs.count(val)) {
+	if (Exprs.count(val) && !Phivar_first_Expr.count(val)) {
 		Exprs.erase(val);
 	}
 	Exprs[val] = exp;

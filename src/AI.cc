@@ -137,9 +137,7 @@ void AI::computeEnv(Node * n) {
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
-
 		if (pred->X->main != NULL) {
-
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				std::set<Value*> S;
 				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
@@ -162,17 +160,27 @@ void AI::computeEnv(Node * n) {
 		}
 	}
 
+	std::set<ap_var_t> To_Be_Erased;
 	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(),
 			e = n->intVar.end(); i != e; ++i) {
 		if ((*i).second.empty()) {
-			n->intVar.erase((*i).first);
+			To_Be_Erased.insert((*i).first);
 		}
 	}
+	for (std::set<ap_var_t>::iterator i = To_Be_Erased.begin(), 
+			e = To_Be_Erased.end(); i!= e ; i++) {
+			n->intVar.erase(*i);
+	}
+	To_Be_Erased.clear();
 	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->realVar.begin(),
 			e = n->realVar.end(); i != e; ++i) {
 		if ((*i).second.empty()) {
 			n->realVar.erase((*i).first);
 		}
+	}
+	for (std::set<ap_var_t>::iterator i = To_Be_Erased.begin(), 
+			e = To_Be_Erased.end(); i!= e ; i++) {
+			n->realVar.erase(*i);
 	}
 }
 
@@ -275,9 +283,43 @@ void AI::computeNode(Node * n) {
 	// indeed, there may be some Phi-vars with more than 1 possible incoming
 	// edge, whereas only one possible incoming edge was possible before
 	n->create_env(&env);
+
+	// we compute the set of variable that have to be added in the environment
+	std::set<ap_var_t> Vars;
+	for (int i = 0; i < env->intdim + env->realdim; i++) {
+		Vars.insert(ap_environment_var_of_dim(env,i));
+	}
+	for (int i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
+		Vars.erase(ap_environment_var_of_dim(n->X->main->env,i));
+	}
 	n->X->change_environment(env);
 
-	// if it is a loop header, then widening */
+	// Vars contains the new variables.
+	// For each of these variables, we associate the right expression in the
+	// abstract
+//	ap_texpr1_t * expr;
+//	ap_var_t var;
+//	std::vector<ap_var_t> Names;
+//	std::vector<ap_texpr1_t> Exprs;
+//	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
+//		var = *i;
+//		fouts() << "value " << *(Value*)var <<  " is added\n";
+//		expr = get_phivar_first_expr((Value*)var);
+//		if (expr != NULL) {
+//			expr = ap_texpr1_extend_environment(expr,env);
+//			Names.push_back(var);
+//			Exprs.push_back(*expr);
+//		}
+//	}
+//
+//	if (Names.size())
+//		n->X->assign_texpr_array(
+//				&Names[0],
+//				&Exprs[0],
+//				Names.size(),
+//				NULL);
+//
+	// if it is a loop header, then widening 
 	if (LI->isLoopHeader(b)) {
 		Xtemp->widening(n);
 	}
@@ -526,7 +568,9 @@ void AI::visitPHINode (PHINode &I){
 		set_ap_expr(&I,expr);
 		ap_environment_t * env = expr->env;
 
-		// this instruction may use some apron variables 
+		set_phivar_first_expr(&I,expr);
+		// this instruction may use some apron variables (from the abstract
+		// domain)
 		// we add these variables in the Node's variable structure, such that we
 		// remember that the instruction I uses these variables
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);

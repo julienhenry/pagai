@@ -16,6 +16,9 @@ using namespace llvm;
 /// Node.
 ap_texpr1_t * get_ap_expr(Node * n, Value * val);
 
+ap_texpr1_t * get_phivar_first_expr(Value * val);
+void set_phivar_first_expr(Value * val, ap_texpr1_t * exp);
+
 /// set_ap_expr - associate an Apron expression to a Value, which will be
 /// remembered for future uses.
 void set_ap_expr(Value * val, ap_texpr1_t * exp);
