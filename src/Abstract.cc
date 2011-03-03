@@ -29,6 +29,8 @@ Abstract::~Abstract() {
 
 /// set_top - sets the abstract to top on the environment env
 void Abstract::set_top(ap_environment_t * env) {
+		ap_abstract1_clear(man,main);
+		ap_abstract1_clear(man,pilot);
 		delete main;
 		delete pilot;
 		main = new ap_abstract1_t(ap_abstract1_top(man,env));
@@ -37,6 +39,8 @@ void Abstract::set_top(ap_environment_t * env) {
 
 /// set_bottom - sets the abstract to bottom on the environment env
 void Abstract::set_bottom(ap_environment_t * env) {
+		ap_abstract1_clear(man,main);
+		ap_abstract1_clear(man,pilot);
 		delete main;
 		delete pilot;
 		main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
@@ -76,7 +80,11 @@ void Abstract::widening(Node * n) {
 		Xmain_widening = ap_abstract1_copy(man,pilot);
 		Xpilot_widening = ap_abstract1_copy(man,pilot);
 	} else {
+		// we apply the widening operator only on the pilot value,
+		// and we only join the main values.
 		Xmain_widening = ap_abstract1_join(man,false,n->X->main,main);
+		// before widening, n->X->pilot has to be included in pilot
+		*pilot = ap_abstract1_join(man,false,n->X->pilot,pilot);
 		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,pilot);
 		ap_abstract1_clear(man,pilot);
 	}
@@ -129,10 +137,13 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	ap_abstract1_t  Xpilot[X_pred.size()];
 	
 	for (int i=0; i < X_pred.size(); i++) {
-		Xmain[i] = ap_abstract1_change_environment(man,true,X_pred[i]->main,env,false);
-		Xpilot[i] = ap_abstract1_change_environment(man,true,X_pred[i]->pilot,env,false);
+		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
+		Xpilot[i] = ap_abstract1_change_environment(man,false,X_pred[i]->pilot,env,false);
+		delete X_pred[i];
 	}
 	
+	ap_abstract1_clear(man,main);
+	ap_abstract1_clear(man,pilot);
 	delete main;
 	delete pilot;
 	main = new ap_abstract1_t(ap_abstract1_join_array(man,Xmain,X_pred.size()));	
@@ -146,7 +157,9 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 
 void Abstract::print() {
 	printf("MAIN VALUE:\n");
+	ap_environment_fdump(stdout,main->env);
 	ap_abstract1_fprint(stdout,man,main);
 	printf("PILOT VALUE:\n");
+	ap_environment_fdump(stdout,pilot->env);
 	ap_abstract1_fprint(stdout,man,pilot);
 }

@@ -134,6 +134,16 @@ void AI::computeEnv(Node * n) {
 	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
 	std::set<Value*>::iterator it, et;
 
+	n->phi_vars.clear();
+	n->intVar.clear();
+	n->realVar.clear();
+
+	// visit instructions
+	for (BasicBlock::iterator i = b->begin(), e = b->end();
+			i != e; ++i) {
+		visit(*i);
+	}
+
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
@@ -190,7 +200,8 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 	ap_environment_t * env = NULL;
-
+	
+	n->create_env(&env);
 
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
@@ -203,7 +214,6 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 
 			// we transform the abstract domain such that it fits the
 			// environment of the new one.
-			n->create_env(&env);
 			X->change_environment(env);
 
 			// intersect with the transition's condition
@@ -234,9 +244,7 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 		}
 	}
 
-
 	// Xtemp is the join of all predecessors
-	n->create_env(&env);
 
 	if (X_pred.size() > 0) {
 		Xtemp.join_array(env,X_pred);
@@ -261,16 +269,7 @@ void AI::computeNode(Node * n) {
 	fouts() << "Computing node: " << b << "\n";
 	fouts() << *b << "\n";
 
-	n->phi_vars.clear();
-	n->intVar.clear();
-	n->realVar.clear();
 	is_computed[n] = true;
-
-	// visit instructions
-	for (BasicBlock::iterator i = b->begin(), e = b->end();
-			i != e; ++i) {
-		visit(*i);
-	}
 
 	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
@@ -297,28 +296,32 @@ void AI::computeNode(Node * n) {
 	// Vars contains the new variables.
 	// For each of these variables, we associate the right expression in the
 	// abstract
-//	ap_texpr1_t * expr;
-//	ap_var_t var;
-//	std::vector<ap_var_t> Names;
-//	std::vector<ap_texpr1_t> Exprs;
-//	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
-//		var = *i;
-//		fouts() << "value " << *(Value*)var <<  " is added\n";
-//		expr = get_phivar_first_expr((Value*)var);
-//		if (expr != NULL) {
-//			expr = ap_texpr1_extend_environment(expr,env);
-//			Names.push_back(var);
-//			Exprs.push_back(*expr);
-//		}
-//	}
-//
-//	if (Names.size())
-//		n->X->assign_texpr_array(
-//				&Names[0],
-//				&Exprs[0],
-//				Names.size(),
-//				NULL);
-//
+	ap_texpr1_t * expr;
+	ap_var_t var;
+	std::vector<ap_var_t> Names;
+	std::vector<ap_texpr1_t> Exprs;
+	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
+		var = *i;
+		fouts() << "value " << *(Value*)var <<  " is added\n";
+		expr = get_phivar_first_expr((Value*)var);
+		if (expr != NULL) {
+			expr = ap_texpr1_extend_environment(expr,env);
+			Names.push_back(var);
+			Exprs.push_back(*expr);
+		}
+	}
+
+	if (Names.size())
+		n->X->assign_texpr_array(
+				&Names[0],
+				&Exprs[0],
+				Names.size(),
+				NULL);
+
+	fouts() << "n->X : \n";
+	n->X->print();
+	fouts() << "Xtemp : \n";
+	Xtemp->print();
 	// if it is a loop header, then widening 
 	if (LI->isLoopHeader(b)) {
 		Xtemp->widening(n);
@@ -340,6 +343,7 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
+	fouts() << "RESULT : \n";
 	n->X->print();
 }
 
@@ -575,6 +579,10 @@ void AI::visitPHINode (PHINode &I){
 		// remember that the instruction I uses these variables
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 	} else {
+		ap_texpr1_t * exp = get_ap_expr(n,(Value*)var);
+		if (exp != NULL && !ap_texpr1_has_var(exp,var)) {
+			insert_env_vars_into_node_vars(exp->env,n,(Value*)&I);
+		}
 		n->add_var((Value*)var);
 		while (!IncomingValues.empty()) {
 			int i = IncomingValues.front();
