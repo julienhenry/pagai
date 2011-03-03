@@ -1,13 +1,15 @@
 #include "stdio.h"
 
+#include "llvm/Support/FormattedStream.h"
+
 #include "ap_global1.h"
 
 #include "Abstract.h"
 #include "Node.h"
 #include "Expr.h"
 
-Abstract::Abstract(ap_manager_t* _man) {
-	ap_environment_t * env = ap_environment_alloc_empty();
+Abstract::Abstract(ap_manager_t* _man, ap_environment_t * env) {
+	//ap_environment_t * env = ap_environment_alloc_empty();
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
 	pilot = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
 	man = _man;
@@ -76,7 +78,6 @@ void Abstract::widening(Node * n) {
 		Xmain_widening = ap_abstract1_copy(man,n->X->main);
 		Xpilot_widening = ap_abstract1_copy(man,n->X->pilot);
 	} else if (ap_abstract1_is_leq(man,pilot,n->X->pilot)) {
-		//Xmain_widening = *Xtemp.pilot;
 		Xmain_widening = ap_abstract1_copy(man,pilot);
 		Xpilot_widening = ap_abstract1_copy(man,pilot);
 	} else {
@@ -86,12 +87,11 @@ void Abstract::widening(Node * n) {
 		// before widening, n->X->pilot has to be included in pilot
 		*pilot = ap_abstract1_join(man,false,n->X->pilot,pilot);
 		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,pilot);
-		ap_abstract1_clear(man,pilot);
 	}
-	delete main;
-	delete pilot;
-	main = new ap_abstract1_t(Xmain_widening);
-	pilot = new ap_abstract1_t(Xpilot_widening);
+	ap_abstract1_clear(man,main);
+	ap_abstract1_clear(man,pilot);
+	*main = Xmain_widening;
+	*pilot = Xpilot_widening;
 }
 
 void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
@@ -102,9 +102,6 @@ void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
 	*main = ap_abstract1_change_environment(man,true,main,lcenv,false);
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons);
 
-	lcenv = common_environment(
-			pilot->env,
-			ap_tcons1_array_envref(tcons));
 	*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv,false);
 	*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons);
 }
@@ -133,10 +130,12 @@ void Abstract::assign_texpr_array(
 }
 
 void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
-	ap_abstract1_t  Xmain[X_pred.size()];
-	ap_abstract1_t  Xpilot[X_pred.size()];
+	size_t size = X_pred.size();
+
+	ap_abstract1_t  Xmain[size];
+	ap_abstract1_t  Xpilot[size];
 	
-	for (int i=0; i < X_pred.size(); i++) {
+	for (int i=0; i < size; i++) {
 		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
 		Xpilot[i] = ap_abstract1_change_environment(man,false,X_pred[i]->pilot,env,false);
 		delete X_pred[i];
@@ -144,12 +143,16 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	
 	ap_abstract1_clear(man,main);
 	ap_abstract1_clear(man,pilot);
-	delete main;
-	delete pilot;
-	main = new ap_abstract1_t(ap_abstract1_join_array(man,Xmain,X_pred.size()));	
-	pilot = new ap_abstract1_t(ap_abstract1_join_array(man,Xpilot,X_pred.size()));	
-	
-	for (int i=0; i < X_pred.size(); i++) {
+	if (size > 1) {
+		*main = ap_abstract1_join_array(man,Xmain,size);	
+		*pilot = ap_abstract1_join_array(man,Xpilot,size);	
+	} else {
+		*main = Xmain[0];
+		*pilot = Xpilot[0];
+		return;
+	}
+
+	for (int i=0; i < size; i++) {
 		ap_abstract1_clear(man,&Xmain[i]);
 		ap_abstract1_clear(man,&Xpilot[i]);
 	}

@@ -17,7 +17,7 @@ class Abstract {
 
 	public:
 
-		Abstract(ap_manager_t* _man);
+		Abstract(ap_manager_t* _man, ap_environment_t * env);
 
 		/// copy constructor : duplicates the abstract domain
 		Abstract(Abstract* A);

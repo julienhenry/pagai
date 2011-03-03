@@ -26,7 +26,8 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	bb = _bb;
 	id = i++;
 	man = _man;
-	X = new Abstract(_man);
+	env = ap_environment_alloc_empty();
+	X = new Abstract(_man,env);
 }
 
 Node::~Node() {

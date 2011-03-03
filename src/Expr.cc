@@ -111,7 +111,6 @@ void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	// we extend the environments such that both expressions have the same one
 	*exp1 = ap_texpr1_extend_environment(*exp1,lcenv);
 	*exp2 = ap_texpr1_extend_environment(*exp2,lcenv);
-
 	if (dimchange1 != NULL)
 		ap_dimchange_free(dimchange1);
 	if (dimchange2 != NULL)

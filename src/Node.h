@@ -35,6 +35,7 @@ class Node {
 		int id;
 		/// X - Abstract domain 
 		Abstract * X;
+		ap_environment_t * env;
 
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a

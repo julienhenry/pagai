@@ -43,9 +43,6 @@ bool AI::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 
-	init_apron();
-	man = pk_manager_alloc(true);
-
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) 
 		initFunction(&*mIt);
 
@@ -64,7 +61,6 @@ bool AI::runOnModule(Module &M) {
 		delete it->second;
 	}
 
-	ap_manager_free(man);
 	return 0;
 }
 
@@ -134,6 +130,7 @@ void AI::computeEnv(Node * n) {
 	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
 	std::set<Value*>::iterator it, et;
 
+	// we erase all previous elements from the maps
 	n->phi_vars.clear();
 	n->intVar.clear();
 	n->realVar.clear();
@@ -143,7 +140,10 @@ void AI::computeEnv(Node * n) {
 			i != e; ++i) {
 		visit(*i);
 	}
-
+	
+	// for each predecessor, we iterate on the their variables, and we insert
+	// them if they are associated to a value which is still live in our Block
+	// We do this for both int and real variables
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
@@ -170,6 +170,8 @@ void AI::computeEnv(Node * n) {
 		}
 	}
 
+	// Our maps may contain some vars that have no uses, so we want to delete
+	// them
 	std::set<ap_var_t> To_Be_Erased;
 	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(),
 			e = n->intVar.end(); i != e; ++i) {
@@ -194,14 +196,15 @@ void AI::computeEnv(Node * n) {
 	}
 }
 
-void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
+void AI::computeHull(
+		ap_environment_t * env, 
+		Node * n, 
+		Abstract &Xtemp, 
+		bool &update) {
 	std::vector<Abstract*> X_pred;
 	Abstract * X;
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
-	ap_environment_t * env = NULL;
-	
-	n->create_env(&env);
 
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 		BasicBlock *pb = *p;
@@ -257,8 +260,7 @@ void AI::computeHull(Node * n, Abstract &Xtemp, bool &update) {
 
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
-	Abstract * Xtemp = new Abstract(man);
-	ap_environment_t * env = NULL;
+	Abstract * Xtemp;
 	bool update = false;
 
 	if (is_computed.count(n) && is_computed[n]) {
@@ -273,25 +275,26 @@ void AI::computeNode(Node * n) {
 
 	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
+	n->create_env(&n->env);
 
+	Xtemp = new Abstract(man,n->env);
 	// computing the new abstract value, by doing the convex hull of all
 	// predecessors
-	computeHull(n,*Xtemp,update);
+	computeHull(n->env,n,*Xtemp,update);
 
 	// environment may be bigger since the last computation of this node
 	// indeed, there may be some Phi-vars with more than 1 possible incoming
 	// edge, whereas only one possible incoming edge was possible before
-	n->create_env(&env);
 
 	// we compute the set of variable that have to be added in the environment
 	std::set<ap_var_t> Vars;
-	for (int i = 0; i < env->intdim + env->realdim; i++) {
-		Vars.insert(ap_environment_var_of_dim(env,i));
+	for (int i = 0; i < n->env->intdim + n->env->realdim; i++) {
+		Vars.insert(ap_environment_var_of_dim(n->env,i));
 	}
 	for (int i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
 		Vars.erase(ap_environment_var_of_dim(n->X->main->env,i));
 	}
-	n->X->change_environment(env);
+	n->X->change_environment(n->env);
 
 	// Vars contains the new variables.
 	// For each of these variables, we associate the right expression in the
@@ -305,7 +308,10 @@ void AI::computeNode(Node * n) {
 		fouts() << "value " << *(Value*)var <<  " is added\n";
 		expr = get_phivar_first_expr((Value*)var);
 		if (expr != NULL) {
-			expr = ap_texpr1_extend_environment(expr,env);
+			expr = ap_texpr1_extend_environment(expr,n->env);
+			fouts() << "Expression associated:\n";
+			ap_texpr1_fprint(stdout,expr);
+			fouts() << "\n";
 			Names.push_back(var);
 			Exprs.push_back(*expr);
 		}
@@ -318,10 +324,11 @@ void AI::computeNode(Node * n) {
 				Names.size(),
 				NULL);
 
-	fouts() << "n->X : \n";
-	n->X->print();
-	fouts() << "Xtemp : \n";
-	Xtemp->print();
+	//fouts() << "n->X:\n";
+	//n->X->print();
+	//fouts() << "Xtemp:\n";
+	//Xtemp->print();
+	
 	// if it is a loop header, then widening 
 	if (LI->isLoopHeader(b)) {
 		Xtemp->widening(n);
@@ -343,7 +350,7 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
-	fouts() << "RESULT : \n";
+	//fouts() << "RESULT:\n";
 	n->X->print();
 }
 
@@ -489,9 +496,11 @@ void AI::visitBranchInst (BranchInst &I){
 	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
 	// free the previous tcons
 	if (n->tcons.count(iftrue)) {
+		ap_tcons1_array_clear(n->tcons[iftrue]);
 		n->tcons.erase(iftrue);
 	}
 	if (n->tcons.count(iffalse)) {
+		ap_tcons1_array_clear(n->tcons[iffalse]);
 		n->tcons.erase(iffalse);
 	}
 	// insert into the tcons array of the node

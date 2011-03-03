@@ -13,6 +13,10 @@
 #include "llvm/Analysis/LiveValues.h"
 #include "llvm/Analysis/LoopInfo.h"
 
+#include "ap_global1.h"
+#include "pk.h"
+
+#include "apron.h"
 #include "Node.h"
 #include "Live.h"
 
@@ -30,28 +34,52 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// is_computed - remember the Nodes that don't need to be recomputed.
 		/// This is used to remove duplicates in the A list.
 		std::map<Node*,bool> is_computed;
-		
+	
+		/// man - apron manager we use along the pass
 		ap_manager_t* man;
 
 	public:
 		static char ID;	
 
-		AI () : ModulePass(ID) {}
-		~AI () {}
+		AI () : ModulePass(ID) {
+				man = pk_manager_alloc(true);
+				init_apron();
+			}
+
+		~AI () {
+				ap_manager_free(man);
+			}
 
 		const char *getPassName() const;
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);
-		void initFunction(Function * F);
 
-		void printBasicBlock(BasicBlock * b);
+		/// initFunction - initialize the function by creating the Node
+		/// objects, and computing the strongly connected components.
+		void initFunction(Function * F);
 		
+		/// printBasicBlock - print a basicBlock on standard output
+		void printBasicBlock(BasicBlock * b);
+	
+		/// computeEnv - compute the new environment of Node n, based on 
+		/// its intVar and RealVar maps
 		void computeEnv(Node * n);
-		void computeHull(Node * n, Abstract &Xtemp, bool &update);
+
+		/// computeHull - compute the abstract domain resulting from the union
+		/// of the abstract of all predecessors of Node n
+		/// and assign it to Xtemp
+		void computeHull(ap_environment_t * env, 
+				Node * n, 
+				Abstract &Xtemp, 
+				bool &update);
+
+		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);
 
+		/// computeCondition - creates the constraint arrays resulting from a
+		/// comparison instruction.
 		void computeCondition(	CmpInst * inst, 
 				ap_tcons1_array_t ** true_cons, 
 				ap_tcons1_array_t ** false_cons);
