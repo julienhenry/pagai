@@ -1,0 +1,57 @@
+\documentclass[a4paper,english,titlepage]{article}
+
+\usepackage{mathcomp,amssymb,mathptm,verimagstudent}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+
+
+\title{Analyse de programme par découverte de chemin}
+\author{Julien Henry}
+\date{2011}
+\shorttitle{Analyse de programme par découverte de chemin}
+\institute{Grenoble-INP}
+\abstract{an abstract}
+\keywords{keywords}
+\tutor{David Monniaux - Matthieu Moy}
+\notes{some notes}
+\webaddress{Julien.Henry@imag.fr}
+\reporttype{Rapport de M2R}
+
+
+\begin{document}
+  
+  \maketitlepage
+
+  \tableofcontents
+  
+  \newpage
+
+\section{Introduction} 
+
+\part{Interprétation abstraite}
+  
+	Pour calculer les variables live en SSA, des algorithmes plus optimisés sont
+	expliqués dans la thèse de B. Boissinot\cite{Boi10}
+
+	Interpretation abstraite
+	\cite{CC77}
+	\cite{CH78}
+	
+	\cite{GopanR06}
+	
+	Utilisation de la bibliothèque APRON \cite{JM09}
+  
+
+\part{Contribution}
+
+  \section{Conclusion}
+  
+  \appendix
+  
+
+\bibliographystyle{plain}
+  \bibliography{report}
+\end{document}

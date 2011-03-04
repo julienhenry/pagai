@@ -141,7 +141,7 @@ void AI::computeEnv(Node * n) {
 		visit(*i);
 	}
 	
-	// for each predecessor, we iterate on the their variables, and we insert
+	// for each predecessor, we iterate on their variables, and we insert
 	// them if they are associated to a value which is still live in our Block
 	// We do this for both int and real variables
 	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
@@ -202,12 +202,9 @@ void AI::computeHull(
 			}
 			// we still need to add phi variables into our domain 
 			// and assign them the the right value
-			fouts() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
-			X->print();
-
-			for (int i = 0; i < n->phi_vars[pred].name.size()>0; i++) {
-				ap_environment_fdump(stdout,n->phi_vars[pred].expr[i].env);
-			}
+			//for (int i = 0; i < n->phi_vars[pred].name.size()>0; i++) {
+			//	ap_environment_fdump(stdout,n->phi_vars[pred].expr[i].env);
+			//}
 			X->assign_texpr_array(
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
@@ -513,7 +510,6 @@ void AI::visitSwitchInst (SwitchInst &I){
 	
 	for (int i = 0; i < num; i++) {
 		ConstantInt * CaseValue = I.getCaseValue(i);
-		BasicBlock * Successor = I.getSuccessor(i);
 		ap_texpr1_t * CaseExp = get_ap_expr(n,CaseValue);
 
 		common_environment(&ConditionExp,&CaseExp);
