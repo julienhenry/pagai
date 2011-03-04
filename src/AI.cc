@@ -276,7 +276,6 @@ void AI::computeNode(Node * n) {
 	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
 	n->create_env(&n->env);
-
 	Xtemp = new Abstract(man,n->env);
 	// computing the new abstract value, by doing the convex hull of all
 	// predecessors
@@ -508,8 +507,50 @@ void AI::visitBranchInst (BranchInst &I){
 	n->tcons[iffalse] = false_cons;
 }
 
+
+/// for the moment, we only create the constraint for the default branch of the
+/// switch. The other branches lose information...
+/// This code is dead since we use the LowerSwitch pass before doing abstract
+/// interpretation.
 void AI::visitSwitchInst (SwitchInst &I){
 	//fouts() << "SwitchInst\n" << I << "\n";	
+	fouts() << "This switch has " << I.getNumSuccessors() << "successors\n";
+	Node * n = Nodes[I.getParent()];
+	ap_tcons1_array_t * false_cons;
+	ap_texpr1_t * expr;
+	unsigned num = I.getNumCases();
+
+	Value * Condition =	I.getCondition();
+	ap_texpr1_t * ConditionExp = get_ap_expr(n,Condition);
+	Node * Default = Nodes[I.getDefaultDest()];
+	ap_texpr_rtype_t ap_type = get_ap_type(Condition);
+
+	false_cons = new ap_tcons1_array_t();
+	*false_cons = ap_tcons1_array_make(ConditionExp->env,num);
+	
+	for (int i = 0; i < num; i++) {
+		ConstantInt * CaseValue = I.getCaseValue(i);
+		BasicBlock * Successor = I.getSuccessor(i);
+		ap_texpr1_t * CaseExp = get_ap_expr(n,CaseValue);
+
+		common_environment(&ConditionExp,&CaseExp);
+		
+		expr = ap_texpr1_binop(AP_TEXPR_SUB,
+				ap_texpr1_copy(ConditionExp),
+				ap_texpr1_copy(CaseExp),
+				ap_type,
+				AP_RDIR_RND);
+
+		// creating the FALSE constraint
+		ap_tcons1_t cons = ap_tcons1_make(
+				AP_CONS_DISEQ,
+				expr,
+				ap_scalar_alloc_set_double(0));
+		ap_tcons1_array_set(false_cons,i,&cons);
+	
+		// insert into the tcons array of the node
+	}
+	n->tcons[Default] = false_cons;
 }
 
 void AI::visitIndirectBrInst (IndirectBrInst &I){

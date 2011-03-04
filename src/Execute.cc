@@ -63,18 +63,18 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.add(new TargetData(M));
 	Passes.add(createVerifierPass());
-	//Passes.add(createGCLoweringPass());
+	Passes.add(createGCLoweringPass());
 	//Passes.add(createLowerInvokePass());
 	Passes.add(createPromoteMemoryToRegisterPass());
 	Passes.add(createLoopSimplifyPass());	
-	//Passes.add(createLivePass());
 	Passes.add(LoopInfoPass);
+
+	// this pass converts SwitchInst instructions into a sequence of
+	// chained binary branch instructions, much easier to deal with
+	Passes.add(createLowerSwitchPass());	
 	
-	//Passes.add(InitVerifPass);
 	Passes.add(new Live());
 	Passes.add(AIPass);
-
-	//Passes.add(createGCInfoDeleter());
 
 	Passes.run(*M);
 

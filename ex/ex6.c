@@ -1,12 +1,16 @@
 
 
+
 int main() {
-	int i;
-	int x;
+	int x = 0;
+	int y = 0;
 
-	for (i = 0; i < 10; i++) {
+	while (1) {
+		if (x <= 50) y++;
+		else y--;
+
+		if (y < 0) break;
 		x++;
+		x = x*y;
 	}
-
-	return 1;
 }

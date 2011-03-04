@@ -44,10 +44,6 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 		if (isa<Constant>(val)) {
 			return create_ap_expr(n,dyn_cast<Constant>(val));
 		} else {
-			fouts() << "NOT IMPLEMENTED : get_ap_expr call "
-					<< "with missing non constant expression\n";
-			// NOT IMPLEMENTED
-			//return ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
 			return NULL;
 		}
 	}
