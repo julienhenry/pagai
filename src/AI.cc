@@ -155,7 +155,8 @@ void AI::computeEnv(Node * n) {
 					if (LV->isLiveThroughBlock(v,b)) 
 						S.insert(v);
 				}
-				n->intVar[(*i).first].insert(S.begin(),S.end());
+				if (S.size()>0)
+					n->intVar[(*i).first].insert(S.begin(),S.end());
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
@@ -165,34 +166,10 @@ void AI::computeEnv(Node * n) {
 					if (LV->isLiveThroughBlock(v,b)) 
 						S.insert(v);
 				}
-				n->realVar[(*i).first].insert(S.begin(),S.end());
+				if (S.size()>0)
+					n->realVar[(*i).first].insert(S.begin(),S.end());
 			}
 		}
-	}
-
-	// Our maps may contain some vars that have no uses, so we want to delete
-	// them
-	std::set<ap_var_t> To_Be_Erased;
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(),
-			e = n->intVar.end(); i != e; ++i) {
-		if ((*i).second.empty()) {
-			To_Be_Erased.insert((*i).first);
-		}
-	}
-	for (std::set<ap_var_t>::iterator i = To_Be_Erased.begin(), 
-			e = To_Be_Erased.end(); i!= e ; i++) {
-			n->intVar.erase(*i);
-	}
-	To_Be_Erased.clear();
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->realVar.begin(),
-			e = n->realVar.end(); i != e; ++i) {
-		if ((*i).second.empty()) {
-			n->realVar.erase((*i).first);
-		}
-	}
-	for (std::set<ap_var_t>::iterator i = To_Be_Erased.begin(), 
-			e = To_Be_Erased.end(); i!= e ; i++) {
-			n->realVar.erase(*i);
 	}
 }
 
@@ -225,6 +202,12 @@ void AI::computeHull(
 			}
 			// we still need to add phi variables into our domain 
 			// and assign them the the right value
+			fouts() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+			X->print();
+
+			for (int i = 0; i < n->phi_vars[pred].name.size()>0; i++) {
+				ap_environment_fdump(stdout,n->phi_vars[pred].expr[i].env);
+			}
 			X->assign_texpr_array(
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
@@ -349,7 +332,7 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
-	//fouts() << "RESULT:\n";
+	fouts() << "RESULT:\n";
 	n->X->print();
 }
 
