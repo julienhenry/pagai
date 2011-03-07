@@ -202,9 +202,6 @@ void AI::computeHull(
 			}
 			// we still need to add phi variables into our domain 
 			// and assign them the the right value
-			//for (int i = 0; i < n->phi_vars[pred].name.size()>0; i++) {
-			//	ap_environment_fdump(stdout,n->phi_vars[pred].expr[i].env);
-			//}
 			X->assign_texpr_array(
 					&n->phi_vars[pred].name[0],
 					&n->phi_vars[pred].expr[0],
@@ -288,14 +285,10 @@ void AI::computeNode(Node * n) {
 		expr = get_phivar_first_expr((Value*)var);
 		if (expr != NULL) {
 			expr = ap_texpr1_extend_environment(expr,n->env);
-			fouts() << "Expression associated:\n";
-			ap_texpr1_fprint(stdout,expr);
-			fouts() << "\n";
 			Names.push_back(var);
 			Exprs.push_back(*expr);
 		}
 	}
-
 	if (Names.size())
 		n->X->assign_texpr_array(
 				&Names[0],
@@ -579,9 +572,10 @@ void AI::visitPHINode (PHINode &I){
 	Node * n = Nodes[b];
 	Value * pv;
 	Node * nb;
-
 	std::list<int> IncomingValues;
 
+	// determining the predecessors of the phi variable, and insert in a list
+	// the predecessors that are not at bottom.
 	for (int i = 0; i < I.getNumIncomingValues(); i++) {
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];
@@ -617,9 +611,14 @@ void AI::visitPHINode (PHINode &I){
 			int i = IncomingValues.front();
 			IncomingValues.pop_front();
 			pv = I.getIncomingValue(i);
-			nb = Nodes[I.getIncomingBlock(i)];
-			n->phi_vars[nb].name.push_back(var);
-			n->phi_vars[nb].expr.push_back(*get_ap_expr(nb,pv));
+			// when the value is an undef value, we don't insert it into our
+			// phivar table, because undef is not live in the successors of the
+			// block
+			if (!isa<UndefValue>(pv)) {
+				nb = Nodes[I.getIncomingBlock(i)];
+				n->phi_vars[nb].name.push_back(var);
+				n->phi_vars[nb].expr.push_back(*get_ap_expr(nb,pv));
+			}
 		}
 	}
 }

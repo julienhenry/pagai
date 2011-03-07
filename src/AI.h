@@ -25,7 +25,7 @@ using namespace llvm;
 class AI : public ModulePass, public InstVisitor<AI> {
 
 	private:
-		/// LV - result of the LiveValues pass
+		/// LV - result of the Live pass
 		Live * LV;
 		/// LI - result of the LoopInfo pass
 		LoopInfo * LI;
