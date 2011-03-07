@@ -60,7 +60,6 @@ bool AI::runOnModule(Module &M) {
 		ap_abstract1_fprint(stdout,man,n->X->main);
 		delete it->second;
 	}
-
 	return 0;
 }
 

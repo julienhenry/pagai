@@ -95,7 +95,7 @@ ap_environment_t * common_environment(
 /// they have the same common environment
 ///
 void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
-	
+
 	// we compute the least common environment for the two expressions
 	ap_dimchange_t * dimchange1 = NULL;
 	ap_dimchange_t * dimchange2 = NULL;

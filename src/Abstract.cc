@@ -73,6 +73,7 @@ bool Abstract::is_leq (Abstract *d) {
 void Abstract::widening(Node * n) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;
+	ap_abstract1_t Xpilot;
 
 	if (is_leq(n->X)) {
 		Xmain_widening = ap_abstract1_copy(man,n->X->main);
@@ -85,8 +86,9 @@ void Abstract::widening(Node * n) {
 		// and we only join the main values.
 		Xmain_widening = ap_abstract1_join(man,false,n->X->main,main);
 		// before widening, n->X->pilot has to be included in pilot
-		*pilot = ap_abstract1_join(man,false,n->X->pilot,pilot);
-		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,pilot);
+		Xpilot = ap_abstract1_join(man,false,n->X->pilot,pilot);
+		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,&Xpilot);
+		ap_abstract1_clear(man,&Xpilot);
 	}
 	ap_abstract1_clear(man,main);
 	ap_abstract1_clear(man,pilot);

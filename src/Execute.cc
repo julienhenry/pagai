@@ -57,7 +57,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
 
-	//ModulePass *InitVerifPass = new initVerif();
 	ModulePass *AIPass = new AI();
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
@@ -81,7 +80,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Out->flush();
 	//delete FDOut;
 	//delete Out;
-	//delete InitVerifPass;
 	//delete AIPass;
 	//delete LoopInfoPass;
 }

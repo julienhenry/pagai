@@ -41,7 +41,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 	public:
 		static char ID;	
 
-		AI () : ModulePass(ID) {
+		AI () : ModulePass(ID), LV(NULL), LI(NULL) {
 				man = pk_manager_alloc(true);
 				init_apron();
 			}
