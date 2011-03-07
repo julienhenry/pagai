@@ -10,7 +10,7 @@
 
 Abstract::Abstract(ap_manager_t* _man, ap_environment_t * env) {
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
-	pilot = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
+	pilot = main;
 	man = _man;
 }
 
@@ -18,41 +18,44 @@ Abstract::Abstract(ap_manager_t* _man, ap_environment_t * env) {
 Abstract::Abstract(Abstract* A) {
 	man = A->man;
 	main = new ap_abstract1_t(ap_abstract1_copy(man,A->main));
-	pilot = new ap_abstract1_t(ap_abstract1_copy(man,A->pilot));
+	if (A->pilot == A->main)
+		pilot = main;
+	else
+		pilot = new ap_abstract1_t(ap_abstract1_copy(man,A->pilot));
+}
+
+void Abstract::clear_all() {
+	if (pilot != main) {
+		ap_abstract1_clear(man,pilot);
+		delete pilot;
+	}
+	ap_abstract1_clear(man,main);
+	delete main;
 }
 
 Abstract::~Abstract() {
-	ap_abstract1_clear(man,main);
-	ap_abstract1_clear(man,pilot);
-	delete main;
-	delete pilot;
+	clear_all();
 }
 
 /// set_top - sets the abstract to top on the environment env
 void Abstract::set_top(ap_environment_t * env) {
-		ap_abstract1_clear(man,main);
-		ap_abstract1_clear(man,pilot);
-		delete main;
-		delete pilot;
+		clear_all();
 		main = new ap_abstract1_t(ap_abstract1_top(man,env));
-		pilot = new ap_abstract1_t(ap_abstract1_top(man,env));
+		pilot = main;
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
 void Abstract::set_bottom(ap_environment_t * env) {
-		ap_abstract1_clear(man,main);
-		ap_abstract1_clear(man,pilot);
-		delete main;
-		delete pilot;
+		clear_all();
 		main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
-		pilot = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+		pilot = main;
 }
 
 void Abstract::change_environment(ap_environment_t * env) {
 	if (!ap_environment_is_eq(env,main->env))
 		*main = ap_abstract1_change_environment(man,true,main,env,false);
-	if (!ap_environment_is_eq(env,pilot->env))
-	*pilot = ap_abstract1_change_environment(man,true,pilot,env,false);
+	if (pilot != main && !ap_environment_is_eq(env,pilot->env))
+		*pilot = ap_abstract1_change_environment(man,true,pilot,env,false);
 }
 
 bool Abstract::is_leq (Abstract *d) {
@@ -89,10 +92,19 @@ void Abstract::widening(Node * n) {
 		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,&Xpilot);
 		ap_abstract1_clear(man,&Xpilot);
 	}
+	if (pilot != main)
+		ap_abstract1_clear(man,pilot);
 	ap_abstract1_clear(man,main);
-	ap_abstract1_clear(man,pilot);
+	
 	*main = Xmain_widening;
-	*pilot = Xpilot_widening;
+	if (ap_abstract1_is_eq(man,&Xmain_widening,&Xpilot_widening)) {
+		pilot = main;
+		ap_abstract1_clear(man,&Xpilot_widening);
+	} else {
+		if (pilot != main)
+			delete pilot;
+		pilot = new ap_abstract1_t(Xpilot_widening);
+	}
 }
 
 void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
@@ -100,16 +112,21 @@ void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
 	ap_environment_t * lcenv = common_environment(
 			main->env,
 			ap_tcons1_array_envref(tcons));
+
+	if (pilot != main) {
+		*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv,false);
+		*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons);
+	}
+
 	*main = ap_abstract1_change_environment(man,true,main,lcenv,false);
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons);
 
-	*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv,false);
-	*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons);
 }
 
 void Abstract::canonicalize() {
 	ap_abstract1_canonicalize(man,main);
-	ap_abstract1_canonicalize(man,pilot);
+	if (pilot != main)
+		ap_abstract1_canonicalize(man,pilot);
 }
 
 void Abstract::assign_texpr_array(
@@ -118,12 +135,14 @@ void Abstract::assign_texpr_array(
 		size_t size, 
 		ap_abstract1_t* dest
 		) {
+	if (pilot != main)
+		*pilot = ap_abstract1_assign_texpr_array(man,true,pilot,
+				tvar,
+				texpr,
+				size,
+				dest);
+
 	*main = ap_abstract1_assign_texpr_array(man,true,main,
-			tvar,
-			texpr,
-			size,
-			dest);
-	*pilot = ap_abstract1_assign_texpr_array(man,true,pilot,
 			tvar,
 			texpr,
 			size,
@@ -143,19 +162,24 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	}
 	
 	ap_abstract1_clear(man,main);
-	ap_abstract1_clear(man,pilot);
+	if (pilot != main)
+		ap_abstract1_clear(man,pilot);
 	if (size > 1) {
 		*main = ap_abstract1_join_array(man,Xmain,size);	
-		*pilot = ap_abstract1_join_array(man,Xpilot,size);	
+		pilot = new ap_abstract1_t(ap_abstract1_join_array(man,Xpilot,size));	
+		for (int i=0; i < size; i++) {
+			ap_abstract1_clear(man,&Xmain[i]);
+			ap_abstract1_clear(man,&Xpilot[i]);
+		}
 	} else {
 		*main = Xmain[0];
-		*pilot = Xpilot[0];
-		return;
+		pilot = new ap_abstract1_t(Xpilot[0]);
 	}
-
-	for (int i=0; i < size; i++) {
-		ap_abstract1_clear(man,&Xmain[i]);
-		ap_abstract1_clear(man,&Xpilot[i]);
+	
+	if (ap_abstract1_is_eq(man,main,pilot)) {
+		ap_abstract1_clear(man,pilot);
+		delete pilot;
+		pilot = main;
 	}
 }
 

@@ -15,6 +15,9 @@ class Abstract {
 		ap_abstract1_t * main;
 		ap_abstract1_t * pilot;
 
+	private:
+		void clear_all();
+
 	public:
 
 		Abstract(ap_manager_t* _man, ap_environment_t * env);
