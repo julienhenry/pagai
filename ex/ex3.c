@@ -1,16 +1,13 @@
 
-int f(int x) {
-	return x+2;
-}
+int f(int x);
 
 int main(int argc, char ** argv) {
-	int x;
+	int x = 100;
 	int y;
 	int i;
 	
 	while (x) {
-	x = 2;
-	y = x + 50;
+	y = f(x);
 	y = y + 6;
 	y = x + y + 5;
 

@@ -51,9 +51,9 @@ void Abstract::set_bottom(ap_environment_t * env) {
 
 void Abstract::change_environment(ap_environment_t * env) {
 	if (!ap_environment_is_eq(env,main->env))
-		*main = ap_abstract1_change_environment(man,true,main,env,true);
+		*main = ap_abstract1_change_environment(man,true,main,env,false);
 	if (!ap_environment_is_eq(env,pilot->env))
-	*pilot = ap_abstract1_change_environment(man,true,pilot,env,true);
+	*pilot = ap_abstract1_change_environment(man,true,pilot,env,false);
 }
 
 bool Abstract::is_leq (Abstract *d) {

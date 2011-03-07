@@ -674,12 +674,21 @@ void AI::visitSelectInst (SelectInst &I){
 	//fouts() << "SelectInst\n" << I << "\n";	
 }
 
+// a call instruction is treated as follow : 
+// we consider that the function call doesn't modify the value of the different
+// variable, and we the result returned by the function is a new variable of
+// type int or float, depending on the return type
 void AI::visitCallInst(CallInst &I){
-	Node * n = Nodes[I.getParent()];
-
 	//fouts() << "CallInst\n" << I << "\n";	
+	Node * n = Nodes[I.getParent()];
+	ap_environment_t* env = NULL;
 	ap_var_t var = (Value *) &I; 
-	ap_environment_t* env = ap_environment_alloc(&var,1,NULL,0);
+
+	if (get_ap_type((Value*)&I) == AP_RTYPE_INT) { 
+		env = ap_environment_alloc(&var,1,NULL,0);
+	} else {
+		env = ap_environment_alloc(NULL,0,&var,1);
+	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	set_ap_expr(&I,exp);
 	//print_texpr(exp);
