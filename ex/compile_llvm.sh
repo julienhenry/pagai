@@ -42,18 +42,22 @@ while getopts “hpgi:o:” opt ; do
      esac
 done
 
-NAME=${FILENAME%%.*}
+
+BASENAME=`basename $FILENAME`
+NAME=${BASENAME%%.*}
+DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=${NAME}_opt.o
+	OUTPUT=${DIR}/${NAME}_opt.o
 fi
 
-clang -emit-llvm -c $FILENAME -o $NAME.o
-opt -mem2reg -loopsimplify -lowerswitch $NAME.o -o $OUTPUT
+clang -emit-llvm -c $FILENAME -o $DIR/$NAME.o
+opt -mem2reg -loopsimplify -lowerswitch $DIR/$NAME.o -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT
-	dot -Tsvg -o callgraph.svg cfg.main.dot
+	mv *.dot $DIR
+	dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 fi
 
 if [ $PRINT -eq 1 ] ; then
