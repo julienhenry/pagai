@@ -9,7 +9,6 @@
 #include "Expr.h"
 
 Abstract::Abstract(ap_manager_t* _man, ap_environment_t * env) {
-	//ap_environment_t * env = ap_environment_alloc_empty();
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
 	pilot = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
 	man = _man;

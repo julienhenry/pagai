@@ -43,14 +43,11 @@ bool AI::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 
-	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) 
-		initFunction(&*mIt);
-
-	F = M.getFunction("main");
-	if (F == NULL)
-		ferrs() << "main function not found\n";
-	else
+	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		F = mIt;
+		initFunction(F);
 		computeFunction(F);
+	}
 
 	std::map<BasicBlock*,Node*>::iterator it;
 	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
