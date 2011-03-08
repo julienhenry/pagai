@@ -40,6 +40,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 	public:
 		static char ID;	
+	
+	public:
 
 		AI () : ModulePass(ID), LV(NULL), LI(NULL) {
 				man = pk_manager_alloc(true);
@@ -81,8 +83,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.
 		void computeCondition(	CmpInst * inst, 
-				ap_tcons1_array_t ** true_cons, 
-				ap_tcons1_array_t ** false_cons);
+				std::vector<ap_tcons1_array_t *> * true_cons, 
+				std::vector<ap_tcons1_array_t *> * false_cons);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

@@ -169,6 +169,31 @@ void AI::computeEnv(Node * n) {
 	}
 }
 
+// This function is only used by AI::ComputeHull 
+void assign_phivars_and_push(
+		ap_manager_t * man, 
+		Abstract * X, 
+		Node * n, 
+		Node * pred, 
+		std::vector<Abstract*> * X_pred) {
+	// we still need to add phi variables into our domain 
+	// and assign them the the right value
+	X->assign_texpr_array(
+			&n->phi_vars[pred].name[0],
+			&n->phi_vars[pred].expr[0],
+			n->phi_vars[pred].name.size(),
+			NULL);
+
+	X->canonicalize();
+	
+	// the created abstract domain could be at bottom
+	// In that case, we don't isert its value in the vector
+	if (!ap_abstract1_is_bottom(man,X->main))
+		X_pred->push_back(X);
+	else
+		delete X;
+}
+
 void AI::computeHull(
 		ap_environment_t * env, 
 		Node * n, 
@@ -186,6 +211,7 @@ void AI::computeHull(
 		// we only take pred as a predecessor if its main value is not bottom
 		if (pred->X->main != NULL && !ap_abstract1_is_bottom(man,pred->X->main)) {
 
+
 			X = new Abstract(pred->X);
 
 			// we transform the abstract domain such that it fits the
@@ -194,24 +220,21 @@ void AI::computeHull(
 
 			// intersect with the transition's condition
 			if (pred->tcons.count(n)) {
-				X->meet_tcons_array(pred->tcons[n]);
-			}
-			// we still need to add phi variables into our domain 
-			// and assign them the the right value
-			X->assign_texpr_array(
-					&n->phi_vars[pred].name[0],
-					&n->phi_vars[pred].expr[0],
-					n->phi_vars[pred].name.size(),
-					NULL);
-
-			X->canonicalize();
-			
-			// the created abstract domain could be at bottom
-			// In that case, we don't isert its value in the vector
-			if (!ap_abstract1_is_bottom(man,X->main))
-				X_pred.push_back(X);
-			else
+				fouts() << "NUMBER OF CONSTRAINTS " << pred->tcons[n].size() << "\n";
+				std::vector<ap_tcons1_array_t*>::iterator i, e;
+				for (i = pred->tcons[n].begin(), e = pred->tcons[n].end(); i != e; i++) {
+					Abstract * X2 = new Abstract(X);
+					X2->meet_tcons_array(*i);
+					// we still have to assign the right values to phi
+					// variables, and push X2 in X_pred if it is not bottom
+					assign_phivars_and_push(man,X2,n,pred,&X_pred);
+				}
 				delete X;
+			} else {
+				// we still have to assign the right values to phi
+				// variables, and push X in X_pred if it is not bottom
+				assign_phivars_and_push(man,X,n,pred,&X_pred);
+			}
 		}
 	}
 
@@ -347,13 +370,59 @@ void AI::visitReturnInst (ReturnInst &I){
 	//fouts() << "returnInst\n" << I << "\n";
 }
 
+// create_constraints - this function is called by computeCondition
+// it creates the constraint from its arguments and insert it into t_cons
+void create_constraints(
+	ap_constyp_t constyp,
+	ap_texpr1_t * expr,
+	ap_texpr1_t * nexpr,
+	std::vector<ap_tcons1_array_t*> * t_cons) {
+	
+	ap_tcons1_t cons;
+	ap_tcons1_array_t * consarray;
+	
+	if (constyp == AP_CONS_DISEQ) {
+		// we have a disequality constraint. We tranform it into 2 different
+		// constraints: < and >, in order to create further 2 abstract domain
+		// instead of one.
+		consarray = new ap_tcons1_array_t();
+		cons = ap_tcons1_make(
+				AP_CONS_SUP,
+				expr,
+				ap_scalar_alloc_set_double(0));
+		*consarray = ap_tcons1_array_make(cons.env,1);
+		ap_tcons1_array_set(consarray,0,&cons);
+		t_cons->push_back(consarray);
+
+		consarray = new ap_tcons1_array_t();
+		cons = ap_tcons1_make(
+				AP_CONS_SUP,
+				ap_texpr1_copy(nexpr),
+				ap_scalar_alloc_set_double(0));
+		*consarray = ap_tcons1_array_make(cons.env,1);
+		ap_tcons1_array_set(consarray,0,&cons);
+		t_cons->push_back(consarray);
+	} else {
+		consarray = new ap_tcons1_array_t();
+		cons = ap_tcons1_make(
+				constyp,
+				expr,
+				ap_scalar_alloc_set_double(0));
+		*consarray = ap_tcons1_array_make(cons.env,1);
+		ap_tcons1_array_set(consarray,0,&cons);
+		t_cons->push_back(consarray);
+	}
+}
+
+
 void AI::computeCondition(	CmpInst * inst, 
-		ap_tcons1_array_t ** true_cons, 
-		ap_tcons1_array_t ** false_cons) {
+		std::vector<ap_tcons1_array_t*> * true_cons, 
+		std::vector<ap_tcons1_array_t *> * false_cons) {
 
 	Node * n = Nodes[inst->getParent()];
 	ap_constyp_t constyp;
 	ap_constyp_t nconstyp;
+	
 	Value * op1 = inst->getOperand(0);
 	Value * op2 = inst->getOperand(1);
 
@@ -406,15 +475,15 @@ void AI::computeCondition(	CmpInst * inst,
 			break;
 		case CmpInst::FCMP_OGE:
 		case CmpInst::FCMP_UGE:
-		case CmpInst::ICMP_UGE: 
-		case CmpInst::ICMP_SGE: 
+		case CmpInst::ICMP_UGE:
+		case CmpInst::ICMP_SGE:
 			constyp = AP_CONS_SUPEQ; // >= constraint
 			nconstyp = AP_CONS_SUP;
 			break;
 		case CmpInst::FCMP_OLE:
 		case CmpInst::FCMP_ULE:
-		case CmpInst::ICMP_ULE: 
-		case CmpInst::ICMP_SLE: 
+		case CmpInst::ICMP_ULE:
+		case CmpInst::ICMP_SLE:
 			swap = expr;
 			expr = nexpr;
 			nexpr = swap;
@@ -434,22 +503,11 @@ void AI::computeCondition(	CmpInst * inst,
 			fouts() << "ERROR : Unknown predicate\n";
 			break;
 	}
-	// creating the TRUE constraint
-	ap_tcons1_t cons = ap_tcons1_make(
-			constyp,
-			expr,
-			ap_scalar_alloc_set_double(0));
-	*true_cons = new ap_tcons1_array_t();
-	**true_cons = ap_tcons1_array_make(cons.env,1);
-	ap_tcons1_array_set(*true_cons,0,&cons);
+	// creating the TRUE constraints
+	create_constraints(constyp,expr,nexpr,true_cons);
 
-	// creating the FALSE constraint
-	cons = ap_tcons1_make(
-			nconstyp,
-			nexpr,
-			ap_scalar_alloc_set_double(0));
-	*false_cons = new ap_tcons1_array_t(ap_tcons1_array_make(cons.env,1));
-	ap_tcons1_array_set(*false_cons,0,&cons);
+	// creating the FALSE constraints
+	create_constraints(nconstyp,nexpr,expr,false_cons);
 }
 
 void AI::visitBranchInst (BranchInst &I){
@@ -462,24 +520,28 @@ void AI::visitBranchInst (BranchInst &I){
 		/* no constraints */
 		return;
 	}
+	fouts() << "BranchInst\n" << I << "\n";	
 	// branch under condition
 	iftrue = Nodes[I.getSuccessor(0)];
 	iffalse = Nodes[I.getSuccessor(1)];
-	ap_tcons1_array_t * true_cons;
-	ap_tcons1_array_t * false_cons;
-	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),&true_cons,&false_cons);
+	std::vector<ap_tcons1_array_t*> * true_cons = new std::vector<ap_tcons1_array_t*>();
+	std::vector<ap_tcons1_array_t*> * false_cons = new std::vector<ap_tcons1_array_t*>();
+	computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),true_cons,false_cons);
 	// free the previous tcons
 	if (n->tcons.count(iftrue)) {
-		ap_tcons1_array_clear(n->tcons[iftrue]);
+		for (std::vector<ap_tcons1_array_t*>::iterator i = n->tcons[iftrue].begin(), e = n->tcons[iftrue].end(); i != e; ++i)
+			ap_tcons1_array_clear(*i);
 		n->tcons.erase(iftrue);
 	}
 	if (n->tcons.count(iffalse)) {
-		ap_tcons1_array_clear(n->tcons[iffalse]);
+		for (std::vector<ap_tcons1_array_t*>::iterator i = n->tcons[iffalse].begin(), e = n->tcons[iffalse].end(); i != e; ++i)
+			ap_tcons1_array_clear(*i);
 		n->tcons.erase(iffalse);
 	}
 	// insert into the tcons array of the node
-	n->tcons[iftrue] = true_cons;
-	n->tcons[iffalse] = false_cons;
+	fouts() << "NUMBER " << true_cons->size() << "\n";
+	n->tcons[iftrue] = *true_cons;
+	n->tcons[iffalse] = *false_cons;
 }
 
 
@@ -489,7 +551,6 @@ void AI::visitBranchInst (BranchInst &I){
 /// interpretation.
 void AI::visitSwitchInst (SwitchInst &I){
 	//fouts() << "SwitchInst\n" << I << "\n";	
-	fouts() << "This switch has " << I.getNumSuccessors() << "successors\n";
 	Node * n = Nodes[I.getParent()];
 	ap_tcons1_array_t * false_cons;
 	ap_texpr1_t * expr;
@@ -524,7 +585,9 @@ void AI::visitSwitchInst (SwitchInst &I){
 	
 		// insert into the tcons array of the node
 	}
-	n->tcons[Default] = false_cons;
+	std::vector<ap_tcons1_array_t*> v;
+	v.push_back(false_cons);
+	n->tcons[Default] = v;
 }
 
 void AI::visitIndirectBrInst (IndirectBrInst &I){

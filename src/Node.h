@@ -48,7 +48,7 @@ class Node {
 		std::map<ap_var_t,std::set<Value*> > realVar;
 
 		/// tcons - contains the constraints for the outgoing transitions 
-		std::map<Node*,ap_tcons1_array_t*> tcons;
+		std::map<Node*, std::vector<ap_tcons1_array_t*> > tcons;
 		
 		/// phi_vars - associates the right expression to each PHI-variable,
 		/// depending on the incoming block

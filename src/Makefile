@@ -10,8 +10,8 @@ ICFLAGS		=
 EXEC		= analyzer
 
 GMP_PREFIX=/usr
-MPFR_PREFIX=/net/cezanne/local/jhenry/apron
-APRON_PREFIX=/net/cezanne/local/jhenry/apron
+MPFR_PREFIX=/net/cezanne/local/jhenry/apron_svn/install
+APRON_PREFIX=/net/cezanne/local/jhenry/apron_svn/install
 PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 
