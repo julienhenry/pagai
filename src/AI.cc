@@ -205,8 +205,13 @@ void AI::computeHull(
 					NULL);
 
 			X->canonicalize();
-
-			X_pred.push_back(X);
+			
+			// the created abstract domain could be at bottom
+			// In that case, we don't isert its value in the vector
+			if (!ap_abstract1_is_bottom(man,X->main))
+				X_pred.push_back(X);
+			else
+				delete X;
 		}
 	}
 
@@ -220,12 +225,13 @@ void AI::computeHull(
 		}
 	}
 
-	// Xtemp is the join of all predecessors
+	// Xtemp is the join of all predecessors we just computed
 
 	if (X_pred.size() > 0) {
 		Xtemp.join_array(env,X_pred);
 	} else {
 		// we are in the first basicblock of the function
+		// or an unreachable block
 		Xtemp.set_bottom(env);
 		update = true;
 	}
