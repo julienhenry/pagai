@@ -5,8 +5,8 @@ OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
 CPPFLAGS	= -Wall -g -DDEBUG
 LDFLAGS		=
-#ICFLAGS		= -I/local/jhenry/llvm-2.8/include
-ICFLAGS		= 
+ICFLAGS		= -I/local/jhenry/yices/include -I/local/jhenry/z3/include
+#ICFLAGS		= 
 EXEC		= analyzer
 
 GMP_PREFIX=/usr
@@ -30,10 +30,12 @@ LCFLAGS += \
 			-L$(MPFR_PREFIX)/lib \
 			-L$(APRON_PREFIX)/lib \
 			-L$(PPL_PREFIX)/lib \
-			-L$(CAMLIDL_PREFIX)/lib/ocaml/apron
+			-L$(CAMLIDL_PREFIX)/lib/ocaml/apron \
+			-L/local/jhenry/yices/lib \
+			-L/local/jhenry/z3/lib
 
 LDFLAGS  += -lapron -lppl -lgmpxx \
-			-lmpfr -lgmp  -lpolkaMPQ -loctD -lboxMPFR
+			-lmpfr -lgmp  -lpolkaMPQ -loctD -lboxMPFR -lyices -lz3
 
 all: $(EXEC)
 

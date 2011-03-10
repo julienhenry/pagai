@@ -19,6 +19,7 @@
 #include "apron.h"
 #include "Node.h"
 #include "Live.h"
+#include "SMT.h"
 
 using namespace llvm;
 
@@ -29,6 +30,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		Live * LV;
 		/// LI - result of the LoopInfo pass
 		LoopInfo * LI;
+		/// LSMT - result of the SMT pass
+		SMT * LSMT;
 		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
 		/// is_computed - remember the Nodes that don't need to be recomputed.
@@ -43,7 +46,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 	
 	public:
 
-		AI () : ModulePass(ID), LV(NULL), LI(NULL) {
+		AI () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
 				man = pk_manager_alloc(true);
 				init_apron();
 			}

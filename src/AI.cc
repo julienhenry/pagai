@@ -21,6 +21,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
+#include "SMT.h"
 
 using namespace llvm;
 
@@ -35,6 +36,7 @@ const char * AI::getPassName() const {
 void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
 	AU.addRequired<LoopInfo>();
 }
 
@@ -97,6 +99,9 @@ void AI::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
+	LSMT = &(getAnalysis<SMT>(*F));
+	
+	LSMT->getRho(*F);
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -289,10 +294,10 @@ void AI::computeNode(Node * n) {
 
 	// we compute the set of variable that have to be added in the environment
 	std::set<ap_var_t> Vars;
-	for (int i = 0; i < n->env->intdim + n->env->realdim; i++) {
+	for (unsigned i = 0; i < n->env->intdim + n->env->realdim; i++) {
 		Vars.insert(ap_environment_var_of_dim(n->env,i));
 	}
-	for (int i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
+	for (unsigned i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
 		Vars.erase(ap_environment_var_of_dim(n->X->main->env,i));
 	}
 	n->X->change_environment(n->env);
@@ -564,7 +569,7 @@ void AI::visitSwitchInst (SwitchInst &I){
 	false_cons = new ap_tcons1_array_t();
 	*false_cons = ap_tcons1_array_make(ConditionExp->env,num);
 	
-	for (int i = 0; i < num; i++) {
+	for (unsigned i = 0; i < num; i++) {
 		ConstantInt * CaseValue = I.getCaseValue(i);
 		ap_texpr1_t * CaseExp = get_ap_expr(n,CaseValue);
 
@@ -641,7 +646,7 @@ void AI::visitPHINode (PHINode &I){
 
 	// determining the predecessors of the phi variable, and insert in a list
 	// the predecessors that are not at bottom.
-	for (int i = 0; i < I.getNumIncomingValues(); i++) {
+	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];
 		if (nb->X->main != NULL && !ap_abstract1_is_bottom(man,nb->X->main)) {
