@@ -27,6 +27,8 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		std::string getValueName(Value * v);
 		SMT_expr getValueExpr(Value * v);
+		SMT_expr getValueType(Value * v);
+		SMT_var getVar(Value * v);
 
 		void computeRho(Function &F);
 	public:

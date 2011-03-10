@@ -12,18 +12,21 @@ using namespace llvm;
 class yices: public SMT_manager {
 	private:
 		yices_context ctx;
-
 	public:
 		
 		yices() {
 			ctx = yices_mk_context();
+			int_type = yices_mk_type(ctx, "int");
+			float_type = yices_mk_type(ctx, "float");
 		}
 
 		SMT_expr SMT_mk_true();
 		SMT_expr SMT_mk_false();
 
 		SMT_var SMT_mk_bool_var(std::string name);
+		SMT_var SMT_mk_var(std::string name,SMT_type type);
 		SMT_expr SMT_mk_expr_from_bool_var(SMT_var var);
+		SMT_expr SMT_mk_expr_from_var(SMT_var var);
 		SMT_expr SMT_mk_or (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_and (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2);

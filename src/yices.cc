@@ -27,8 +27,18 @@ SMT_var yices::SMT_mk_bool_var(std::string val) {
 	return yices_mk_bool_var_decl(ctx,cstr);
 }
 
+SMT_var yices::SMT_mk_var(std::string name,SMT_type type) {
+	char * cstr = new char [name.size()+1];
+	strcpy (cstr, name.c_str());
+	return yices_mk_var_decl(ctx,cstr,type);
+}
+
 SMT_expr yices::SMT_mk_expr_from_bool_var(SMT_var var) {
 	return yices_mk_bool_var_from_decl (ctx,(yices_var_decl)var);
+}
+
+SMT_expr yices::SMT_mk_expr_from_var(SMT_var var) {
+	return yices_mk_var_from_decl (ctx,(yices_var_decl)var);
 }
 
 SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {

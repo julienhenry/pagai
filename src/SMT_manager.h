@@ -10,13 +10,17 @@ typedef void* SMT_var;
 typedef void* SMT_model;
 
 class SMT_manager {
-
+	public:
+		SMT_type int_type;
+		SMT_type float_type;
 	public:
 		virtual SMT_expr SMT_mk_true();
 		virtual SMT_expr SMT_mk_false();
 
 		virtual SMT_var SMT_mk_bool_var(std::string name);
+		virtual SMT_var SMT_mk_var(std::string name,SMT_type type);
 		virtual SMT_expr SMT_mk_expr_from_bool_var(SMT_var var);
+		virtual SMT_expr SMT_mk_expr_from_var(SMT_var var);
 		virtual SMT_expr SMT_mk_or (std::vector<SMT_expr> args);
 		virtual SMT_expr SMT_mk_and (std::vector<SMT_expr> args);
 		virtual SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2);

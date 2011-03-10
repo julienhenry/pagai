@@ -61,8 +61,42 @@ std::string SMT::getValueName(Value * v) {
 	return name.str();
 }
 
+
+SMT_expr SMT::getValueType(Value * v) {
+	switch (v->getType()->getTypeID()) {
+	case Type::IntegerTyID:
+		return man->int_type;
+	default:
+		return man->float_type;
+	}
+}
+
+std::map<Value*,SMT_var> vars;
+
+SMT_var SMT::getVar(Value * v) {
+	if (!vars.count(v))
+		vars[v] = man->SMT_mk_var(getValueName(v),getValueType(v));
+	return vars[v];
+}
+
 SMT_expr SMT::getValueExpr(Value * v) {
-	return man->SMT_mk_true();
+	if (isa<Constant>(v)) {
+		if (isa<ConstantInt>(v)) {
+			ConstantInt * Int = dyn_cast<ConstantInt>(v);
+			int64_t n = Int->getSExtValue();
+			return man->SMT_mk_num((int)n);
+		} 
+		if (isa<ConstantFP>(v)) {
+			ConstantFP * FP = dyn_cast<ConstantFP>(v);
+			double x = FP->getValueAPF().convertToDouble();
+			return man->SMT_mk_num((int)x);
+		}
+	} else if (isa<Instruction>(v)) {
+		SMT_var var = getVar(v);
+		return man->SMT_mk_expr_from_var(var);
+	} else {
+		return man->SMT_mk_true();
+	}
 }
 
 std::vector<SMT_expr> instructions;
@@ -215,29 +249,30 @@ void SMT::visitTerminatorInst (TerminatorInst &I) {
 }
 
 void SMT::visitBinaryOperator (BinaryOperator &I) {
+	SMT_expr expr = getValueExpr(&I);	
+	SMT_expr assign;	
 	std::vector<SMT_expr> operands;
 	operands.push_back(getValueExpr(I.getOperand(0)));
 	operands.push_back(getValueExpr(I.getOperand(1)));
-	
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 
 		case Instruction::FAdd: 
-			instructions.push_back(man->SMT_mk_sum(operands));
+			assign = man->SMT_mk_sum(operands);
 			break;
 		case Instruction::Sub : 
 		case Instruction::FSub: 
-			instructions.push_back(man->SMT_mk_sub(operands));
+			assign = man->SMT_mk_sub(operands);
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
-			instructions.push_back(man->SMT_mk_mul(operands));
+			assign = man->SMT_mk_mul(operands);
 			break;
 		case Instruction::And :
-			instructions.push_back(man->SMT_mk_and(operands));
+			assign = man->SMT_mk_and(operands);
 			break;
 		case Instruction::Or  :
-			instructions.push_back(man->SMT_mk_or(operands));
+			assign = man->SMT_mk_or(operands);
 			break;
 		// the others are not implemented
 		case Instruction::Xor :
@@ -254,6 +289,7 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 			// NOT IMPLEMENTED
 			return;
 	}
+	instructions.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMT::visitCmpInst (CmpInst &I) {
