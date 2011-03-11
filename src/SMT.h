@@ -29,12 +29,14 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::vector<SMT_expr> rho_components;
 		std::vector<SMT_expr> instructions;
 
-		std::string getNodeName(BasicBlock* b);
+		std::string getNodeName(BasicBlock* b, bool src);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		std::string getValueName(Value * v);
 		SMT_expr getValueExpr(Value * v);
 		SMT_expr getValueType(Value * v);
 		SMT_var getVar(Value * v);
+		
+		SMT_expr computeCondition(CmpInst * inst);
 
 		void computePr(Function &F);
 		void computeRho(Function &F);

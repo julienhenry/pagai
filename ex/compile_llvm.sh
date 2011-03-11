@@ -55,7 +55,7 @@ clang -emit-llvm -c $FILENAME -o $DIR/$NAME.o
 opt -mem2reg -loopsimplify -lowerswitch $DIR/$NAME.o -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
-	opt -dot-cfg $OUTPUT
+	opt -dot-cfg $OUTPUT -o $OUTPUT
 	mv *.dot $DIR
 	dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 fi
