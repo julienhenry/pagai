@@ -8,7 +8,6 @@
 #include "llvm/PassManager.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Analysis/LoopInfo.h"
-#include "Live.h"
 
 #include "SMT.h"
 
@@ -20,6 +19,7 @@ char SMT::ID = 0;
 static RegisterPass<SMT>
 X("SMT","SMT-formula creation pass",false,true);
 
+
 const char * SMT::getPassName() const {
 	return "SMT";
 }
@@ -27,14 +27,20 @@ const char * SMT::getPassName() const {
 SMT::SMT() : FunctionPass(ID) {}
 
 void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<Live>();
 	AU.addRequired<LoopInfo>();
 	AU.setPreservesAll();
 }
 
 bool SMT::runOnFunction(Function &F) {
+	LI = &(getAnalysis<LoopInfo>());
 	man = new yices();
 	return 0;
+}
+
+std::set<BasicBlock*>* SMT::getPr(Function &F) {
+	if (!Pr.count(&F))
+		computePr(F);
+	return Pr[&F];
 }
 
 SMT_expr SMT::getRho(Function &F) {
@@ -64,14 +70,12 @@ std::string SMT::getValueName(Value * v) {
 
 SMT_expr SMT::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {
-	case Type::IntegerTyID:
-		return man->int_type;
-	default:
-		return man->float_type;
+		case Type::IntegerTyID:
+			return man->int_type;
+		default:
+			return man->float_type;
 	}
 }
-
-std::map<Value*,SMT_var> vars;
 
 SMT_var SMT::getVar(Value * v) {
 	if (!vars.count(v))
@@ -99,11 +103,24 @@ SMT_expr SMT::getValueExpr(Value * v) {
 	}
 }
 
-std::vector<SMT_expr> instructions;
+// computePr - computes the set Pr of BasicBlocks
+// for the moment - Pr = Pw
+void SMT::computePr(Function &F) {
+	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
+	BasicBlock * b;
+
+	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+		b = i;
+		if (LI->isLoopHeader(b)) {
+			FPr->insert(b);
+		}
+	}
+	Pr[&F] = FPr;
+}
 
 void SMT::computeRho(Function &F) {
 	BasicBlock * b;
-	
+
 	rho_components.clear();
 
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
@@ -124,7 +141,7 @@ void SMT::computeRho(Function &F) {
 			bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
 			rho_components.push_back(bvar_exp);
 		}
-		// we compute the transformation computed by the basicblock's
+		// we compute the transformation due to the basicblock's
 		// instructions
 		instructions.clear();
 		for (BasicBlock::iterator i = b->begin(), e = b->end();
@@ -134,7 +151,11 @@ void SMT::computeRho(Function &F) {
 		bpredicate = man->SMT_mk_or(instructions);
 		if (bpredicate != NULL) {
 			SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
-			bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
+			bvar_exp = man->SMT_mk_not(bvar_exp);
+			std::vector<SMT_expr> implies;
+			implies.push_back(bvar_exp);
+			implies.push_back(bpredicate);
+			bvar_exp = man->SMT_mk_or(implies);
 			rho_components.push_back(bvar_exp);
 		}
 	}
@@ -147,6 +168,22 @@ void SMT::visitReturnInst (ReturnInst &I) {
 }
 
 void SMT::visitBranchInst (BranchInst &I) {
+	BasicBlock * b = I.getParent();
+
+	if (I.isUnconditional()) {
+		BasicBlock * s = I.getSuccessor(0);
+		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b));
+		SMT_expr bexpr = man->SMT_mk_expr_from_bool_var(bvar);
+		SMT_var evar = man->SMT_mk_bool_var(getEdgeName(b,s));
+		SMT_expr eexpr = man->SMT_mk_expr_from_bool_var(evar);
+		
+		rho_components.push_back(man->SMT_mk_eq(eexpr,bexpr));
+		return;
+	}
+	// branch under condition
+	//iftrue = Nodes[I.getSuccessor(0)];
+	//iffalse = Nodes[I.getSuccessor(1)];
+	//computeCondition(dyn_cast<CmpInst>(I.getOperand(0)),true_cons,false_cons);
 }
 
 void SMT::visitSwitchInst (SwitchInst &I) {
@@ -274,7 +311,7 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 		case Instruction::Or  :
 			assign = man->SMT_mk_or(operands);
 			break;
-		// the others are not implemented
+			// the others are not implemented
 		case Instruction::Xor :
 		case Instruction::Shl : // Shift left  (logical)
 		case Instruction::LShr: // Shift right (logical)

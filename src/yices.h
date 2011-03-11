@@ -12,12 +12,17 @@ using namespace llvm;
 class yices: public SMT_manager {
 	private:
 		yices_context ctx;
+		std::map<std::string,SMT_var> vars;
 	public:
 		
 		yices() {
 			ctx = yices_mk_context();
 			int_type = yices_mk_type(ctx, "int");
 			float_type = yices_mk_type(ctx, "float");
+		}
+
+		~yices() {
+			yices_del_context (ctx);
 		}
 
 		SMT_expr SMT_mk_true();

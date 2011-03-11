@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
@@ -10,6 +11,7 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/InstVisitor.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 #include "SMT_manager.h"
 
@@ -19,9 +21,13 @@ using namespace llvm;
 class SMT : public FunctionPass, public InstVisitor<SMT> {
 	
 	private:
+		LoopInfo * LI;
 		SMT_manager * man;
 		std::map<Function*,SMT_expr> rho;
+		std::map<Function*,std::set<BasicBlock*>*> Pr;
+		std::map<Value*,SMT_var> vars;
 		std::vector<SMT_expr> rho_components;
+		std::vector<SMT_expr> instructions;
 
 		std::string getNodeName(BasicBlock* b);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
@@ -30,6 +36,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr getValueType(Value * v);
 		SMT_var getVar(Value * v);
 
+		void computePr(Function &F);
 		void computeRho(Function &F);
 	public:
 		static char ID;
@@ -39,6 +46,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 		bool runOnFunction(Function &F);
 
+		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);
 
 		// Visit methods

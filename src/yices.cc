@@ -7,6 +7,7 @@
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Support/CFG.h"
+#include "llvm/Support/FormattedStream.h"
 
 #include "yices_c.h"
 
@@ -22,15 +23,21 @@ SMT_expr yices::SMT_mk_false() {
 }
 
 SMT_var yices::SMT_mk_bool_var(std::string val) {
-	char * cstr = new char [val.size()+1];
-	strcpy (cstr, val.c_str());
-	return yices_mk_bool_var_decl(ctx,cstr);
+	if (!vars.count(val)) {
+		char * cstr = new char [val.size()+1];
+		strcpy (cstr, val.c_str());
+		vars[val] = yices_mk_bool_var_decl(ctx,cstr);
+	}
+	return vars[val];
 }
 
 SMT_var yices::SMT_mk_var(std::string name,SMT_type type) {
-	char * cstr = new char [name.size()+1];
-	strcpy (cstr, name.c_str());
-	return yices_mk_var_decl(ctx,cstr,type);
+	if (!vars.count(name)) {
+		char * cstr = new char [name.size()+1];
+		strcpy (cstr, name.c_str());
+		vars[name] = yices_mk_var_decl(ctx,cstr,type);
+	}
+	return vars[name];
 }
 
 SMT_expr yices::SMT_mk_expr_from_bool_var(SMT_var var) {
@@ -144,4 +151,32 @@ SMT_expr yices::SMT_mk_ge (SMT_expr a1, SMT_expr a2) {
 
 void yices::SMT_print(SMT_expr a) {
 	yices_pp_expr ((yices_expr)a);
+	yices_set_arith_only(1);
+	yices_assert(ctx,(yices_expr)a);
+	fouts() << "\n";
+	if (yices_check(ctx) == l_true) {
+		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
+		yices_model m              = yices_get_model(ctx);
+		//yices_display_model(m);
+		while (yices_iterator_has_next(it)) {
+			yices_var_decl d         = yices_iterator_next(it);
+			char *         val;
+			fouts() <<  yices_get_var_decl_name(d) << " = ";
+			switch(yices_get_value(m, d)) {
+				case l_true: 
+					fouts() << "true\n"; 
+					break;
+				case l_false: 
+					fouts() << "false\n"; 
+					break;
+				case l_undef: 
+					fouts() << "unknown\n"; 
+					break;
+			}
+		}
+		yices_del_iterator(it);
+	} else {
+		fouts() << "unsat\n";
+	}
 }
+
