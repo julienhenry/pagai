@@ -119,19 +119,19 @@ ap_texpr_rtype_t get_ap_type(Value * val) {
 	
 	switch (val->getType()->getTypeID()) {
 	case Type::FloatTyID:
-		res = AP_RTYPE_SINGLE;
+		res = AP_RTYPE_REAL;
 		break;
 	case Type::DoubleTyID:
-		res = AP_RTYPE_DOUBLE;
+		res = AP_RTYPE_REAL;
 		break;
 	case Type::IntegerTyID:
 		res = AP_RTYPE_INT;
 		break;
 	case Type::X86_FP80TyID:
-		res = AP_RTYPE_EXTENDED;
+		res = AP_RTYPE_REAL;
 		break;
 	case Type::PPC_FP128TyID:
-		res = AP_RTYPE_QUAD;
+		res = AP_RTYPE_REAL;
 		break;
 	default:
 		fouts() << "Warning: Unknown type " << val->getType() << "\n";
