@@ -232,7 +232,6 @@ void AI::computeHull(
 
 			// intersect with the transition's condition
 			if (pred->tcons.count(n)) {
-				fouts() << "NUMBER OF CONSTRAINTS " << pred->tcons[n].size() << "\n";
 				std::vector<ap_tcons1_array_t*>::iterator i, e;
 				for (i = pred->tcons[n].begin(), e = pred->tcons[n].end(); i != e; i++) {
 					Abstract * X2 = new Abstract(X);
@@ -525,6 +524,33 @@ void AI::computeCondition(	CmpInst * inst,
 	create_constraints(nconstyp,nexpr,expr,false_cons);
 }
 
+void AI::computeConstantCondition(	ConstantInt * inst, 
+		std::vector<ap_tcons1_array_t*> * true_cons, 
+		std::vector<ap_tcons1_array_t *> * false_cons) {
+
+		// we create a unsat constraint
+		// such as one of the successor is unreachable
+		ap_tcons1_t cons;
+		ap_tcons1_array_t * consarray;
+		ap_environment_t * env = ap_environment_alloc_empty();
+		consarray = new ap_tcons1_array_t();
+		cons = ap_tcons1_make(
+				AP_CONS_SUP,
+				ap_texpr1_cst_scalar_double(env,1.),
+				ap_scalar_alloc_set_double(0.));
+		*consarray = ap_tcons1_array_make(cons.env,1);
+		ap_tcons1_array_set(consarray,0,&cons);
+		
+		if (inst->isZero()) {
+			// condition is always false
+			true_cons->push_back(consarray);
+		} else {
+			// condition is always true
+			false_cons->push_back(consarray);
+		}
+}
+
+
 void AI::visitBranchInst (BranchInst &I){
 	Node * n = Nodes[I.getParent()];
 	Node * iftrue;
@@ -543,12 +569,16 @@ void AI::visitBranchInst (BranchInst &I){
 	std::vector<ap_tcons1_array_t*> * false_cons = new std::vector<ap_tcons1_array_t*>();
 
 	CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0));
-	if (cmp == NULL) return;
+	if (cmp == NULL) {
+		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
+			computeConstantCondition(c,true_cons,false_cons);
+		}
+	} else {
+		ap_texpr_rtype_t ap_type;
+		if (get_ap_type(cmp->getOperand(0), ap_type)) return;
+		computeCondition(cmp,true_cons,false_cons);
+	}
 
-	ap_texpr_rtype_t ap_type;
-	if (get_ap_type(cmp->getOperand(0), ap_type)) return;
-	computeCondition(cmp,true_cons,false_cons);
-	
 	// free the previous tcons
 	if (n->tcons.count(iftrue)) {
 		for (std::vector<ap_tcons1_array_t*>::iterator i = n->tcons[iftrue].begin(), e = n->tcons[iftrue].end(); i != e; ++i)
