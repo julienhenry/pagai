@@ -10,6 +10,7 @@
 
 #include "Expr.h"
 #include "apron.h"
+#include "Debug.h"
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
@@ -136,7 +137,9 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		ap_type = AP_RTYPE_REAL;
 		break;
 	default:
+		DEBUG(
 		fouts() << "Warning: Unknown type " << val->getType() << "\n";
+		)
 		ap_type = AP_RTYPE_REAL;
 		return 1;
 	}

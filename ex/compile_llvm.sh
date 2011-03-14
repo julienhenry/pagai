@@ -48,11 +48,11 @@ NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=${DIR}/${NAME}_opt.o
+	OUTPUT=${DIR}/${NAME}.o
 fi
 
-clang -emit-llvm -c $FILENAME -o $DIR/$NAME.o
-opt -mem2reg -loopsimplify -lowerswitch $DIR/$NAME.o -o $OUTPUT
+clang -emit-llvm -c $FILENAME -o $OUTPUT
+opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT

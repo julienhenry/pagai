@@ -21,6 +21,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
+#include "Debug.h"
 
 using namespace llvm;
 
@@ -121,7 +122,6 @@ void AI::computeFunction(Function * F) {
 }
 
 void AI::computeEnv(Node * n) {
-
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
@@ -216,7 +216,13 @@ void AI::computeHull(
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 
-	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+	pred_iterator p = pred_begin(b), E = pred_end(b);
+	if (p == E) {
+		// we are in the first basicblock of the function
+		update = true;
+	}
+
+	for (; p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 		
@@ -248,7 +254,8 @@ void AI::computeHull(
 			}
 		}
 	}
-
+	
+	DEBUG(
 	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(), 
 			e = n->intVar.end();i != e; ++i) {
 		Value * v = (Value *) (*i).first;	
@@ -258,6 +265,7 @@ void AI::computeHull(
 			fouts() << "Value is NOT Live :" << *v << "\n";
 		}
 	}
+	);
 
 	// Xtemp is the join of all predecessors we just computed
 
@@ -267,7 +275,7 @@ void AI::computeHull(
 		// we are in the first basicblock of the function
 		// or an unreachable block
 		Xtemp.set_bottom(env);
-		update = true;
+		//update = true;
 	}
 }
 
@@ -279,10 +287,12 @@ void AI::computeNode(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
-
+	
+	DEBUG (
 	fouts() << "#######################################################\n";
 	fouts() << "Computing node: " << b << "\n";
 	fouts() << *b << "\n";
+	);
 
 	is_computed[n] = true;
 
@@ -311,15 +321,23 @@ void AI::computeNode(Node * n) {
 	// Vars contains the new variables.
 	// For each of these variables, we associate the right expression in the
 	// abstract
-	ap_texpr1_t * expr;
+	ap_texpr1_t * expr = NULL;
 	ap_var_t var;
 	std::vector<ap_var_t> Names;
 	std::vector<ap_texpr1_t> Exprs;
 	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
 		var = *i;
-		fouts() << "value " << *(Value*)var <<  " is added\n";
-		expr = get_phivar_first_expr((Value*)var);
+		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
+
+		// we get the previous definition of the expression iff the value we
+		// have is a Phi-node which is defined in THIS node.
+		Instruction * inst = dyn_cast<Instruction>((Value*)var);
+		if (inst != NULL && inst->getParent() == b)
+			expr = get_phivar_first_expr((Value*)var);
+		
 		if (expr != NULL) {
+			ap_environment_fdump(stdout,n->env);
+			ap_environment_fdump(stdout,expr->env);
 			expr = ap_texpr1_extend_environment(expr,n->env);
 			Names.push_back(var);
 			Exprs.push_back(*expr);
@@ -358,8 +376,10 @@ void AI::computeNode(Node * n) {
 			is_computed[Nodes[sb]] = false;
 		}
 	}
+	DEBUG(
 	fouts() << "RESULT:\n";
 	n->X->print();
+	);
 }
 
 /// insert_env_vars_into_node_vars - this function takes all apron variables of
@@ -552,6 +572,7 @@ void AI::computeConstantCondition(	ConstantInt * inst,
 
 
 void AI::visitBranchInst (BranchInst &I){
+	//fouts() << "BranchInst\n" << I << "\n";	
 	Node * n = Nodes[I.getParent()];
 	Node * iftrue;
 	Node * iffalse;
@@ -561,7 +582,6 @@ void AI::visitBranchInst (BranchInst &I){
 		/* no constraints */
 		return;
 	}
-	fouts() << "BranchInst\n" << I << "\n";	
 	// branch under condition
 	iftrue = Nodes[I.getSuccessor(0)];
 	iffalse = Nodes[I.getSuccessor(1)];
@@ -717,6 +737,7 @@ void AI::visitPHINode (PHINode &I){
 		// only one incoming value is possible : it is useless to add a new
 		// variable, since Value I is directly equal to the associated incoming
 		// value
+		fouts() << I << "one single incoming value\n";
 		int i = IncomingValues.front();
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];
