@@ -10,6 +10,7 @@
 
 #include "Expr.h"
 #include "apron.h"
+#include "Debug.h"
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
@@ -26,6 +27,9 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
 		double x = FP->getValueAPF().convertToDouble();
 		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
+	}
+	if (isa<ConstantPointerNull>(val)) {
+		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
 	}
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
@@ -114,29 +118,30 @@ void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 	ap_environment_free(lcenv);
 }
 
-ap_texpr_rtype_t get_ap_type(Value * val) {
-	ap_texpr_rtype_t res;
+int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 	
 	switch (val->getType()->getTypeID()) {
 	case Type::FloatTyID:
-		res = AP_RTYPE_SINGLE;
+		ap_type = AP_RTYPE_REAL;
 		break;
 	case Type::DoubleTyID:
-		res = AP_RTYPE_DOUBLE;
+		ap_type = AP_RTYPE_REAL;
 		break;
 	case Type::IntegerTyID:
-		res = AP_RTYPE_INT;
+		ap_type = AP_RTYPE_INT;
 		break;
 	case Type::X86_FP80TyID:
-		res = AP_RTYPE_EXTENDED;
+		ap_type = AP_RTYPE_REAL;
 		break;
 	case Type::PPC_FP128TyID:
-		res = AP_RTYPE_QUAD;
+		ap_type = AP_RTYPE_REAL;
 		break;
 	default:
+		DEBUG(
 		fouts() << "Warning: Unknown type " << val->getType() << "\n";
-		res = AP_RTYPE_REAL;
-		break;
+		)
+		ap_type = AP_RTYPE_REAL;
+		return 1;
 	}
-	return res;
+	return 0;
 }

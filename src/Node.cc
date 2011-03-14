@@ -81,7 +81,11 @@ void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 void Node::add_var(Value * val) {
 	ap_environment_t* env;
 	ap_var_t var = val; 
-	switch (get_ap_type(val)) {
+	ap_texpr_rtype_t type;
+
+	if (get_ap_type(val,type)) return;
+
+	switch (type) {
 		case AP_RTYPE_INT:
 			intVar[var].insert(val);
 			env = ap_environment_alloc(&var,1,NULL,0);

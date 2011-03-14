@@ -85,10 +85,15 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.
-		void computeCondition(	CmpInst * inst, 
+		void computeCondition(CmpInst * inst, 
 				std::vector<ap_tcons1_array_t *> * true_cons, 
 				std::vector<ap_tcons1_array_t *> * false_cons);
 
+		void computeConstantCondition(ConstantInt * inst, 
+				std::vector<ap_tcons1_array_t*> * true_cons, 
+				std::vector<ap_tcons1_array_t *> * false_cons);
+
+		void visitInstAndAddVarIfNecessary(Instruction &I);
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);
 		void visitBranchInst (BranchInst &I);

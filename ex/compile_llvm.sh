@@ -48,16 +48,19 @@ NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=${DIR}/${NAME}_opt.o
+	OUTPUT=${DIR}/${NAME}.o
 fi
 
-clang -emit-llvm -c $FILENAME -o $DIR/$NAME.o
-opt -mem2reg -loopsimplify -lowerswitch $DIR/$NAME.o -o $OUTPUT
+clang -emit-llvm -c $FILENAME -o $OUTPUT
+opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT
 	mv *.dot $DIR
-	dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
+	for i in `ls $DIR/*.dot` ; do
+		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
+		dot -Tsvg -o $i.svg $i
+	done
 fi
 
 if [ $PRINT -eq 1 ] ; then
