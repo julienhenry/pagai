@@ -275,7 +275,6 @@ void AI::computeHull(
 		// we are in the first basicblock of the function
 		// or an unreachable block
 		Xtemp.set_bottom(env);
-		//update = true;
 	}
 }
 
@@ -592,6 +591,8 @@ void AI::visitBranchInst (BranchInst &I){
 	if (cmp == NULL) {
 		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
 			computeConstantCondition(c,true_cons,false_cons);
+		} else {
+			return;
 		}
 	} else {
 		ap_texpr_rtype_t ap_type;
