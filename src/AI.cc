@@ -136,11 +136,22 @@ void AI::computeEnv(Node * n) {
 			i != e; ++i) {
 		visit(*i);
 	}
-	
+
+	pred_iterator p = pred_begin(b), E = pred_end(b);
+	if (p == E) {
+		// we are in the first basicblock of the function
+		Function * F = b->getParent();
+		for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
+			Argument * arg = a;
+			if (!(arg->use_empty()))
+				n->add_var(arg);
+		}
+		return;
+	}
 	// for each predecessor, we iterate on their variables, and we insert
 	// them if they are associated to a value which is still live in our Block
 	// We do this for both int and real variables
-	for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+	for (; p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 		if (pred->X->main != NULL) {
