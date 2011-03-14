@@ -15,6 +15,7 @@
 std::map<Value *,ap_texpr1_t *> Exprs;
 
 std::map<Value *,ap_texpr1_t *> Phivar_first_Expr;
+std::map<Value *,ap_texpr1_t *> Phivar_last_Expr;
 
 ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantInt>(val)) {
@@ -52,6 +53,7 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 		}
 	}
 }
+
 
 ap_texpr1_t * get_phivar_first_expr(Value * val) {
 	if (Phivar_first_Expr.count(val)) {

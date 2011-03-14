@@ -324,16 +324,24 @@ void AI::computeNode(Node * n) {
 	ap_var_t var;
 	std::vector<ap_var_t> Names;
 	std::vector<ap_texpr1_t> Exprs;
-	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
+
+	std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end();
+	if (i != e)
+		update = true;
+
+	bool swap = false;
+
+	for (; i != e; i++) {
 		var = *i;
 		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
 
-		// we get the previous definition of the expression iff the value we
-		// have is a Phi-node which is defined in THIS node.
-		Instruction * inst = dyn_cast<Instruction>((Value*)var);
+		// we get the previous definition of the expression
+		PHINode * inst = dyn_cast<PHINode>((Value*)var);
 		if (inst != NULL && inst->getParent() == b)
 			expr = get_phivar_first_expr((Value*)var);
-		
+		else
+			swap = true;
+
 		if (expr != NULL) {
 			ap_environment_fdump(stdout,n->env);
 			ap_environment_fdump(stdout,expr->env);
@@ -360,7 +368,7 @@ void AI::computeNode(Node * n) {
 	}
 
 	// update the abstract value if it is bigger than the previous one
-	if (!Xtemp->is_leq(n->X)) {
+	if (swap || !Xtemp->is_leq(n->X)) {
 		delete n->X;
 		n->X = new Abstract(Xtemp);
 		update = true;
