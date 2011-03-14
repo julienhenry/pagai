@@ -620,6 +620,19 @@ void AI::visitAllocaInst (AllocaInst &I){
 
 void AI::visitLoadInst (LoadInst &I){
 	//fouts() << "LoadInst\n" << I << "\n";	
+	Node * n = Nodes[I.getParent()];
+	ap_environment_t* env = NULL;
+	ap_var_t var = (Value *) &I; 
+
+	if (get_ap_type((Value*)&I) == AP_RTYPE_INT) { 
+		env = ap_environment_alloc(&var,1,NULL,0);
+	} else {
+		env = ap_environment_alloc(NULL,0,&var,1);
+	}
+	ap_texpr1_t * exp = ap_texpr1_var(env,var);
+	set_ap_expr(&I,exp);
+	//print_texpr(exp);
+	n->add_var((Value*)var);
 }
 
 void AI::visitStoreInst (StoreInst &I){

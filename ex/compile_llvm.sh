@@ -57,7 +57,10 @@ opt -mem2reg -loopsimplify -lowerswitch $DIR/$NAME.o -o $OUTPUT
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT
 	mv *.dot $DIR
-	dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
+	for i in `ls $DIR/*.dot` ; do
+		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
+		dot -Tsvg -o $i.svg $i
+	done
 fi
 
 if [ $PRINT -eq 1 ] ; then
