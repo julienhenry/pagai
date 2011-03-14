@@ -592,6 +592,8 @@ void AI::visitBranchInst (BranchInst &I){
 		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
 			computeConstantCondition(c,true_cons,false_cons);
 		} else {
+			// here, we loose precision, because I.getOperand(0) could also be a
+			// boolean PHI-variable
 			return;
 		}
 	} else {
