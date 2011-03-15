@@ -108,6 +108,8 @@ SMT_expr SMT::getValueExpr(Value * v) {
 		SMT_var var = getVar(v);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
+		fouts() << "ERROR in getValueExpr\n";
+		fouts().flush();
 		return NULL;
 	}
 }
