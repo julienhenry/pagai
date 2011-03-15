@@ -29,12 +29,13 @@ char* ap_var_to_string(ap_var_t var) {
 	std::string & name = s->str();
 	size_t found;
 	found=name.find_first_of("%");
-	found=name.find_first_of(" ",found+1);
-
+	if (found!=std::string::npos) {
+		name = name.substr(found);
+	}
+	found=name.find_first_of(" ");
 	if (found!=std::string::npos) {
 		name.resize(found);
 	}
-	
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());
 	delete s;
@@ -85,4 +86,5 @@ void print_texpr(ap_texpr1_t * exp) {
 	printf("Apron expression:\n");
 	ap_texpr1_fprint(stdout,exp);
 	printf("\n");
+	fflush(stdout);
 }

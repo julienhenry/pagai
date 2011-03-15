@@ -55,7 +55,10 @@ bool AI::runOnModule(Module &M) {
 		b = it->first;
 		n = Nodes[b];
 		fouts() << "RESULTS ----------------------------------" << *b;
+		fouts().flush();
+		ap_environment_fdump(stdout,n->X->main->env);
 		ap_abstract1_fprint(stdout,man,n->X->main);
+		fflush(stdout);
 		delete it->second;
 	}
 	return 0;
@@ -75,6 +78,7 @@ void AI::initFunction(Function * F) {
 	}
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
+	fouts().flush();
 }
 
 void AI::printBasicBlock(BasicBlock* b) {
@@ -382,6 +386,7 @@ void AI::computeNode(Node * n) {
 	}
 	DEBUG(
 	fouts() << "RESULT:\n";
+	fouts().flush();
 	n->X->print();
 	);
 }
