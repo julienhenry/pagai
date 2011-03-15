@@ -190,4 +190,5 @@ void Abstract::print() {
 	printf("PILOT VALUE:\n");
 	ap_environment_fdump(stdout,pilot->env);
 	ap_abstract1_fprint(stdout,man,pilot);
+	fflush(stdout);
 }

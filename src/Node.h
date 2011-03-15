@@ -33,6 +33,7 @@ class Node {
 		/// sccId identifies the strongly connected component the node is in
 		int sccId;
 		int id;
+
 		/// X - Abstract domain 
 		Abstract * X;
 		ap_environment_t * env;

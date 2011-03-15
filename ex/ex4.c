@@ -24,5 +24,7 @@ int main(int argc, char ** argv) {
 	}
 
 	}
+
+	x++;
 	return x;
 }

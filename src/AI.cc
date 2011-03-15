@@ -57,7 +57,10 @@ bool AI::runOnModule(Module &M) {
 		b = it->first;
 		n = Nodes[b];
 		fouts() << "RESULTS ----------------------------------" << *b;
+		fouts().flush();
+		ap_environment_fdump(stdout,n->X->main->env);
 		ap_abstract1_fprint(stdout,man,n->X->main);
+		fflush(stdout);
 		delete it->second;
 	}
 	return 0;
@@ -77,6 +80,7 @@ void AI::initFunction(Function * F) {
 	}
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
+	fouts().flush();
 }
 
 void AI::printBasicBlock(BasicBlock* b) {
@@ -330,22 +334,29 @@ void AI::computeNode(Node * n) {
 	ap_var_t var;
 	std::vector<ap_var_t> Names;
 	std::vector<ap_texpr1_t> Exprs;
-	for (std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end(); i != e; i++) {
+
+	std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end();
+	if (i != e)
+		update = true;
+
+
+	for (; i != e; i++) {
 		var = *i;
 		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
 
-		// we get the previous definition of the expression iff the value we
-		// have is a Phi-node which is defined in THIS node.
-		Instruction * inst = dyn_cast<Instruction>((Value*)var);
-		if (inst != NULL && inst->getParent() == b)
-			expr = get_phivar_first_expr((Value*)var);
-		
+		// we get the previous definition of the expression
+			expr = get_phivar_previous_expr((Value*)var);
+
 		if (expr != NULL) {
-			ap_environment_fdump(stdout,n->env);
-			ap_environment_fdump(stdout,expr->env);
+			//ap_environment_fdump(stdout,n->env);
+			//ap_environment_fdump(stdout,expr->env);
 			expr = ap_texpr1_extend_environment(expr,n->env);
-			Names.push_back(var);
-			Exprs.push_back(*expr);
+
+			// Here, there is a problem !
+			if (expr != NULL) {
+				Names.push_back(var);
+				Exprs.push_back(*expr);
+			}
 		}
 	}
 	if (Names.size())
@@ -366,7 +377,7 @@ void AI::computeNode(Node * n) {
 	}
 
 	// update the abstract value if it is bigger than the previous one
-	if (!Xtemp->is_leq(n->X)) {
+	if ( !Xtemp->is_leq(n->X)) {
 		delete n->X;
 		n->X = new Abstract(Xtemp);
 		update = true;
@@ -383,6 +394,7 @@ void AI::computeNode(Node * n) {
 	}
 	DEBUG(
 	fouts() << "RESULT:\n";
+	fouts().flush();
 	n->X->print();
 	);
 }
@@ -732,6 +744,7 @@ void AI::visitPHINode (PHINode &I){
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
+	set_phivar_previous_expr((Value*)&I,get_ap_expr(n,(Value*)&I));
 	// determining the predecessors of the phi variable, and insert in a list
 	// the predecessors that are not at bottom.
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
@@ -754,7 +767,7 @@ void AI::visitPHINode (PHINode &I){
 		set_ap_expr(&I,expr);
 		ap_environment_t * env = expr->env;
 
-		set_phivar_first_expr(&I,expr);
+		//set_phivar_first_expr(&I,expr);
 		// this instruction may use some apron variables (from the abstract
 		// domain)
 		// we add these variables in the Node's variable structure, such that we
