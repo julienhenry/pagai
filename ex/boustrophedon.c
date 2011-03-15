@@ -4,7 +4,6 @@ int main() {
 	int x;
 	int d;
 	x = 0;
-	d = 0;
 
 
 	while(1) {
