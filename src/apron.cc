@@ -28,14 +28,9 @@ char* ap_var_to_string(ap_var_t var) {
 	
 	std::string & name = s->str();
 	size_t found;
-	found=name.find_first_of("undef");
+	found=name.find_first_of("%");
 	if (found!=std::string::npos) {
 		name = name.substr(found);
-	} else {
-		found=name.find_first_of("%");
-		if (found!=std::string::npos) {
-			name = name.substr(found);
-		}
 		found=name.find_first_of(" ");
 		if (found!=std::string::npos) {
 			name.resize(found);
