@@ -339,14 +339,14 @@ void AI::computeNode(Node * n) {
 		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
 
 		// we get the previous definition of the expression
-		//PHINode * inst = dyn_cast<PHINode>((Value*)var);
-		//if (inst != NULL && inst->getParent() == b)
 			expr = get_phivar_previous_expr((Value*)var);
 
 		if (expr != NULL) {
-			ap_environment_fdump(stdout,n->env);
-			ap_environment_fdump(stdout,expr->env);
+			//ap_environment_fdump(stdout,n->env);
+			//ap_environment_fdump(stdout,expr->env);
 			expr = ap_texpr1_extend_environment(expr,n->env);
+
+			// Here, there is a problem !
 			if (expr != NULL) {
 				Names.push_back(var);
 				Exprs.push_back(*expr);
