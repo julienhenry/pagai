@@ -329,7 +329,6 @@ void AI::computeNode(Node * n) {
 	if (i != e)
 		update = true;
 
-	bool swap = false;
 
 	for (; i != e; i++) {
 		var = *i;
@@ -339,8 +338,6 @@ void AI::computeNode(Node * n) {
 		PHINode * inst = dyn_cast<PHINode>((Value*)var);
 		if (inst != NULL && inst->getParent() == b)
 			expr = get_phivar_first_expr((Value*)var);
-		else
-			swap = true;
 
 		if (expr != NULL) {
 			ap_environment_fdump(stdout,n->env);
@@ -368,7 +365,7 @@ void AI::computeNode(Node * n) {
 	}
 
 	// update the abstract value if it is bigger than the previous one
-	if (swap || !Xtemp->is_leq(n->X)) {
+	if ( !Xtemp->is_leq(n->X)) {
 		delete n->X;
 		n->X = new Abstract(Xtemp);
 		update = true;

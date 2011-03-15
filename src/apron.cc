@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string>
 
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
@@ -18,11 +19,22 @@ char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
 	std::string s_string;
 	raw_string_ostream * s = new raw_string_ostream(s_string);
-	if (val->hasName())
+
+	if (val->hasName()) {
 		*s << val->getName();
-	else
-		*s << "unnamed_var";
+	} else {
+		*s << *val;
+	}
+	
 	std::string & name = s->str();
+	size_t found;
+	found=name.find_first_of("%");
+	found=name.find_first_of(" ",found+1);
+
+	if (found!=std::string::npos) {
+		name.resize(found);
+	}
+	
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());
 	delete s;

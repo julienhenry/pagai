@@ -184,10 +184,10 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 }
 
 void Abstract::print() {
-	printf("MAIN VALUE:\n");
+	fouts() << "MAIN VALUE:\n";
 	ap_environment_fdump(stdout,main->env);
 	ap_abstract1_fprint(stdout,man,main);
-	printf("PILOT VALUE:\n");
+	fouts() << "PILOT VALUE:\n";
 	ap_environment_fdump(stdout,pilot->env);
 	ap_abstract1_fprint(stdout,man,pilot);
 }
