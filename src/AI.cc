@@ -50,14 +50,17 @@ bool AI::runOnModule(Module &M) {
 		computeFunction(F);
 	}
 
+	fouts() << "\n\n\n"
+			<< "------------------------------------------\n"
+			<< "-         RESULT OF THE ANALYSIS         -\n"
+			<< "------------------------------------------\n";
 	std::map<BasicBlock*,Node*>::iterator it;
 	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
 		b = it->first;
 		n = Nodes[b];
-		fouts() << "RESULTS ----------------------------------" << *b;
+		fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 		fouts().flush();
-		ap_environment_fdump(stdout,n->X->main->env);
-		ap_abstract1_fprint(stdout,man,n->X->main);
+		n->X->print(true);
 		fflush(stdout);
 		delete it->second;
 	}
@@ -753,7 +756,9 @@ void AI::visitPHINode (PHINode &I){
 		// only one incoming value is possible : it is useless to add a new
 		// variable, since Value I is directly equal to the associated incoming
 		// value
-		fouts() << I << "one single incoming value\n";
+		DEBUG(
+		fouts() << I << " has one single incoming value\n";
+		)
 		int i = IncomingValues.front();
 		pv = I.getIncomingValue(i);
 		nb = Nodes[I.getIncomingBlock(i)];

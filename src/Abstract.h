@@ -63,6 +63,6 @@ class Abstract {
 		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
 
 		/// print - print the abstract domain on standard output
-		void print();
+		void print(bool only_main = false);
 };
 #endif

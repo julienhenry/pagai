@@ -51,7 +51,7 @@ if [ -z $OUTPUT ] ; then
 	OUTPUT=${DIR}/${NAME}.o
 fi
 
-clang -emit-llvm -c $FILENAME -o $OUTPUT
+clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT
 opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
