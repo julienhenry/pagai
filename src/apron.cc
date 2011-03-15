@@ -28,13 +28,18 @@ char* ap_var_to_string(ap_var_t var) {
 	
 	std::string & name = s->str();
 	size_t found;
-	found=name.find_first_of("%");
+	found=name.find_first_of("undef");
 	if (found!=std::string::npos) {
 		name = name.substr(found);
-	}
-	found=name.find_first_of(" ");
-	if (found!=std::string::npos) {
-		name.resize(found);
+	} else {
+		found=name.find_first_of("%");
+		if (found!=std::string::npos) {
+			name = name.substr(found);
+		}
+		found=name.find_first_of(" ");
+		if (found!=std::string::npos) {
+			name.resize(found);
+		}
 	}
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());

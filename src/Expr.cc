@@ -55,14 +55,14 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 }
 
 
-ap_texpr1_t * get_phivar_first_expr(Value * val) {
+ap_texpr1_t * get_phivar_previous_expr(Value * val) {
 	if (Phivar_first_Expr.count(val)) {
 		return Phivar_first_Expr[val];
 	}
 	return NULL;
 }
 
-void set_phivar_first_expr(Value * val, ap_texpr1_t * exp) {
+void set_phivar_previous_expr(Value * val, ap_texpr1_t * exp) {
 	if (Phivar_first_Expr.count(val)) {
 		Phivar_first_Expr.erase(val);
 	}

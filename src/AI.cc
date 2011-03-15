@@ -339,16 +339,18 @@ void AI::computeNode(Node * n) {
 		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
 
 		// we get the previous definition of the expression
-		PHINode * inst = dyn_cast<PHINode>((Value*)var);
-		if (inst != NULL && inst->getParent() == b)
-			expr = get_phivar_first_expr((Value*)var);
+		//PHINode * inst = dyn_cast<PHINode>((Value*)var);
+		//if (inst != NULL && inst->getParent() == b)
+			expr = get_phivar_previous_expr((Value*)var);
 
 		if (expr != NULL) {
 			ap_environment_fdump(stdout,n->env);
 			ap_environment_fdump(stdout,expr->env);
 			expr = ap_texpr1_extend_environment(expr,n->env);
-			Names.push_back(var);
-			Exprs.push_back(*expr);
+			if (expr != NULL) {
+				Names.push_back(var);
+				Exprs.push_back(*expr);
+			}
 		}
 	}
 	if (Names.size())
@@ -736,6 +738,7 @@ void AI::visitPHINode (PHINode &I){
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
+	set_phivar_previous_expr((Value*)&I,get_ap_expr(n,(Value*)&I));
 	// determining the predecessors of the phi variable, and insert in a list
 	// the predecessors that are not at bottom.
 	for (int i = 0; i < I.getNumIncomingValues(); i++) {
@@ -758,7 +761,7 @@ void AI::visitPHINode (PHINode &I){
 		set_ap_expr(&I,expr);
 		ap_environment_t * env = expr->env;
 
-		set_phivar_first_expr(&I,expr);
+		//set_phivar_first_expr(&I,expr);
 		// this instruction may use some apron variables (from the abstract
 		// domain)
 		// we add these variables in the Node's variable structure, such that we
