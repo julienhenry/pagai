@@ -55,9 +55,10 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \begin{frame}
   \frametitle{Example of standard Abstract Interpretation}
 
-{\footnotesize
+\begin{columns}
+  \begin{column}{6cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
-                    semithick]
+                    semithick,font=\footnotesize]
 \tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
 \tikzstyle{transition}=[rectangle,thick,draw=black!75,
   			  fill=black!20,minimum size=4mm]
@@ -75,7 +76,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 	\node (n8) [right of=n6] {};
 	\node (n9) [right of=n1] {};
-
 
   \path<-1> [transition] 
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
@@ -120,8 +120,65 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 %	\draw[->,blue,out=0,in=0] (n6) -| (n1.x,4) -- (n1);
 %	\draw[->,blue] (n6) .. controls  +(0:4cm) and +(0:5cm) .. (n1);
 \end{tikzpicture}
-}
+\end{column}
+\begin{column}{5cm}
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+\tikzstyle{polyhedra}=[gray,opacity=0.5]
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (10,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
 
+	%ticks
+   % 	\foreach \x in {0,5,...,10}
+   %  		\draw (\x,1pt) -- (\x,-3pt)
+   % 		node[anchor=north] {\x};
+   % 	\foreach \y in {0,5,...,10}
+   %  		\draw (1pt,\y) -- (-3pt,\y) 
+   %  			node[anchor=east] {\y}; 
+
+     		\draw (1pt,2) -- (-3pt,2) 
+     			node[anchor=east] {1}; 
+	
+     		\draw (2,1pt) -- (2,-3pt) 
+     			node[anchor=north] {1}; 
+
+	%labels      
+	\node[right=1.2cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+	\fill<2-6>[polyhedra] (0,0) circle (0.4);
+	\draw<7-9>[polyhedra] (0,0) -- (10,10) -- cycle;
+	\fill<10-15>[polyhedra] (0,0) -- (10,10) -- (10,-1) -- (0,-1) -- cycle;
+\end{tikzpicture} 
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+\tikzstyle{polyhedra}=[blue]
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (10,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks
+   % 	\foreach \x in {0,5,...,10}
+   %  		\draw (\x,1pt) -- (\x,-3pt)
+   % 		node[anchor=north] {\x};
+   % 	\foreach \y in {0,5,...,10}
+   %  		\draw (1pt,\y) -- (-3pt,\y) 
+   %  			node[anchor=east] {\y}; 
+
+     		\draw (1pt,2) -- (-3pt,2) 
+     			node[anchor=east] {1}; 
+	
+     		\draw (2,1pt) -- (2,-3pt) 
+     			node[anchor=north] {1}; 
+
+	%labels      
+	\node[right=1.2cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+
+	\draw[polyhedra] (0,0) -- (2,2) -- cycle;
+\end{tikzpicture} 
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
