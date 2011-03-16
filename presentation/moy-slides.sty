@@ -1,0 +1,162 @@
+
+\usepackage{pgfpages}
+\mode<handout>{
+  % \pgfpagesuselayout{4 on 1}[a4paper,landscape,border shrink=5mm]
+%  \pgfpagesuselayout{8 on 1}[a4paper,border shrink=5mm]
+}
+
+\mode<presentation>
+{
+  \usetheme[secheader]{Boadilla}
+  %\usetheme{Singapore}
+  %\useinnertheme{rounded} 
+
+  
+  % Center the frametitle
+  \setbeamertemplate{frametitle}[default][center]
+
+  %\setbeamercovered{transparent=40}
+  \setbeamercovered{invisible}
+%%%% trucs de mathias pour supprimer la moche barre de navigation 
+  \setbeamertemplate{navigation symbols}{}%[only frame symbol]
+
+  % Navigation bar on top of the slide
+  \setbeamertemplate{headline}
+  {%
+    \begin{beamercolorbox}{section in head/foot}
+      \vskip2pt\insertsectionnavigationhorizontal{\paperwidth}{}{}\vskip2pt
+    \end{beamercolorbox}%
+  }
+
+  \setbeamertemplate{footline}
+  {
+    \leavevmode%
+    \hbox{%
+      \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+        \usebeamerfont{author in head/foot}\insertshortauthor~~(\insertshortinstitute)
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+        \usebeamerfont{title in head/foot}\insertshorttitle
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+        \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+        \hyperlinkframeendprev{ $<$ }\hyperlinkframeend{\insertframenumber{} /
+        \inserttotalframenumber}\hyperlinkframestartnext{ $>$ }\hspace*{2ex} 
+      \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+  
+
+  % Light blue theme
+  \usecolortheme{dolphin}
+
+  % darker title for handout
+  \mode<handout>{
+    \setbeamercolor*{frametitle}{fg=blue!70!white!50!black}
+    \setbeamercolor*{title}{fg=blue!70!white!50!black}
+  }
+    
+  % Even lighter blue
+  \setbeamercolor*{palette primary}{fg=blue!60!black,bg=blue!5!white}
+  \setbeamercolor*{palette secondary}{fg=blue!60!black,bg=blue!10!white}
+  \setbeamercolor*{palette tertiary}{fg=blue!60!black,bg=blue!15!white}
+  \setbeamercolor*{palette quaternary}{fg=white,bg=black}
+
+  % Lightblue navigationbar
+  \setbeamercolor{section in head/foot}{bg=blue!10,fg=blue!50!black}
+  
+  % Shaded a bit lighter than usual.
+  \setbeamertemplate{section in head/foot shaded}[default][30]
+  \setbeamertemplate{section in toc shaded}[default][40]
+
+  % Background image
+  %\pgfdeclareimage[height=96mm,width=128mm]{backgroundimg}{fond-presentation-st-veri}
+  %\setbeamertemplate{background}{\pgfuseimage{backgroundimg}}
+
+  % Delete this, if you do not want the table of contents to pop up at
+  % the beginning of each subsection:
+  \AtBeginSection[]
+  {
+    \begin{frame}<beamer>
+      \frametitle{Summary}
+      % \tableofcontents[currentsection,hideothersubsections]
+      \tableofcontents[sectionstyle=show/shaded,subsectionstyle=hide]
+    \end{frame}
+
+    % TOC for the upcomming section
+%    \begin{frame} \frametitle{Overview of this section}
+%      \tableofcontents[sectionstyle=show/hide,subsectionstyle=show/show/hide]
+%    \end{frame}
+  }
+  \AtBeginSubsection[]
+  {
+    \mode<beamer>{
+      \begin{frame} \frametitle{This section}
+        \tableofcontents[sectionstyle=show/hide,subsectionstyle=show/shaded/hide]
+      \end{frame}
+    }
+  }
+
+}
+
+\usepackage{listings}
+\setbeamercolor{alerted text}{fg=red!50!black!90!blue}
+
+\newcommand{\noframenumber}%
+{\makeatletter\global\advance\c@framenumber by-1\relax\makeatother}
+
+
+
+\lstdefinelanguage[systemc]{c++}[iso]{c++}
+{
+   morekeywords={SC_MODULE,SC_CTOR,SC_THREAD,SC_METHOD,SC_HAS_PROCESS,sensitive,sensitive_pos,sensitive_neg},
+   morekeywords[2]={sc_in,sc_out,sc_signal,sc_port,sc_fifo},
+}
+
+\lstset{language=[systemc]c++}
+
+%\mode<beamer>
+%{
+   \lstset{commentstyle=\color{moka}\textit}
+   \lstset{keywordstyle=\color{minuit}}
+   \lstset{identifierstyle=\color{trefle}}
+%}
+%\mode<handout>
+%{
+%   \lstset{commentstyle=\textit}
+%   \lstset{keywordstyle=\textbf}
+%}
+
+\lstset{basicstyle=\ttfamily}
+\lstset{showstringspaces=false}
+
+\definecolor{blendedjeromeblue}{rgb}{0.30,0.45,0.76}
+\definecolor{blendedjeromegreen}{rgb}{0.33,0.76,0.3}
+\definecolor{blendedjeromedarkgreen}{rgb}{0.22,0.5,0.2}
+\definecolor{blendedjeromebrown}{rgb}{0.26,0.14,0.03}
+\definecolor{blendedjeromeorange}{rgb}{0.76,0.53,0.30}
+
+\definecolor{trefle}{rgb}{0,0.5,0}
+\definecolor{moka}{rgb}{0.5,0.25,0}
+\definecolor{minuit}{rgb}{0,0,0.5}
+\definecolor{tungstene}{rgb}{0.2,0.2,0.2}
+\definecolor{jaune2}{rgb}{0.50, 0.49, 0.00}
+
+%\usepackage[frenchb]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{times}
+\usepackage{textpos}
+\usepackage{array}
+
+\newcommand{\question}[1]{%
+  \begin{block}{Question}
+    \begin{tabular}{m{1cm}m{.7\hsize}}
+      \includegraphics[width=.8cm]{question.pdf} & #1 \\  
+    \end{tabular}
+  \end{block}
+}
+
+\newcommand{\warning}[1]{\includegraphics[width=.5cm]{warning.pdf}~~#1}
+  

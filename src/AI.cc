@@ -985,6 +985,8 @@ void AI::visitInstAndAddVarIfNecessary(Instruction &I) {
 	
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
+	if (!LV->isLiveThroughBlock(&I,n->bb) && !LV->isUsedInBlock(&I,n->bb)) return;
+	
 	if (ap_type == AP_RTYPE_INT) { 
 		env = ap_environment_alloc(&var,1,NULL,0);
 	} else {
