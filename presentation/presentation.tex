@@ -49,7 +49,7 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
   \titlepage
 \end{frame}
 
-\section[Introduction]{Introduction: Witness of the standard approach}
+\section[Introduction]{Introduction: Weakness of the standard approach}
 
 
 \begin{frame}
@@ -89,14 +89,12 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<-4> [transition] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<-9> [transition] 
+  \path<-10> [transition] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<-5> [transition] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
   \path<-6> [transition] 
         (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
-
-
 
   \path<2-> [transition2] 
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
@@ -110,79 +108,93 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<5-> [transition2] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<10-> [transition2] 
+  \path<11-> [transition2] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<6-> [transition2] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
   \path<7-> [transition2] 
         (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
-
-%	\draw[->,blue,out=0,in=0] (n6) -| (n1.x,4) -- (n1);
-%	\draw[->,blue] (n6) .. controls  +(0:4cm) and +(0:5cm) .. (n1);
 \end{tikzpicture}
 \end{column}
 \begin{column}{5cm}
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
 \tikzstyle{polyhedra}=[gray,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill<2-6>[line] (0,0) circle (0.4);
+	\draw<7-9>[line] (0,0) -- (10,10) -- cycle;
+	\draw<10-11>[line] (-1,-1) -- (10,10) -- cycle;
+	\fill<10-11>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
+	\fill<12-13>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
+	\draw<12-13>[line] (0,0) -- (10,10) -- cycle;
+
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
     \draw (0,0) -- coordinate (y axis mid) (0,10);
 
-	%ticks
-   % 	\foreach \x in {0,5,...,10}
-   %  		\draw (\x,1pt) -- (\x,-3pt)
-   % 		node[anchor=north] {\x};
-   % 	\foreach \y in {0,5,...,10}
-   %  		\draw (1pt,\y) -- (-3pt,\y) 
-   %  			node[anchor=east] {\y}; 
-
-     		\draw (1pt,2) -- (-3pt,2) 
-     			node[anchor=east] {1}; 
-	
-     		\draw (2,1pt) -- (2,-3pt) 
-     			node[anchor=north] {1}; 
-
-	%labels      
+	%ticks and labels      
 	\node[right=1.2cm] at (x axis mid) {$x$};
 	\node[above=1.2cm] at (y axis mid) {$y$};
 
-	\fill<2-6>[polyhedra] (0,0) circle (0.4);
-	\draw<7-9>[polyhedra] (0,0) -- (10,10) -- cycle;
-	\fill<10-15>[polyhedra] (0,0) -- (10,10) -- (10,-1) -- (0,-1) -- cycle;
+	\node[right=3cm] at (y axis mid) {$n_1$};
 \end{tikzpicture} 
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[blue]
+\tikzstyle{polyhedra}=[gray,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill<4-8>[line] (0,2) circle (0.4);
+	\fill<9-10>[polyhedra] (0,2) -- (8,10) -- (12,10) -- (8,6) --cycle;
+	\draw<9-10>[line] (0,2) -- (6,8);
+	\draw<9-10>[line] (8,6) -- (12,10);
+
+	\draw<11-12>[line] (-2,0) -- (8,10);
+	\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (8,10) -- (13,10) -- (13,-1) --
+	 cycle;
+	\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (6,8) -- (6,-1) -- cycle;
+	\fill<11-13>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+
+	\draw<13-13>[line] (0,2) -- (8,10);
+	\draw<13-13>[line] (0,2) -- (8,-1);
+	\fill<13-13>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+	\fill<13-13>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
+
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
     \draw (0,0) -- coordinate (y axis mid) (0,10);
-
-	%ticks
-   % 	\foreach \x in {0,5,...,10}
-   %  		\draw (\x,1pt) -- (\x,-3pt)
-   % 		node[anchor=north] {\x};
-   % 	\foreach \y in {0,5,...,10}
-   %  		\draw (1pt,\y) -- (-3pt,\y) 
-   %  			node[anchor=east] {\y}; 
-
-     		\draw (1pt,2) -- (-3pt,2) 
-     			node[anchor=east] {1}; 
-	
-     		\draw (2,1pt) -- (2,-3pt) 
-     			node[anchor=north] {1}; 
 
 	%labels      
 	\node[right=1.2cm] at (x axis mid) {$x$};
 	\node[above=1.2cm] at (y axis mid) {$y$};
 
+	\node[right=3cm] at (y axis mid) {$n_4$};
+	%ticks
+     		\draw<4-13> (1pt,2) -- (-3pt,2) 
+     			node[anchor=east] {1}; 
+	
+     		\draw<9-13> [dotted](6,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw<9-13> [dotted] (8,6) -- (-3pt,6) 
+     			node[anchor=east] {$50$}; 
+     		\draw<9-13> [dotted](8,6) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw<9-13> [dotted] (6,8) -- (6,-3pt) 
+     			node[anchor=north] {$50$}; 
+     		%\draw (2,1pt) -- (2,-3pt) 
+     		%	node[anchor=north] {1}; 
 
-	\draw[polyhedra] (0,0) -- (2,2) -- cycle;
 \end{tikzpicture} 
+\only<1-11>{Ascending iterations}
+\only<12-13>{Descending iterations}
 \end{column}
 \end{columns}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Witness of this approach}
+  \frametitle{Weakness of this approach}
 yields imprecision when a loop has several phases.
 \end{frame}
 
