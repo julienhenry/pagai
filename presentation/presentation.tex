@@ -219,29 +219,259 @@ yields imprecision when a loop has several phases.
 \begin{itemize}
 \item obtaining a solution for each loop phase before proceeding to the next.
 \item widening \& narrowing at each loop phase.
+\begin{itemize}
+\item Better precision
+\end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Example}
+
+\begin{columns}
+  \begin{column}{6cm}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
+  			  fill=blue!20,minimum size=4mm,blue]
+
+	\node[state] (n0) {$n_0$};
+	\node[state] (n1) [below of=n0] {$n_1$};
+	\node[state] (n2) [below left of=n1] {$n_2$};
+	\node[state] (n3) [below right of=n1] {$n_3$};
+	\node[state] (n4) [below left of=n3] {$n_4$};
+	\node[state] (n5) [below of=n4] {$n_5$};
+	\node[state] (n6) [below of=n5] {$n_6$};
+	\node[state] (n7) [left of=n6] {$n_7$};
+
+	\node (n8) [right of=n6] {};
+	\node (n9) [right of=n1] {};
+
+  \path<-1> [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path<-2> [transition] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<-9> [transition] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path<-3> [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<-10> [transition] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<-4> [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path<-12> [transition] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path<-5> [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<-6> [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+
+  \path<2-> [transition2] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path<3-> [transition2] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<10-> [transition2] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path<4-> [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<11-> [transition2] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<5-> [transition2] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path<13-> [transition2] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path<6-> [transition2] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<7-> [transition2] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+\end{tikzpicture}
+\end{column}
+\begin{column}{5cm}
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+\tikzstyle{polyhedra}=[gray,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill<2-6>[line] (0,0) circle (0.4);
+	\draw<7-8>[line] (0,0) -- (10,10) -- cycle;
+	\draw<9->[line] (0,0) -- (8,8) -- cycle;
+	
+	\fill<12-13>[polyhedra] (-1,-1) -- (8,8) -- (17,-1) -- cycle;
+	\fill<14->[polyhedra] (0,0) -- (8,8) -- (16,0) -- cycle;
+	
+	%\draw<10-11>[line] (-1,-1) -- (10,10) -- cycle;
+	%\fill<10-11>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
+	%\fill<12-13>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
+	%\draw<12-13>[line] (0,0) -- (10,10) -- cycle;
+
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks and labels      
+     		\draw<9-> [dotted](8,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw<9-> [dotted] (8,8) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw<12-> [dotted] (16,1pt) -- (16,-3pt) 
+     			node[anchor=north] {$102$}; 
+
+	\node[right=1.9cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+	\node[right=3cm] at (y axis mid) {$n_1$};
+\end{tikzpicture} 
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+\tikzstyle{polyhedra}=[gray,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill<4-7>[line] (0,2) circle (0.4);
+	\draw<8->[line] (0,2) -- (6,8);
+	
+	\fill<11-12>[circle] (8,6) circle (0.4);
+	\fill<11-12>[polyhedra] (8,6) -- (6,8) -- (0,2) -- cycle;
+
+	\fill<13-14>[polyhedra] (6,8) -- (15,-1) -- (-1,-1) -- (-1,1) -- (0,2) -- cycle;
+	\fill<15->[polyhedra] (6,8) -- (16,-2) -- (8,-2) -- (0,2) -- cycle;
+	%\draw<11-12>[line] (-2,0) -- (8,10);
+	%\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (8,10) -- (13,10) -- (13,-1) --
+	% cycle;
+	%\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (6,8) -- (6,-1) -- cycle;
+	%\fill<11-13>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+
+	%\draw<13-13>[line] (0,2) -- (8,10);
+	%\draw<13-13>[line] (0,2) -- (8,-1);
+	%\fill<13-13>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+	%\fill<13-13>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
+
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%labels      
+	\node[right=1.9cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+	\node[right=3cm] at (y axis mid) {$n_4$};
+	%ticks
+     		\draw<4-> (1pt,2) -- (-3pt,2) 
+     			node[anchor=east] {1}; 
+     		\draw<15-> [dotted] (8,-2) -- (-3pt,-2) 
+     			node[anchor=east] {-1}; 
+     		\draw<8-> [dotted](6,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw<8-14> [dotted] (6,8) -- (6,-3pt) 
+     			node[anchor=north] {$50$}; 
+     		\draw<15-> [dotted] (6,8) -- (6,-2) 
+     			node[anchor=north] {$50$}; 
+     		\draw<11-12> [dotted] (8,6) -- (-3pt,6) 
+     			node[anchor=east] {$50$}; 
+     		\draw<11-12> [dotted](8,6) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw<15-> [dotted](8,0) -- (8,-2) 
+     			node[anchor=north] {$51$}; 
+     		\draw<13-14> [dotted] (14,1pt) -- (14,-3pt) 
+     			node[anchor=north] {$101$}; 
+     		\draw<15-> [dotted] (14,1pt) -- (14,-2) 
+     			node[anchor=north] {$101$}; 
+     		%\draw (2,1pt) -- (2,-3pt) 
+     		%	node[anchor=north] {1}; 
+
+\end{tikzpicture} 
+\only<1-8>{Ascending iterations}
+\only<10-13>{Ascending iterations}
+\only<9>{Descending iterations}
+\only<14->{Descending iterations}
+\end{column}
+\end{columns}
 \end{frame}
 
 \section[Path focusing]{Using SMT-solving to focus new paths}
 
 \begin{frame}
   \frametitle{Principle}
+
+\begin{itemize}
+\item Compute the fixpoint iterations on a reduced graph
+\item Take a set $P_R$ of nodes
+\item Distinguish all the paths between 2 nodes of $P_R$
+\end{itemize}
+\bigskip
+\visible<2>{
+Exponential number of paths:
+\begin{itemize}
+\item We don't construct this graph explicitly
+\item We use SMT-solving to find interesting paths
+\end{itemize}
+}
 \end{frame}
 
 \begin{frame}
   \frametitle{Reducing the CFG}
+
+
 \end{frame}
 
 \begin{frame}
-  \frametitle{using SMT-solving for finding new paths}
+  \frametitle{using SMT-solving to find new paths}
 \end{frame}
 
 \begin{frame}
   \frametitle{Example}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+\tikzstyle{state}=[circle,fill=black!25,minimum size=12pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
+  			  fill=blue!20,minimum size=4mm,blue]
+  \tikzstyle{LabelStyle}=[fill=red,sloped]
+	\node[state] (n0) {$n_0$};
+	\node[state] (n1) [below of=n0] {$n_1$};
+	\node[state] (n3) [below of=n1] {$n_3$};
+	\node[state] (n2) [left of=n3] {$n_2$};
+	\node[state] (n4) [right of=n3] {$n_4$};
+	\node[state] (n5) [below of=n3] {$n_5$};
+	\node[state] (n7) [below of=n5] {$n_7$};
+	\node[state] (n6) [left of=n7] {$n_6$};
+	\node[state] (n8) [right of=n7] {$n_8$};
+	\node[state] (n9) [below of=n7] {$n_9$};
+
+  \path [transition] 
+		(n0) edge              node  {$x \leftarrow 0$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$x,0?$~ ~ ~ $<$} (n2);
+  \path [transition] 
+        (n1)  edge              node {$>$} (n3);
+  \path [transition] 
+        (n1)  edge              node [right] {$=$} (n4);
+  \path [transition] 
+        (n3) edge              node  {} (n5);
+  \path [transition] 
+        (n2) edge			   node {} (n5);
+  \path [transition] 
+        (n4) edge			   node [right] {$d \leftarrow 1$} (n5);
+  \path [transition] 
+        (n5) edge			   node [left] {$x,1000?$ ~ ~ ~$<$} (n6);
+  \path [transition] 
+        (n5) edge			   node {$>$} (n7);
+  \path [transition] 
+        (n5) edge			   node [right] {$=$} (n8);
+  \path [transition] 
+        (n6) edge              node {} (n9);
+  \path [transition] 
+        (n7) edge              node {} (n9);
+  \path [transition] 
+        (n8) edge              node [right] {$d \leftarrow -1$} (n9);
+  \path [transition] 
+        (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
+\end{tikzpicture}
 \end{frame}
 
 
@@ -251,7 +481,7 @@ yields imprecision when a loop has several phases.
   \frametitle{What is done}
 \begin{itemize}
 \item a small analyzer, using LLVM and Apron
-\item implementation of the Lookahead widening method
+\item implementation of the Lookahead widening technique
 \item some tests
 \end{itemize}
 \end{frame}
@@ -259,9 +489,9 @@ yields imprecision when a loop has several phases.
 \begin{frame}
   \frametitle{Work in progress}
 \begin{itemize}
-\item implementation of Path-focusing technique
+\item implementation of the Path-focusing technique
 \item experimental evaluation
-\item How to compute $P_R$ ?
+\item How to determine the best $P_R$ ?
 \end{itemize}
 \end{frame}
 
