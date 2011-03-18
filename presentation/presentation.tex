@@ -576,8 +576,9 @@ $X_{p_i}$: abstract domain of node $p_i$
 \tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
   			  fill=blue!20,minimum size=4mm,blue]
   \tikzstyle{LabelStyle}=[fill=red,sloped]
-	\node[state] (n0) {$n_0$};
-	\node[state] (n1) [below of=n0] {$n_1$};
+\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
+	\node[PRstate] (n0) {$n_0$};
+	\node[PRstate] (n1) [below of=n0] {$n_1$};
 	\node[state] (n3) [below of=n1] {$n_3$};
 	\node[state] (n2) [left of=n3] {$n_2$};
 	\node[state] (n4) [right of=n3] {$n_4$};
@@ -615,10 +616,74 @@ $X_{p_i}$: abstract domain of node $p_i$
         (n8) edge              node [right] {$d \leftarrow -1$} (n9);
   \path [transition] 
         (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
+
+  \path<1> [transition2] 
+		(n0) edge              node  {$x \leftarrow 0$} (n1);
+
+  \path<2-3> [transition2] 
+        (n1)  edge              node [right] {$=$} (n4);
+  \path<2-3> [transition2] 
+        (n4) edge			   node [right] {$d \leftarrow 1$} (n5);
+  \path<2-5> [transition2] 
+        (n5) edge			   node [left] {$x,1000?$ ~ ~ ~$<$} (n6);
+  \path<2-5> [transition2] 
+        (n6) edge              node {} (n9);
+  \path<2-> [transition2] 
+        (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
+  \path<4-8> [transition2] 
+        (n1) edge			   node {$>$} (n3);
+  \path<4-8> [transition2] 
+        (n3) edge			   node {} (n5);
+	
+  \path<6-7> [transition2] 
+        (n5) edge			   node [right] {$=$} (n8);
+  \path<6-7> [transition2] 
+        (n8) edge              node [right] {$d \leftarrow -1$} (n9);
+  \path<8> [transition2] 
+        (n5) edge			   node [left] {$x,1000?$ ~ ~ ~$<$} (n6);
+  \path<8> [transition2] 
+        (n6) edge              node {} (n9);
 \end{tikzpicture}
 \end{column}
 \begin{column}{5cm}
-To be completed
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+\tikzstyle{polyhedra}=[gray,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
+	\fill<-1>[line] (0,4) circle (0.4);
+	\fill<6-8>[line] (13,-4) circle (0.4);
+	\fill<7>[polyhedra] (13,-4) -- (0,4) -- (15,4) -- cycle;
+	\fill<8>[polyhedra] (13,-4) -- (0,-4) -- (0,4) -- (15,4) -- cycle;
+	\draw<3>[line] (0,4) -- (2,4) -- cycle;
+	\draw<2>[line] (0,4) -- (16,4) -- cycle;
+	\draw<4>[line] (0,4) -- (16,4) -- cycle;
+	\draw<5->[line] (0,4) -- (15,4) -- cycle;
+	%\draw<10->[line] (-1,-1) -- (10,10) -- cycle;
+	%\fill<10->[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
+	%\fill<12->[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
+	%\draw<12->[line] (0,0) -- (10,10) -- cycle;
+
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (16,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks and labels      
+	\node[right=1.8cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$d$};
+
+     		\draw<1-> (1pt,4) -- (-3pt,4) 
+     			node[anchor=east] {1}; 
+     		\draw<6-> [dotted] (13,-4) -- (-3pt,-4) 
+     			node[anchor=east] {-1}; 
+     		\draw<3-3> [dotted] (2,4) -- (2,-3pt) 
+     			node[anchor=north] {1}; 
+     		\draw<5-> [dotted] (15,4) -- (15,-3pt) 
+     			node[anchor=north,xshift=5pt] {1000}; 
+     		\draw<6-> [dotted] (13,-4) -- (13,3pt) 
+     			node[anchor=north,yshift=15pt] {999}; 
+
+	\node[right=3cm] at (y axis mid) {$n_1$};
+\end{tikzpicture} 
 \end{column}
 \end{columns}
 \end{frame}
