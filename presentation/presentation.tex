@@ -3,6 +3,7 @@
 \usepackage{moy-slides}
 \usepackage{tikz}
 \usepackage{comment}
+\usepackage{listings}
 
 \title[Path-focusing]{Using bounded model checking to focus fixpoint iterations}
 
@@ -41,6 +42,15 @@ top color=yellow!7,bottom color=yellow!80!black!25,shading=axis,
 % shading angle=45,
 ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
+  			  fill=blue!20,minimum size=4mm,blue]
+\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5]
+\tikzstyle{line}=[black,thick]
+
 \date{March 22$^{th}$ 2011}
 
 \begin{document}
@@ -51,6 +61,41 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 \section[Introduction]{Introduction: Weakness of the standard approach}
 
+\begin{frame}
+  \frametitle{Introduction}
+
+\begin{itemize}
+\item Abstract interpretation.
+\item Widening operator:
+\begin{itemize}
+\item ensure fast convergence
+\item BUT: may induce huge imprecisions
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Example of standard Abstract Interpretation}
+\begin{center}
+\begin{lstlisting}
+	x = 0;
+	y = 0;
+	while (true) {
+		if (x <= 50) y++;
+		else y--;
+	
+		if (y < 0) break;
+		x++;
+	}
+\end{lstlisting}
+\end{center}
+
+\begin{itemize}
+\item  $x$ and $y$ incremented during 51 iterations
+\item  $x$ incremented and $y$ decremented during 51 iterations
+\end{itemize}
+
+\end{frame}
 
 \begin{frame}
   \frametitle{Example of standard Abstract Interpretation}
@@ -59,11 +104,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
   \begin{column}{6cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
-\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
 
 	\node[state] (n0) {$n_0$};
 	\node[state] (n1) [below of=n0] {$n_1$};
@@ -118,8 +158,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \end{column}
 \begin{column}{5cm}
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[gray,opacity=0.5]
-\tikzstyle{line}=[black,thick]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
@@ -141,8 +179,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 	\node[right=3cm] at (y axis mid) {$n_1$};
 \end{tikzpicture} 
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[gray,opacity=0.5]
-\tikzstyle{line}=[black,thick]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
@@ -213,7 +249,7 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \item Trying new methods to improve precision of the analysis.
 \item Implementation of these methods, using:
 \begin{itemize}
-\item LLVM
+\item LLVM (Low Level Virtual Machine)
 \item Apron library
 \item SMT-solvers like Yices, Z3\ldots
 \end{itemize}
@@ -225,6 +261,9 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 \begin{frame}
   \frametitle{Principle}
+
+D. Gopan \& T. Reps, CAV 2006
+\bigskip
 \begin{itemize}
 \item obtaining a solution for each loop phase before proceeding to the next.
 \item widening \& narrowing at each loop phase.
@@ -241,11 +280,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
   \begin{column}{6cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
-\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
 
 	\node[state] (n0) {$n_0$};
 	\node[state] (n1) [below of=n0] {$n_1$};
@@ -300,8 +334,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \end{column}
 \begin{column}{5cm}
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[gray,opacity=0.5]
-\tikzstyle{line}=[black,thick]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
@@ -335,8 +367,6 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 	\node[right=3cm] at (y axis mid) {$n_1$};
 \end{tikzpicture} 
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[gray,opacity=0.5]
-\tikzstyle{line}=[black,thick]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
@@ -406,6 +436,8 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \begin{frame}
   \frametitle{Principle}
 
+D. Monniaux \& L. Gonnord
+\bigskip
 \begin{itemize}
 \item Compute the fixpoint iterations on a reduced graph
 \item Take a set $P_R$ of nodes
@@ -422,18 +454,12 @@ Exponential number of paths:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Reducing the CFG}
+  \frametitle{Reducing the graph}
 
 \begin{columns}
 \begin{column}{5.5cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
-\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
-\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
 
 	\node[PRstate] (n0) {$n_0$};
 	\node[PRstate] (n1) [below of=n0] {$n_1$};
@@ -481,12 +507,6 @@ Exponential number of paths:
 \visible<2->{
 \begin{tikzpicture}[->,>=stealth',auto,node distance=3.2cm,
                     semithick,font=\footnotesize]
-\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
 
 	\node[PRstate] (n0) {$n_0$};
 	\node[PRstate] (n1) [below of=n0,yshift=1cm] {$n_1$};
@@ -564,19 +584,34 @@ $X_{p_i}$: abstract domain of node $p_i$
 }
 \end{frame}
 
+\begin{frame}[containsverbatim]
+	\frametitle{Example}
+\begin{center}
+\begin{lstlisting}
+	int x = 0;
+	int d = 1;
+	
+	while (true) {
+		if (x == 0) d=1;
+		if (x == 1000) d=-1;
+		x +=d;
+	}
+\end{lstlisting}
+\end{center}
+\begin{itemize}
+\item $x$ incremented until it is equal to $1000$,
+\item $x$ decremented until it is equal to $0$,
+\item restart\ldots
+\end{itemize}
+
+\end{frame}
+
 \begin{frame}
   \frametitle{Example}
 \begin{columns}
 \begin{column}{7cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
-\tikzstyle{state}=[circle,fill=black!25,minimum size=12pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
-  \tikzstyle{LabelStyle}=[fill=red,sloped]
-\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
 	\node[PRstate] (n0) {$n_0$};
 	\node[PRstate] (n1) [below of=n0] {$n_1$};
 	\node[state] (n3) [below of=n1] {$n_3$};
@@ -647,8 +682,6 @@ $X_{p_i}$: abstract domain of node $p_i$
 \end{column}
 \begin{column}{5cm}
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
-\tikzstyle{polyhedra}=[gray,opacity=0.5]
-\tikzstyle{line}=[black,thick]
 
 	\fill<-1>[line] (0,4) circle (0.4);
 	\fill<6-8>[line] (13,-4) circle (0.4);
@@ -658,10 +691,6 @@ $X_{p_i}$: abstract domain of node $p_i$
 	\draw<2>[line] (0,4) -- (16,4) -- cycle;
 	\draw<4>[line] (0,4) -- (16,4) -- cycle;
 	\draw<5->[line] (0,4) -- (15,4) -- cycle;
-	%\draw<10->[line] (-1,-1) -- (10,10) -- cycle;
-	%\fill<10->[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
-	%\fill<12->[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
-	%\draw<12->[line] (0,0) -- (10,10) -- cycle;
 
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (16,0);
@@ -705,6 +734,7 @@ $X_{p_i}$: abstract domain of node $p_i$
 \begin{itemize}
 \item implementation of the Path-focusing technique
 \item experimental evaluation
+\item find and correct shortcomings of the method
 \item Some questions :
 \begin{itemize}
 \item  How to determine the best $P_R$ ?
