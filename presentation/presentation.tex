@@ -152,14 +152,15 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 	\draw<9-10>[line] (8,6) -- (12,10);
 
 	\draw<11-12>[line] (-2,0) -- (8,10);
-	\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (8,10) -- (13,10) -- (13,-1) --
+	\fill<11-12>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
 	 cycle;
-	\fill<11-12>[polyhedra] (-2,-1) -- (-2,0) -- (6,8) -- (6,-1) -- cycle;
-	\fill<11-13>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+	\fill<11-12>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
+	\fill<11-13>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 
 	\draw<13-13>[line] (0,2) -- (8,10);
-	\draw<13-13>[line] (0,2) -- (8,-1);
-	\fill<13-13>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-1) -- (8,-1) -- cycle;
+	\draw<13-13>[line] (0,2) -- (8,-2);
+	\draw<13-13>[line] (13,-2) -- (8,-2);
+	\fill<13-13>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 	\fill<13-13>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
 
  	%axis
@@ -174,14 +175,20 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 	%ticks
      		\draw<4-13> (1pt,2) -- (-3pt,2) 
      			node[anchor=east] {1}; 
+     		\draw<13-13> [dotted](8,-2) -- (-3pt,-2) 
+     			node[anchor=east] {-1}; 
 	
      		\draw<9-13> [dotted](6,8) -- (-3pt,8) 
      			node[anchor=east] {$51$}; 
      		\draw<9-13> [dotted] (8,6) -- (-3pt,6) 
      			node[anchor=east] {$50$}; 
-     		\draw<9-13> [dotted](8,6) -- (8,-3pt) 
+     		\draw<9-10> [dotted](8,6) -- (8,-3pt) 
      			node[anchor=north] {$51$}; 
-     		\draw<9-13> [dotted] (6,8) -- (6,-3pt) 
+     		\draw<9-10> [dotted] (6,8) -- (6,-3pt) 
+     			node[anchor=north] {$50$}; 
+     		\draw<11-13> [dotted](8,6) -- (8,-2.3) 
+     			node[anchor=north] {$51$}; 
+     		\draw<11-13> [dotted] (6,8) -- (6,-2.3) 
      			node[anchor=north] {$50$}; 
      		%\draw (2,1pt) -- (2,-3pt) 
      		%	node[anchor=north] {1}; 
@@ -195,7 +202,9 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 \begin{frame}
   \frametitle{Weakness of this approach}
-yields imprecision when a loop has several phases.
+	\begin{center}
+		yields imprecision when a loop has several phases.
+	\end{center}
 \end{frame}
 
 \begin{frame}
@@ -415,15 +424,150 @@ Exponential number of paths:
 \begin{frame}
   \frametitle{Reducing the CFG}
 
+\begin{columns}
+\begin{column}{5.5cm}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
+  			  fill=blue!20,minimum size=4mm,blue]
+\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
 
+	\node[PRstate] (n0) {$n_0$};
+	\node[PRstate] (n1) [below of=n0] {$n_1$};
+	\node[state] (n2) [below left of=n1] {$n_2$};
+	\node[state] (n3) [below right of=n1] {$n_3$};
+	\node[state] (n4) [below left of=n3] {$n_4$};
+	\node[state] (n5) [below of=n4] {$n_5$};
+	\node[state] (n6) [below of=n5] {$n_6$};
+	\node[PRstate] (n7) [left of=n6] {$n_7$};
+
+
+  \path [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path<-2> [transition] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path [transition] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path<-2> [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path [transition] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<-2> [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path [transition] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path<-2> [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<-2> [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+
+
+  \path<3-> [transition2] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<3-> [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<3-> [transition2] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path<3-> [transition2] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<3-> [transition2] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+\end{tikzpicture}
+\end{column}
+\begin{column}{5.5cm}
+\visible<2->{
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3.2cm,
+                    semithick,font=\footnotesize]
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm]
+\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
+  			  fill=blue!20,minimum size=4mm,blue]
+
+	\node[PRstate] (n0) {$n_0$};
+	\node[PRstate] (n1) [below of=n0,yshift=1cm] {$n_1$};
+	\node[PRstate] (n7) [below of=n1] {$n_7$};
+
+
+  \path [transition] 
+		(n0) edge              node [yshift=5mm] {$x,y \leftarrow 0$} (n1);
+  \path [transition] 
+		(n1) edge    [bend left]  node [right,yshift=-0.8cm]  {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \leq 0 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+  \path [transition] 
+		(n1) edge    [bend right]  node [left,yshift=-0.8cm,xshift=4mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \leq -2 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+  \path<-2> [transition] 
+		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \geq -1 \\
+			y \leftarrow y+1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  \path<3-> [transition2] 
+		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \geq -1 \\
+			y \leftarrow y+1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  \path [transition] 
+		(n1) edge    [loop right,distance=1.2cm]  node [right,xshift=-2mm] {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \geq 1 \\
+			y \leftarrow y-1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  %\path [transition] 
+  %      (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+\end{tikzpicture}
+}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
   \frametitle{using SMT-solving to find new paths}
+\begin{itemize}
+\item Compute an SMT formula $\rho$ expressing the semantic of the program
+\item $\rho$ contains reachability predicates
+\end{itemize}
+\bigskip
+To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
+$$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
+ (b_{p_2} \wedge x_2 \notin X_{p_2})$$
+
+\footnotesize{
+$b_{p_i}$: reachability predicate for $p_i$
+
+$X_{p_i}$: abstract domain of node $p_i$
+}
 \end{frame}
 
 \begin{frame}
   \frametitle{Example}
+\begin{columns}
+\begin{column}{7cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
 \tikzstyle{state}=[circle,fill=black!25,minimum size=12pt,inner sep=0pt]
@@ -472,6 +616,11 @@ Exponential number of paths:
   \path [transition] 
         (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
 \end{tikzpicture}
+\end{column}
+\begin{column}{5cm}
+To be completed
+\end{column}
+\end{columns}
 \end{frame}
 
 
@@ -487,11 +636,14 @@ Exponential number of paths:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Work in progress}
+  \frametitle{Work in progress / Future work}
 \begin{itemize}
 \item implementation of the Path-focusing technique
 \item experimental evaluation
-\item How to determine the best $P_R$ ?
+\item Some questions :
+\begin{itemize}
+\item  How to determine the best $P_R$ ?
+\end{itemize}
 \end{itemize}
 \end{frame}
 
