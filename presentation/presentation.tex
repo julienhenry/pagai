@@ -38,36 +38,48 @@ color=blue]
   \titlepage
 \end{frame}
 
-\begin{frame}[containsverbatim]
-\frametitle{Abstract Interpretation}
-$x \in [0,1]$
+\begin{frame}
+  \frametitle{Introduction}
+\begin{itemize}
+\item Abstract interpretation.
+\begin{itemize}
+\item compute an increasing sequence of the set of possible states of the program
+\end{itemize}
+\end{itemize}
+\bigskip
+\begin{columns}
+\begin{column}{4cm}
+{\ttfamily
+i = 0;\\
+while (i < 100) \{\\
+~~~i++;\\
+\}\\
+}
+\end{column}
+\begin{column}{5cm}
+$i \in
+[0,\only<1>{0}\only<2>{1}\only<3>{2}\only<4>{3}\only<5>{+\infty[}\only<-4>{]}\only<6>{100]}$
 
-$y \in [0,1]$
+\bigskip
 
-\begin{lstlisting}
-z = x+y;
-x = z-y;
-\end{lstlisting}
+\only<2-5>{ascending iterations}
+\only<6>{descending iterations}
+\end{column}
+\end{columns}
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Sources of imprecision}
 \begin{itemize}
 \item transformation that can't be expressed in the abstract domain
-\item widening operator
-\item consider paths that can't be taken in reality
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Introduction}
-\begin{itemize}
-\item Abstract interpretation.
-\item Widening operator:
+\item \alert<2>{widening operator}
 \begin{itemize}
 \item ensure fast convergence
 \item BUT: may induce huge imprecisions
+\item Narrowing tends to recover some precision\ldots
 \end{itemize}
+\item \alert<2>{consider paths that are unfeasible in reality}
 \end{itemize}
 \end{frame}
 
@@ -81,19 +93,46 @@ x = z-y;
 
 \begin{frame}[containsverbatim]
   \frametitle{Example of standard Abstract Interpretation}
-\begin{center}
+\begin{columns}
+\begin{column}{5cm}
 \begin{lstlisting}
-	x = 0;
-	y = 0;
-	while (true) {
-		if (x <= 50) y++;
-		else y--;
-	
-		if (y < 0) break;
-		x++;
-	}
+x = 0;
+y = 0;
+while (true) {
+	if (x <= 50) 
+		y++;
+	else 
+		y--;
+
+	if (y < 0) break;
+	x++;
+}
 \end{lstlisting}
-\end{center}
+\end{column}
+\begin{column}{5cm}
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (8,8) -- (16,0) -- cycle;
+	\fill[polyhedra] (0,0) -- (8,8) -- (16,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks and labels      
+     		\draw [dotted](8,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw [dotted] (8,8) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw [dotted] (16,1pt) -- (16,-3pt) 
+     			node[anchor=north] {$102$}; 
+
+	\node[right=1.9cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+\end{column}
+\end{columns}
 
 \begin{itemize}
 \item  $x$ and $y$ incremented during 51 iterations
@@ -243,7 +282,7 @@ x = z-y;
 
 \end{tikzpicture} 
 \only<1-11>{Ascending iterations}
-\only<12-13>{Descending iterations}
+\only<12->{Descending iterations}
 \end{column}
 \end{columns}
 \end{frame}
@@ -258,14 +297,15 @@ x = z-y;
 \begin{frame}
   \frametitle{My work}
 \begin{enumerate}
-\item Trying new methods to improve precision of the analysis.
+\item Working on new methods to improve precision of the analysis.
 \item Implementation of these methods, using:
 \begin{itemize}
-\item LLVM (Low Level Virtual Machine)
+\item LLVM infrastructure (Low Level Virtual Machine)
 \item Apron library
 \item SMT-solvers like Yices, Z3\ldots
 \end{itemize}
-\item Make some experiments and trying to solve shotcomings.
+\item Make experiments.
+\item Correct the shortcomings of the techniques.
 \end{enumerate}
 \end{frame}
 
@@ -277,6 +317,7 @@ x = z-y;
 D. Gopan \& T. Reps, CAV 2006
 \bigskip
 \begin{itemize}
+\item separate loops into several phases.
 \item obtaining a solution for each loop phase before proceeding to the next.
 \item widening \& narrowing at each loop phase.
 \begin{itemize}
@@ -581,11 +622,17 @@ Exponential number of paths:
 \begin{frame}
   \frametitle{using SMT-solving to find new paths}
 \begin{itemize}
-\item Compute an SMT formula $\rho$ expressing the semantic of the program
+\item SMT formula $\rho$ expressing the semantic of the program
+\begin{itemize}
+\item SMT: boolean + linear arithmetic
+\end{itemize}
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
+``Does it exists a path starting in our invariant candidate, that arrives in a
+state outside of our invariant {?}`` 
+\bigskip
+%To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
 $$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
  (b_{p_2} \wedge x_2 \notin X_{p_2})$$
 
@@ -737,16 +784,6 @@ $X_{p_i}$: abstract domain of node $p_i$
 \end{columns}
 \end{frame}
 
-\begin{frame}
-\frametitle{Other Applications}
-
-\begin{itemize}
-\item Analysis with pointers
-\item Overflows analysis
-\item \ldots
-\end{itemize}
-
-\end{frame}
 
 \section[Work in progress]{Work in progress}
 
@@ -762,12 +799,14 @@ $X_{p_i}$: abstract domain of node $p_i$
 \begin{frame}
   \frametitle{Work in progress / Future work}
 \begin{itemize}
-\item implementation of the Path-focusing technique
+\item work on the Path-focusing technique
 \item experimental evaluation
 \item find and correct shortcomings of the method
 \item Some questions :
 \begin{itemize}
 \item  How to determine the best $P_R$ ?
+\item analysis with pointers
+\item overflows analysis
 \end{itemize}
 \end{itemize}
 \end{frame}
