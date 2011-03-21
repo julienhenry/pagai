@@ -17,38 +17,17 @@
 
 \tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
 
-% cf. Kevin
-\tikzstyle{format}=[rectangle, draw,
-top color=blue!25,bottom color=blue!60!black!25,shading=axis,shading angle=45,
-drop shadow={shadow xshift=.75pt,shadow yshift=-.75pt}
-]
-
-\tikzstyle{phase}=[draw, line width=1pt, ellipse, inner sep=0pt,
-font=\bfseries,
-top color=white,bottom color=white!90!black,shading=axis,shading angle=45,
-drop shadow={shadow xshift=.75pt,shadow yshift=-.75pt},
-opacity=0.8]
-
-\tikzstyle{arrowstyle}=[->, >=stealth', color=black, line width=0.7pt]
-\tikzstyle{addon}=[circle, draw=red!15, fill=red!5, inner sep=0.3pt]
-
-\usetikzlibrary{snakes,arrows,shapes,backgrounds,shadows,automata}
+\usetikzlibrary{snakes,arrows,shapes,backgrounds,shadows,automata,patterns}
 \usepgflibrary{snakes}
-
-\tikzstyle{inline}=[remember picture,baseline,anchor=base,inner sep=0,outer sep=0,minimum height=0cm,minimum width=0, line width=0]
-\tikzstyle{mycallout}=[
-top color=yellow!7,bottom color=yellow!80!black!25,shading=axis,
-% Cause display bug :-(
-% shading angle=45,
-ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 \tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
 \tikzstyle{transition}=[rectangle,thick,draw=black!75,
   			  fill=black!20,minimum size=4mm]
 \tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
   			  fill=blue!20,minimum size=4mm,blue]
-\tikzstyle{PRstate}=[circle,fill=blue!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{polyhedra}=[blue!25,opacity=0.5]
+\tikzstyle{PRstate}=[circle,fill=red!90,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
 \tikzstyle{line}=[black,thick]
 
 \date{March 22$^{th}$ 2011}
@@ -59,11 +38,29 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
   \titlepage
 \end{frame}
 
-\section[Introduction]{Introduction: Weakness of the standard approach}
+\begin{frame}[containsverbatim]
+\frametitle{Abstract Interpretation}
+$x \in [0,1]$
+
+$y \in [0,1]$
+
+\begin{lstlisting}
+z = x+y;
+x = z-y;
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\frametitle{Sources of imprecision}
+\begin{itemize}
+\item transformation that can't be expressed in the abstract domain
+\item widening operator
+\item consider paths that can't be taken in reality
+\end{itemize}
+\end{frame}
 
 \begin{frame}
   \frametitle{Introduction}
-
 \begin{itemize}
 \item Abstract interpretation.
 \item Widening operator:
@@ -73,6 +70,14 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 \end{itemize}
 \end{itemize}
 \end{frame}
+
+\begin{frame}
+\frametitle{Summary}
+\tableofcontents
+\end{frame}
+
+\section[Introduction]{Introduction: Weakness of the standard approach}
+
 
 \begin{frame}[containsverbatim]
   \frametitle{Example of standard Abstract Interpretation}
@@ -121,15 +126,15 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
   \path<-2> [transition] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<-7> [transition] 
+  \path<-8> [transition] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
   \path<-3> [transition] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<-8> [transition] 
+  \path<-9> [transition] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<-4> [transition] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<-10> [transition] 
+  \path<-11> [transition] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<-5> [transition] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
@@ -140,15 +145,15 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
   \path<3-> [transition2] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<8-> [transition2] 
+  \path<9-> [transition2] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
   \path<4-> [transition2] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<9-> [transition2] 
+  \path<10-> [transition2] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<5-> [transition2] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<11-> [transition2] 
+  \path<12-> [transition2] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<6-> [transition2] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
@@ -161,12 +166,13 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
-	\fill<2-6>[line] (0,0) circle (0.4);
-	\draw<7-9>[line] (0,0) -- (10,10) -- cycle;
-	\draw<10-11>[line] (-1,-1) -- (10,10) -- cycle;
-	\fill<10-11>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
-	\fill<12-13>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
-	\draw<12-13>[line] (0,0) -- (10,10) -- cycle;
+	\fill<2-7>[line] (0,0) circle (0.4);
+	\fill<7>[line] (2,2) circle (0.4);
+	\draw<8-10>[line] (0,0) -- (10,10) -- cycle;
+	\draw<11-12>[line] (-1,-1) -- (10,10) -- cycle;
+	\fill<11-12>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
+	\fill<13-14>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
+	\draw<13-14>[line] (0,0) -- (10,10) -- cycle;
 
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
@@ -177,27 +183,33 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 	\node[above=1.2cm] at (y axis mid) {$y$};
 
 	\node[right=3cm] at (y axis mid) {$n_1$};
+
+    \draw<7> (1pt,2) -- (-3pt,2) 
+     	node[anchor=east] {1}; 
+    \draw<7> (2,1pt) -- (2,-3pt) 
+     	node[anchor=north] {1}; 
+
 \end{tikzpicture} 
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
-	\fill<4-8>[line] (0,2) circle (0.4);
-	\fill<9-10>[polyhedra] (0,2) -- (8,10) -- (12,10) -- (8,6) --cycle;
-	\draw<9-10>[line] (0,2) -- (6,8);
-	\draw<9-10>[line] (8,6) -- (12,10);
+	\fill<4-9>[line] (0,2) circle (0.4);
+	\fill<10-11>[polyhedra] (0,2) -- (8,10) -- (12,10) -- (8,6) --cycle;
+	\draw<10-11>[line] (0,2) -- (6,8);
+	\draw<10-11>[line] (8,6) -- (12,10);
 
-	\draw<11-12>[line] (-2,0) -- (8,10);
-	\fill<11-12>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
+	\draw<12-13>[line] (-2,0) -- (8,10);
+	\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
 	 cycle;
-	\fill<11-12>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
-	\fill<11-13>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
+	\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
+	\fill<12-14>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 
-	\draw<13-13>[line] (0,2) -- (8,10);
-	\draw<13-13>[line] (0,2) -- (8,-2);
-	\draw<13-13>[line] (13,-2) -- (8,-2);
-	\fill<13-13>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
-	\fill<13-13>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
+	\draw<14>[line] (0,2) -- (8,10);
+	\draw<14>[line] (0,2) -- (8,-2);
+	\draw<14>[line] (13,-2) -- (8,-2);
+	\fill<14>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
+	\fill<14>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
 
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
@@ -209,22 +221,22 @@ ellipse callout, draw, drop shadow={shadow xshift=1pt,shadow yshift=-1pt}]
 
 	\node[right=3cm] at (y axis mid) {$n_4$};
 	%ticks
-     		\draw<4-13> (1pt,2) -- (-3pt,2) 
+     		\draw<4-> (1pt,2) -- (-3pt,2) 
      			node[anchor=east] {1}; 
-     		\draw<13-13> [dotted](8,-2) -- (-3pt,-2) 
+     		\draw<14-> [dotted](8,-2) -- (-3pt,-2) 
      			node[anchor=east] {-1}; 
 	
-     		\draw<9-13> [dotted](6,8) -- (-3pt,8) 
+     		\draw<10-> [dotted](6,8) -- (-3pt,8) 
      			node[anchor=east] {$51$}; 
-     		\draw<9-13> [dotted] (8,6) -- (-3pt,6) 
+     		\draw<10-> [dotted] (8,6) -- (-3pt,6) 
      			node[anchor=east] {$50$}; 
-     		\draw<9-10> [dotted](8,6) -- (8,-3pt) 
+     		\draw<10-11> [dotted](8,6) -- (8,-3pt) 
      			node[anchor=north] {$51$}; 
-     		\draw<9-10> [dotted] (6,8) -- (6,-3pt) 
+     		\draw<10-11> [dotted] (6,8) -- (6,-3pt) 
      			node[anchor=north] {$50$}; 
-     		\draw<11-13> [dotted](8,6) -- (8,-2.3) 
+     		\draw<12-> [dotted](8,6) -- (8,-2.3) 
      			node[anchor=north] {$51$}; 
-     		\draw<11-13> [dotted] (6,8) -- (6,-2.3) 
+     		\draw<12-> [dotted] (6,8) -- (6,-2.3) 
      			node[anchor=north] {$50$}; 
      		%\draw (2,1pt) -- (2,-3pt) 
      		%	node[anchor=north] {1}; 
@@ -439,7 +451,7 @@ D. Gopan \& T. Reps, CAV 2006
 D. Monniaux \& L. Gonnord
 \bigskip
 \begin{itemize}
-\item Compute the fixpoint iterations on a reduced graph
+\item Compute the fixpoint iterations on a multigraph
 \item Take a set $P_R$ of nodes
 \item Distinguish all the paths between 2 nodes of $P_R$
 \end{itemize}
@@ -624,7 +636,10 @@ $X_{p_i}$: abstract domain of node $p_i$
 	\node[state] (n9) [below of=n7] {$n_9$};
 
   \path [transition] 
-		(n0) edge              node  {$x \leftarrow 0$} (n1);
+		(n0) edge              node  {$\begin{array}{l}
+		x \leftarrow 0 \\
+		d \leftarrow 1 
+		\end{array}$} (n1);
   \path [transition] 
         (n1) edge			   node [left] {$x,0?$~ ~ ~ $<$} (n2);
   \path [transition] 
@@ -653,7 +668,10 @@ $X_{p_i}$: abstract domain of node $p_i$
         (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
 
   \path<1> [transition2] 
-		(n0) edge              node  {$x \leftarrow 0$} (n1);
+		(n0) edge              node  {$\begin{array}{l}
+		x \leftarrow 0 \\
+		d \leftarrow 1 
+		\end{array}$} (n1);
 
   \path<2-3> [transition2] 
         (n1)  edge              node [right] {$=$} (n4);
@@ -699,6 +717,8 @@ $X_{p_i}$: abstract domain of node $p_i$
 	%ticks and labels      
 	\node[right=1.8cm] at (x axis mid) {$x$};
 	\node[above=1.2cm] at (y axis mid) {$d$};
+	
+	\node at (-4,-6) {};
 
      		\draw<1-> (1pt,4) -- (-3pt,4) 
      			node[anchor=east] {1}; 
@@ -717,6 +737,16 @@ $X_{p_i}$: abstract domain of node $p_i$
 \end{columns}
 \end{frame}
 
+\begin{frame}
+\frametitle{Other Applications}
+
+\begin{itemize}
+\item Analysis with pointers
+\item Overflows analysis
+\item \ldots
+\end{itemize}
+
+\end{frame}
 
 \section[Work in progress]{Work in progress}
 
@@ -740,6 +770,12 @@ $X_{p_i}$: abstract domain of node $p_i$
 \item  How to determine the best $P_R$ ?
 \end{itemize}
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+Thank you!
+\end{center}
 \end{frame}
 
 \end{document}
