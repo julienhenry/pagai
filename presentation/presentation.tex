@@ -13,7 +13,7 @@
 % - Use the \inst{?} command only if the authors have different
 %   affiliation.
 
-\institute[Verimag]{Verimag (Grenoble INP)\\Grenoble\\France}
+\institute[Verimag]{M2R internship \\ Verimag}
 
 \tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
 
@@ -24,7 +24,7 @@
 \tikzstyle{transition}=[rectangle,thick,draw=black!75,
   			  fill=black!20,minimum size=4mm]
 \tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue!20,minimum size=4mm,blue]
+  			  fill=blue,minimum size=4mm,blue]
 \tikzstyle{PRstate}=[circle,fill=red!90,minimum size=13pt,inner sep=0pt]
 \tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
 color=blue]
@@ -57,8 +57,8 @@ while (i < 100) \{\\
 }
 \end{column}
 \begin{column}{5cm}
-$i \in
-[0,\only<1>{0}\only<2>{1}\only<3>{2}\only<4>{3}\only<5>{+\infty[}\only<-4>{]}\only<6>{100]}$
+$\only<2->{i \in
+[0,}\only<2>{0}\only<3>{1}\only<4>{2}\only<5>{3}\only<6>{+\infty[}\only<2-5>{]}\only<7>{100]}$
 
 \bigskip
 
@@ -72,7 +72,7 @@ $i \in
 \begin{frame}
 \frametitle{Sources of imprecision}
 \begin{itemize}
-\item transformation that can't be expressed in the abstract domain
+\item transformation that can't be expressed in the abstract value
 \item \alert<2>{widening operator}
 \begin{itemize}
 \item ensure fast convergence
@@ -241,14 +241,14 @@ while (true) {
 	\draw<12-13>[line] (-2,0) -- (8,10);
 	\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
 	 cycle;
-	\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
-	\fill<12-14>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
+	%\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
+	%\fill<12-14>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 
 	\draw<14>[line] (0,2) -- (8,10);
 	\draw<14>[line] (0,2) -- (8,-2);
 	\draw<14>[line] (13,-2) -- (8,-2);
 	\fill<14>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
-	\fill<14>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
+	%\fill<14>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
 
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
@@ -265,24 +265,24 @@ while (true) {
      		\draw<14-> [dotted](8,-2) -- (-3pt,-2) 
      			node[anchor=east] {-1}; 
 	
-     		\draw<10-> [dotted](6,8) -- (-3pt,8) 
+     		\draw<10-11> [dotted](6,8) -- (-3pt,8) 
      			node[anchor=east] {$51$}; 
-     		\draw<10-> [dotted] (8,6) -- (-3pt,6) 
+     		\draw<10-11> [dotted] (8,6) -- (-3pt,6) 
      			node[anchor=east] {$50$}; 
      		\draw<10-11> [dotted](8,6) -- (8,-3pt) 
      			node[anchor=north] {$51$}; 
      		\draw<10-11> [dotted] (6,8) -- (6,-3pt) 
      			node[anchor=north] {$50$}; 
-     		\draw<12-> [dotted](8,6) -- (8,-2.3) 
+     		\draw<14-> [dotted](8,6) -- (8,-2.3) 
      			node[anchor=north] {$51$}; 
-     		\draw<12-> [dotted] (6,8) -- (6,-2.3) 
-     			node[anchor=north] {$50$}; 
+     		%\draw<14-> [dotted] (6,8) -- (6,-2.3) 
+     		%	node[anchor=north] {$50$}; 
      		%\draw (2,1pt) -- (2,-3pt) 
      		%	node[anchor=north] {1}; 
 
 \end{tikzpicture} 
-\only<1-11>{Ascending iterations}
-\only<12->{Descending iterations}
+\only<1-12>{Ascending iterations}
+\only<13->{Descending iterations}
 \end{column}
 \end{columns}
 \end{frame}
@@ -317,7 +317,7 @@ while (true) {
 D. Gopan \& T. Reps, CAV 2006
 \bigskip
 \begin{itemize}
-\item separate loops into several phases.
+\item separate loops into distinct phases.
 \item obtaining a solution for each loop phase before proceeding to the next.
 \item widening \& narrowing at each loop phase.
 \begin{itemize}
@@ -526,34 +526,49 @@ Exponential number of paths:
 
   \path [transition] 
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
-  \path<-2> [transition] 
+  \path [transition] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
   \path [transition] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
-  \path<-2> [transition] 
+  \path [transition] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
   \path [transition] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
-  \path<-2> [transition] 
+  \path [transition] 
         (n4) edge			   node {$y \geq 0$} (n5);
   \path [transition] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
-  \path<-2> [transition] 
+  \path [transition] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
-  \path<-2> [transition] 
+  \path [transition] 
         (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
 
+  \path<3> [transition2] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
 
-  \path<3-> [transition2] 
+  \path<4> [transition2] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<3-> [transition2] 
+  \path<4> [transition2] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<3-> [transition2] 
+  \path<4-5> [transition2] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<3-> [transition2] 
+  \path<4-5> [transition2] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
-  \path<3-> [transition2] 
+  \path<4-5> [transition2] 
         (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+
+  \path<5-6> [transition2] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path<5-6> [transition2] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<6-> [transition2] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+
+  \path<7> [transition2] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<7> [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+
 \end{tikzpicture}
 \end{column}
 \begin{column}{5.5cm}
@@ -565,10 +580,12 @@ Exponential number of paths:
 	\node[PRstate] (n1) [below of=n0,yshift=1cm] {$n_1$};
 	\node[PRstate] (n7) [below of=n1] {$n_7$};
 
+	\node (n8) at (-3,0) {};
+	\node (n8) at (3,0) {};
 
-  \path [transition] 
+  \path<4-> [transition] 
 		(n0) edge              node [yshift=5mm] {$x,y \leftarrow 0$} (n1);
-  \path [transition] 
+  \path<7-> [transition] 
 		(n1) edge    [bend left]  node [right,yshift=-0.8cm]  {$
 		\begin{array}{l}
 			x \geq 51 \\
@@ -576,15 +593,15 @@ Exponential number of paths:
 			y \leftarrow y-1
 		\end{array}
 		$} (n7);
-  \path [transition] 
-		(n1) edge    [bend right]  node [left,yshift=-0.8cm,xshift=4mm] {$
-		\begin{array}{l}
-			x \leq 50 \\
-			y \leq -2 \\
-			y \leftarrow y-1
-		\end{array}
-		$} (n7);
-  \path<-2> [transition] 
+%  \path<8-> [transition] 
+%		(n1) edge    [bend right]  node [left,yshift=-0.8cm,xshift=4mm] {$
+%		\begin{array}{l}
+%			x \leq 50 \\
+%			y \leq -2 \\
+%			y \leftarrow y-1
+%		\end{array}
+%		$} (n7);
+  \path<5-> [transition] 
 		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
 		\begin{array}{l}
 			x \leq 50 \\
@@ -593,16 +610,7 @@ Exponential number of paths:
 			x \leftarrow x+1 
 		\end{array}
 		$} (n1);
-  \path<3-> [transition2] 
-		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
-		\begin{array}{l}
-			x \leq 50 \\
-			y \geq -1 \\
-			y \leftarrow y+1 \\
-			x \leftarrow x+1 
-		\end{array}
-		$} (n1);
-  \path [transition] 
+  \path<6-> [transition] 
 		(n1) edge    [loop right,distance=1.2cm]  node [right,xshift=-2mm] {$
 		\begin{array}{l}
 			x \geq 51 \\
@@ -613,6 +621,42 @@ Exponential number of paths:
 		$} (n1);
   %\path [transition] 
   %      (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+  \path<3> [transition2] 
+		(n0) edge              node [yshift=5mm] {$x,y \leftarrow 0$} (n1);
+  \path<6> [transition2] 
+		(n1) edge    [bend left]  node [right,yshift=-0.8cm]  {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \leq 0 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+  \path<7> [transition2] 
+		(n1) edge    [bend right]  node [left,yshift=-0.8cm,xshift=4mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \leq -2 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+  \path<4> [transition2] 
+		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \geq -1 \\
+			y \leftarrow y+1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  \path<5> [transition2] 
+		(n1) edge    [loop right,distance=1.2cm]  node [right,xshift=-2mm] {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \geq 1 \\
+			y \leftarrow y-1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
 \end{tikzpicture}
 }
 \end{column}
@@ -629,8 +673,8 @@ Exponential number of paths:
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-``Does it exists a path starting in our invariant candidate, that arrives in a
-state outside of our invariant {?}`` 
+``Does it exists a path starting in the invariant candidate, that arrives in a
+state outside of the invariant {?}`` 
 \bigskip
 %To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
 $$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
@@ -809,6 +853,40 @@ $X_{p_i}$: abstract domain of node $p_i$
 \item overflows analysis
 \end{itemize}
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{pointer analysis}
+Pointer $p$ can point to $x$, $y$, or $z$: 
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge   node [xshift=-0.2mm] {$p=\&x$} (n1)
+		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$p=\&y$} (n1)
+		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$p=\&z$} (n1);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{overflows analysis}
+semantic of the addition $x+y$:
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge   node [xshift=-0.2mm] {$x+y$} (n1)
+		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$x+y-N$} (n1)
+		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$x+y+N$} (n1);
+\end{tikzpicture}
+\end{center}
 \end{frame}
 
 \begin{frame}
