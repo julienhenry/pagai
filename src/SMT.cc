@@ -13,6 +13,7 @@
 
 #include "SMT_manager.h"
 #include "yices.h"
+#include "Expr.h"
 
 
 char SMT::ID = 0;
@@ -104,11 +105,11 @@ SMT_expr SMT::getValueExpr(Value * v) {
 			double x = FP->getValueAPF().convertToDouble();
 			return man->SMT_mk_num((int)x);
 		}
-	} else if (isa<Instruction>(v)) {
+	} else if (isa<Instruction>(v) || isa<Argument>(v) || isa<UndefValue>(v)) {
 		SMT_var var = getVar(v);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
-		fouts() << "ERROR in getValueExpr\n";
+		fouts() << "ERROR in getValueExpr" << *v << "\n";
 		fouts().flush();
 		return NULL;
 	}
@@ -181,6 +182,9 @@ void SMT::visitReturnInst (ReturnInst &I) {
 
 SMT_expr SMT::computeCondition(CmpInst * inst) {
 	
+	ap_texpr_rtype_t ap_type;
+	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return;
+
 	SMT_expr op1 = getValueExpr(inst->getOperand(0));
 	SMT_expr op2 = getValueExpr(inst->getOperand(1));
 
@@ -292,7 +296,28 @@ void SMT::visitStoreInst (StoreInst &I) {
 void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
 }
 
+SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
+	if (i == n-1) {
+		// this is the last possible value of the PHI-variable
+		return getValueExpr(I.getIncomingValue(i));
+	}
+	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i));
+	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
+	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
+	
+	SMT_expr tail = construct_phi_ite(I,i+1,n);
+	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
+}
+
 void SMT::visitPHINode (PHINode &I) {
+
+	ap_texpr_rtype_t ap_type;
+	if (get_ap_type((Value*)&I, ap_type)) return;
+
+	SMT_expr expr = getValueExpr(&I);	
+	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
+
+	instructions.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMT::visitTruncInst (TruncInst &I) {
@@ -359,6 +384,9 @@ void SMT::visitTerminatorInst (TerminatorInst &I) {
 }
 
 void SMT::visitBinaryOperator (BinaryOperator &I) {
+	ap_texpr_rtype_t ap_type;
+	if (get_ap_type((Value*)&I, ap_type)) return;
+
 	SMT_expr expr = getValueExpr(&I);	
 	SMT_expr assign;	
 	std::vector<SMT_expr> operands;

@@ -38,6 +38,8 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		
 		SMT_expr computeCondition(CmpInst * inst);
 
+		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
+
 		void computePr(Function &F);
 		void computeRho(Function &F);
 	public:
