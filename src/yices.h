@@ -1,13 +1,11 @@
 #ifndef YICES_H
 #define YICES_H
 
-#include <string>
+#include <map>
 
 #include "yices_c.h"
 
 #include "SMT_manager.h"
-
-using namespace llvm;
 
 class yices: public SMT_manager {
 	private:

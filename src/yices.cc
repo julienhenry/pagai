@@ -13,6 +13,8 @@
 
 #include "yices.h"
 
+using namespace llvm;
+
 
 SMT_expr yices::SMT_mk_true() {
 	return yices_mk_true (ctx);
@@ -160,7 +162,6 @@ void yices::SMT_print(SMT_expr a) {
 		//yices_display_model(m);
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
-			char *         val;
 			fouts() <<  yices_get_var_decl_name(d) << " = ";
 			switch(yices_get_value(m, d)) {
 				case l_true: 

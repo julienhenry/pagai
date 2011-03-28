@@ -12,6 +12,7 @@
 #include "SMT.h"
 
 #include "SMT_manager.h"
+#include "z3_manager.h"
 #include "yices.h"
 #include "Expr.h"
 
@@ -34,7 +35,7 @@ void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
 
 bool SMT::runOnFunction(Function &F) {
 	LI = &(getAnalysis<LoopInfo>());
-	man = new yices();
+	man = new z3_manager();
 	return 0;
 }
 
@@ -113,6 +114,7 @@ SMT_expr SMT::getValueExpr(Value * v) {
 		fouts().flush();
 		return NULL;
 	}
+	return NULL;
 }
 
 // computePr - computes the set Pr of BasicBlocks
@@ -146,7 +148,9 @@ void SMT::computeRho(Function &F) {
 			predicate.push_back(man->SMT_mk_expr_from_bool_var(evar));
 		}
 		SMT_expr bpredicate;
+		
 		bpredicate = man->SMT_mk_or(predicate);
+
 		if (bpredicate != NULL) {
 			SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
 			bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
@@ -183,7 +187,7 @@ void SMT::visitReturnInst (ReturnInst &I) {
 SMT_expr SMT::computeCondition(CmpInst * inst) {
 	
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return;
+	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return NULL;
 
 	SMT_expr op1 = getValueExpr(inst->getOperand(0));
 	SMT_expr op2 = getValueExpr(inst->getOperand(1));
@@ -228,6 +232,7 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 			fouts() << "ERROR : Unknown predicate\n";
 			return NULL;
 	}
+	return NULL;
 }
 
 void SMT::visitBranchInst (BranchInst &I) {
@@ -310,7 +315,6 @@ SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 }
 
 void SMT::visitPHINode (PHINode &I) {
-
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
@@ -388,7 +392,7 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
 	SMT_expr expr = getValueExpr(&I);	
-	SMT_expr assign;	
+	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;
 	operands.push_back(getValueExpr(I.getOperand(0)));
 	operands.push_back(getValueExpr(I.getOperand(1)));

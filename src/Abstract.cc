@@ -155,7 +155,7 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	ap_abstract1_t  Xmain[size];
 	ap_abstract1_t  Xpilot[size];
 	
-	for (int i=0; i < size; i++) {
+	for (unsigned i=0; i < size; i++) {
 		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
 		Xpilot[i] = ap_abstract1_change_environment(man,false,X_pred[i]->pilot,env,false);
 		delete X_pred[i];
@@ -167,7 +167,7 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	if (size > 1) {
 		*main = ap_abstract1_join_array(man,Xmain,size);	
 		pilot = new ap_abstract1_t(ap_abstract1_join_array(man,Xpilot,size));	
-		for (int i=0; i < size; i++) {
+		for (unsigned i=0; i < size; i++) {
 			ap_abstract1_clear(man,&Xmain[i]);
 			ap_abstract1_clear(man,&Xpilot[i]);
 		}

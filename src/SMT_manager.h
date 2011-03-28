@@ -9,6 +9,7 @@ typedef void* SMT_type;
 typedef void* SMT_var;
 typedef void* SMT_model;
 
+
 class SMT_manager {
 	public:
 		SMT_type int_type;
