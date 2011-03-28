@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <string.h>
 
+#include "llvm/Support/FormattedStream.h"
+
 #include "z3_manager.h"
 
 SMT_expr z3_manager::z3_manager::SMT_mk_true(){
@@ -171,6 +173,7 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 
 void z3_manager::SMT_print(SMT_expr a){
 	Z3_model m = NULL;
+	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
 
 printf("%s",Z3_benchmark_to_smtlib_string(ctx,
@@ -182,25 +185,27 @@ printf("%s",Z3_benchmark_to_smtlib_string(ctx,
 		NULL,
 		(Z3_ast)a));
 
-	printf("Context: %s \n",Z3_context_to_string(ctx));
-	fflush(stdout);
 	switch (result) {
 		case Z3_L_FALSE:
 			printf("unsat\n");
 			break;
 		case Z3_L_UNDEF:
-			printf("unknown\n");
-			printf("potential model:\n");
-			printf("%s",Z3_model_to_string(ctx,m));
+			printf("Unknown\nPotential Model\n%s",Z3_model_to_string(ctx,m));
 			break;
 		case Z3_L_TRUE:
-			printf("sat\n");
-			printf("Model: %s \n",Z3_model_to_string(ctx,m));
+			std::string res (Z3_model_to_string(ctx,m));
+			printf("number of elements in the model : %u\n",Z3_get_model_num_constants(ctx,m));
+			printf("sat\nModel: %s \n",Z3_model_to_string(ctx,m));
+			//printf("sat\nModel: %d \n",res.size());
 			fflush(stdout);
 			break;
 	}
 	if (m) {
+		printf("Model is not NULL\n");
 		Z3_del_model(ctx, m);
+	} else {
+		printf("Model is NULL\n");
 	}
+	fflush(stdout);
 }
 

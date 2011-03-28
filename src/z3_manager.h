@@ -21,6 +21,7 @@ class z3_manager: public SMT_manager {
 		z3_manager() {
 			Z3_config config = Z3_mk_config();
 			Z3_set_param_value(config, "MODEL", "true");
+			Z3_set_param_value(config, "MODEL_V2", "true");
 			ctx = Z3_mk_context(config);
 			int_type = Z3_mk_int_sort(ctx);
 			float_type = Z3_mk_real_sort(ctx);
