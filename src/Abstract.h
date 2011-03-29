@@ -61,6 +61,14 @@ class Abstract {
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
 		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
+		
+		/// to_tcons_array - convert the abstract value to a conjunction of
+		// tree constraints
+		ap_tcons1_array_t to_tcons_array();
+
+		/// to_lincons_array - convert the abstract value to a conjunction of
+		// linear constraints
+		ap_lincons1_array_t to_lincons_array();
 
 		/// print - print the abstract domain on standard output
 		void print(bool only_main = false);

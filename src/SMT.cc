@@ -57,6 +57,103 @@ SMT_expr SMT::getRho(Function &F) {
 	return rho[&F];
 }
 
+SMT_expr SMT::texpr1ToSmt(ap_texpr1_t texpr) {
+	return NULL;
+}
+
+SMT_expr SMT::linexpr1ToSmt(ap_linexpr1_t linexpr) {
+	std::vector<SMT_expr> elts;
+	SMT_expr val;
+	SMT_expr coefficient;
+
+	size_t i;
+	ap_var_t var;
+	ap_coeff_t* coeff;
+	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
+		val = getValueExpr((Value*)var);
+		coefficient = scalarToSmt(coeff->val.scalar);
+		std::vector<SMT_expr> elt;
+		elt.push_back(val);
+		elt.push_back(coefficient);
+		elts.push_back(man->SMT_mk_mul(elt));
+	}
+	coeff = ap_linexpr1_cstref(&linexpr);
+	coefficient = scalarToSmt(coeff->val.scalar);
+	elts.push_back(coefficient);
+	return man->SMT_mk_sum(elts);
+}
+
+SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar) {
+	double val;
+	mp_rnd_t round = GMP_RNDN;
+	ap_double_set_scalar(&val,scalar,round);
+
+	return man->SMT_mk_num((int)val);
+}
+
+SMT_expr SMT::lincons1ToSmt(ap_lincons1_t lincons) {
+	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
+	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
+
+	SMT_expr linexpr_smt = linexpr1ToSmt(linexpr);
+	SMT_expr scalar_smt = man->SMT_mk_num(0);
+
+	switch (*constyp) {
+	case AP_CONS_EQ:
+		return man->SMT_mk_eq(linexpr_smt,scalar_smt);
+	case AP_CONS_SUPEQ:
+		return man->SMT_mk_ge(linexpr_smt,scalar_smt);
+	case AP_CONS_SUP: 
+		return man->SMT_mk_gt(linexpr_smt,scalar_smt);
+	case AP_CONS_EQMOD:
+		return man->SMT_mk_eq(linexpr_smt,scalar_smt);
+	case AP_CONS_DISEQ:
+		return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
+	}
+	// unreachable
+	return NULL;
+}
+
+SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
+	ap_constyp_t* constyp = ap_tcons1_constypref(&tcons);
+	ap_texpr1_t texpr = ap_tcons1_texpr1ref(&tcons);
+	ap_scalar_t* scalar = ap_tcons1_scalarref(&tcons);
+
+	SMT_expr texpr_smt = texpr1ToSmt(texpr);
+	SMT_expr scalar_smt = scalarToSmt(scalar);
+
+	switch (*constyp) {
+	case AP_CONS_EQ:
+		return man->SMT_mk_eq(texpr_smt,scalar_smt);
+	case AP_CONS_SUPEQ:
+		return man->SMT_mk_ge(texpr_smt,scalar_smt);
+	case AP_CONS_SUP: 
+		return man->SMT_mk_gt(texpr_smt,scalar_smt);
+	case AP_CONS_EQMOD:
+		return man->SMT_mk_eq(texpr_smt,scalar_smt);
+	case AP_CONS_DISEQ:
+		return man->SMT_mk_diseq(texpr_smt,scalar_smt);
+	}
+	// unreachable
+	return NULL;
+}
+
+SMT_expr SMT::AbstractToSmt(Abstract A) {
+	std::vector<SMT_expr> constraints;
+	ap_lincons1_t lincons;
+	ap_lincons1_array_t lincons_array = A.to_lincons_array();
+	size_t n = ap_lincons1_array_size(&lincons_array);
+	for (size_t i = 0; i < n; i++) {
+		lincons = ap_lincons1_array_get(&lincons_array,i);
+		constraints.push_back(lincons1ToSmt(lincons));
+	}
+	if (constraints.size() == 0)
+		return man->SMT_mk_true();
+	else
+		return man->SMT_mk_and(constraints);
+}
+
+
 std::string SMT::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
 	std::set<BasicBlock*> * FPr = getPr(*(b->getParent()));
@@ -106,7 +203,7 @@ SMT_expr SMT::getValueExpr(Value * v) {
 	if (get_ap_type(v, ap_type)) return NULL;
 
 	if (isa<Constant>(v)) {
-		if (isa<ConstantInt>(v)) {
+		if (isa<ConstantInt>(v)) { 
 			ConstantInt * Int = dyn_cast<ConstantInt>(v);
 			int64_t n = Int->getSExtValue();
 			return man->SMT_mk_num((int)n);

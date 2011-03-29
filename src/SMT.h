@@ -13,6 +13,7 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Analysis/LoopInfo.h"
 
+#include "Abstract.h"
 #include "SMT_manager.h"
 
 using namespace llvm;
@@ -54,6 +55,13 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 
 		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);
+
+		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
+		SMT_expr linexpr1ToSmt(ap_linexpr1_t linexpr);
+		SMT_expr scalarToSmt(ap_scalar_t * scalar);
+		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
+		SMT_expr lincons1ToSmt(ap_lincons1_t lincons);
+		SMT_expr AbstractToSmt(Abstract A);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

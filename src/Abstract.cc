@@ -183,6 +183,14 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 	}
 }
 
+ap_tcons1_array_t Abstract::to_tcons_array() {
+	return ap_abstract1_to_tcons_array(man,pilot);
+}
+
+ap_lincons1_array_t Abstract::to_lincons_array() {
+	return ap_abstract1_to_lincons_array(man,pilot);
+}
+
 void Abstract::print(bool only_main) {
 	if (!only_main)
 		printf("MAIN VALUE:\n");
