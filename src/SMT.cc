@@ -26,7 +26,13 @@ const char * SMT::getPassName() const {
 	return "SMT";
 }
 
-SMT::SMT() : FunctionPass(ID) {}
+SMT::SMT() : FunctionPass(ID) {
+	man = new z3_manager();
+}
+
+SMT::~SMT() {
+	delete man;
+}
 
 void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<LoopInfo>();
@@ -35,9 +41,9 @@ void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
 
 bool SMT::runOnFunction(Function &F) {
 	LI = &(getAnalysis<LoopInfo>());
-	man = new z3_manager();
 	return 0;
 }
+
 
 std::set<BasicBlock*>* SMT::getPr(Function &F) {
 	if (!Pr.count(&F))

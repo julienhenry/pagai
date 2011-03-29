@@ -46,6 +46,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 	public:
 		static char ID;
 		SMT();
+		~SMT();
 
 		const char * getPassName() const;
 		void getAnalysisUsage(AnalysisUsage &AU) const;

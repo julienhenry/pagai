@@ -7,6 +7,21 @@
 
 #include "z3_manager.h"
 
+z3_manager::z3_manager() {
+	Z3_config config = Z3_mk_config();
+	Z3_set_param_value(config, "MODEL", "true");
+	Z3_set_param_value(config, "MODEL_V2", "true");
+	ctx = Z3_mk_context(config);
+	int_type = Z3_mk_int_sort(ctx);
+	float_type = Z3_mk_real_sort(ctx);
+	bool_type = Z3_mk_bool_sort(ctx);
+	Z3_del_config(config);
+}
+
+z3_manager::~z3_manager() {
+	Z3_del_context(ctx);
+}
+
 SMT_expr z3_manager::z3_manager::SMT_mk_true(){
 	return Z3_mk_true(ctx);
 }
@@ -187,14 +202,14 @@ void z3_manager::SMT_print(SMT_expr a){
 	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
 
-printf("%s",Z3_benchmark_to_smtlib_string(ctx,
-		"name",
-		"logic",
-		"unknown",
-		"",
-		0,
-		NULL,
-		(Z3_ast)a));
+	printf("%s",Z3_benchmark_to_smtlib_string(ctx,
+				"name",
+				"logic",
+				"unknown",
+				"",
+				0,
+				NULL,
+				(Z3_ast)a));
 
 	switch (result) {
 		case Z3_L_FALSE:

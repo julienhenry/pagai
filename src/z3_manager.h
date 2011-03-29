@@ -18,20 +18,9 @@ class z3_manager: public SMT_manager {
 		Z3_sort bool_type;
 	public:
 		
-		z3_manager() {
-			Z3_config config = Z3_mk_config();
-			Z3_set_param_value(config, "MODEL", "true");
-			Z3_set_param_value(config, "MODEL_V2", "true");
-			ctx = Z3_mk_context(config);
-			int_type = Z3_mk_int_sort(ctx);
-			float_type = Z3_mk_real_sort(ctx);
-			bool_type = Z3_mk_bool_sort(ctx);
-			Z3_del_config(config);
-		}
+		z3_manager();
 
-		~z3_manager() {
-			 Z3_del_context(ctx);
-		}
+		virtual ~z3_manager();
 
 		SMT_expr SMT_mk_true();
 		SMT_expr SMT_mk_false();
