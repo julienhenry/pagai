@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <vector>
+#include <sstream>
 
 #include "llvm/Module.h"
 #include "llvm/Instructions.h"
@@ -15,6 +16,17 @@
 
 using namespace llvm;
 
+yices::yices() {
+	ctx = yices_mk_context();
+	const char* intname =	"int";
+	const char* floatname ="float";
+	int_type = yices_mk_type(ctx,const_cast<char*>(intname));
+	float_type = yices_mk_type(ctx,const_cast<char*>(floatname));
+}
+
+yices::~yices() {
+	yices_del_context (ctx);
+}
 
 SMT_expr yices::SMT_mk_true() {
 	return yices_mk_true (ctx);
@@ -94,6 +106,13 @@ SMT_expr yices::SMT_mk_not (SMT_expr a) {
 
 SMT_expr yices::SMT_mk_num (int n) {
 	return yices_mk_num(ctx,n);
+}
+
+SMT_expr yices::SMT_mk_real (double x) {
+	std::ostringstream oss;
+	oss << x;
+	SMT_var var = SMT_mk_var(oss.str(),float_type);
+	return SMT_mk_expr_from_var(var);
 }
 
 SMT_expr yices::SMT_mk_sum (std::vector<SMT_expr> args) {

@@ -36,6 +36,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr getValueType(Value * v);
 		SMT_var getVar(Value * v);
 		
+		SMT_expr computeCondition(PHINode * inst);
 		SMT_expr computeCondition(CmpInst * inst);
 
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);

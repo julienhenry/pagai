@@ -95,6 +95,10 @@ SMT_var SMT::getVar(Value * v) {
 }
 
 SMT_expr SMT::getValueExpr(Value * v) {
+	
+	ap_texpr_rtype_t ap_type;
+	if (get_ap_type(v, ap_type)) return NULL;
+
 	if (isa<Constant>(v)) {
 		if (isa<ConstantInt>(v)) {
 			ConstantInt * Int = dyn_cast<ConstantInt>(v);
@@ -104,9 +108,13 @@ SMT_expr SMT::getValueExpr(Value * v) {
 		if (isa<ConstantFP>(v)) {
 			ConstantFP * FP = dyn_cast<ConstantFP>(v);
 			double x = FP->getValueAPF().convertToDouble();
-			return man->SMT_mk_num((int)x);
+			return man->SMT_mk_real(x);
 		}
-	} else if (isa<Instruction>(v) || isa<Argument>(v) || isa<UndefValue>(v)) {
+		if (isa<UndefValue>(v)) {
+			SMT_var var = getVar(v);
+			return man->SMT_mk_expr_from_var(var);
+		}
+	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
 		SMT_var var = getVar(v);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
@@ -183,9 +191,15 @@ void SMT::computeRho(Function &F) {
 void SMT::visitReturnInst (ReturnInst &I) {
 }
 
+SMT_expr SMT::computeCondition(PHINode * inst) {
+	
+	//SMT_expr expr = getValueExpr(inst);	
+	return construct_phi_ite(*inst,0,inst->getNumIncomingValues());
+
+}
 
 SMT_expr SMT::computeCondition(CmpInst * inst) {
-	
+
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return NULL;
 
@@ -249,10 +263,19 @@ void SMT::visitBranchInst (BranchInst &I) {
 		rho_components.push_back(man->SMT_mk_eq(eexpr,bexpr));
 	} else {
 		std::vector<SMT_expr> components;
-		SMT_expr cond = computeCondition(dyn_cast<CmpInst>(I.getOperand(0)));
+		SMT_expr cond;
+		if (isa<CmpInst>(I.getOperand(0)))
+			cond = computeCondition(dyn_cast<CmpInst>(I.getOperand(0)));
+		else if (isa<PHINode>(I.getOperand(0))) {
+			return;
+			// NOT IMPLEMENTED !!
+			cond = computeCondition(dyn_cast<PHINode>(I.getOperand(0)));
+		} else
+			cond = NULL;
 
 		components.push_back(bexpr);
-		components.push_back(cond);
+		if (cond != NULL)
+			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
 
@@ -262,7 +285,8 @@ void SMT::visitBranchInst (BranchInst &I) {
 		evar = man->SMT_mk_bool_var(getEdgeName(b,s));
 		eexpr = man->SMT_mk_expr_from_bool_var(evar);
 		components.push_back(bexpr);
-		components.push_back(cond);
+		if (cond != NULL)
+			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
 	}
@@ -307,9 +331,10 @@ SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 		return getValueExpr(I.getIncomingValue(i));
 	}
 	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i));
+
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
-	
+
 	SMT_expr tail = construct_phi_ite(I,i+1,n);
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }

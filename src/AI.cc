@@ -92,8 +92,13 @@ void AI::printBasicBlock(BasicBlock* b) {
 	if (LI.isLoopHeader(b)) {
 		fouts() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ": SCC=" << n->sccId << ":" << *b;
+		fouts() << b << ": SCC=" << n->sccId << ":\n" << *b;
 	}
+	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
+		Instruction * I = i;
+		fouts() << "\t\t" << I << "\t" << *I << "\n";
+	}
+
 }
 
 void AI::computeFunction(Function * F) {

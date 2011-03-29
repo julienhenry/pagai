@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <string.h>
+#include <sstream>
 
 #include "llvm/Support/FormattedStream.h"
 
@@ -100,6 +101,16 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 	return Z3_mk_int(ctx, n, (Z3_sort)int_type);
 }
 
+
+SMT_expr z3_manager::SMT_mk_real (double x) {
+	std::ostringstream oss;
+	oss << x;
+	std::string val = oss.str();
+	Z3_symbol symbol = Z3_mk_string_symbol(ctx,val.c_str());
+	return Z3_mk_const(ctx,symbol,(Z3_sort)float_type);
+}
+
+
 SMT_expr z3_manager::SMT_mk_sum (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
@@ -179,8 +190,8 @@ void z3_manager::SMT_print(SMT_expr a){
 printf("%s",Z3_benchmark_to_smtlib_string(ctx,
 		"name",
 		"logic",
-		"status",
-		"attributes",
+		"unknown",
+		"",
 		0,
 		NULL,
 		(Z3_ast)a));

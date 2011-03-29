@@ -13,15 +13,8 @@ class yices: public SMT_manager {
 		std::map<std::string,SMT_var> vars;
 	public:
 		
-		yices() {
-			ctx = yices_mk_context();
-			int_type = yices_mk_type(ctx, "int");
-			float_type = yices_mk_type(ctx, "float");
-		}
-
-		~yices() {
-			yices_del_context (ctx);
-		}
+		yices();
+		~yices();
 
 		SMT_expr SMT_mk_true();
 		SMT_expr SMT_mk_false();
@@ -37,6 +30,7 @@ class yices: public SMT_manager {
 		SMT_expr SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e);
 		SMT_expr SMT_mk_not (SMT_expr a);
 		SMT_expr SMT_mk_num (int n);
+		SMT_expr SMT_mk_real (double x);
 		SMT_expr SMT_mk_sum (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_sub (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_mul (std::vector<SMT_expr> args);

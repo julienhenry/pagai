@@ -29,6 +29,7 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e);
 		virtual SMT_expr SMT_mk_not (SMT_expr a);
 		virtual SMT_expr SMT_mk_num (int n);
+		virtual SMT_expr SMT_mk_real (double x);
 		virtual SMT_expr SMT_mk_sum (std::vector<SMT_expr> args);
 		virtual SMT_expr SMT_mk_sub (std::vector<SMT_expr> args);
 		virtual SMT_expr SMT_mk_mul (std::vector<SMT_expr> args);
