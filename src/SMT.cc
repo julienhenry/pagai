@@ -80,10 +80,6 @@ SMT_expr SMT::linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer) {
 		} else {
 			coefficient = scalarToSmt(coeff->val.scalar,false,iszero);
 		}
-		if (coefficient) 
-			printf("coefficient != NULL\n");
-		else
-			printf("coefficient = NULL\n");
 
 		if (!iszero) {
 			std::vector<SMT_expr> elt;
@@ -95,7 +91,6 @@ SMT_expr SMT::linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer) {
 	coeff = ap_linexpr1_cstref(&linexpr);
 	coefficient = scalarToSmt(coeff->val.scalar,integer,iszero);
 	elts.push_back(coefficient);
-	printf("OK\n");
 	return man->SMT_mk_sum(elts);
 }
 
@@ -106,7 +101,6 @@ SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero) {
 	
 	if (val == 0) iszero = true;
 	else iszero = false;
-	printf("val = %d\n",val);
 	if (integer)
 		return man->SMT_mk_num((int)val);
 	else
@@ -274,8 +268,6 @@ void SMT::computePr(Function &F) {
 void SMT::computeRho(Function &F) {
 	BasicBlock * b;
 	
-	printf("computing Rho\n");
-	fflush(stdout);
 	rho_components.clear();
 
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
@@ -318,11 +310,7 @@ void SMT::computeRho(Function &F) {
 	}
 
 	rho[&F] = man->SMT_mk_and(rho_components); 
-	printf("Rho computation finished ...\n %d\n", rho[&F]);
-	fflush(stdout);
 	man->SMT_print(rho[&F]);
-	printf("Rho printing finished ...\n");
-	fflush(stdout);
 }
 
 void SMT::visitReturnInst (ReturnInst &I) {
