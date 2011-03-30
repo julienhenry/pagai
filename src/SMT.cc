@@ -61,42 +61,69 @@ SMT_expr SMT::texpr1ToSmt(ap_texpr1_t texpr) {
 	return NULL;
 }
 
-SMT_expr SMT::linexpr1ToSmt(ap_linexpr1_t linexpr) {
+SMT_expr SMT::linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer) {
 	std::vector<SMT_expr> elts;
 	SMT_expr val;
 	SMT_expr coefficient;
 
+	integer = false;
+	bool iszero;
 	size_t i;
 	ap_var_t var;
 	ap_coeff_t* coeff;
+
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
 		val = getValueExpr((Value*)var);
-		coefficient = scalarToSmt(coeff->val.scalar);
-		std::vector<SMT_expr> elt;
-		elt.push_back(val);
-		elt.push_back(coefficient);
-		elts.push_back(man->SMT_mk_mul(elt));
+		if (((Value*)var)->getType()->isIntegerTy()) {
+			coefficient = scalarToSmt(coeff->val.scalar,true,iszero);
+			if (!iszero) integer = true;
+		} else {
+			coefficient = scalarToSmt(coeff->val.scalar,false,iszero);
+		}
+		if (coefficient) 
+			printf("coefficient != NULL\n");
+		else
+			printf("coefficient = NULL\n");
+
+		if (!iszero) {
+			std::vector<SMT_expr> elt;
+			elt.push_back(val);
+			elt.push_back(coefficient);
+			elts.push_back(man->SMT_mk_mul(elt));
+		}
 	}
 	coeff = ap_linexpr1_cstref(&linexpr);
-	coefficient = scalarToSmt(coeff->val.scalar);
+	coefficient = scalarToSmt(coeff->val.scalar,integer,iszero);
 	elts.push_back(coefficient);
+	printf("OK\n");
 	return man->SMT_mk_sum(elts);
 }
 
-SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar) {
+SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero) {
 	double val;
 	mp_rnd_t round = GMP_RNDN;
 	ap_double_set_scalar(&val,scalar,round);
-
-	return man->SMT_mk_num((int)val);
+	
+	if (val == 0) iszero = true;
+	else iszero = false;
+	printf("val = %d\n",val);
+	if (integer)
+		return man->SMT_mk_num((int)val);
+	else
+		return man->SMT_mk_real(val);
 }
 
 SMT_expr SMT::lincons1ToSmt(ap_lincons1_t lincons) {
 	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
 	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
-
-	SMT_expr linexpr_smt = linexpr1ToSmt(linexpr);
-	SMT_expr scalar_smt = man->SMT_mk_num(0);
+	ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
+	SMT_expr scalar_smt = NULL;
+	bool integer;
+	SMT_expr linexpr_smt = linexpr1ToSmt(linexpr, integer);
+	if (integer)
+		scalar_smt = man->SMT_mk_num(0);
+	else
+		scalar_smt = man->SMT_mk_real(0);
 
 	switch (*constyp) {
 	case AP_CONS_EQ:
@@ -118,9 +145,10 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 	ap_constyp_t* constyp = ap_tcons1_constypref(&tcons);
 	ap_texpr1_t texpr = ap_tcons1_texpr1ref(&tcons);
 	ap_scalar_t* scalar = ap_tcons1_scalarref(&tcons);
-
+	bool integer = true;
+	bool iszero;
 	SMT_expr texpr_smt = texpr1ToSmt(texpr);
-	SMT_expr scalar_smt = scalarToSmt(scalar);
+	SMT_expr scalar_smt = scalarToSmt(scalar,integer,iszero);
 
 	switch (*constyp) {
 	case AP_CONS_EQ:
@@ -138,10 +166,10 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 	return NULL;
 }
 
-SMT_expr SMT::AbstractToSmt(Abstract A) {
+SMT_expr SMT::AbstractToSmt(Abstract * A) {
 	std::vector<SMT_expr> constraints;
 	ap_lincons1_t lincons;
-	ap_lincons1_array_t lincons_array = A.to_lincons_array();
+	ap_lincons1_array_t lincons_array = A->to_lincons_array();
 	size_t n = ap_lincons1_array_size(&lincons_array);
 	for (size_t i = 0; i < n; i++) {
 		lincons = ap_lincons1_array_get(&lincons_array,i);
@@ -245,7 +273,9 @@ void SMT::computePr(Function &F) {
 
 void SMT::computeRho(Function &F) {
 	BasicBlock * b;
-
+	
+	printf("computing Rho\n");
+	fflush(stdout);
 	rho_components.clear();
 
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
@@ -288,7 +318,11 @@ void SMT::computeRho(Function &F) {
 	}
 
 	rho[&F] = man->SMT_mk_and(rho_components); 
+	printf("Rho computation finished ...\n %d\n", rho[&F]);
+	fflush(stdout);
 	man->SMT_print(rho[&F]);
+	printf("Rho printing finished ...\n");
+	fflush(stdout);
 }
 
 void SMT::visitReturnInst (ReturnInst &I) {

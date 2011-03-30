@@ -23,7 +23,6 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 	
 	private:
 		LoopInfo * LI;
-		SMT_manager * man;
 		std::map<Function*,SMT_expr> rho;
 		std::map<Function*,std::set<BasicBlock*>*> Pr;
 		std::map<Value*,SMT_var> vars;
@@ -46,6 +45,8 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		void computeRho(Function &F);
 	public:
 		static char ID;
+		SMT_manager * man;
+
 		SMT();
 		~SMT();
 
@@ -57,11 +58,11 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr getRho(Function &F);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
-		SMT_expr linexpr1ToSmt(ap_linexpr1_t linexpr);
-		SMT_expr scalarToSmt(ap_scalar_t * scalar);
+		SMT_expr linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer);
+		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero);
 		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
 		SMT_expr lincons1ToSmt(ap_lincons1_t lincons);
-		SMT_expr AbstractToSmt(Abstract A);
+		SMT_expr AbstractToSmt(Abstract * A);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

@@ -171,6 +171,10 @@ SMT_expr yices::SMT_mk_ge (SMT_expr a1, SMT_expr a2) {
 }
 
 void yices::SMT_print(SMT_expr a) {
+
+}
+
+void yices::SMT_check(SMT_expr a) {
 	yices_pp_expr ((yices_expr)a);
 	yices_set_arith_only(1);
 	yices_assert(ctx,(yices_expr)a);

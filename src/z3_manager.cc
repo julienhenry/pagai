@@ -67,7 +67,7 @@ SMT_expr z3_manager::SMT_mk_or (std::vector<SMT_expr> args){
 	}
 	switch (arguments.size()) {
 		case 0:
-			return NULL;
+			return SMT_mk_true();
 			break;
 		case 1:
 			return args[0];
@@ -85,7 +85,7 @@ SMT_expr z3_manager::SMT_mk_and (std::vector<SMT_expr> args){
 	}
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			return SMT_mk_true();
 			break;
 		case 1:
 			return args[0];
@@ -196,8 +196,18 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 	return Z3_mk_ge(ctx,(Z3_ast)a1,(Z3_ast)a2);
 }
 
-
 void z3_manager::SMT_print(SMT_expr a){
+	printf("%s",Z3_benchmark_to_smtlib_string(ctx,
+				"name",
+				"logic",
+				"unknown",
+				"",
+				0,
+				NULL,
+				(Z3_ast)a));
+}
+
+void z3_manager::SMT_check(SMT_expr a){
 	Z3_model m = NULL;
 	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);

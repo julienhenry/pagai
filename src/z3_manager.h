@@ -46,5 +46,6 @@ class z3_manager: public SMT_manager {
 		SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2);
 
 		void SMT_print(SMT_expr a);
+		void SMT_check(SMT_expr a);
 };
 #endif

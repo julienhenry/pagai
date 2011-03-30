@@ -41,6 +41,7 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2) = 0;
 
 		virtual void SMT_print(SMT_expr a) = 0;
+		virtual void SMT_check(SMT_expr a) = 0;
 };
 
 #endif
