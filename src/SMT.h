@@ -28,6 +28,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::map<Value*,SMT_var> vars;
 		std::vector<SMT_expr> rho_components;
 		std::vector<SMT_expr> instructions;
+		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
 
 		std::string getNodeName(BasicBlock* b, bool src);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
@@ -42,6 +43,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
 
 		void computePr(Function &F);
+		void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
 		void computeRho(Function &F);
 	public:
 		static char ID;
@@ -56,6 +58,7 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 
 		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);
+		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
 		SMT_expr linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer);

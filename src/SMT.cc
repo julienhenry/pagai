@@ -110,7 +110,7 @@ SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero) {
 SMT_expr SMT::lincons1ToSmt(ap_lincons1_t lincons) {
 	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
 	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
-	ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
+	//ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
 	SMT_expr scalar_smt = NULL;
 	bool integer;
 	SMT_expr linexpr_smt = linexpr1ToSmt(linexpr, integer);
@@ -263,6 +263,32 @@ void SMT::computePr(Function &F) {
 		}
 	}
 	Pr[&F] = FPr;
+
+	b = F.begin();
+	std::set<BasicBlock*> visited;
+	computePrSuccessors(F,NULL,b,visited);
+}
+
+void SMT::computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited) {
+	BasicBlock * succ;
+
+	if (Pr[&F]->count(b) && pred != NULL) {
+		Pr_succ[pred].insert(b);
+		pred = b;
+	}
+	if (!pred) pred = b;
+
+	visited.insert(b);
+
+	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
+		succ = *s;
+		if (!visited.count(succ))
+			computePrSuccessors(F,pred,succ,visited);
+	}
+}
+
+std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
+	return Pr_succ[b];
 }
 
 void SMT::computeRho(Function &F) {
