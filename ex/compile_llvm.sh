@@ -48,7 +48,7 @@ NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=${DIR}/${NAME}.o
+	OUTPUT=${DIR}/${NAME}.bc
 fi
 
 clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT

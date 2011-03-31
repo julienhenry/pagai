@@ -8,10 +8,10 @@ for FILENAME in `ls *.{c,cpp}` ; do
 	BASENAME=`basename $FILENAME`
 	NAME=${BASENAME%%.*}
 
-	./compile_llvm.sh -i $FILENAME -o bin/$NAME.o
+	./compile_llvm.sh -i $FILENAME -o bin/$NAME.bc
 done
 
-for FILENAME in `ls bin/*.o bin/*.bc` ; do
+for FILENAME in `ls  bin/*.bc` ; do
 	NAME=`basename $FILENAME`
 	RESULT=results/${NAME%%.*}.result
 	echo "running $NAME"

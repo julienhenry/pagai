@@ -25,17 +25,17 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		LoopInfo * LI;
 		std::map<Function*,SMT_expr> rho;
 		std::map<Function*,std::set<BasicBlock*>*> Pr;
-		std::map<Value*,SMT_var> vars;
+		std::map<std::string,SMT_var> vars;
 		std::vector<SMT_expr> rho_components;
 		std::vector<SMT_expr> instructions;
 		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
 
 		std::string getNodeName(BasicBlock* b, bool src);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
-		std::string getValueName(Value * v);
-		SMT_expr getValueExpr(Value * v);
+		std::string getValueName(Value * v, bool primed);
+		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
 		SMT_expr getValueType(Value * v);
-		SMT_var getVar(Value * v);
+		SMT_var getVar(Value * v, bool primed);
 		
 		SMT_expr computeCondition(PHINode * inst);
 		SMT_expr computeCondition(CmpInst * inst);
@@ -44,6 +44,17 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 
 		void computePr(Function &F);
 		void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
+
+		/// SSA_defs - stores the set of SSA variables that have been defined
+		// since last occurence of a BasicBlock in Pr
+		std::set<Value*> SSA_defs;
+
+		std::map<BasicBlock*, std::set<Value*> > primed_variables;
+
+		void computeRhoRec(	Function &F, 
+							BasicBlock * b,
+							std::set<Value*> SSA_defined,
+							std::set<BasicBlock*> visited);
 		void computeRho(Function &F);
 	public:
 		static char ID;
@@ -61,11 +72,11 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
-		SMT_expr linexpr1ToSmt(ap_linexpr1_t linexpr, bool &integer);
+		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);
 		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero);
 		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
-		SMT_expr lincons1ToSmt(ap_lincons1_t lincons);
-		SMT_expr AbstractToSmt(Abstract * A);
+		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons);
+		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
 
 		// Visit methods
 		void visitReturnInst (ReturnInst &I);

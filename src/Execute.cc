@@ -37,6 +37,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		delete Buffer;
 	} else {
 		ferrs() << "Not able to initialize module from bitcode\n";
+		return;
 	}
 
 	if (OutputFilename != "") {

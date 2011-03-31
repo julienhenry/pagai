@@ -404,7 +404,7 @@ void AI::computeNode(Node * n) {
 	fouts() << "RESULT:\n";
 	fouts().flush();
 	n->X->print();
-	LSMT->man->SMT_print(LSMT->AbstractToSmt(n->X));
+	LSMT->man->SMT_print(LSMT->AbstractToSmt(n->bb,n->X));
 	);
 }
 
