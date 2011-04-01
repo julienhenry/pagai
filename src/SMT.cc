@@ -323,12 +323,13 @@ void SMT::computeRhoRec(Function &F,
 	visited.insert(b);
 
 	if (!Pr[&F]->count(b) || newPr) {
-		// we recursively construct Rho, starting with the predecessors
+		// we recursively construct Rho, starting from the predecessors
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
 			computeRhoRec(F,pred,false,visited);
-			primed[b].insert(primed[pred].begin(),primed[pred].end());
+			if (!Pr[&F]->count(pred))
+				primed[b].insert(primed[pred].begin(),primed[pred].end());
 		}
 	}
 
@@ -377,6 +378,7 @@ void SMT::computeRho(Function &F) {
 	BasicBlock * b;
 
 	rho_components.clear();
+	primed[NULL].clear();
 	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
 	for (;i!= e; ++i) {
 		b = *i;
