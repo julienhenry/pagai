@@ -45,15 +45,11 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		void computePr(Function &F);
 		void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
 
-		/// SSA_defs - stores the set of SSA variables that have been defined
-		// since last occurence of a BasicBlock in Pr
-		std::set<Value*> SSA_defs;
-
-		std::map<BasicBlock*, std::set<Value*> > primed_variables;
+		std::map<BasicBlock*, std::set<Value*> > primed;
 
 		void computeRhoRec(	Function &F, 
 							BasicBlock * b,
-							std::set<Value*> SSA_defined,
+							bool newPr,
 							std::set<BasicBlock*> visited);
 		void computeRho(Function &F);
 	public:

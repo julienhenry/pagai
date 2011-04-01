@@ -16,6 +16,7 @@
 #include "z3_manager.h"
 #include "yices.h"
 #include "Expr.h"
+#include "apron.h"
 
 
 char SMT::ID = 0;
@@ -82,7 +83,7 @@ SMT_expr SMT::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer)
 	ap_coeff_t* coeff;
 
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
-		val = getValueExpr((Value*)var, primed_variables[b]);
+		val = getValueExpr((Value*)var, primed[b]);
 		if (((Value*)var)->getType()->isIntegerTy()) {
 			coefficient = scalarToSmt(coeff->val.scalar,true,iszero);
 			if (!iszero) integer = true;
@@ -209,9 +210,9 @@ std::string SMT::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 std::string SMT::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
 	if (primed)
-		name << "x'_" << v;
+		name << "x'_" << ap_var_to_string((ap_var_t)v) << "_";
 	else
-		name << "x_" << v;
+		name << "x_" << ap_var_to_string((ap_var_t)v) <<  "_";
 	return name.str();
 }
 
@@ -250,14 +251,14 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			return man->SMT_mk_real(x);
 		}
 		if (isa<UndefValue>(v)) {
-			if (SSA_defs.count(v))
+			if (ssa_defs.count(v))
 				var = getVar(v,true);
 			else
 				var = getVar(v,false);
 			return man->SMT_mk_expr_from_var(var);
 		}
 	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
-		if (SSA_defs.count(v))
+		if (ssa_defs.count(v))
 			var = getVar(v,true);
 		else
 			var = getVar(v,false);
@@ -315,12 +316,23 @@ std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
 
 void SMT::computeRhoRec(Function &F, 
 		BasicBlock * b,
-		std::set<Value*> SSA_defined,
+		bool newPr,
 		std::set<BasicBlock*> visited) {
 
+	if (visited.count(b)) return;
 	visited.insert(b);
 
-	// firstly, we create a boolean reachability predicate for the basicblock
+	if (!Pr[&F]->count(b) || newPr) {
+		// we recursively construct Rho, starting with the predecessors
+		BasicBlock * pred;
+		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+			pred = *p;
+			computeRhoRec(F,pred,false,visited);
+			primed[b].insert(primed[pred].begin(),primed[pred].end());
+		}
+	}
+
+	// we create a boolean reachability predicate for the basicblock
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 	// we associate it the right predicate depending on its incoming edges
 	std::vector<SMT_expr> predicate;
@@ -342,16 +354,12 @@ void SMT::computeRhoRec(Function &F,
 	bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 	instructions.clear();
 
-	SSA_defs.clear();
-	SSA_defs.insert(SSA_defined.begin(), SSA_defined.end());
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
 			i != e; ++i) {
 		visit(*i);
 	}
 
-	primed_variables[b].insert(SSA_defs.begin(), SSA_defs.end());
-
-	bpredicate = man->SMT_mk_or(instructions);
+	bpredicate = man->SMT_mk_and(instructions);
 	if (bpredicate != NULL) {
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
 		bvar_exp = man->SMT_mk_not(bvar_exp);
@@ -362,27 +370,18 @@ void SMT::computeRhoRec(Function &F,
 		rho_components.push_back(bvar_exp);
 	}
 
-	// we continue the contruction of Rho with the successors
-	BasicBlock * succ;
-	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
-		succ = *s;
-		if (!visited.count(succ)) {
-			std::set<Value*> assigned;
-			// if b in Pr, then the SSA defs vars becomes empty since the last
-			// occurence of an element of Pr (itself)
-			if (!Pr[&F]->count(b)) 
-				assigned.insert(SSA_defs.begin(), SSA_defs.end());
-			computeRhoRec(F,succ,assigned,visited);
-		}
-	}
 }
 
 void SMT::computeRho(Function &F) {
 	std::set<BasicBlock*> visited;
-	std::set<Value*> assigned;
+	BasicBlock * b;
 
 	rho_components.clear();
-	computeRhoRec(F,F.begin(),assigned,visited);
+	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
+	for (;i!= e; ++i) {
+		b = *i;
+		computeRhoRec(F,b,true,visited);
+	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	man->SMT_print(rho[&F]);
 }
@@ -402,9 +401,19 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return NULL;
 
-	SMT_expr op1 = getValueExpr(inst->getOperand(0), SSA_defs);
-	SMT_expr op2 = getValueExpr(inst->getOperand(1), SSA_defs);
+	SMT_expr op1, op2;
 
+	// that's a trick: outgoing edges from Pr states never have primed variables
+	// in their branchment condition. So, we use an emptyset instead of the one
+	// we should use (which is dedicated to the destination node only)
+	if (Pr[inst->getParent()->getParent()]->count(inst->getParent())) {
+		std::set<Value*> emptyset;
+		op1 = getValueExpr(inst->getOperand(0), emptyset);
+		op2 = getValueExpr(inst->getOperand(1), emptyset);
+	} else {
+		op1 = getValueExpr(inst->getOperand(0), primed[inst->getParent()]);
+		op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
+	}
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
 			return man->SMT_mk_false();
@@ -451,7 +460,7 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 void SMT::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
-	SSA_defs.insert(&I);
+	primed[I.getParent()].insert(&I);
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
 	SMT_expr bexpr = man->SMT_mk_expr_from_bool_var(bvar);
@@ -529,9 +538,9 @@ void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
 SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
-		return getValueExpr(I.getIncomingValue(i), SSA_defs);
+		return getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
 	}
-	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), SSA_defs);
+	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
 
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
@@ -544,8 +553,8 @@ void SMT::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	SSA_defs.insert(&I);
-	SMT_expr expr = getValueExpr(&I, SSA_defs);	
+	primed[I.getParent()].insert(&I);
+	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
 	instructions.push_back(man->SMT_mk_eq(expr,assign));
@@ -618,12 +627,12 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	SSA_defs.insert(&I);
-	SMT_expr expr = getValueExpr(&I, SSA_defs);	
+	primed[I.getParent()].insert(&I);
+	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;
-	operands.push_back(getValueExpr(I.getOperand(0), SSA_defs));
-	operands.push_back(getValueExpr(I.getOperand(1), SSA_defs));
+	operands.push_back(getValueExpr(I.getOperand(0), primed[I.getParent()]));
+	operands.push_back(getValueExpr(I.getOperand(1), primed[I.getParent()]));
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 
