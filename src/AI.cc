@@ -101,6 +101,17 @@ void AI::printBasicBlock(BasicBlock* b) {
 
 }
 
+void AI::printPath(std::list<BasicBlock*> path) {
+	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
+	fouts() << "PATH: ";
+	while (i != e) {
+		fouts() << *i;
+		++i;
+		if (i != e) fouts() << " --> ";
+	}
+	fouts() << "\n";
+}
+
 void AI::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
@@ -309,6 +320,12 @@ void AI::computeNode(Node * n) {
 	fouts() << "#######################################################\n";
 	fouts() << "Computing node: " << b << "\n";
 	fouts() << *b << "\n";
+
+	SMT_expr smtexpr = LSMT->createSMTformula(*n->bb->getParent(), n->bb);
+	LSMT->man->SMT_print(smtexpr);
+	std::list<BasicBlock*> path;
+	LSMT->SMTsolve(smtexpr,&path);
+	printPath(path);
 	);
 
 	is_computed[n] = true;
@@ -323,7 +340,7 @@ void AI::computeNode(Node * n) {
 
 	// environment may be bigger since the last computation of this node
 	// indeed, there may be some Phi-vars with more than 1 possible incoming
-	// edge, whereas only one possible incoming edge was possible before
+	// edge, whereas only one single incoming edge was possible before
 
 	// we compute the set of variable that have to be added in the environment
 	std::set<ap_var_t> Vars;
@@ -405,7 +422,6 @@ void AI::computeNode(Node * n) {
 	fouts().flush();
 	n->X->print();
 	LSMT->man->SMT_print(LSMT->AbstractToSmt(n->bb,n->X));
-	LSMT->man->SMT_print(LSMT->AbstractToSmt(NULL,n->X));
 	);
 }
 

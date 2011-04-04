@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <list>
 #include <set>
 
 #include "llvm/Module.h"
@@ -36,6 +37,12 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
 		SMT_expr getValueType(Value * v);
 		SMT_var getVar(Value * v, bool primed);
+
+		void getElementFromString(	std::string name,
+									bool &isEdge, 
+									bool &start, 
+									BasicBlock * &src, 
+									BasicBlock * &dest);
 		
 		SMT_expr computeCondition(PHINode * inst);
 		SMT_expr computeCondition(CmpInst * inst);
@@ -43,12 +50,13 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
 
 		void computePr(Function &F);
-		void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
+		//void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
 
 		std::map<BasicBlock*, std::set<Value*> > primed;
 
 		void computeRhoRec(	Function &F, 
 							BasicBlock * b,
+							BasicBlock * dest,
 							bool newPr,
 							std::set<BasicBlock*> visited);
 		void computeRho(Function &F);
@@ -66,6 +74,9 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);
 		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
+
+		SMT_expr createSMTformula(Function &F, BasicBlock * source);
+		void SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
 		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);

@@ -65,7 +65,7 @@ SMT_expr yices::SMT_mk_expr_from_var(SMT_var var) {
 SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			return SMT_mk_true();
 			break;
 		case 1:
 			return args[0];
@@ -78,7 +78,7 @@ SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {
 SMT_expr yices::SMT_mk_and (std::vector<SMT_expr> args) {
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			return SMT_mk_true();
 			break;
 		case 1:
 			return args[0];
@@ -176,27 +176,29 @@ void yices::SMT_print(SMT_expr a) {
 	fflush(stdout);
 }
 
-void yices::SMT_check(SMT_expr a) {
-	yices_pp_expr ((yices_expr)a);
+void yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
+	//yices_pp_expr ((yices_expr)a);
 	yices_set_arith_only(1);
 	yices_assert(ctx,(yices_expr)a);
-	fouts() << "\n";
+	//fouts() << "\n";
 	if (yices_check(ctx) == l_true) {
 		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
 		yices_model m              = yices_get_model(ctx);
 		//yices_display_model(m);
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
-			fouts() <<  yices_get_var_decl_name(d) << " = ";
+			//fouts() <<  yices_get_var_decl_name(d) << " = ";
+			std::string name (yices_get_var_decl_name(d));
 			switch(yices_get_value(m, d)) {
 				case l_true: 
-					fouts() << "true\n"; 
+					true_booleans->insert(name);
+					//fouts() << "true\n"; 
 					break;
 				case l_false: 
-					fouts() << "false\n"; 
+					//fouts() << "false\n"; 
 					break;
 				case l_undef: 
-					fouts() << "unknown\n"; 
+					//fouts() << "unknown\n"; 
 					break;
 			}
 		}

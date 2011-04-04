@@ -1,5 +1,7 @@
 #include <sstream>
 #include <vector>
+#include <iostream>
+#include <string>
 
 #include "llvm/Module.h"
 #include "llvm/Instructions.h"
@@ -18,6 +20,7 @@
 #include "Expr.h"
 #include "apron.h"
 
+using namespace std;
 
 char SMT::ID = 0;
 static RegisterPass<SMT>
@@ -203,7 +206,7 @@ std::string SMT::getNodeName(BasicBlock* b, bool src) {
 
 std::string SMT::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 	std::ostringstream name;
-	name << "e_" << b1 << "_" << b2;
+	name << "t_" << b1 << "_" << b2;
 	return name.str();
 }
 
@@ -271,6 +274,57 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 	return NULL;
 }
 
+/// getElementFromString - 
+void SMT::getElementFromString(std::string name, bool &isEdge, bool &start, BasicBlock * &src, BasicBlock * &dest) {
+
+	std::string edge ("t_");
+	std::string simple_node ("b_");
+	std::string source_node ("bs_");
+	std::string dest_node ("bd_");
+	size_t found;
+	void* address;
+	src = NULL;
+	dest = NULL;
+	start = false;
+
+	found = name.find(edge);
+	if (found!=std::string::npos) {
+		isEdge = true;
+		std::string source = name.substr (2,9);
+		std::string destination = name.substr (12,9);
+		std::istringstream srcStream(source);
+		std::istringstream destStream(destination);
+		
+		srcStream >> std::hex >> address;
+		src = (BasicBlock*)address;
+		destStream >> std::hex >> address;
+		dest = (BasicBlock*)address;
+		return;
+	}
+	isEdge = false;
+	std::string nodename;
+	found = name.find(simple_node);
+
+	if (found==std::string::npos) {
+		found = name.find(source_node);
+		if (found==std::string::npos) found = name.find(dest_node);
+		else start = true;
+		if (found!=std::string::npos) {
+			nodename = name.substr (3,9);
+		}
+	} else {
+		nodename = name.substr (2,9);
+	}
+
+	if (found != std::string::npos) {
+		std::istringstream srcStream(nodename);
+		srcStream >> std::hex >> address;
+		src = (BasicBlock*)address;
+	}
+
+}
+
+
 // computePr - computes the set Pr of BasicBlocks
 // for the moment - Pr = Pw
 void SMT::computePr(Function &F) {
@@ -287,28 +341,28 @@ void SMT::computePr(Function &F) {
 	}
 	Pr[&F] = FPr;
 
-	b = F.begin();
-	std::set<BasicBlock*> visited;
-	computePrSuccessors(F,NULL,b,visited);
+	//b = F.begin();
+	//std::set<BasicBlock*> visited;
+	//computePrSuccessors(F,NULL,b,visited);
 }
 
-void SMT::computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited) {
-	BasicBlock * succ;
-
-	if (Pr[&F]->count(b) && pred != NULL) {
-		Pr_succ[pred].insert(b);
-		pred = b;
-	}
-	if (!pred) pred = b;
-
-	visited.insert(b);
-
-	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
-		succ = *s;
-		if (!visited.count(succ))
-			computePrSuccessors(F,pred,succ,visited);
-	}
-}
+//void SMT::computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited) {
+//	BasicBlock * succ;
+//
+//	if (Pr[&F]->count(b) && pred != NULL) {
+//		Pr_succ[pred].insert(b);
+//		pred = b;
+//	}
+//	if (!pred) pred = b;
+//
+//	visited.insert(b);
+//
+//	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
+//		succ = *s;
+//		if (!visited.count(succ))
+//			computePrSuccessors(F,pred,succ,visited);
+//	}
+//}
 
 std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
 	return Pr_succ[b];
@@ -316,6 +370,7 @@ std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
 
 void SMT::computeRhoRec(Function &F, 
 		BasicBlock * b,
+		BasicBlock * dest,
 		bool newPr,
 		std::set<BasicBlock*> visited) {
 
@@ -327,9 +382,11 @@ void SMT::computeRhoRec(Function &F,
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
-			computeRhoRec(F,pred,false,visited);
+			computeRhoRec(F,pred,dest,false,visited);
 			if (!Pr[&F]->count(pred))
 				primed[b].insert(primed[pred].begin(),primed[pred].end());
+			else
+				Pr_succ[pred].insert(dest);
 		}
 	}
 
@@ -343,7 +400,10 @@ void SMT::computeRhoRec(Function &F,
 	}
 	SMT_expr bpredicate;
 
-	bpredicate = man->SMT_mk_or(predicate);
+	if (predicate.size() != 0)
+		bpredicate = man->SMT_mk_or(predicate);
+	else
+		bpredicate = man->SMT_mk_false();
 
 	if (bpredicate != NULL) {
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
@@ -382,10 +442,75 @@ void SMT::computeRho(Function &F) {
 	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b,true,visited);
+		computeRhoRec(F,b,b,true,visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	man->SMT_print(rho[&F]);
+}
+
+/// createSMTformula - create the smt formula that is described in the paper
+///
+SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
+	std::vector<SMT_expr> formula;
+	formula.push_back(getRho(F));
+
+	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(source,true));
+	formula.push_back(man->SMT_mk_expr_from_bool_var(bvar));
+
+	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
+	for (; i!=e; ++i) {
+		if (*i != source) {
+			bvar = man->SMT_mk_bool_var(getNodeName(*i,true));
+			formula.push_back(man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar)));
+		}
+	}
+	
+	Abstract * A = Nodes[source]->X;
+	formula.push_back(AbstractToSmt(NULL,A));
+
+	std::vector<SMT_expr> Or;
+	std::set<BasicBlock*> Successors = getPrSuccessors(source);
+	i = Successors.begin(), e = Successors.end();
+	for (; i!=e; ++i) {
+		std::vector<SMT_expr> SuccExp;
+		SMT_var succvar = man->SMT_mk_bool_var(getNodeName(*i,false));
+		SuccExp.push_back(man->SMT_mk_expr_from_bool_var(succvar));
+		SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
+		Or.push_back(man->SMT_mk_and(SuccExp));
+	}
+	formula.push_back(man->SMT_mk_or(Or));
+
+	return man->SMT_mk_and(formula);
+}
+
+/// SMTsolve - solve an SMT formula and computes its model in case of a 'sat'
+/// formula
+void SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+	std::set<std::string> true_booleans;
+	std::map<BasicBlock*, BasicBlock*> succ;
+	man->SMT_check(expr,&true_booleans);
+	bool isEdge, start;
+	BasicBlock * src;
+	BasicBlock * dest;
+
+	std::set<std::string>::iterator i = true_booleans.begin(), e = true_booleans.end();
+	for (; i != e; ++i) {
+		std::string name = *i;
+		getElementFromString(name,isEdge,start,src,dest);
+		if (isEdge) {
+			succ[src] = dest;
+		} else {
+			if (start)
+				path->push_back(src);
+		}
+		fouts().flush();
+	}
+
+	while (succ.count(path->back())) {
+		path->push_back(succ[path->back()]);
+		if (path->back() == path->front()) break;
+	}
+	
 }
 
 void SMT::visitReturnInst (ReturnInst &I) {
