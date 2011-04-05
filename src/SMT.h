@@ -29,7 +29,6 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		std::map<std::string,SMT_var> vars;
 		std::vector<SMT_expr> rho_components;
 		std::vector<SMT_expr> instructions;
-		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
 
 		std::string getNodeName(BasicBlock* b, bool src);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
@@ -67,16 +66,24 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 		SMT();
 		~SMT();
 
+		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
+		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_pred;
+
 		const char * getPassName() const;
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 		bool runOnFunction(Function &F);
 
 		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);
+
+		std::set<BasicBlock*> getPrPredecessors(BasicBlock * b);
 		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
+		void push_context();
+		void pop_context();
+
 		SMT_expr createSMTformula(Function &F, BasicBlock * source);
-		void SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
+		bool SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
 		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);

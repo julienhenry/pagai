@@ -176,7 +176,7 @@ void yices::SMT_print(SMT_expr a) {
 	fflush(stdout);
 }
 
-void yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
+bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	//yices_pp_expr ((yices_expr)a);
 	yices_set_arith_only(1);
 	yices_assert(ctx,(yices_expr)a);
@@ -205,6 +205,15 @@ void yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 		yices_del_iterator(it);
 	} else {
 		fouts() << "unsat\n";
+		return false;
 	}
+	return true;
 }
 
+void yices::push_context() {
+	yices_push(ctx);
+}
+
+void yices::pop_context() {
+	yices_pop(ctx);
+}

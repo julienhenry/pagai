@@ -82,6 +82,20 @@ class AI : public ModulePass, public InstVisitor<AI> {
 				Node * n, 
 				Abstract &Xtemp, 
 				bool &update);
+		
+		/// focuspath - path we focus on
+		std::vector<BasicBlock*> focuspath;
+		/// index in focuspath of the focuspath's basicblock we are working on
+		unsigned focusblock;
+	
+		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
+		phivar PHIvars;
+		
+		/// computeTransform - computes in Xtemp the polyhedra resulting from
+		/// the transformation  of n->X through the path
+		void computeTransform (	Node * n, 
+								std::list<BasicBlock*> path, 
+								Abstract &Xtemp);
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);
@@ -89,12 +103,12 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.
 		void computeCondition(CmpInst * inst, 
-				std::vector<ap_tcons1_array_t *> * true_cons, 
-				std::vector<ap_tcons1_array_t *> * false_cons);
+				bool result,
+				std::vector<ap_tcons1_array_t *> * cons);
 
 		void computeConstantCondition(ConstantInt * inst, 
-				std::vector<ap_tcons1_array_t*> * true_cons, 
-				std::vector<ap_tcons1_array_t *> * false_cons);
+				bool result,
+				std::vector<ap_tcons1_array_t*> * cons);
 
 		void visitInstAndAddVarIfNecessary(Instruction &I);
 		// Visit methods

@@ -46,7 +46,10 @@ class z3_manager: public SMT_manager {
 		SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2);
 
+		void push_context();
+		void pop_context();
+
 		void SMT_print(SMT_expr a);
-		void SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
+		bool SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
 };
 #endif

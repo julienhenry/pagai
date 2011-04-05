@@ -363,6 +363,9 @@ void SMT::computePr(Function &F) {
 //			computePrSuccessors(F,pred,succ,visited);
 //	}
 //}
+std::set<BasicBlock*> SMT::getPrPredecessors(BasicBlock * b) {
+	return Pr_pred[b];
+}
 
 std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
 	return Pr_succ[b];
@@ -385,8 +388,10 @@ void SMT::computeRhoRec(Function &F,
 			computeRhoRec(F,pred,dest,false,visited);
 			if (!Pr[&F]->count(pred))
 				primed[b].insert(primed[pred].begin(),primed[pred].end());
-			else
+			else {
 				Pr_succ[pred].insert(dest);
+				Pr_pred[dest].insert(pred);
+			}
 		}
 	}
 
@@ -448,6 +453,15 @@ void SMT::computeRho(Function &F) {
 	man->SMT_print(rho[&F]);
 }
 
+
+void SMT::push_context() {
+	man->push_context();
+}
+
+void SMT::pop_context() {
+	man->pop_context();
+}
+
 /// createSMTformula - create the smt formula that is described in the paper
 ///
 SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
@@ -485,10 +499,10 @@ SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
 
 /// SMTsolve - solve an SMT formula and computes its model in case of a 'sat'
 /// formula
-void SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+bool SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
-	man->SMT_check(expr,&true_booleans);
+	if (!man->SMT_check(expr,&true_booleans)) return false;
 	bool isEdge, start;
 	BasicBlock * src;
 	BasicBlock * dest;
@@ -510,7 +524,7 @@ void SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 		path->push_back(succ[path->back()]);
 		if (path->back() == path->front()) break;
 	}
-	
+	return true;	
 }
 
 void SMT::visitReturnInst (ReturnInst &I) {

@@ -207,19 +207,10 @@ void z3_manager::SMT_print(SMT_expr a){
 				(Z3_ast)a));
 }
 
-void z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
+bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
 	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
-
-	printf("%s",Z3_benchmark_to_smtlib_string(ctx,
-				"name",
-				"logic",
-				"unknown",
-				"",
-				0,
-				NULL,
-				(Z3_ast)a));
 
 	switch (result) {
 		case Z3_L_FALSE:
@@ -243,5 +234,13 @@ void z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		printf("Model is NULL\n");
 	}
 	fflush(stdout);
+	return true;
 }
 
+void z3_manager::push_context() {
+	// NOT IMPLEMENTED
+}
+
+void z3_manager::pop_context() {
+	// NOT IMPLEMENTED
+}

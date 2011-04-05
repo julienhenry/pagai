@@ -40,8 +40,12 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2) = 0;
 
+		virtual void push_context() = 0;
+		virtual void pop_context() = 0;
+
 		virtual void SMT_print(SMT_expr a) = 0;
-		virtual void SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
+		virtual bool SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
+
 };
 
 #endif
