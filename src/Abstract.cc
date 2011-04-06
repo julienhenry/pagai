@@ -76,22 +76,25 @@ void Abstract::widening(Node * n) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;
 	ap_abstract1_t Xpilot;
+	ap_abstract1_t dpUcm;
 
 	if (is_leq(n->X)) {
 		Xmain_widening = ap_abstract1_copy(man,n->X->main);
 		Xpilot_widening = ap_abstract1_copy(man,n->X->pilot);
-	} else if (ap_abstract1_is_leq(man,pilot,n->X->pilot)) {
-		Xmain_widening = ap_abstract1_copy(man,pilot);
-		Xpilot_widening = ap_abstract1_copy(man,pilot);
 	} else {
-		// we apply the widening operator only on the pilot value,
-		// and we only join the main values.
-		Xmain_widening = ap_abstract1_join(man,false,n->X->main,main);
-		// before widening, n->X->pilot has to be included in pilot
-		Xpilot = ap_abstract1_join(man,false,n->X->pilot,pilot);
-		Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,&Xpilot);
-		ap_abstract1_clear(man,&Xpilot);
+		dpUcm = ap_abstract1_join(man,false,n->X->main,pilot);
+		if (ap_abstract1_is_leq(man,&dpUcm,n->X->pilot)) {
+			Xmain_widening = ap_abstract1_copy(man,&dpUcm);
+			Xpilot_widening = ap_abstract1_copy(man,&dpUcm);
+		} else {
+			Xmain_widening = ap_abstract1_join(man,false,n->X->main,main);
+			// before widening, n->X->pilot has to be included in pilot
+			Xpilot = ap_abstract1_join(man,false,n->X->pilot,&dpUcm);
+			Xpilot_widening = ap_abstract1_widening(man,n->X->pilot,&Xpilot);
+			ap_abstract1_clear(man,&Xpilot);
+		}
 	}
+
 	if (pilot != main)
 		ap_abstract1_clear(man,pilot);
 	ap_abstract1_clear(man,main);
@@ -184,11 +187,11 @@ void Abstract::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred)
 }
 
 ap_tcons1_array_t Abstract::to_tcons_array() {
-	return ap_abstract1_to_tcons_array(man,pilot);
+	return ap_abstract1_to_tcons_array(man,main);
 }
 
 ap_lincons1_array_t Abstract::to_lincons_array() {
-	return ap_abstract1_to_lincons_array(man,pilot);
+	return ap_abstract1_to_lincons_array(man,main);
 }
 
 void Abstract::print(bool only_main) {

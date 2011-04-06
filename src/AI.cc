@@ -63,6 +63,7 @@ bool AI::runOnModule(Module &M) {
 		fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 		fouts().flush();
 		n->X->print(true);
+
 		fflush(stdout);
 		delete it->second;
 	}
@@ -308,6 +309,9 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	// setting the focus path, such that the instructions can be correctly
 	// handled
 	focuspath.clear();
+	constraints.clear();
+	PHIvars.name.clear();
+	PHIvars.expr.clear();
 	focuspath.assign(path.begin(), path.end());
 	focusblock = 0;
 	
@@ -336,9 +340,8 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	ap_environment_t * env = NULL;
 	succ->create_env(&env);
 
+	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
-
-	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
@@ -356,6 +359,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		}
 	}
 
+	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 }
 
 
@@ -375,10 +379,11 @@ void AI::computeNode(Node * n) {
 		fouts() << *b << "\n";
 	);
 
-	is_computed[n] = true;
 
 	while (true) {
-		fouts() << "SMTSolve\n";
+		is_computed[n] = true;
+		fouts() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
+		fouts().flush();
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(*n->bb->getParent(), n->bb);
@@ -387,7 +392,10 @@ void AI::computeNode(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path)) return;
+		if (!LSMT->SMTsolve(smtexpr,&path)) {
+			LSMT->pop_context();
+			return;
+		}
 	
 		DEBUG(
 			printPath(path);
@@ -396,12 +404,26 @@ void AI::computeNode(Node * n) {
 		
 		Succ = Nodes[path.back()];
 
+		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
 
-		// TO BE COMPLETED
-		Succ->X = Xtemp;
+		std::vector<Abstract*> Join;
+		Join.push_back(new Abstract(Succ->X));
+		Join.push_back(new Abstract(Xtemp));
+		Xtemp->join_array(Xtemp->main->env,Join);
 
+		Succ->X->print();
+		Xtemp->print();
+		Succ->X->change_environment(Xtemp->main->env);
+
+		if (LI->isLoopHeader(Succ->bb)) {
+			Xtemp->widening(Succ);
+		}
+		
+		Succ->X = Xtemp;
+		fouts() << "RESULT:\n";
+		fouts().flush();
 		Succ->X->print();
 		
 
@@ -821,13 +843,20 @@ void AI::visitPHINode (PHINode &I){
 			nb = Nodes[I.getIncomingBlock(i)];
 			ap_texpr1_t * expr = get_ap_expr(nb,pv);
 
-			n->add_var(&I);
-			PHIvars.name.push_back((ap_var_t)&I);
-			PHIvars.expr.push_back(*expr);
-
-			//set_ap_expr(&I,expr);
-			//ap_environment_t * env = expr->env;
-			//insert_env_vars_into_node_vars(env,n,(Value*)&I);
+			if (focusblock == focuspath.size()-1) {
+				n->add_var(&I);
+				PHIvars.name.push_back((ap_var_t)&I);
+				PHIvars.expr.push_back(*expr);
+				fouts() << I;
+				printf(" is equal to ");
+				ap_texpr1_fprint(stdout,expr);
+				printf("\n");
+				fflush(stdout);
+			} else {
+				set_ap_expr(&I,expr);
+				ap_environment_t * env = expr->env;
+				insert_env_vars_into_node_vars(env,n,(Value*)&I);
+			}
 		}
 	}
 }
