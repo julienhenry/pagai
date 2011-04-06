@@ -12,6 +12,8 @@ z3_manager::z3_manager() {
 	Z3_set_param_value(config, "MODEL", "true");
 	Z3_set_param_value(config, "MODEL_V2", "true");
 	ctx = Z3_mk_context(config);
+	Z3_set_logic(ctx,"QF_LIA");
+
 	int_type = Z3_mk_int_sort(ctx);
 	float_type = Z3_mk_real_sort(ctx);
 	bool_type = Z3_mk_bool_sort(ctx);
@@ -215,32 +217,68 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	switch (result) {
 		case Z3_L_FALSE:
 			printf("unsat\n");
-			break;
+			return false;
 		case Z3_L_UNDEF:
-			printf("Unknown\nPotential Model\n%s",Z3_model_to_string(ctx,m));
-			break;
+			printf("Unknown");
+			return false;
 		case Z3_L_TRUE:
-			std::string res (Z3_model_to_string(ctx,m));
-			printf("number of elements in the model : %u\n",Z3_get_model_num_constants(ctx,m));
-			printf("sat\nModel: %s \n",Z3_model_to_string(ctx,m));
-			//printf("sat\nModel: %d \n",res.size());
+			printf("MODEL:\n");
+			unsigned n = Z3_get_model_num_constants(ctx,m);
+			for (unsigned i = 0; i < n; i++) {
+				Z3_func_decl decl = Z3_get_model_constant(ctx,m,i);
+				Z3_ast v;
+				Z3_eval_func_decl (ctx,m,decl,&v);
+				Z3_symbol symbol = Z3_get_decl_name(ctx,decl);
+				std::string name (Z3_get_symbol_string (ctx,symbol));
+				printf("%s ",name.c_str());
+
+				Z3_sort_kind sort = Z3_get_sort_kind(ctx,Z3_get_sort(ctx,v));
+
+				switch (sort) {
+					case Z3_BOOL_SORT: 
+						switch (Z3_get_bool_value(ctx,v)) {
+							case Z3_L_FALSE:
+								printf("false\n");
+								break;
+							case Z3_L_UNDEF:
+								printf("undef\n");
+								break;
+							case Z3_L_TRUE:
+								printf("true\n");
+								true_booleans->insert(name);
+								break;
+						}
+						break;
+					case Z3_INT_SORT:
+						int i;
+						Z3_get_numeral_int (ctx,v,&i);
+						printf("%d\n",i);
+						break;
+					case Z3_REAL_SORT:
+						printf("real value\n");
+						break;
+					case Z3_BV_SORT:
+						printf("bv value\n");
+						break;
+					case Z3_UNINTERPRETED_SORT:
+						printf("uninterpreted value\n");
+						break;
+					default:
+						printf("unknown sort\n");
+						break;
+				}
+			}
 			fflush(stdout);
 			break;
-	}
-	if (m) {
-		printf("Model is not NULL\n");
-		Z3_del_model(ctx, m);
-	} else {
-		printf("Model is NULL\n");
 	}
 	fflush(stdout);
 	return true;
 }
 
 void z3_manager::push_context() {
-	// NOT IMPLEMENTED
+	Z3_push(ctx);
 }
 
 void z3_manager::pop_context() {
-	// NOT IMPLEMENTED
+	Z3_pop(ctx, 1);
 }
