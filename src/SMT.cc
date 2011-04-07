@@ -831,7 +831,8 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 			// NOT IMPLEMENTED
 			return;
 	}
-	instructions.push_back(man->SMT_mk_eq(expr,assign));
+	//instructions.push_back(man->SMT_mk_eq(expr,assign));
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMT::visitCmpInst (CmpInst &I) {
