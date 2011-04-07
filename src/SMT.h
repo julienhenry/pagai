@@ -48,9 +48,9 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
 
 		void computePr(Function &F);
-		//void computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited);
-
+		
 		std::map<BasicBlock*, std::set<Value*> > primed;
+		std::set<Value*> exist_prime;
 
 		void computeRhoRec(	Function &F, 
 							BasicBlock * b,

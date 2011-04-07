@@ -65,12 +65,7 @@ SMT_expr yices::SMT_mk_expr_from_bool_var(SMT_var var) {
 }
 
 SMT_expr yices::SMT_mk_expr_from_var(SMT_var var) {
-	fouts() << "var = " << var << "\n";
-	fouts().flush();
-	SMT_expr res = yices_mk_var_from_decl (ctx,(yices_var_decl)var);
-	fouts() << "var = " << var << " OK\n";
-	fouts().flush();
-	return res;
+	return yices_mk_var_from_decl (ctx,(yices_var_decl)var);
 }
 
 SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {
@@ -195,7 +190,7 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	if (yices_check(ctx) == l_true) {
 		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
 		yices_model m              = yices_get_model(ctx);
-		//yices_display_model(m);
+		yices_display_model(m);
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
 			//fouts() <<  yices_get_var_decl_name(d) << " = ";

@@ -442,12 +442,18 @@ void AI::computeNode(Node * n) {
 		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			if (Succ->widening == 1) {
+			if (Succ->widening == 0) {
 				Xtemp->widening(Succ);
 				Succ->widening = 0;
-				// experimental
-				if (n == Succ) {
+				//// experimental
+				////if (n == Succ) {
 					Abstract * Xbackup = new Abstract(Succ->X);
+					//
+				//	Join.clear();
+				//	Join.push_back(Succ->X);
+				//	Join.push_back(new Abstract(Xtemp));
+				//	Xtemp->join_array(Xtemp->main->env,Join);
+					//
 					Succ->X = Xtemp;
 					Xtemp = new Abstract(n->X);
 					computeTransform(n,path,*Xtemp);
@@ -456,7 +462,7 @@ void AI::computeNode(Node * n) {
 					Join.push_back(new Abstract(Xtemp));
 					Xtemp->join_array(Xtemp->main->env,Join);
 					Succ->X = Xtemp;
-				}
+				////}
 			} else {
 				Succ->widening++;
 			}

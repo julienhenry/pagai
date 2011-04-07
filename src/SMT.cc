@@ -493,7 +493,22 @@ SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
 		std::vector<SMT_expr> SuccExp;
 		SMT_var succvar = man->SMT_mk_bool_var(getNodeName(*i,false));
 		SuccExp.push_back(man->SMT_mk_expr_from_bool_var(succvar));
+
 		SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
+		
+		// x' = x for each x' that is not declared in this specific path
+		std::vector<SMT_expr> affect;
+		std::set<Value*> empty;
+		std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
+		for (; it != et; ++it) {
+			fouts() << "VALUE " << **it << "\n";
+			fouts().flush();
+			if (!primed[*i].count(*it))
+				affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
+		}
+		SuccExp.push_back(man->SMT_mk_and(affect));
+
+
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}
 	formula.push_back(man->SMT_mk_or(Or));
@@ -606,6 +621,7 @@ void SMT::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
 	primed[I.getParent()].insert(&I);
+	//exist_prime.insert(&I);
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
 	SMT_expr bexpr = man->SMT_mk_expr_from_bool_var(bvar);
@@ -699,6 +715,7 @@ void SMT::visitPHINode (PHINode &I) {
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
 	primed[I.getParent()].insert(&I);
+	exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
@@ -773,6 +790,7 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
 	primed[I.getParent()].insert(&I);
+	exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;
