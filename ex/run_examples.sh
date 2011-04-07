@@ -15,7 +15,7 @@ for FILENAME in `ls  bin/*.bc` ; do
 	NAME=`basename $FILENAME`
 	RESULT=results/${NAME%%.*}.result
 	echo "running $NAME"
-	../src/analyzer $FILENAME > $RESULT
+	../src/analyzer -i $FILENAME > $RESULT
 done
 
 

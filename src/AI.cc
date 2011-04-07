@@ -315,6 +315,10 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	focuspath.assign(path.begin(), path.end());
 	focusblock = 0;
 	
+	fouts() << "POLYHEDRA BEGINNING\n";
+	fouts().flush();
+	Xtemp.print();
+
 	std::list<BasicBlock*>::iterator B = path.begin(), E = path.end();
 	for (; B != E; ++B) {
 		// visit instructions
@@ -343,6 +347,10 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
 
+	fouts() << "POLYHEDRA AFTER CHANGE OF ENVIRONMENT\n";
+	fouts().flush();
+	Xtemp.print();
+
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
@@ -358,8 +366,14 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 			Xtemp.join_array(env,A);
 		}
 	}
+	fouts() << "POLYHEDRA AFTER MEETING CONSTRAINTS\n";
+	fouts().flush();
+	Xtemp.print();
 
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+	fouts() << "POLYHEDRA AFTER PHI ASSIGNATIONS\n";
+	fouts().flush();
+	Xtemp.print();
 }
 
 
@@ -392,7 +406,7 @@ void AI::computeNode(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path)) {
+		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
 			LSMT->pop_context();
 			return;
 		}
@@ -407,21 +421,46 @@ void AI::computeNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
+		fouts().flush();
+		fflush(stdout);
+		fouts() << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
+		fouts().flush();
+		Xtemp->print();
 
 		std::vector<Abstract*> Join;
 		Join.push_back(new Abstract(Succ->X));
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		Succ->X->print();
+		fouts() << "POLYHEDRA AFTER JOIN\n";
+		fouts().flush();
 		Xtemp->print();
 		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			Xtemp->widening(Succ);
-		}
+			if (Succ->widening == 1) {
+				Xtemp->widening(Succ);
+				Succ->widening = 0;
+				// experimental
+				if (n == Succ) {
+					Abstract * Xbackup = new Abstract(Succ->X);
+					Succ->X = Xtemp;
+					Xtemp = new Abstract(n->X);
+					computeTransform(n,path,*Xtemp);
+					Join.clear();
+					Join.push_back(Xbackup);
+					Join.push_back(new Abstract(Xtemp));
+					Xtemp->join_array(Xtemp->main->env,Join);
+					Succ->X = Xtemp;
+				}
+			} else {
+				Succ->widening++;
+			}
+		} 
 		
 		Succ->X = Xtemp;
+
+
 		fouts() << "RESULT:\n";
 		fouts().flush();
 		Succ->X->print();

@@ -38,6 +38,9 @@ class Node {
 		Abstract * X;
 		ap_environment_t * env;
 
+		/// count the number of computation of X since the last widening
+		int widening;
+
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a
 		/// list of Values, that directly use this variable : if one of these
