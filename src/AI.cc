@@ -45,6 +45,7 @@ bool AI::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
+	LSMT = &(getAnalysis<SMT>());
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -125,7 +126,6 @@ void AI::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
-	LSMT = &(getAnalysis<SMT>(*F));
 	
 	LSMT->getPr(*F);
 	LSMT->getRho(*F);
@@ -139,6 +139,7 @@ void AI::computeFunction(Function * F) {
 	}
 	// first abstract value is top
 	ap_environment_t * env = NULL;
+	computeEnv(n);
 	n->create_env(&env);
 	n->X->set_top(env);
 	A.push(n);
@@ -354,12 +355,15 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
+				ap_tcons1_array_print((*i)->front());
+				fflush(stdout);
 				Xtemp.meet_tcons_array((*i)->front());
 		} else {
 			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
+			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
-				Abstract * X2 = new Abstract(Xtemp);
+				X2 = new Abstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
 			}
@@ -637,7 +641,8 @@ void AI::computeCondition(	CmpInst * inst,
 		bool result,
 		std::vector<ap_tcons1_array_t *> * cons) {
 
-	Node * n = Nodes[inst->getParent()];
+	//Node * n = Nodes[inst->getParent()];
+	Node * n = Nodes[focuspath.back()];
 	ap_constyp_t constyp;
 	ap_constyp_t nconstyp;
 	
@@ -672,7 +677,6 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_FALSE:
 		case CmpInst::FCMP_OEQ: 
 		case CmpInst::FCMP_UEQ: 
-		case CmpInst::FCMP_TRUE: 
 		case CmpInst::ICMP_EQ:
 			constyp = AP_CONS_EQ; // equality constraint
 			nconstyp = AP_CONS_DISEQ;
@@ -714,6 +718,7 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_ONE:
 		case CmpInst::FCMP_UNE: 
 		case CmpInst::ICMP_NE: 
+		case CmpInst::FCMP_TRUE: 
 			constyp = AP_CONS_DISEQ; // disequality constraint
 			nconstyp = AP_CONS_EQ;
 			break;
@@ -880,7 +885,7 @@ void AI::visitPHINode (PHINode &I){
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
 			nb = Nodes[I.getIncomingBlock(i)];
-			ap_texpr1_t * expr = get_ap_expr(nb,pv);
+			ap_texpr1_t * expr = get_ap_expr(n,pv);
 
 			if (focusblock == focuspath.size()-1) {
 				n->add_var(&I);

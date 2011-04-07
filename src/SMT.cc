@@ -31,7 +31,8 @@ const char * SMT::getPassName() const {
 	return "SMT";
 }
 
-SMT::SMT() : FunctionPass(ID) {
+SMT::SMT() : ModulePass(ID) {
+	fouts() << "SMT\n";
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -51,11 +52,15 @@ void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 }
 
-bool SMT::runOnFunction(Function &F) {
-	LI = &(getAnalysis<LoopInfo>());
+//bool SMT::runOnFunction(Function &F) {
+//	LI = &(getAnalysis<LoopInfo>());
+//	return 0;
+//}
+
+bool SMT::runOnModule(Module &M) {
+	//LI = &(getAnalysis<LoopInfo>());
 	return 0;
 }
-
 
 	std::set<BasicBlock*>* SMT::getPr(Function &F) {
 		if (!Pr.count(&F))
@@ -231,9 +236,7 @@ SMT_expr SMT::getValueType(Value * v) {
 
 SMT_var SMT::getVar(Value * v, bool primed) {
 	std::string name = getValueName(v,primed);
-	if (!vars.count(name))
-		vars[name] = man->SMT_mk_var(name,getValueType(v));
-	return vars[name];
+	return man->SMT_mk_var(name,getValueType(v));
 }
 
 SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
@@ -330,6 +333,7 @@ void SMT::getElementFromString(std::string name, bool &isEdge, bool &start, Basi
 void SMT::computePr(Function &F) {
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	BasicBlock * b;
+	LI = &(getAnalysis<LoopInfo>(F));
 
 	FPr->insert(F.begin());
 

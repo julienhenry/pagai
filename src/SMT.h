@@ -20,13 +20,12 @@
 using namespace llvm;
 
 
-class SMT : public FunctionPass, public InstVisitor<SMT> {
+class SMT : public ModulePass, public InstVisitor<SMT> {
 	
 	private:
 		LoopInfo * LI;
 		std::map<Function*,SMT_expr> rho;
 		std::map<Function*,std::set<BasicBlock*>*> Pr;
-		std::map<std::string,SMT_var> vars;
 		std::vector<SMT_expr> rho_components;
 		std::vector<SMT_expr> instructions;
 
@@ -71,7 +70,8 @@ class SMT : public FunctionPass, public InstVisitor<SMT> {
 
 		const char * getPassName() const;
 		void getAnalysisUsage(AnalysisUsage &AU) const;
-		bool runOnFunction(Function &F);
+		//bool runOnFunction(Function &F);
+		bool runOnModule(Module &M);
 
 		std::set<BasicBlock*>* getPr(Function &F);
 		SMT_expr getRho(Function &F);

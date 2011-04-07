@@ -2,7 +2,7 @@
 
 int main(int argc, char ** argv) {
 	int x;
-	int y;
+	int y = 10;
 	int i;
 	
 	for (i=0; i < y; i++) {

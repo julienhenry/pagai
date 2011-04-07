@@ -17,9 +17,11 @@
 using namespace llvm;
 
 yices::yices() {
-	ctx = yices_mk_context();
+	fouts() << "YICES\n";
+	fouts().flush();
 	const char* intname =	"int";
 	const char* floatname ="float";
+	ctx = yices_mk_context();
 	int_type = yices_mk_type(ctx,const_cast<char*>(intname));
 	float_type = yices_mk_type(ctx,const_cast<char*>(floatname));
 }
@@ -37,21 +39,25 @@ SMT_expr yices::SMT_mk_false() {
 }
 
 SMT_var yices::SMT_mk_bool_var(std::string val) {
-	if (!vars.count(val)) {
-		char * cstr = new char [val.size()+1];
-		strcpy (cstr, val.c_str());
-		vars[val] = yices_mk_bool_var_decl(ctx,cstr);
-	}
-	return vars[val];
+	char * cstr = new char [val.size()+1];
+	strcpy (cstr, val.c_str());
+	SMT_var res;
+	res = yices_get_var_decl_from_name(ctx,cstr);
+	if (res == NULL) {
+		res = yices_mk_bool_var_decl(ctx,cstr);
+	} 
+	return res;
 }
 
 SMT_var yices::SMT_mk_var(std::string name,SMT_type type) {
-	if (!vars.count(name)) {
-		char * cstr = new char [name.size()+1];
-		strcpy (cstr, name.c_str());
-		vars[name] = yices_mk_var_decl(ctx,cstr,type);
-	}
-	return vars[name];
+	char * cstr = new char [name.size()+1];
+	strcpy (cstr, name.c_str());
+	SMT_var res;
+	res = yices_get_var_decl_from_name(ctx,cstr);
+	if (res == NULL) {
+		res = yices_mk_var_decl(ctx,cstr,type);
+	} 
+	return res;
 }
 
 SMT_expr yices::SMT_mk_expr_from_bool_var(SMT_var var) {
@@ -59,7 +65,12 @@ SMT_expr yices::SMT_mk_expr_from_bool_var(SMT_var var) {
 }
 
 SMT_expr yices::SMT_mk_expr_from_var(SMT_var var) {
-	return yices_mk_var_from_decl (ctx,(yices_var_decl)var);
+	fouts() << "var = " << var << "\n";
+	fouts().flush();
+	SMT_expr res = yices_mk_var_from_decl (ctx,(yices_var_decl)var);
+	fouts() << "var = " << var << " OK\n";
+	fouts().flush();
+	return res;
 }
 
 SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {
