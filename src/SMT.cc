@@ -423,6 +423,7 @@ void SMT::computeRhoRec(Function &F,
 	// instructions
 	bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 	instructions.clear();
+	exist_prime.clear();
 
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
 			i != e; ++i) {
@@ -439,6 +440,19 @@ void SMT::computeRhoRec(Function &F,
 		bvar_exp = man->SMT_mk_or(implies);
 		rho_components.push_back(bvar_exp);
 	}
+	
+	// x' = x if we don't reach this block
+	std::vector<SMT_expr> affect;
+	std::set<Value*> empty;
+	std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
+	for (; it != et; ++it) {
+		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
+	}
+	std::vector<SMT_expr> implies;
+	implies.push_back(man->SMT_mk_expr_from_bool_var(bvar));
+	implies.push_back(man->SMT_mk_and(affect));
+	rho_components.push_back(man->SMT_mk_or(implies));
+	// end of x' = x
 
 }
 
@@ -497,16 +511,16 @@ SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
 		SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
 		
 		// x' = x for each x' that is not declared in this specific path
-		std::vector<SMT_expr> affect;
-		std::set<Value*> empty;
-		std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
-		for (; it != et; ++it) {
-			fouts() << "VALUE " << **it << "\n";
-			fouts().flush();
-			if (!primed[*i].count(*it))
-				affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
-		}
-		SuccExp.push_back(man->SMT_mk_and(affect));
+		//std::vector<SMT_expr> affect;
+		//std::set<Value*> empty;
+		//std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
+		//for (; it != et; ++it) {
+		//	fouts() << "VALUE " << **it << "\n";
+		//	fouts().flush();
+		//	if (!primed[*i].count(*it))
+		//		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
+		//}
+		//SuccExp.push_back(man->SMT_mk_and(affect));
 
 
 		Or.push_back(man->SMT_mk_and(SuccExp));

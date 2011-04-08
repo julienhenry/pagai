@@ -448,12 +448,6 @@ void AI::computeNode(Node * n) {
 				//// experimental
 				////if (n == Succ) {
 					Abstract * Xbackup = new Abstract(Succ->X);
-					//
-				//	Join.clear();
-				//	Join.push_back(Succ->X);
-				//	Join.push_back(new Abstract(Xtemp));
-				//	Xtemp->join_array(Xtemp->main->env,Join);
-					//
 					Succ->X = Xtemp;
 					Xtemp = new Abstract(n->X);
 					computeTransform(n,path,*Xtemp);
