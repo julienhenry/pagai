@@ -379,10 +379,11 @@ void SMT::computeRhoRec(Function &F,
 		BasicBlock * b,
 		BasicBlock * dest,
 		bool newPr,
-		std::set<BasicBlock*> visited) {
+		std::set<BasicBlock*> * visited) {
 
-	if (visited.count(b)) return;
-	visited.insert(b);
+	bool first = (visited->count(b) > 0);
+	visited->insert(b);
+	
 
 	if (!Pr[&F]->count(b) || newPr) {
 		// we recursively construct Rho, starting from the predecessors
@@ -398,6 +399,11 @@ void SMT::computeRhoRec(Function &F,
 			}
 		}
 	}
+
+	if (first) return;
+	fouts() << "constructing formula for node " << b << "\n";
+	fouts().flush();
+
 
 	// we create a boolean reachability predicate for the basicblock
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
@@ -442,16 +448,16 @@ void SMT::computeRhoRec(Function &F,
 	}
 	
 	// x' = x if we don't reach this block
-	std::vector<SMT_expr> affect;
-	std::set<Value*> empty;
-	std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
-	for (; it != et; ++it) {
-		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
-	}
-	std::vector<SMT_expr> implies;
-	implies.push_back(man->SMT_mk_expr_from_bool_var(bvar));
-	implies.push_back(man->SMT_mk_and(affect));
-	rho_components.push_back(man->SMT_mk_or(implies));
+//	std::vector<SMT_expr> affect;
+//	std::set<Value*> empty;
+//	std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
+//	for (; it != et; ++it) {
+//		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
+//	}
+//	std::vector<SMT_expr> implies;
+//	implies.push_back(man->SMT_mk_expr_from_bool_var(bvar));
+//	implies.push_back(man->SMT_mk_and(affect));
+//	rho_components.push_back(man->SMT_mk_or(implies));
 	// end of x' = x
 
 }
@@ -465,7 +471,7 @@ void SMT::computeRho(Function &F) {
 	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b,b,true,visited);
+		computeRhoRec(F,b,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	man->SMT_print(rho[&F]);
@@ -510,19 +516,6 @@ SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
 
 		SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
 		
-		// x' = x for each x' that is not declared in this specific path
-		//std::vector<SMT_expr> affect;
-		//std::set<Value*> empty;
-		//std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
-		//for (; it != et; ++it) {
-		//	fouts() << "VALUE " << **it << "\n";
-		//	fouts().flush();
-		//	if (!primed[*i].count(*it))
-		//		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
-		//}
-		//SuccExp.push_back(man->SMT_mk_and(affect));
-
-
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}
 	formula.push_back(man->SMT_mk_or(Or));
@@ -634,7 +627,7 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 void SMT::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
-	primed[I.getParent()].insert(&I);
+	//primed[I.getParent()].insert(&I);
 	//exist_prime.insert(&I);
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
@@ -728,8 +721,11 @@ void SMT::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	primed[I.getParent()].insert(&I);
-	exist_prime.insert(&I);
+	// we prime this PHI variable iff it is a Phivar from a block in Pr
+	if (Pr[I.getParent()->getParent()]->count(I.getParent())) {
+		primed[I.getParent()].insert(&I);
+		exist_prime.insert(&I);
+	}
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
@@ -803,8 +799,8 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	primed[I.getParent()].insert(&I);
-	exist_prime.insert(&I);
+	//primed[I.getParent()].insert(&I);
+	//exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;

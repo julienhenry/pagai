@@ -52,7 +52,8 @@ if [ -z $OUTPUT ] ; then
 fi
 
 clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT
-opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
+#opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
+opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT

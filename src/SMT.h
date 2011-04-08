@@ -56,7 +56,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 							BasicBlock * b,
 							BasicBlock * dest,
 							bool newPr,
-							std::set<BasicBlock*> visited);
+							std::set<BasicBlock*> * visited);
 		void computeRho(Function &F);
 	public:
 		static char ID;

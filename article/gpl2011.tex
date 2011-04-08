@@ -1,0 +1,37 @@
+\documentclass{llncs}
+\usepackage{a4wide}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+
+
+\title{Analyse statique par Interprétation Abstraite}
+\titlerunning{}
+\subtitle{Raffinement de la méthode en utilisant le SMT-solving}
+\author{Julien Henry}
+\institute{CNRS - Verimag}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+	L'analyse statique consiste à trouver à la compilation des propriétés sur un
+	programme, en particulier l'ensemble des valeurs possibles pour chacunes des
+	variables durant l'exécution. Ceci permet par exemple de prouver que le
+	programme ne va pas faire de divisions par 0, ne va pas avoir de
+	débordements arithmétiques, ou encore à calculer des invariants de boucle,
+	etc. Trouver l'ensemble exact des valeurs possibles pour les variables est
+	impossible, c'est pourquoi on a recours à des surapproximations : on calcule
+	un ensemble plus grand, qui contient toutes les valeurs possibles des
+	variables pendant l'exécution, mais aussi d'autres valeurs pour simplifier
+	l'analyse : c'est le cas de l'Interprétation Abstraite, qui est une méthode
+	bien connue de vérification statique.  
+	On peut alors essayer de limiter cette surapproximation, grâce à une
+	technique par SMT-solving, pour gagner en précision.
+\end{abstract}
+
+\section{Introduction}
+
+
+\section{Interprétation abstraite}
+
+\end{document}
