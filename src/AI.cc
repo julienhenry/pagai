@@ -21,6 +21,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
+#include "SMT.h"
 #include "Debug.h"
 
 using namespace llvm;
@@ -36,6 +37,7 @@ const char * AI::getPassName() const {
 void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
 	AU.addRequired<LoopInfo>();
 }
 
@@ -43,6 +45,7 @@ bool AI::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
+	LSMT = &(getAnalysis<SMT>());
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -61,6 +64,7 @@ bool AI::runOnModule(Module &M) {
 		fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 		fouts().flush();
 		n->X->print(true);
+
 		fflush(stdout);
 		delete it->second;
 	}
@@ -71,8 +75,8 @@ void AI::initFunction(Function * F) {
 	Node * n;
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		n = new Node(man,i);
-		Nodes[i] = n;
+			n = new Node(man,i);
+			Nodes[i] = n;
 	}
 	if (F->size() > 0) {
 		// we find the Strongly Connected Components
@@ -90,8 +94,24 @@ void AI::printBasicBlock(BasicBlock* b) {
 	if (LI.isLoopHeader(b)) {
 		fouts() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ": SCC=" << n->sccId << ":" << *b;
+		fouts() << b << ": SCC=" << n->sccId << ":\n" << *b;
 	}
+	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
+		Instruction * I = i;
+		fouts() << "\t\t" << I << "\t" << *I << "\n";
+	}
+
+}
+
+void AI::printPath(std::list<BasicBlock*> path) {
+	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
+	fouts() << "PATH: ";
+	while (i != e) {
+		fouts() << *i;
+		++i;
+		if (i != e) fouts() << " --> ";
+	}
+	fouts() << "\n";
 }
 
 void AI::computeFunction(Function * F) {
@@ -106,6 +126,9 @@ void AI::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
+	
+	LSMT->getPr(*F);
+	LSMT->getRho(*F);
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -116,6 +139,7 @@ void AI::computeFunction(Function * F) {
 	}
 	// first abstract value is top
 	ap_environment_t * env = NULL;
+	computeEnv(n);
 	n->create_env(&env);
 	n->X->set_top(env);
 	A.push(n);
@@ -135,17 +159,13 @@ void AI::computeEnv(Node * n) {
 	std::set<Value*>::iterator it, et;
 
 	// we erase all previous elements from the maps
-	n->phi_vars.clear();
-	n->intVar.clear();
-	n->realVar.clear();
+	//n->phi_vars.clear();
+	//n->intVar.clear();
+	//n->realVar.clear();
 
-	// visit instructions
-	for (BasicBlock::iterator i = b->begin(), e = b->end();
-			i != e; ++i) {
-		visit(*i);
-	}
+	std::set<BasicBlock*> preds = LSMT->getPrPredecessors(b);
+	std::set<BasicBlock*>::iterator p = preds.begin(), E = preds.end();
 
-	pred_iterator p = pred_begin(b), E = pred_end(b);
 	if (p == E) {
 		// we are in the first basicblock of the function
 		Function * F = b->getParent();
@@ -285,22 +305,178 @@ void AI::computeHull(
 	}
 }
 
+void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
+	
+	// setting the focus path, such that the instructions can be correctly
+	// handled
+	focuspath.clear();
+	constraints.clear();
+	PHIvars.name.clear();
+	PHIvars.expr.clear();
+	focuspath.assign(path.begin(), path.end());
+	focusblock = 0;
+	
+	//fouts() << "POLYHEDRA BEGINNING\n";
+	//fouts().flush();
+	//Xtemp.print();
+
+	std::list<BasicBlock*>::iterator B = path.begin(), E = path.end();
+	for (; B != E; ++B) {
+		// visit instructions
+		for (BasicBlock::iterator i = (*B)->begin(), e = (*B)->end();
+				i != e; ++i) {
+			if (focusblock == 0) {
+				if (!isa<PHINode>(*i))
+					visit(*i);
+			} else if (focusblock == focuspath.size()-1) {
+				if (isa<PHINode>(*i))
+					visit(*i);
+			} else {
+				visit(*i);
+			}
+		}
+		focusblock++;
+	}
+
+	Node * succ = Nodes[focuspath.back()];
+	
+	computeEnv(succ);
+
+	ap_environment_t * env = NULL;
+	succ->create_env(&env);
+
+	//Xtemp.set_top(env);
+	Xtemp.change_environment(env);
+
+	//fouts() << "POLYHEDRA AFTER CHANGE OF ENVIRONMENT\n";
+	//fouts().flush();
+	//Xtemp.print();
+
+	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
+	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
+		if ((*i)->size() == 1) {
+				ap_tcons1_array_print((*i)->front());
+				fflush(stdout);
+				Xtemp.meet_tcons_array((*i)->front());
+		} else {
+			std::vector<Abstract*> A;
+			std::vector<ap_tcons1_array_t*>::iterator it, et;
+			Abstract * X2;
+			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
+				X2 = new Abstract(&Xtemp);
+				X2->meet_tcons_array(*it);
+				A.push_back(X2);
+			}
+			Xtemp.join_array(env,A);
+		}
+	}
+	//fouts() << "POLYHEDRA AFTER MEETING CONSTRAINTS\n";
+	//fouts().flush();
+	//Xtemp.print();
+
+	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+	//fouts() << "POLYHEDRA AFTER PHI ASSIGNATIONS\n";
+	//fouts().flush();
+	//Xtemp.print();
+}
+
+
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
 	bool update = false;
+	Node * Succ;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
 	
 	DEBUG (
-	fouts() << "#######################################################\n";
-	fouts() << "Computing node: " << b << "\n";
-	fouts() << *b << "\n";
+		fouts() << "#######################################################\n";
+		fouts() << "Computing node: " << b << "\n";
+		fouts() << *b << "\n";
 	);
 
-	is_computed[n] = true;
+
+	while (true) {
+		is_computed[n] = true;
+		fouts() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
+		fouts().flush();
+		LSMT->push_context();
+		// creating the SMT formula we want to check
+		SMT_expr smtexpr = LSMT->createSMTformula(*n->bb->getParent(), n->bb);
+		std::list<BasicBlock*> path;
+		DEBUG(
+			LSMT->man->SMT_print(smtexpr);
+		);
+		// if the result is unsat, then the computation of this node is finished
+		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
+			LSMT->pop_context();
+			return;
+		}
+	
+		DEBUG(
+			printPath(path);
+			fouts().flush();
+		);
+		
+		Succ = Nodes[path.back()];
+
+		// computing the image of the abstract value by the path's tranformation
+		Xtemp = new Abstract(n->X);
+		computeTransform(n,path,*Xtemp);
+		fouts().flush();
+		fflush(stdout);
+		fouts() << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
+		fouts().flush();
+		Xtemp->print();
+
+		std::vector<Abstract*> Join;
+		Join.push_back(new Abstract(Succ->X));
+		Join.push_back(new Abstract(Xtemp));
+		Xtemp->join_array(Xtemp->main->env,Join);
+
+		//fouts() << "POLYHEDRA AFTER JOIN\n";
+		//fouts().flush();
+		//Xtemp->print();
+		Succ->X->change_environment(Xtemp->main->env);
+
+		if (LI->isLoopHeader(Succ->bb)) {
+			if (Succ->widening == 0) {
+				Xtemp->widening(Succ);
+				Succ->widening = 0;
+				//// experimental
+				if (n == Succ) {
+				  Abstract * Xbackup = new Abstract(Succ->X);
+				  Succ->X = Xtemp;
+				  Xtemp = new Abstract(n->X);
+				  computeTransform(n,path,*Xtemp);
+				  Join.clear();
+				  Join.push_back(Xbackup);
+				  Join.push_back(new Abstract(Xtemp));
+				  Xtemp->join_array(Xtemp->main->env,Join);
+				  Succ->X = Xtemp;
+				}
+			} else {
+				Succ->widening++;
+			}
+		} 
+		
+		Succ->X = Xtemp;
+
+
+		fouts() << "RESULT:\n";
+		fouts().flush();
+		Succ->X->print();
+		
+
+		A.push(Succ);
+		is_computed[Succ] = false;
+		LSMT->pop_context();
+	}
+	return;
+
+///////////////////////////
 
 	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
@@ -312,14 +488,14 @@ void AI::computeNode(Node * n) {
 
 	// environment may be bigger since the last computation of this node
 	// indeed, there may be some Phi-vars with more than 1 possible incoming
-	// edge, whereas only one possible incoming edge was possible before
+	// edge, whereas only one single incoming edge was possible before
 
 	// we compute the set of variable that have to be added in the environment
 	std::set<ap_var_t> Vars;
-	for (int i = 0; i < n->env->intdim + n->env->realdim; i++) {
+	for (unsigned i = 0; i < n->env->intdim + n->env->realdim; i++) {
 		Vars.insert(ap_environment_var_of_dim(n->env,i));
 	}
-	for (int i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
+	for (unsigned i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
 		Vars.erase(ap_environment_var_of_dim(n->X->main->env,i));
 	}
 	n->X->change_environment(n->env);
@@ -393,6 +569,7 @@ void AI::computeNode(Node * n) {
 	fouts() << "RESULT:\n";
 	fouts().flush();
 	n->X->print();
+	LSMT->man->SMT_print(LSMT->AbstractToSmt(n->bb,n->X));
 	);
 }
 
@@ -461,10 +638,11 @@ void create_constraints(
 
 
 void AI::computeCondition(	CmpInst * inst, 
-		std::vector<ap_tcons1_array_t*> * true_cons, 
-		std::vector<ap_tcons1_array_t *> * false_cons) {
+		bool result,
+		std::vector<ap_tcons1_array_t *> * cons) {
 
-	Node * n = Nodes[inst->getParent()];
+	//Node * n = Nodes[inst->getParent()];
+	Node * n = Nodes[focuspath.back()];
 	ap_constyp_t constyp;
 	ap_constyp_t nconstyp;
 	
@@ -499,7 +677,6 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_FALSE:
 		case CmpInst::FCMP_OEQ: 
 		case CmpInst::FCMP_UEQ: 
-		case CmpInst::FCMP_TRUE: 
 		case CmpInst::ICMP_EQ:
 			constyp = AP_CONS_EQ; // equality constraint
 			nconstyp = AP_CONS_DISEQ;
@@ -541,6 +718,7 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_ONE:
 		case CmpInst::FCMP_UNE: 
 		case CmpInst::ICMP_NE: 
+		case CmpInst::FCMP_TRUE: 
 			constyp = AP_CONS_DISEQ; // disequality constraint
 			nconstyp = AP_CONS_EQ;
 			break;
@@ -551,45 +729,47 @@ void AI::computeCondition(	CmpInst * inst,
 			fouts() << "ERROR : Unknown predicate\n";
 			break;
 	}
-	// creating the TRUE constraints
-	create_constraints(constyp,expr,nexpr,true_cons);
-
-	// creating the FALSE constraints
-	create_constraints(nconstyp,nexpr,expr,false_cons);
+	if (result) {
+		// creating the TRUE constraints
+		create_constraints(constyp,expr,nexpr,cons);
+	} else {
+		// creating the FALSE constraints
+		create_constraints(nconstyp,nexpr,expr,cons);
+	}
 }
 
 void AI::computeConstantCondition(	ConstantInt * inst, 
-		std::vector<ap_tcons1_array_t*> * true_cons, 
-		std::vector<ap_tcons1_array_t *> * false_cons) {
+		bool result,
+		std::vector<ap_tcons1_array_t*> * cons) {
+
+		if (result) {
+			// always true
+			return;
+		}
 
 		// we create a unsat constraint
 		// such as one of the successor is unreachable
-		ap_tcons1_t cons;
+		ap_tcons1_t tcons;
 		ap_tcons1_array_t * consarray;
 		ap_environment_t * env = ap_environment_alloc_empty();
 		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
+		tcons = ap_tcons1_make(
 				AP_CONS_SUP,
 				ap_texpr1_cst_scalar_double(env,1.),
 				ap_scalar_alloc_set_double(0.));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
+		*consarray = ap_tcons1_array_make(tcons.env,1);
+		ap_tcons1_array_set(consarray,0,&tcons);
 		
 		if (inst->isZero()) {
 			// condition is always false
-			true_cons->push_back(consarray);
-		} else {
-			// condition is always true
-			false_cons->push_back(consarray);
+			cons->push_back(consarray);
 		}
 }
 
 
 void AI::visitBranchInst (BranchInst &I){
 	//fouts() << "BranchInst\n" << I << "\n";	
-	Node * n = Nodes[I.getParent()];
-	Node * iftrue;
-	Node * iffalse;
+	bool test;
 
 	//fouts() << "BranchInst\n" << I << "\n";	
 	if (I.isUnconditional()) {
@@ -597,15 +777,24 @@ void AI::visitBranchInst (BranchInst &I){
 		return;
 	}
 	// branch under condition
-	iftrue = Nodes[I.getSuccessor(0)];
-	iffalse = Nodes[I.getSuccessor(1)];
-	std::vector<ap_tcons1_array_t*> * true_cons = new std::vector<ap_tcons1_array_t*>();
-	std::vector<ap_tcons1_array_t*> * false_cons = new std::vector<ap_tcons1_array_t*>();
+
+	// what is the successor in our path ?
+	// i.e: Does the test has to be 'false' or 'true' ?
+	BasicBlock * next = focuspath[focusblock+1];
+	if (next == I.getSuccessor(0)) {
+		// test is evaluated at true
+		test = true;
+	} else {
+		// test is evaluated at false
+		test = false;
+	}
+
+	std::vector<ap_tcons1_array_t*> * cons = new std::vector<ap_tcons1_array_t*>();
 
 	CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0));
 	if (cmp == NULL) {
 		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
-			computeConstantCondition(c,true_cons,false_cons);
+			computeConstantCondition(c,test,cons);
 		} else {
 			// here, we loose precision, because I.getOperand(0) could also be a
 			// boolean PHI-variable
@@ -614,23 +803,11 @@ void AI::visitBranchInst (BranchInst &I){
 	} else {
 		ap_texpr_rtype_t ap_type;
 		if (get_ap_type(cmp->getOperand(0), ap_type)) return;
-		computeCondition(cmp,true_cons,false_cons);
+		computeCondition(cmp,test,cons);
 	}
 
-	// free the previous tcons
-	if (n->tcons.count(iftrue)) {
-		for (std::vector<ap_tcons1_array_t*>::iterator i = n->tcons[iftrue].begin(), e = n->tcons[iftrue].end(); i != e; ++i)
-			ap_tcons1_array_clear(*i);
-		n->tcons.erase(iftrue);
-	}
-	if (n->tcons.count(iffalse)) {
-		for (std::vector<ap_tcons1_array_t*>::iterator i = n->tcons[iffalse].begin(), e = n->tcons[iffalse].end(); i != e; ++i)
-			ap_tcons1_array_clear(*i);
-		n->tcons.erase(iffalse);
-	}
-	// insert into the tcons array of the node
-	n->tcons[iftrue] = *true_cons;
-	n->tcons[iffalse] = *false_cons;
+	// we add cons in the set of constraints of the path
+	constraints.push_back(cons);
 }
 
 
@@ -640,44 +817,7 @@ void AI::visitBranchInst (BranchInst &I){
 /// interpretation.
 void AI::visitSwitchInst (SwitchInst &I){
 	//fouts() << "SwitchInst\n" << I << "\n";	
-	Node * n = Nodes[I.getParent()];
-	ap_tcons1_array_t * false_cons;
-	ap_texpr1_t * expr;
-	unsigned num = I.getNumCases();
-
-	Value * Condition =	I.getCondition();
-	ap_texpr1_t * ConditionExp = get_ap_expr(n,Condition);
-	Node * Default = Nodes[I.getDefaultDest()];
-	ap_texpr_rtype_t ap_type;
-	get_ap_type(Condition,ap_type);
-
-	false_cons = new ap_tcons1_array_t();
-	*false_cons = ap_tcons1_array_make(ConditionExp->env,num);
-	
-	for (int i = 0; i < num; i++) {
-		ConstantInt * CaseValue = I.getCaseValue(i);
-		ap_texpr1_t * CaseExp = get_ap_expr(n,CaseValue);
-
-		common_environment(&ConditionExp,&CaseExp);
-		
-		expr = ap_texpr1_binop(AP_TEXPR_SUB,
-				ap_texpr1_copy(ConditionExp),
-				ap_texpr1_copy(CaseExp),
-				ap_type,
-				AP_RDIR_RND);
-
-		// creating the FALSE constraint
-		ap_tcons1_t cons = ap_tcons1_make(
-				AP_CONS_DISEQ,
-				expr,
-				ap_scalar_alloc_set_double(0));
-		ap_tcons1_array_set(false_cons,i,&cons);
-	
-		// insert into the tcons array of the node
-	}
-	std::vector<ap_tcons1_array_t*> v;
-	v.push_back(false_cons);
-	n->tcons[Default] = v;
+	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitIndirectBrInst (IndirectBrInst &I){
@@ -730,65 +870,36 @@ void AI::visitGetElementPtrInst (GetElementPtrInst &I){
 }
 
 void AI::visitPHINode (PHINode &I){
+	Node * n = Nodes[focuspath.back()];
 	//fouts() << "PHINode\n" << I << "\n";
-	ap_var_t var = (Value *) &I; 
-	BasicBlock * b = I.getParent();
-	Node * n = Nodes[b];
+	// we only consider one single predecessor: the predecessor from the path
+	BasicBlock * pred = focuspath[focusblock-1];
+
 	Value * pv;
 	Node * nb;
-	std::list<int> IncomingValues;
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	set_phivar_previous_expr((Value*)&I,get_ap_expr(n,(Value*)&I));
-	// determining the predecessors of the phi variable, and insert in a list
-	// the predecessors that are not at bottom.
-	for (int i = 0; i < I.getNumIncomingValues(); i++) {
-		pv = I.getIncomingValue(i);
-		nb = Nodes[I.getIncomingBlock(i)];
-		if (nb->X->main != NULL && !ap_abstract1_is_bottom(man,nb->X->main)) {
-			IncomingValues.push_back(i);
-		}
-	}
-
-	if (IncomingValues.size() == 1) {
-		// only one incoming value is possible : it is useless to add a new
-		// variable, since Value I is directly equal to the associated incoming
-		// value
-		DEBUG(
-		fouts() << I << " has one single incoming value\n";
-		)
-		int i = IncomingValues.front();
-		pv = I.getIncomingValue(i);
-		nb = Nodes[I.getIncomingBlock(i)];
-		ap_texpr1_t * expr = get_ap_expr(nb,pv);
-		set_ap_expr(&I,expr);
-		ap_environment_t * env = expr->env;
-
-		//set_phivar_first_expr(&I,expr);
-		// this instruction may use some apron variables (from the abstract
-		// domain)
-		// we add these variables in the Node's variable structure, such that we
-		// remember that the instruction I uses these variables
-		insert_env_vars_into_node_vars(env,n,(Value*)&I);
-	} else {
-		ap_texpr1_t * exp = get_ap_expr(n,(Value*)var);
-		if (exp != NULL && !ap_texpr1_has_var(exp,var)) {
-			insert_env_vars_into_node_vars(exp->env,n,(Value*)&I);
-		}
-		n->add_var((Value*)var);
-		while (!IncomingValues.empty()) {
-			int i = IncomingValues.front();
-			IncomingValues.pop_front();
+	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
+		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
-			// when the value is an undef value, we don't insert it into our
-			// phivar table, because undef is not live in the successors of the
-			// block
-			if (!isa<UndefValue>(pv)) {
-				nb = Nodes[I.getIncomingBlock(i)];
-				n->phi_vars[nb].name.push_back(var);
-				n->phi_vars[nb].expr.push_back(*get_ap_expr(nb,pv));
+			nb = Nodes[I.getIncomingBlock(i)];
+			ap_texpr1_t * expr = get_ap_expr(n,pv);
+
+			if (focusblock == focuspath.size()-1) {
+				n->add_var(&I);
+				PHIvars.name.push_back((ap_var_t)&I);
+				PHIvars.expr.push_back(*expr);
+				fouts() << I;
+				printf(" is equal to ");
+				ap_texpr1_fprint(stdout,expr);
+				printf("\n");
+				fflush(stdout);
+			} else {
+				set_ap_expr(&I,expr);
+				ap_environment_t * env = expr->env;
+				insert_env_vars_into_node_vars(env,n,(Value*)&I);
 			}
 		}
 	}
@@ -904,7 +1015,7 @@ void AI::visitTerminatorInst (TerminatorInst &I){
 }
 
 void AI::visitBinaryOperator (BinaryOperator &I){
-	Node * n = Nodes[I.getParent()];
+	Node * n = Nodes[focuspath.back()];
 
 	//fouts() << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
@@ -977,7 +1088,7 @@ void AI::visitCastInst (CastInst &I){
 
 
 void AI::visitInstAndAddVarIfNecessary(Instruction &I) {
-	Node * n = Nodes[I.getParent()];
+	Node * n = Nodes[focuspath.back()];
 	ap_environment_t* env = NULL;
 	ap_var_t var = (Value *) &I; 
 

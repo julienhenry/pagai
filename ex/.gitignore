@@ -1,0 +1,9 @@
+results/*
+*.o
+*.out
+*.aux
+*.swp
+.nfs*
+*.bc
+*.dot
+*.dot.svg

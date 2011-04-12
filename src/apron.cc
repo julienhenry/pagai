@@ -46,11 +46,8 @@ char* ap_var_to_string(ap_var_t var) {
 /// ap_var_compare - new compare function, working with Value * type
 ///
 int ap_var_compare(ap_var_t v1, ap_var_t v2) {
-	int n1,n2;
-	n1 = (unsigned) v1;
-	n2 = (unsigned) v2;
-	if (n1 == n2) return 0;
-	if (n1 > n2) return 1;
+	if (v1 == v2) return 0;
+	if (v1 > v2) return 1;
 	return -1;
 }
 
@@ -58,7 +55,7 @@ int ap_var_compare(ap_var_t v1, ap_var_t v2) {
 /// ap_var_hash - hash function for ap_var_t
 ///
 int ap_var_hash(ap_var_t v) {
-	return (int)(v);
+	return 0;
 }
 
 // no copy, no free ! 

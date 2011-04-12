@@ -13,6 +13,8 @@ using namespace llvm;
 /// This function has to be called at the very beginning of the pass
 void init_apron();
 
+char* ap_var_to_string(ap_var_t var);
+
 /// print_texpr - print an apron expression on standard output
 void print_texpr(ap_texpr1_t * exp);
 

@@ -1,0 +1,205 @@
+\documentclass{llncs}
+\usepackage{a4wide}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{placeins}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+
+\title{Analyse statique par découverte de chemin}
+\titlerunning{}
+\subtitle{}
+\author{Julien Henry}
+\institute{CNRS - Verimag \\ \email{Julien.Henry@imag.fr}}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+L'analyse statique consiste à trouver à la compilation des propriétés sur un
+programme, comme l'ensemble des valeurs possibles pour chacunes des
+variables durant l'exécution. Ceci permet par exemple de prouver que le
+programme ne va pas avoir de débordements arithmétiques, à calculer des
+invariants de boucle, à faire des optimisations de code lors de la compilation, etc.
+
+L'Interprétation Abstraite est une méthode classique d'analyse statique, qui consiste à calculer une surapproximation de
+l'ensemble des états possibles d'un programme numérique. 
+L'état d'un programme est caractérisé par la valeur de chacunes de ses variables
+numériques, et par la position à laquelle on se trouve dans le code.
+Un cas particulier
+d'Interprétation Abstraite est l'analyse par relations linéaires: On surapproxime
+l'ensemble des états possibles du programme par un polyhèdre convexe, pour découvrir des propriétés linéaires entre les différentes variables
+numériques du programme.
+Cette méthode implique des surapproximations, nécessaires pour rendre
+l'analyse moins coûteuse : il faut alors essayer de
+trouver le bon compromis entre la précision et le coût. De nombreux travaux
+consistent à trouver de nouvelles techniques pour améliorer cette précision à
+moindre coût. La méthode proposée ici consiste à s'aider des
+progrès dans la recherche sur le SMT-solving
+pour raffiner la méthode
+d'interprétation abstraite.
+
+\section{Interprétation abstraite}
+
+L'application de l'Interprétation Abstraite à l'analyse de
+relations linéaires consiste à attacher à chaque point de contrôle du programme un polyhèdre convexe dont les dimensions sont les variables numériques. On travaille sur
+le graphe de flot de contrôle du programme (voir figure) : le programme peut
+être vu comme un graphe où chaque transition est étiquetée par une ou plusieurs
+instructions, et peut être soumise à condition(s). On calcule itérativement les
+différents polyhèdres $A_i$ à chaque noeud $s_i$ du graphe de la façon suivante:
+
+Au départ, le polyhèdre de l'état initial est l'espace entier (aucune
+contrainte sur les variables), et celui des autres états est le polyhèdre vide
+(l'état est considéré comme étant inaccessible). 
+
+Puis, on itère ce calcul pour tous les états du graphe, tant que la suite des
+polyhèdres $A_i$ est croissante pour la relation d'inclusion :
+\begin{itemize}
+\item On part d'un état $i$, et on met à jour chaque état $j$ où $j$ est un
+successeur de $i$ dans le graphe, en calculant l'image $Y$ du polyhèdre $A_i$
+par la transition $i \rightarrow j$. 
+\item Le nouveau polyhèdre $A_j$ est
+l'enveloppe convexe de $Y$ avec l'ancienne valeur de $A_j$, notée $Y \sqcup
+A_j$, qui est le plus petit polyhèdre convexe incluant $A_j$ et $Y$. Les valeurs
+successives de $A_j$ au cours de l'analyse définissent donc bien une suite croissante.
+\end{itemize}
+Après un certain nombre d'itérations, chaque polyhèdre a atteint une limite, et
+l'analyse s'arrête \footnote{En fait, pour garantir la terminaison, on a recours
+à un opérateur dit d'élargissement, qui fait une extrapolation lorsqu'un
+polyhèdre risque de croître indéfiniment.}. Les polyhèdres résultats permettent de déduire des
+invariants sur les variables du programme.
+
+\begin{figure}[!h]
+\begin{minipage}[b]{0.5\linewidth}
+\begin{lstlisting}
+// position s1
+x = 0;
+i = 0;
+//position s2
+while (i < n) {
+	// position s3
+	i++;
+	x = x+2;
+}
+// position s4
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[b]{0.5\linewidth}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
+semithick]
+  \tikzstyle{every state}=[]
+
+	\node[initial,state] (A)                    {$s_1$};
+	\node[state]         (B) [below of=A] {$s_2$};
+	\node[state]         (C) [below of=B] {$s_3$};
+	\node[state]         (D) [left of=B]       {$s_4$};
+
+	\path (A) edge               node {$x=0;\ i=0;$} (B);
+	\path (B) edge               node {$i < n$} (C);
+	\path (B) edge               node {$i\geq n$} (D);
+	\path (C) edge [out=0, in=0, distance=2cm] node [right] {$i++;\ x=x+2;$} (B);
+
+
+\end{tikzpicture}
+\end{minipage}
+\caption{Exemple de programme, et son graphe de flot de contrôle associé}
+\end{figure}
+%\FloatBarrier
+
+Dans l'exemple de la figure 1, en supposant que $n>0$, l'analyse donne:
+\begin{itemize}
+\item $A_1$ est le polyhèdre $\{n>0\}$: au point $s_1$, on sait
+seulement que $n>0$.
+\item $A_2$ est le polyhèdre $\{0 \leq x \leq 2n,\ 0 \leq i \leq n\}$.
+\item $A_3$ est le polyhèdre $\{0 \leq x < 2n,\ 0 \leq i < n\}$.
+\item $A_4$ est le polyhèdre $\{i=n,\ x=2n\}$. On connaît donc directement la
+valeur des variables à la fin du programme, ce qui permet des optimisations de
+compilation.
+\end{itemize}
+
+\section{Découverte de chemin}
+
+Nous proposons un raffinement de la méthode d'analyse par Interprétation
+Abstraite, en guidant plus astucieusement les itérations de point fixe. En
+effet, la vitesse et la précision de l'analyse dépend de l'ordre dans lequel on
+traite les noeuds du graphe.
+
+Au lieu de travailler sur le graphe de flot de contrôle et de calculer un
+polyhèdre à chacun des noeuds, on choisit un sous-ensemble $P$ des noeuds et on fait
+le calcul de point fixe sur le graphe ne contenant que les noeuds de $P$, et où
+une transition correspond à un chemin possible dans le graphe de départ.
+
+\begin{figure}
+\begin{minipage}[b]{0.5\linewidth}
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1cm,
+semithick]
+  \tikzstyle{every state}=[minimum size=0.4cm]
+  \tikzstyle{PRstate}=[fill=black]
+
+	\node[initial,state,PRstate] (A)                    {};
+	\node[state,PRstate]         (B) [below of=A] {};
+	\node[state,PRstate]         (C) [left of=B] {};
+	\node[state]         (D) [below left of=B]       {};
+	\node[state]         (E) [below right of=B]       {};
+	\node[state]         (F) [below left of=E]       {};
+
+	\path (A) edge               node {} (B);
+	\path (B) edge               node {} (C);
+	\path (B) edge               node {} (D);
+	\path (B) edge               node {} (E);
+	\path (D) edge               node {} (F);
+	\path (E) edge               node {} (F);
+	\path (F) edge [out=0, in=0, distance=2cm] node [right] {} (B);
+\end{tikzpicture}
+\end{center}
+\end{minipage}
+\begin{minipage}[b]{0.5\linewidth}
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.3cm,
+semithick]
+  \tikzstyle{every state}=[minimum size=0.4cm]
+  \tikzstyle{PRstate}=[fill=black]
+
+	\node[initial,state,PRstate] (A)                    {};
+	\node[state,PRstate]         (B) [below of=A] {};
+	\node[state,PRstate]         (C) [left of=B] {};
+
+	\path (A) edge               node {} (B);
+	\path (B) edge               node {} (C);
+	\path (B) edge     [loop right]          node {} (B);
+	\path (B) edge     [loop below]          node {} (B);
+\end{tikzpicture}
+\end{center}
+\end{minipage}
+\caption{En noir, les noeuds de $P$. À gauche, un graphe de
+flot de contrôle, et à droite son équivalent avec uniquement les noeuds de $P$.
+L'un des noeuds contient deux boucles, chacune correspondant à un chemin
+possible dans le graphe de gauche.}
+\end{figure}
+Ce nouveau graphe contient moins d'états, mais un nombre potentiellement
+exponentiellement plus grand que le graphe d'origine. C'est pourquoi la
+technique consiste à ne pas construire explicitement ce graphe, et à procéder
+comme suit:
+
+Lors de l'analyse d'un noeud $i \in P$ du graphe, on encode la question suivante
+sous forme de formule logique: ``Existe-t-il un chemin entre $i$ et $j \in P$,
+tel que les variables numériques sont dans $A_i$ au noeud $i$, et tel que les
+variables après le passage par ce chemin ne sont pas dans $A_j$ ?'', et on la
+résout avec un SMT-solver. Si la réponse est ``oui'', celà veut dire qu'on a
+trouvé un chemin qui fait avancer l'analyse, et on peut alors calculer la
+transformation associée à ce chemin, et mettre à jour $A_j$. L'analyse d'un
+noeud $i$ s'arrête lorsque plus aucun chemin n'est trouvé.
+
+\section{Conclusion}
+
+Nous proposons une méthode pour améliorer la précision de l'analyse par
+Interprétation Abstraite, en guidant l'analyse vers les chemins du graphe à
+explorer. Le fait de considérer des chemins complets et non pas de simples
+transitions permet de gagner en précision, et l'utilisation du SMT-solving
+permet de limiter le coût des calculs et la consommation mémoire.
+
+\end{document}

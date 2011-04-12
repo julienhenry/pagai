@@ -48,14 +48,15 @@ NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=${DIR}/${NAME}.o
+	OUTPUT=${DIR}/${NAME}.bc
 fi
 
 clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT
-opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
+#opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
+opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
-	opt -dot-cfg $OUTPUT
+	opt -dot-cfg $OUTPUT -o $OUTPUT
 	mv *.dot $DIR
 	for i in `ls $DIR/*.dot` ; do
 		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot

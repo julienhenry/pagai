@@ -18,6 +18,7 @@
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
+#include "SMT.h"
 
 using namespace llvm;
 
@@ -36,6 +37,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		delete Buffer;
 	} else {
 		ferrs() << "Not able to initialize module from bitcode\n";
+		return;
 	}
 
 	if (OutputFilename != "") {
@@ -73,6 +75,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(createLowerSwitchPass());	
 	
 	Passes.add(new Live());
+	Passes.add(new SMT());
 	Passes.add(AIPass);
 
 	Passes.run(*M);
