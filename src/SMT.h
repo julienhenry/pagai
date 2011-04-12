@@ -82,7 +82,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		void push_context();
 		void pop_context();
 
-		SMT_expr createSMTformula(Function &F, BasicBlock * source);
+		SMT_expr createSMTformula(BasicBlock * source, bool narrow);
 		bool SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);

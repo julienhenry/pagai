@@ -39,6 +39,9 @@ class Abstract {
 		/// is_leq - return true iff this <= d
 		bool is_leq(Abstract * d);
 
+		/// is_bottom - return true iff the abstract value is at bottom
+		bool is_bottom();
+
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		void widening(Node * n);

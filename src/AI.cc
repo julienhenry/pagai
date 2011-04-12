@@ -63,7 +63,7 @@ bool AI::runOnModule(Module &M) {
 		n = Nodes[b];
 		fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 		fouts().flush();
-		n->X->print(true);
+		n->Y->print(true);
 
 		fflush(stdout);
 		delete it->second;
@@ -117,6 +117,7 @@ void AI::printPath(std::list<BasicBlock*> path) {
 void AI::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
+	Node * current;
 
 	// A = {first basicblock}
 	b = F->begin();
@@ -142,13 +143,28 @@ void AI::computeFunction(Function * F) {
 	computeEnv(n);
 	n->create_env(&env);
 	n->X->set_top(env);
+	n->Y = new Abstract(man,env);
+	n->Y->set_top(env);
 	A.push(n);
 
 	// Simple Abstract Interpretation algorithm
 	while (!A.empty()) {
-		n = A.top();
+		current = A.top();
 		A.pop();
-		computeNode(n);
+		computeNode(current);
+	}
+	
+	is_computed.clear();
+	A.push(n);
+
+	fouts() << "NARROWING ITERATIONS\n";
+	fouts().flush();
+
+	// narrowing phase
+	while (!A.empty()) {
+		current = A.top();
+		A.pop();
+		narrowNode(current);
 	}
 }
 
@@ -384,7 +400,6 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
-	bool update = false;
 	Node * Succ;
 
 	if (is_computed.count(n) && is_computed[n]) {
@@ -404,7 +419,7 @@ void AI::computeNode(Node * n) {
 		fouts().flush();
 		LSMT->push_context();
 		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(*n->bb->getParent(), n->bb);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
 		std::list<BasicBlock*> path;
 		DEBUG(
 			LSMT->man->SMT_print(smtexpr);
@@ -445,18 +460,6 @@ void AI::computeNode(Node * n) {
 			if (Succ->widening == 0) {
 				Xtemp->widening(Succ);
 				Succ->widening = 0;
-				//// experimental
-				if (n == Succ) {
-				  Abstract * Xbackup = new Abstract(Succ->X);
-				  Succ->X = Xtemp;
-				  Xtemp = new Abstract(n->X);
-				  computeTransform(n,path,*Xtemp);
-				  Join.clear();
-				  Join.push_back(Xbackup);
-				  Join.push_back(new Abstract(Xtemp));
-				  Xtemp->join_array(Xtemp->main->env,Join);
-				  Succ->X = Xtemp;
-				}
 			} else {
 				Succ->widening++;
 			}
@@ -474,103 +477,51 @@ void AI::computeNode(Node * n) {
 		is_computed[Succ] = false;
 		LSMT->pop_context();
 	}
-	return;
+}
 
-///////////////////////////
+void AI::narrowNode(Node * n) {
+	Abstract * Xtemp;
+	Node * Succ;
 
-	// compute the environement we will use to create our abstract domain
-	computeEnv(n);
-	n->create_env(&n->env);
-	Xtemp = new Abstract(man,n->env);
-	// computing the new abstract value, by doing the convex hull of all
-	// predecessors
-	computeHull(n->env,n,*Xtemp,update);
-
-	// environment may be bigger since the last computation of this node
-	// indeed, there may be some Phi-vars with more than 1 possible incoming
-	// edge, whereas only one single incoming edge was possible before
-
-	// we compute the set of variable that have to be added in the environment
-	std::set<ap_var_t> Vars;
-	for (unsigned i = 0; i < n->env->intdim + n->env->realdim; i++) {
-		Vars.insert(ap_environment_var_of_dim(n->env,i));
+	if (is_computed.count(n) && is_computed[n]) {
+		return;
 	}
-	for (unsigned i = 0; i < n->X->main->env->intdim + n->X->main->env->realdim; i++) {
-		Vars.erase(ap_environment_var_of_dim(n->X->main->env,i));
-	}
-	n->X->change_environment(n->env);
 
-	// Vars contains the new variables.
-	// For each of these variables, we associate the right expression in the
-	// abstract
-	ap_texpr1_t * expr = NULL;
-	ap_var_t var;
-	std::vector<ap_var_t> Names;
-	std::vector<ap_texpr1_t> Exprs;
+	while (true) {
+		is_computed[n] = true;
 
-	std::set<ap_var_t>::iterator i = Vars.begin(), e = Vars.end();
-	if (i != e)
-		update = true;
-
-
-	for (; i != e; i++) {
-		var = *i;
-		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
-
-		// we get the previous definition of the expression
-			expr = get_phivar_previous_expr((Value*)var);
-
-		if (expr != NULL) {
-			//ap_environment_fdump(stdout,n->env);
-			//ap_environment_fdump(stdout,expr->env);
-			expr = ap_texpr1_extend_environment(expr,n->env);
-
-			// Here, there is a problem !
-			if (expr != NULL) {
-				Names.push_back(var);
-				Exprs.push_back(*expr);
-			}
+		LSMT->push_context();
+		// creating the SMT formula we want to check
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true);
+		std::list<BasicBlock*> path;
+		DEBUG(
+			LSMT->man->SMT_print(smtexpr);
+		);
+		// if the result is unsat, then the computation of this node is finished
+		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
+			LSMT->pop_context();
+			return;
 		}
-	}
-	if (Names.size())
-		n->X->assign_texpr_array(
-				&Names[0],
-				&Exprs[0],
-				Names.size(),
-				NULL);
+		
+		Succ = Nodes[path.back()];
 
-	//fouts() << "n->X:\n";
-	//n->X->print();
-	//fouts() << "Xtemp:\n";
-	//Xtemp->print();
+		// computing the image of the abstract value by the path's tranformation
+		Xtemp = new Abstract(n->X);
+		computeTransform(n,path,*Xtemp);
 	
-	// if it is a loop header, then widening 
-	if (LI->isLoopHeader(b)) {
-		Xtemp->widening(n);
-	}
-
-	// update the abstract value if it is bigger than the previous one
-	if ( !Xtemp->is_leq(n->X)) {
-		delete n->X;
-		n->X = new Abstract(Xtemp);
-		update = true;
-	}
-	delete Xtemp;
-
-	if (update) {
-		// update the successors of n 
-		for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
-			BasicBlock *sb = *s;
-			A.push(Nodes[sb]);
-			is_computed[Nodes[sb]] = false;
+		if (Succ->Y->is_bottom()) {
+			delete Succ->Y;
+			Succ->Y = new Abstract(Xtemp);
+		} else {
+			std::vector<Abstract*> Join;
+			Join.push_back(new Abstract(Succ->Y));
+			Join.push_back(new Abstract(Xtemp));
+			Succ->Y->join_array(Xtemp->main->env,Join);
 		}
+		A.push(Succ);
+		//is_computed[Succ] = false;
+		LSMT->pop_context();
 	}
-	DEBUG(
-	fouts() << "RESULT:\n";
-	fouts().flush();
-	n->X->print();
-	LSMT->man->SMT_print(LSMT->AbstractToSmt(n->bb,n->X));
-	);
 }
 
 /// insert_env_vars_into_node_vars - this function takes all apron variables of

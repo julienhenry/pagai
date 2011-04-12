@@ -30,8 +30,8 @@ l'ensemble des états possibles d'un programme numérique.
 L'état d'un programme est caractérisé par la valeur de chacunes de ses variables
 numériques, et par la position à laquelle on se trouve dans le code.
 Un cas particulier
-d'Interprétation Abstraite est l'analyse par relations linéaires: On surapproxime
-l'ensemble des états possibles du programme par un polyhèdre convexe, pour découvrir des propriétés linéaires entre les différentes variables
+d'Interprétation Abstraite est l'analyse par relations linéaires: on surapproxime
+l'ensemble des états possibles du programme à un certain point par un polyhèdre convexe, pour découvrir des propriétés linéaires entre les différentes variables
 numériques du programme.
 Cette méthode implique des surapproximations, nécessaires pour rendre
 l'analyse moins coûteuse : il faut alors essayer de
@@ -40,13 +40,13 @@ consistent à trouver de nouvelles techniques pour améliorer cette précision �
 moindre coût. La méthode proposée ici consiste à s'aider des
 progrès dans la recherche sur le SMT-solving
 pour raffiner la méthode
-d'interprétation abstraite.
+d'Interprétation Abstraite.
 
 \section{Interprétation abstraite}
 
 L'application de l'Interprétation Abstraite à l'analyse de
 relations linéaires consiste à attacher à chaque point de contrôle du programme un polyhèdre convexe dont les dimensions sont les variables numériques. On travaille sur
-le graphe de flot de contrôle du programme (voir figure) : le programme peut
+le graphe de flot de contrôle du programme (Fig. 1) : le programme peut
 être vu comme un graphe où chaque transition est étiquetée par une ou plusieurs
 instructions, et peut être soumise à condition(s). On calcule itérativement les
 différents polyhèdres $A_i$ à chaque noeud $s_i$ du graphe de la façon suivante:
@@ -124,7 +124,7 @@ compilation.
 
 Nous proposons un raffinement de la méthode d'analyse par Interprétation
 Abstraite, en guidant plus astucieusement les itérations de point fixe. En
-effet, la vitesse et la précision de l'analyse dépend de l'ordre dans lequel on
+effet, la vitesse et la précision de l'analyse dépendent de l'ordre dans lequel on
 traite les noeuds du graphe.
 
 Au lieu de travailler sur le graphe de flot de contrôle et de calculer un
@@ -180,8 +180,8 @@ flot de contrôle, et à droite son équivalent avec uniquement les noeuds de $P
 L'un des noeuds contient deux boucles, chacune correspondant à un chemin
 possible dans le graphe de gauche.}
 \end{figure}
-Ce nouveau graphe contient moins d'états, mais un nombre potentiellement
-exponentiellement plus grand que le graphe d'origine. C'est pourquoi la
+Ce nouveau graphe contient moins d'états, mais un nombre de transitions potentiellement
+exponentiellement plus grand que dans le graphe d'origine. C'est pourquoi la
 technique consiste à ne pas construire explicitement ce graphe, et à procéder
 comme suit:
 

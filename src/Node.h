@@ -36,6 +36,8 @@ class Node {
 
 		/// X - Abstract domain 
 		Abstract * X;
+		/// Y - Abstract domain after narrowing operations
+		Abstract * Y;
 		ap_environment_t * env;
 
 		/// count the number of computation of X since the last widening

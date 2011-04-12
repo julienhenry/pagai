@@ -28,11 +28,13 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	man = _man;
 	env = ap_environment_alloc_empty();
 	X = new Abstract(_man,env);
+	Y = new Abstract(_man,env);
 	widening = 0;
 }
 
 Node::~Node() {
 	delete X;
+	delete Y;
 }
 
 /// computeSCC - compute the strongly connected components and the loop 

@@ -446,20 +446,6 @@ void SMT::computeRhoRec(Function &F,
 		bvar_exp = man->SMT_mk_or(implies);
 		rho_components.push_back(bvar_exp);
 	}
-	
-	// x' = x if we don't reach this block
-//	std::vector<SMT_expr> affect;
-//	std::set<Value*> empty;
-//	std::set<Value*>::iterator it = exist_prime.begin(), et = exist_prime.end();
-//	for (; it != et; ++it) {
-//		affect.push_back(man->SMT_mk_eq(getValueExpr(*it,empty), getValueExpr(*it,exist_prime)));
-//	}
-//	std::vector<SMT_expr> implies;
-//	implies.push_back(man->SMT_mk_expr_from_bool_var(bvar));
-//	implies.push_back(man->SMT_mk_and(affect));
-//	rho_components.push_back(man->SMT_mk_or(implies));
-	// end of x' = x
-
 }
 
 void SMT::computeRho(Function &F) {
@@ -488,7 +474,8 @@ void SMT::pop_context() {
 
 /// createSMTformula - create the smt formula that is described in the paper
 ///
-SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
+SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow) {
+	Function &F = *source->getParent();
 	std::vector<SMT_expr> formula;
 	formula.push_back(getRho(F));
 
@@ -513,8 +500,11 @@ SMT_expr SMT::createSMTformula(Function &F, BasicBlock * source) {
 		std::vector<SMT_expr> SuccExp;
 		SMT_var succvar = man->SMT_mk_bool_var(getNodeName(*i,false));
 		SuccExp.push_back(man->SMT_mk_expr_from_bool_var(succvar));
-
-		SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
+		
+		if (narrow)
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->Y)));
+		else
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
 		
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}

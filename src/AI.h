@@ -99,6 +99,9 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);
+		
+		/// narrowNode - apply narrowing at node n
+		void narrowNode(Node * n);
 
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.

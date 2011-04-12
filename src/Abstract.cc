@@ -70,6 +70,10 @@ bool Abstract::is_leq (Abstract *d) {
 	return false;
 }
 
+bool Abstract::is_bottom() {
+	return ap_abstract1_is_bottom(man,main);
+}
+
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
 void Abstract::widening(Node * n) {
