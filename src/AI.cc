@@ -23,6 +23,7 @@
 #include "Live.h"
 #include "SMT.h"
 #include "Debug.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -53,17 +54,22 @@ bool AI::runOnModule(Module &M) {
 		computeFunction(F);
 	}
 
-	fouts() << "\n\n\n"
+	Out->changeColor(raw_ostream::BLUE,true);
+	*Out << "\n\n\n"
 			<< "------------------------------------------\n"
 			<< "-         RESULT OF THE ANALYSIS         -\n"
 			<< "------------------------------------------\n";
+	Out->resetColor();
+
 	std::map<BasicBlock*,Node*>::iterator it;
 	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
 		b = it->first;
 		n = Nodes[b];
 		if (LSMT->getPr(*b->getParent())->count(b)) {
-			fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-			fouts().flush();
+			Out->changeColor(raw_ostream::MAGENTA,true);
+			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+			Out->resetColor();
+			Out->flush();
 			n->Y->print(true);
 			fflush(stdout);
 		}
@@ -86,33 +92,35 @@ void AI::initFunction(Function * F) {
 	}
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
-	fouts().flush();
+	Out->flush();
 }
 
 void AI::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
 	if (LI.isLoopHeader(b)) {
-		fouts() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
+		*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ": SCC=" << n->sccId << ":\n" << *b;
+		*Out << b << ": SCC=" << n->sccId << ":\n" << *b;
 	}
-	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
-		Instruction * I = i;
-		fouts() << "\t\t" << I << "\t" << *I << "\n";
-	}
+	//for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
+	//	Instruction * I = i;
+	//	*Out << "\t\t" << I << "\t" << *I << "\n";
+	//}
 
 }
 
 void AI::printPath(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
-	fouts() << "PATH: ";
+	Out->changeColor(raw_ostream::MAGENTA,true);
+	*Out << "PATH: ";
 	while (i != e) {
-		fouts() << *i;
+		*Out << *i;
 		++i;
-		if (i != e) fouts() << " --> ";
+		if (i != e) *Out << " --> ";
 	}
-	fouts() << "\n";
+	*Out << "\n";
+	Out->resetColor();
 }
 
 void AI::computeFunction(Function * F) {
@@ -137,7 +145,7 @@ void AI::computeFunction(Function * F) {
 		if (!(arg->use_empty()))
 			n->add_var(arg);
 		else 
-			fouts() << "argument " << *a << " never used !\n";
+			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
 	ap_environment_t * env = NULL;
@@ -158,8 +166,14 @@ void AI::computeFunction(Function * F) {
 	is_computed.clear();
 	A.push(n);
 
-	fouts() << "NARROWING ITERATIONS\n";
-	fouts().flush();
+	DEBUG (
+		Out->changeColor(raw_ostream::GREEN,true);
+		*Out << "#######################################################\n";
+		*Out << "NARROWING ITERATIONS\n";
+		*Out << "#######################################################\n";
+		Out->resetColor();
+		Out->flush();
+	);
 
 	// narrowing phase
 	while (!A.empty()) {
@@ -175,10 +189,9 @@ void AI::computeEnv(Node * n) {
 	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
 	std::set<Value*>::iterator it, et;
 
-	// we erase all previous elements from the maps
-	//n->phi_vars.clear();
-	//n->intVar.clear();
-	//n->realVar.clear();
+	std::map<ap_var_t,std::set<Value*> > intVars;
+	std::map<ap_var_t,std::set<Value*> > realVars;
+
 
 	std::set<BasicBlock*> preds = LSMT->getPrPredecessors(b);
 	std::set<BasicBlock*>::iterator p = preds.begin(), E = preds.end();
@@ -208,7 +221,7 @@ void AI::computeEnv(Node * n) {
 						S.insert(v);
 				}
 				if (S.size()>0)
-					n->intVar[(*i).first].insert(S.begin(),S.end());
+					intVars[(*i).first].insert(S.begin(),S.end());
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
@@ -219,35 +232,15 @@ void AI::computeEnv(Node * n) {
 						S.insert(v);
 				}
 				if (S.size()>0)
-					n->realVar[(*i).first].insert(S.begin(),S.end());
+					realVars[(*i).first].insert(S.begin(),S.end());
 			}
 		}
 	}
-}
 
-// This function is only used by AI::ComputeHull 
-void assign_phivars_and_push(
-		ap_manager_t * man, 
-		Abstract * X, 
-		Node * n, 
-		Node * pred, 
-		std::vector<Abstract*> * X_pred) {
-	// we still need to add phi variables into our domain 
-	// and assign them the the right value
-	X->assign_texpr_array(
-			&n->phi_vars[pred].name[0],
-			&n->phi_vars[pred].expr[0],
-			n->phi_vars[pred].name.size(),
-			NULL);
-
-	X->canonicalize();
-	
-	// the created abstract domain could be at bottom
-	// In that case, we don't isert its value in the vector
-	if (!ap_abstract1_is_bottom(man,X->main))
-		X_pred->push_back(X);
-	else
-		delete X;
+	//n->intVar.clear();
+	//n->realVar.clear();
+	n->intVar.insert(intVars.begin(), intVars.end());
+	n->realVar.insert(realVars.begin(), realVars.end());
 }
 
 void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
@@ -259,17 +252,10 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	PHIvars.name.clear();
 	PHIvars.expr.clear();
 	focuspath.assign(path.begin(), path.end());
+	Node * succ = Nodes[focuspath.back()];
 	focusblock = 0;
 	
-	Node * succ = Nodes[focuspath.back()];
-	
-
-	//succ->intVar.clear();
-	//succ->realVar.clear();
-
-	//fouts() << "POLYHEDRA BEGINNING\n";
-	//fouts().flush();
-	//Xtemp.print();
+	computeEnv(succ);
 
 	std::list<BasicBlock*>::iterator B = path.begin(), E = path.end();
 	for (; B != E; ++B) {
@@ -291,17 +277,11 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		focusblock++;
 	}
 
-	computeEnv(succ);
-
 	ap_environment_t * env = NULL;
 	succ->create_env(&env);
 
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
-
-	//fouts() << "POLYHEDRA AFTER CHANGE OF ENVIRONMENT\n";
-	//fouts().flush();
-	//Xtemp.print();
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
@@ -321,14 +301,8 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 			Xtemp.join_array(env,A);
 		}
 	}
-	//fouts() << "POLYHEDRA AFTER MEETING CONSTRAINTS\n";
-	//fouts().flush();
-	//Xtemp.print();
 
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
-	//fouts() << "POLYHEDRA AFTER PHI ASSIGNATIONS\n";
-	//fouts().flush();
-	//Xtemp.print();
 }
 
 
@@ -342,16 +316,20 @@ void AI::computeNode(Node * n) {
 	}
 	
 	DEBUG (
-		fouts() << "#######################################################\n";
-		fouts() << "Computing node: " << b << "\n";
-		fouts() << *b << "\n";
+		Out->changeColor(raw_ostream::GREEN,true);
+		*Out << "#######################################################\n";
+		*Out << "Computing node: " << b << "\n";
+		Out->resetColor();
+		*Out << *b << "\n";
 	);
 
 
 	while (true) {
 		is_computed[n] = true;
-		fouts() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-		fouts().flush();
+		Out->changeColor(raw_ostream::RED,true);
+		*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+		Out->resetColor();
+		Out->flush();
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
@@ -367,31 +345,26 @@ void AI::computeNode(Node * n) {
 	
 		DEBUG(
 			printPath(path);
-			fouts().flush();
+			Out->flush();
 		);
 		
 		Succ = Nodes[path.back()];
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
-		fouts() << "Compute Transform\n";
-		fouts().flush();
 		computeTransform(n,path,*Xtemp);
-		fouts() << "Compute Transform OK\n";
-		fouts().flush();
-		fflush(stdout);
-		fouts() << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
-		fouts().flush();
-		Xtemp->print();
+		
+		DEBUG(
+			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
+			Out->flush();
+			Xtemp->print();
+		);
 
 		std::vector<Abstract*> Join;
 		Join.push_back(new Abstract(Succ->X));
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		//fouts() << "POLYHEDRA AFTER JOIN\n";
-		//fouts().flush();
-		//Xtemp->print();
 		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
@@ -405,11 +378,11 @@ void AI::computeNode(Node * n) {
 		
 		Succ->X = Xtemp;
 
-
-		fouts() << "RESULT:\n";
-		fouts().flush();
-		Succ->X->print();
-		
+		DEBUG(
+			*Out << "RESULT:\n";
+			Out->flush();
+			Succ->X->print();
+		);
 
 		A.push(Succ);
 		is_computed[Succ] = false;
@@ -428,6 +401,10 @@ void AI::narrowNode(Node * n) {
 	while (true) {
 		is_computed[n] = true;
 
+		Out->changeColor(raw_ostream::RED,true);
+		*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+		Out->resetColor();
+		Out->flush();
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true);
@@ -447,10 +424,12 @@ void AI::narrowNode(Node * n) {
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
 
-		fouts() << "POLYHEDRA TO BE JOINED\n";
-		fouts().flush();
-		Xtemp->print();
-	
+		DEBUG(
+			*Out << "POLYHEDRA TO JOIN\n";
+			Out->flush();
+			Xtemp->print();
+		);
+
 		if (Succ->Y->is_bottom()) {
 			delete Succ->Y;
 			Succ->Y = new Abstract(Xtemp);
@@ -461,7 +440,6 @@ void AI::narrowNode(Node * n) {
 			Succ->Y->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
-		//is_computed[Succ] = false;
 		LSMT->pop_context();
 	}
 }
@@ -482,7 +460,7 @@ void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V)
 }
 
 void AI::visitReturnInst (ReturnInst &I){
-	//fouts() << "returnInst\n" << I << "\n";
+	//*Out << "returnInst\n" << I << "\n";
 }
 
 // create_constraints - this function is called by computeCondition
@@ -619,7 +597,7 @@ void AI::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_UNO:
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
-			fouts() << "ERROR : Unknown predicate\n";
+			*Out << "ERROR : Unknown predicate\n";
 			break;
 	}
 	if (result) {
@@ -661,10 +639,10 @@ void AI::computeConstantCondition(	ConstantInt * inst,
 
 
 void AI::visitBranchInst (BranchInst &I){
-	//fouts() << "BranchInst\n" << I << "\n";	
+	//*Out << "BranchInst\n" << I << "\n";	
 	bool test;
 
-	//fouts() << "BranchInst\n" << I << "\n";	
+	//*Out << "BranchInst\n" << I << "\n";	
 	if (I.isUnconditional()) {
 		/* no constraints */
 		return;
@@ -709,62 +687,62 @@ void AI::visitBranchInst (BranchInst &I){
 /// This code is dead since we use the LowerSwitch pass before doing abstract
 /// interpretation.
 void AI::visitSwitchInst (SwitchInst &I){
-	//fouts() << "SwitchInst\n" << I << "\n";	
+	//*Out << "SwitchInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitIndirectBrInst (IndirectBrInst &I){
-	//fouts() << "IndirectBrInst\n" << I << "\n";	
+	//*Out << "IndirectBrInst\n" << I << "\n";	
 }
 
 void AI::visitInvokeInst (InvokeInst &I){
-	//fouts() << "InvokeInst\n" << I << "\n";	
+	//*Out << "InvokeInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitUnwindInst (UnwindInst &I){
-	//fouts() << "UnwindInst\n" << I << "\n";	
+	//*Out << "UnwindInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitUnreachableInst (UnreachableInst &I){
-	//fouts() << "UnreachableInst\n" << I << "\n";	
+	//*Out << "UnreachableInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitICmpInst (ICmpInst &I){
-	//fouts() << "ICmpInst\n" << I << "\n";	
-	visitInstAndAddVarIfNecessary(I);
+	//*Out << "ICmpInst\n" << I << "\n";	
+	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitFCmpInst (FCmpInst &I){
-	//fouts() << "FCmpInst\n" << I << "\n";	
-	visitInstAndAddVarIfNecessary(I);
+	//*Out << "FCmpInst\n" << I << "\n";	
+	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitAllocaInst (AllocaInst &I){
-	//fouts() << "AllocaInst\n" << I << "\n";	
+	//*Out << "AllocaInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitLoadInst (LoadInst &I){
-	//fouts() << "LoadInst\n" << I << "\n";	
+	//*Out << "LoadInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitStoreInst (StoreInst &I){
-	//fouts() << "StoreInst\n" << I << "\n";	
+	//*Out << "StoreInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitGetElementPtrInst (GetElementPtrInst &I){
-	//fouts() << "GetElementPtrInst\n" << I << "\n";	
+	//*Out << "GetElementPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitPHINode (PHINode &I){
 	Node * n = Nodes[focuspath.back()];
-	//fouts() << "PHINode\n" << I << "\n";
+	//*Out << "PHINode\n" << I << "\n";
 	// we only consider one single predecessor: the predecessor from the path
 	BasicBlock * pred = focuspath[focusblock-1];
 
@@ -784,7 +762,7 @@ void AI::visitPHINode (PHINode &I){
 				n->add_var(&I);
 				PHIvars.name.push_back((ap_var_t)&I);
 				PHIvars.expr.push_back(*expr);
-				fouts() << I;
+				*Out << I;
 				printf(" is equal to ");
 				ap_texpr1_fprint(stdout,expr);
 				printf("\n");
@@ -799,67 +777,67 @@ void AI::visitPHINode (PHINode &I){
 }
 
 void AI::visitTruncInst (TruncInst &I){
-	//fouts() << "TruncInst\n" << I << "\n";	
+	//*Out << "TruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitZExtInst (ZExtInst &I){
-	//fouts() << "ZExtInst\n" << I << "\n";	
+	//*Out << "ZExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitSExtInst (SExtInst &I){
-	//fouts() << "SExtInst\n" << I << "\n";	
+	//*Out << "SExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitFPTruncInst (FPTruncInst &I){
-	//fouts() << "FPTruncInst\n" << I << "\n";	
+	//*Out << "FPTruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitFPExtInst (FPExtInst &I){
-	//fouts() << "FPExtInst\n" << I << "\n";	
+	//*Out << "FPExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitFPToUIInst (FPToUIInst &I){
-	//fouts() << "FPToUIInst\n" << I << "\n";	
+	//*Out << "FPToUIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitFPToSIInst (FPToSIInst &I){
-	//fouts() << "FPToSIInst\n" << I << "\n";	
+	//*Out << "FPToSIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitUIToFPInst (UIToFPInst &I){
-	//fouts() << "UIToFPInst\n" << I << "\n";	
+	//*Out << "UIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitSIToFPInst (SIToFPInst &I){
-	//fouts() << "SIToFPInst\n" << I << "\n";	
+	//*Out << "SIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitPtrToIntInst (PtrToIntInst &I){
-	//fouts() << "PtrToIntInst\n" << I << "\n";	
+	//*Out << "PtrToIntInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitIntToPtrInst (IntToPtrInst &I){
-	//fouts() << "IntToPtrInst\n" << I << "\n";	
+	//*Out << "IntToPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitBitCastInst (BitCastInst &I){
-	//fouts() << "BitCastInst\n" << I << "\n";	
+	//*Out << "BitCastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitSelectInst (SelectInst &I){
-	//fouts() << "SelectInst\n" << I << "\n";	
+	//*Out << "SelectInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -868,49 +846,49 @@ void AI::visitSelectInst (SelectInst &I){
 // variable, and we the result returned by the function is a new variable of
 // type int or float, depending on the return type
 void AI::visitCallInst(CallInst &I){
-	//fouts() << "CallInst\n" << I << "\n";	
+	//*Out << "CallInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitVAArgInst (VAArgInst &I){
-	//fouts() << "VAArgInst\n" << I << "\n";	
+	//*Out << "VAArgInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitExtractElementInst (ExtractElementInst &I){
-	//fouts() << "ExtractElementInst\n" << I << "\n";	
+	//*Out << "ExtractElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitInsertElementInst (InsertElementInst &I){
-	//fouts() << "InsertElementInst\n" << I << "\n";	
+	//*Out << "InsertElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitShuffleVectorInst (ShuffleVectorInst &I){
-	//fouts() << "ShuffleVectorInst\n" << I << "\n";	
+	//*Out << "ShuffleVectorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitExtractValueInst (ExtractValueInst &I){
-	//fouts() << "ExtractValueInst\n" << I << "\n";	
+	//*Out << "ExtractValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitInsertValueInst (InsertValueInst &I){
-	//fouts() << "InsertValueInst\n" << I << "\n";	
+	//*Out << "InsertValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitTerminatorInst (TerminatorInst &I){
-	//fouts() << "TerminatorInst\n" << I << "\n";	
+	//*Out << "TerminatorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[focuspath.back()];
 
-	//fouts() << "BinaryOperator\n" << I << "\n";	
+	//*Out << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
 	switch(I.getOpcode()) {
 		// Standard binary operators...
@@ -970,12 +948,12 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 }
 
 void AI::visitCmpInst (CmpInst &I){
-	//fouts() << "CmpInst\n" << I << "\n";	
-	visitInstAndAddVarIfNecessary(I);
+	//*Out << "CmpInst\n" << I << "\n";	
+	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AI::visitCastInst (CastInst &I){
-	//fouts() << "CastInst\n" << I << "\n";	
+	//*Out << "CastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 

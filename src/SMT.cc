@@ -32,7 +32,6 @@ const char * SMT::getPassName() const {
 }
 
 SMT::SMT() : ModulePass(ID) {
-	fouts() << "SMT\n";
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -270,8 +269,8 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			var = getVar(v,false);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
-		fouts() << "ERROR in getValueExpr" << *v << "\n";
-		fouts().flush();
+		*Out << "ERROR in getValueExpr" << *v << "\n";
+		Out->flush();
 		return NULL;
 	}
 	return NULL;
@@ -529,7 +528,7 @@ bool SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 			if (start)
 				path->push_back(src);
 		}
-		fouts().flush();
+		Out->flush();
 	}
 
 	while (succ.count(path->back())) {
@@ -604,7 +603,7 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 		case CmpInst::FCMP_UNO:
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
-			fouts() << "ERROR : Unknown predicate\n";
+			*Out << "ERROR : Unknown predicate\n";
 			return NULL;
 	}
 	return NULL;

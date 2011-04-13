@@ -9,6 +9,7 @@
 #include "Analyzer.h" 
 
 SMT_Solver manager;
+llvm::raw_ostream *Out;
 
 void show_help() {
         puts("Usage :\n \

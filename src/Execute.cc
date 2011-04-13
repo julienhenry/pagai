@@ -19,6 +19,7 @@
 #include "Execute.h"
 #include "Live.h"
 #include "SMT.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -54,6 +55,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		// Make sure that the Output file gets unlinked from the disk if we get a
 		// SIGINT
 		sys::RemoveFileOnSignal(sys::Path(OutputFilename));
+	} else {
+		Out = &llvm::outs();
+		Out->SetUnbuffered();
 	}
 
 	// Build up all of the passes that we want to do to the module.

@@ -13,12 +13,11 @@
 #include "yices_c.h"
 
 #include "yices.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
 yices::yices() {
-	fouts() << "YICES\n";
-	fouts().flush();
 	const char* intname =	"int";
 	const char* floatname ="float";
 	ctx = yices_mk_context();
@@ -186,31 +185,31 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	//yices_pp_expr ((yices_expr)a);
 	yices_set_arith_only(1);
 	yices_assert(ctx,(yices_expr)a);
-	//fouts() << "\n";
+	//*Out << "\n";
 	if (yices_check(ctx) == l_true) {
 		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
 		yices_model m              = yices_get_model(ctx);
 		yices_display_model(m);
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
-			//fouts() <<  yices_get_var_decl_name(d) << " = ";
+			//*Out <<  yices_get_var_decl_name(d) << " = ";
 			std::string name (yices_get_var_decl_name(d));
 			switch(yices_get_value(m, d)) {
 				case l_true: 
 					true_booleans->insert(name);
-					//fouts() << "true\n"; 
+					//*Out << "true\n"; 
 					break;
 				case l_false: 
-					//fouts() << "false\n"; 
+					//*Out << "false\n"; 
 					break;
 				case l_undef: 
-					//fouts() << "unknown\n"; 
+					//*Out << "unknown\n"; 
 					break;
 			}
 		}
 		yices_del_iterator(it);
 	} else {
-		fouts() << "unsat\n";
+		*Out << "unsat\n";
 		return false;
 	}
 	return true;

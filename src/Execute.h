@@ -9,12 +9,8 @@ using namespace llvm;
 
 
 class execute {
-private :
-        formatted_raw_ostream *Out;
-
 public :
 	void exec(std::string InputFilename, std::string OutputFilename);
-
 };
 
 #endif

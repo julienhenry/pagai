@@ -1,5 +1,6 @@
 #ifndef ANALYZER_H
 #define ANALYZER_H
+#include "llvm/Support/FormattedStream.h"
 
 enum SMT_Solver {
 	Z3_MANAGER,
@@ -7,5 +8,7 @@ enum SMT_Solver {
 };
 
 SMT_Solver getSMTSolver();
+
+extern llvm::raw_ostream *Out;
 
 #endif

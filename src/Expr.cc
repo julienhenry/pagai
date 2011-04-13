@@ -11,6 +11,7 @@
 #include "Expr.h"
 #include "apron.h"
 #include "Debug.h"
+#include "Analyzer.h"
 
 std::map<Value *,ap_texpr1_t *> Exprs;
 
@@ -41,7 +42,7 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
-			fouts() << "ERROR: NULL pointer in table Exprs !\n";
+			*Out << "ERROR: NULL pointer in table Exprs !\n";
 		return Exprs[val];
 	} else {
 		// val is not yet in the Expr map
@@ -140,8 +141,8 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		break;
 	default:
 		DEBUG(
-		fouts() << "Warning: Unknown type for " << *val << "\n";
-		fouts().flush();
+		*Out << "Warning: Unknown type for " << *val << "\n";
+		Out->flush();
 		)
 		ap_type = AP_RTYPE_REAL;
 		return 1;
