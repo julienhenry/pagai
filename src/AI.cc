@@ -264,8 +264,8 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	Node * succ = Nodes[focuspath.back()];
 	
 
-	succ->intVar.clear();
-	succ->realVar.clear();
+	//succ->intVar.clear();
+	//succ->realVar.clear();
 
 	//fouts() << "POLYHEDRA BEGINNING\n";
 	//fouts().flush();
