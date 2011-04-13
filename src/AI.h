@@ -74,14 +74,6 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// computeEnv - compute the new environment of Node n, based on 
 		/// its intVar and RealVar maps
 		void computeEnv(Node * n);
-
-		/// computeHull - compute the abstract domain resulting from the union
-		/// of the abstract of all predecessors of Node n
-		/// and assign it to Xtemp
-		void computeHull(ap_environment_t * env, 
-				Node * n, 
-				Abstract &Xtemp, 
-				bool &update);
 		
 		/// focuspath - path we focus on
 		std::vector<BasicBlock*> focuspath;

@@ -140,7 +140,8 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		break;
 	default:
 		DEBUG(
-		fouts() << "Warning: Unknown type " << val->getType() << "\n";
+		fouts() << "Warning: Unknown type for " << *val << "\n";
+		fouts().flush();
 		)
 		ap_type = AP_RTYPE_REAL;
 		return 1;

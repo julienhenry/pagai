@@ -61,11 +61,12 @@ bool AI::runOnModule(Module &M) {
 	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
 		b = it->first;
 		n = Nodes[b];
-		fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-		fouts().flush();
-		n->Y->print(true);
-
-		fflush(stdout);
+		if (LSMT->getPr(*b->getParent())->count(b)) {
+			fouts() << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+			fouts().flush();
+			n->Y->print(true);
+			fflush(stdout);
+		}
 		delete it->second;
 	}
 	return 0;
@@ -249,78 +250,6 @@ void assign_phivars_and_push(
 		delete X;
 }
 
-void AI::computeHull(
-		ap_environment_t * env, 
-		Node * n, 
-		Abstract &Xtemp, 
-		bool &update) {
-	std::vector<Abstract*> X_pred;
-	Abstract * X;
-	BasicBlock * b = n->bb;
-	Node * pred = NULL;
-
-	pred_iterator p = pred_begin(b), E = pred_end(b);
-	if (p == E) {
-		// we are in the first basicblock of the function
-		update = true;
-	}
-
-	for (; p != E; ++p) {
-		BasicBlock *pb = *p;
-		pred = Nodes[pb];
-		
-		// we only take pred as a predecessor if its main value is not bottom
-		if (pred->X->main != NULL && !ap_abstract1_is_bottom(man,pred->X->main)) {
-
-
-			X = new Abstract(pred->X);
-
-			// we transform the abstract domain such that it fits the
-			// environment of the new one.
-			X->change_environment(env);
-
-			// intersect with the transition's condition
-			if (pred->tcons.count(n)) {
-				std::vector<ap_tcons1_array_t*>::iterator i, e;
-				for (i = pred->tcons[n].begin(), e = pred->tcons[n].end(); i != e; i++) {
-					Abstract * X2 = new Abstract(X);
-					X2->meet_tcons_array(*i);
-					// we still have to assign the right values to phi
-					// variables, and push X2 in X_pred if it is not bottom
-					assign_phivars_and_push(man,X2,n,pred,&X_pred);
-				}
-				delete X;
-			} else {
-				// we still have to assign the right values to phi
-				// variables, and push X in X_pred if it is not bottom
-				assign_phivars_and_push(man,X,n,pred,&X_pred);
-			}
-		}
-	}
-	
-	DEBUG(
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(), 
-			e = n->intVar.end();i != e; ++i) {
-		Value * v = (Value *) (*i).first;	
-		if (LV->isLiveThroughBlock(v,b)) {
-			fouts() << "Value is Live :" << *v << "\n";
-		} else {
-			fouts() << "Value is NOT Live :" << *v << "\n";
-		}
-	}
-	);
-
-	// Xtemp is the join of all predecessors we just computed
-
-	if (X_pred.size() > 0) {
-		Xtemp.join_array(env,X_pred);
-	} else {
-		// we are in the first basicblock of the function
-		// or an unreachable block
-		Xtemp.set_bottom(env);
-	}
-}
-
 void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
 	
 	// setting the focus path, such that the instructions can be correctly
@@ -332,6 +261,12 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	focuspath.assign(path.begin(), path.end());
 	focusblock = 0;
 	
+	Node * succ = Nodes[focuspath.back()];
+	
+
+	succ->intVar.clear();
+	succ->realVar.clear();
+
 	//fouts() << "POLYHEDRA BEGINNING\n";
 	//fouts().flush();
 	//Xtemp.print();
@@ -342,11 +277,13 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		for (BasicBlock::iterator i = (*B)->begin(), e = (*B)->end();
 				i != e; ++i) {
 			if (focusblock == 0) {
-				if (!isa<PHINode>(*i))
+				if (!isa<PHINode>(*i)) {
 					visit(*i);
+				}
 			} else if (focusblock == focuspath.size()-1) {
-				if (isa<PHINode>(*i))
+				if (isa<PHINode>(*i)) {
 					visit(*i);
+				}
 			} else {
 				visit(*i);
 			}
@@ -354,8 +291,6 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		focusblock++;
 	}
 
-	Node * succ = Nodes[focuspath.back()];
-	
 	computeEnv(succ);
 
 	ap_environment_t * env = NULL;
@@ -439,7 +374,10 @@ void AI::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
+		fouts() << "Compute Transform\n";
+		fouts().flush();
 		computeTransform(n,path,*Xtemp);
+		fouts() << "Compute Transform OK\n";
 		fouts().flush();
 		fflush(stdout);
 		fouts() << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
@@ -508,6 +446,10 @@ void AI::narrowNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
+
+		fouts() << "POLYHEDRA TO BE JOINED\n";
+		fouts().flush();
+		Xtemp->print();
 	
 		if (Succ->Y->is_bottom()) {
 			delete Succ->Y;
@@ -1047,8 +989,10 @@ void AI::visitInstAndAddVarIfNecessary(Instruction &I) {
 	
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	if (!LV->isLiveThroughBlock(&I,n->bb) && !LV->isUsedInBlock(&I,n->bb)) return;
-	
+	if (!LV->isLiveThroughBlock(&I,I.getParent()) 
+		&& !LV->isUsedInBlock(&I,I.getParent()))
+		return;
+
 	if (ap_type == AP_RTYPE_INT) { 
 		env = ap_environment_alloc(&var,1,NULL,0);
 	} else {

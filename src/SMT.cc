@@ -401,9 +401,6 @@ void SMT::computeRhoRec(Function &F,
 	}
 
 	if (first) return;
-	fouts() << "constructing formula for node " << b << "\n";
-	fouts().flush();
-
 
 	// we create a boolean reachability predicate for the basicblock
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
@@ -460,7 +457,6 @@ void SMT::computeRho(Function &F) {
 		computeRhoRec(F,b,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
-	man->SMT_print(rho[&F]);
 }
 
 
