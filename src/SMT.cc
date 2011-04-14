@@ -192,6 +192,11 @@ SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 		return man->SMT_mk_and(constraints);
 }
 
+std::string SMT::getUndeterministicChoiceName(Value * v) {
+	std::ostringstream name;
+	name << "c_" << v;
+	return name.str();
+}
 
 std::string SMT::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
@@ -224,7 +229,7 @@ std::string SMT::getValueName(Value * v, bool primed) {
 }
 
 
-SMT_expr SMT::getValueType(Value * v) {
+SMT_type SMT::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {
 		case Type::IntegerTyID:
 			return man->int_type;
@@ -341,31 +346,17 @@ void SMT::computePr(Function &F) {
 		if (LI->isLoopHeader(b)) {
 			FPr->insert(b);
 		}
+
+		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
+			if (isa<ReturnInst>(*it)) {
+				FPr->insert(b);
+			}
+		}
+
 	}
 	Pr[&F] = FPr;
-
-	//b = F.begin();
-	//std::set<BasicBlock*> visited;
-	//computePrSuccessors(F,NULL,b,visited);
 }
 
-//void SMT::computePrSuccessors(Function &F, BasicBlock * pred, BasicBlock * b, std::set<BasicBlock*> visited) {
-//	BasicBlock * succ;
-//
-//	if (Pr[&F]->count(b) && pred != NULL) {
-//		Pr_succ[pred].insert(b);
-//		pred = b;
-//	}
-//	if (!pred) pred = b;
-//
-//	visited.insert(b);
-//
-//	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
-//		succ = *s;
-//		if (!visited.count(succ))
-//			computePrSuccessors(F,pred,succ,visited);
-//	}
-//}
 std::set<BasicBlock*> SMT::getPrPredecessors(BasicBlock * b) {
 	return Pr_pred[b];
 }
@@ -425,7 +416,6 @@ void SMT::computeRhoRec(Function &F,
 	// instructions
 	bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 	instructions.clear();
-	exist_prime.clear();
 
 	for (BasicBlock::iterator i = b->begin(), e = b->end();
 			i != e; ++i) {
@@ -612,9 +602,6 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 void SMT::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
-	//primed[I.getParent()].insert(&I);
-	//exist_prime.insert(&I);
-
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
 	SMT_expr bexpr = man->SMT_mk_expr_from_bool_var(bvar);
 	BasicBlock * s = I.getSuccessor(0);
@@ -662,6 +649,31 @@ void SMT::visitIndirectBrInst (IndirectBrInst &I) {
 }
 
 void SMT::visitInvokeInst (InvokeInst &I) {
+	BasicBlock * b = I.getParent();
+
+	SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(&I));
+	SMT_expr cexpr = man->SMT_mk_expr_from_bool_var(cvar);
+
+	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
+	SMT_expr bexpr = man->SMT_mk_expr_from_bool_var(bvar);
+	
+	// normal destination
+	BasicBlock * s = I.getNormalDest();
+	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(b,s));
+	SMT_expr eexpr = man->SMT_mk_expr_from_bool_var(evar);
+
+	std::vector<SMT_expr> components;
+	components.push_back(bexpr);
+	components.push_back(cexpr);
+	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
+
+	// Unwind destination
+	s = I.getUnwindDest();
+	evar = man->SMT_mk_bool_var(getEdgeName(b,s));
+	eexpr = man->SMT_mk_expr_from_bool_var(evar);
+	components.pop_back();
+	components.push_back(man->SMT_mk_not(cexpr));
+	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
 }
 
 void SMT::visitUnwindInst (UnwindInst &I) {
@@ -709,7 +721,6 @@ void SMT::visitPHINode (PHINode &I) {
 	// we prime this PHI variable iff it is a Phivar from a block in Pr
 	if (Pr[I.getParent()->getParent()]->count(I.getParent())) {
 		primed[I.getParent()].insert(&I);
-		exist_prime.insert(&I);
 	}
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());

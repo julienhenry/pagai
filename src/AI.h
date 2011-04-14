@@ -49,6 +49,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		AI () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
 				man = pk_manager_alloc(true);
 				init_apron();
+				//linconstraints = ap_lincons1_array_make(ap_environment_alloc_empty(),0);
 			}
 
 		~AI () {
@@ -79,7 +80,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		std::vector<BasicBlock*> focuspath;
 		/// index in focuspath of the focuspath's basicblock we are working on
 		unsigned focusblock;
-	
+		
+
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
 		ap_lincons1_array_t linconstraints;
 		phivar PHIvars;

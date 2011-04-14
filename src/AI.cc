@@ -293,10 +293,13 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				ap_tcons1_array_print((*i)->front());
 				fflush(stdout);
 				Xtemp.meet_tcons_array((*i)->front());
-				ap_abstract1_t A = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
-				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&A);
+				// creating the associated lincons for a future widening with
+				// threshold
+				ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
+				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
 				linconssize += ap_lincons1_array_size(&lincons);
 				linconsts.push_back(lincons);
+				ap_abstract1_clear(man,&AX);
 		} else {
 			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
@@ -305,6 +308,13 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				X2 = new Abstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
+				// creating the associated lincons for a future widening with
+				// threshold
+				ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*it));
+				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
+				linconssize += ap_lincons1_array_size(&lincons);
+				linconsts.push_back(lincons);
+				ap_abstract1_clear(man,&AX);
 			}
 			Xtemp.join_array(env,A);
 		}
@@ -400,6 +410,7 @@ void AI::computeNode(Node * n) {
 				Succ->widening++;
 			}
 		} 
+		ap_lincons1_array_clear(&linconstraints);
 		
 		Succ->X = Xtemp;
 
@@ -776,6 +787,7 @@ void AI::visitPHINode (PHINode &I){
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
+	fouts() << I << "\n";
 
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
 		if (pred == I.getIncomingBlock(i)) {

@@ -7,4 +7,5 @@ int sum(unsigned n, int tab[n]) {
 		}
 		return s;
 	}
+	return 0;
 }
