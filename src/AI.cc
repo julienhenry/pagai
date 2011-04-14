@@ -283,12 +283,20 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
 
+
+	std::vector<ap_lincons1_array_t> linconsts;
+	size_t linconssize = 0;
+
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 				ap_tcons1_array_print((*i)->front());
 				fflush(stdout);
 				Xtemp.meet_tcons_array((*i)->front());
+				ap_abstract1_t A = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
+				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&A);
+				linconssize += ap_lincons1_array_size(&lincons);
+				linconsts.push_back(lincons);
 		} else {
 			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
@@ -301,6 +309,23 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 			Xtemp.join_array(env,A);
 		}
 	}
+
+	//
+	linconstraints = ap_lincons1_array_make(Xtemp.main->env,linconssize);
+	size_t x = 0;
+	size_t N = linconsts.size();
+	for (size_t k = 0; k < N; k++) {
+		for (size_t j=0; j < ap_lincons1_array_size(&linconsts[k]); j++) {
+			ap_lincons1_t cons = ap_lincons1_array_get(&linconsts[k],j);
+			ap_lincons1_array_set(&linconstraints,x,&cons);	
+			x++;
+		}
+	}
+//	ap_abstract1_t A = ap_abstract1_of_lincons_array(man,Xtemp.main->env,&linconstraints);
+//	A = ap_abstract1_assign_texpr_array(man,false,&A,&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+//	linconstraints = ap_abstract1_to_lincons_array(man,&A);
+
+	//
 
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 }
@@ -369,7 +394,8 @@ void AI::computeNode(Node * n) {
 
 		if (LI->isLoopHeader(Succ->bb)) {
 			if (Succ->widening == 0) {
-				Xtemp->widening(Succ);
+				//Xtemp->widening(Succ);
+				Xtemp->widening_threshold(Succ, &linconstraints);
 				Succ->widening = 0;
 			} else {
 				Succ->widening++;

@@ -81,6 +81,7 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		unsigned focusblock;
 	
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
+		ap_lincons1_array_t linconstraints;
 		phivar PHIvars;
 		
 		/// computeTransform - computes in Xtemp the polyhedra resulting from

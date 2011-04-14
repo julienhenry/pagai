@@ -66,6 +66,17 @@ void Abstract::widening(Node * n) {
 	*main = Xmain_widening;
 }
 
+void Abstract::widening_threshold(Node * n, ap_lincons1_array_t* cons) {
+	ap_abstract1_t Xmain_widening;
+	ap_abstract1_t Xmain;
+
+	Xmain = ap_abstract1_join(man,false,n->X->main,main);
+	Xmain_widening = ap_abstract1_widening_threshold(man,n->X->main,&Xmain, cons);
+	ap_abstract1_clear(man,&Xmain);
+	
+	*main = Xmain_widening;
+}
+
 void Abstract::meet_tcons_array(ap_tcons1_array_t* tcons) {
 
 	ap_environment_t * lcenv = common_environment(
