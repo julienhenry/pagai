@@ -393,8 +393,7 @@ void AI::computeNode(Node * n) {
 		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			if (Succ->widening == 0) {
-				//Xtemp->widening(Succ);
+			if (Succ->widening == 1) {
 				Xtemp->widening_threshold(Succ, &linconstraints);
 				Succ->widening = 0;
 			} else {
