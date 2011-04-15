@@ -49,8 +49,8 @@ SMT_var z3_manager::SMT_mk_var(std::string name,SMT_type type){
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
 		vars[name] = Z3_mk_string_symbol(ctx,cstr);
-		types[vars[name]] = type;
-	}
+		types[vars[name]] = (Z3_sort)type;
+	} 
 	return vars[name];
 }
 
@@ -103,8 +103,9 @@ SMT_expr z3_manager::SMT_mk_eq (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr z3_manager::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
-	Z3_ast args[2] = { (Z3_ast)a1, (Z3_ast)a2 };
-	return Z3_mk_distinct(ctx, 2, args);
+	//Z3_ast args[2] = { (Z3_ast)a1, (Z3_ast)a2 };
+	//return Z3_mk_distinct(ctx, 2, args);
+	return SMT_mk_not(SMT_mk_eq(a1,a2));
 }
 
 SMT_expr z3_manager::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){

@@ -108,6 +108,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 		bool runOnModule(Module &M);
 
+		void reset_SMTcontext();
 
 		/// getPr - get the set Pr. The set Pr is computed only once
 		std::set<BasicBlock*>* getPr(Function &F);

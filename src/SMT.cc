@@ -73,6 +73,18 @@ bool SMT::runOnModule(Module &M) {
 		return rho[&F];
 	}
 
+void SMT::reset_SMTcontext() {
+	delete man;
+	switch (getSMTSolver()) {
+		case Z3_MANAGER:
+			man = new z3_manager();
+			break;
+		case YICES_MANAGER: 
+			man = new yices();
+			break;
+	}
+}
+
 SMT_expr SMT::texpr1ToSmt(ap_texpr1_t texpr) {
 	// NOT IMPLEMENTED
 	return NULL;
@@ -178,6 +190,9 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 }
 
 SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
+
+	if (A->is_bottom()) return man->SMT_mk_false();
+
 	std::vector<SMT_expr> constraints;
 	ap_lincons1_t lincons;
 	ap_lincons1_array_t lincons_array = A->to_lincons_array();
@@ -333,7 +348,7 @@ void SMT::getElementFromString(std::string name, bool &isEdge, bool &start, Basi
 
 
 // computePr - computes the set Pr of BasicBlocks
-// for the moment - Pr = Pw
+// for the moment - Pr = Pw + blocks with a ret inst
 void SMT::computePr(Function &F) {
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	BasicBlock * b;
@@ -567,6 +582,10 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 		op1 = getValueExpr(inst->getOperand(0), primed[inst->getParent()]);
 		op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
 	}
+
+	man->SMT_print(op1);
+	man->SMT_print(op2);
+
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
 			return man->SMT_mk_false();
