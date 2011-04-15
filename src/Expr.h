@@ -36,4 +36,8 @@ void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
 /// get_ap_type - compute the Apron type of the LLVM Value
 /// return 0 iff the type is int or real, 1 in the other cases
 int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type);
+
+void environment_print(ap_environment_t * env);
+void texpr1_print(ap_texpr1_t * expr);
+void tcons1_array_print(ap_tcons1_array_t * cons);
 #endif

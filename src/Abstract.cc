@@ -7,6 +7,7 @@
 #include "Abstract.h"
 #include "Node.h"
 #include "Expr.h"
+#include "Analyzer.h"
 
 Abstract::Abstract(ap_manager_t* _man, ap_environment_t * env) {
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
@@ -135,8 +136,14 @@ ap_lincons1_array_t Abstract::to_lincons_array() {
 }
 
 void Abstract::print(bool only_main) {
-	ap_environment_fdump(stdout,main->env);
-	ap_abstract1_fprint(stdout,man,main);
 
-	fflush(stdout);
+	FILE* tmp = tmpfile();
+
+	ap_environment_fdump(tmp,main->env);
+	ap_abstract1_fprint(tmp,man,main);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+
 }

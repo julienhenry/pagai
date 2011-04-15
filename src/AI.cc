@@ -71,7 +71,6 @@ bool AI::runOnModule(Module &M) {
 			Out->resetColor();
 			Out->flush();
 			n->Y->print(true);
-			fflush(stdout);
 		}
 		delete it->second;
 	}
@@ -290,8 +289,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
-				ap_tcons1_array_print((*i)->front());
-				fflush(stdout);
+				tcons1_array_print((*i)->front());
 				Xtemp.meet_tcons_array((*i)->front());
 				// creating the associated lincons for a future widening with
 				// threshold
@@ -787,7 +785,7 @@ void AI::visitPHINode (PHINode &I){
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
-	fouts() << I << "\n";
+	*Out << I << "\n";
 
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
 		if (pred == I.getIncomingBlock(i)) {
@@ -799,11 +797,9 @@ void AI::visitPHINode (PHINode &I){
 				n->add_var(&I);
 				PHIvars.name.push_back((ap_var_t)&I);
 				PHIvars.expr.push_back(*expr);
-				*Out << I;
-				printf(" is equal to ");
-				ap_texpr1_fprint(stdout,expr);
-				printf("\n");
-				fflush(stdout);
+				*Out << I << " is equal to ";
+				texpr1_print(expr);
+				*Out << "\n";
 			} else {
 				set_ap_expr(&I,expr);
 				ap_environment_t * env = expr->env;

@@ -149,3 +149,36 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 	}
 	return 0;
 }
+
+void environment_print(ap_environment_t * env) {
+
+	FILE* tmp = tmpfile();
+
+	ap_environment_fdump(tmp,env);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+}
+
+void texpr1_print(ap_texpr1_t * expr) {
+
+	FILE* tmp = tmpfile();
+
+	ap_texpr1_fprint(tmp,expr);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+}
+
+void tcons1_array_print(ap_tcons1_array_t * cons) {
+
+	FILE* tmp = tmpfile();
+
+	ap_tcons1_array_fprint(tmp,cons);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+}

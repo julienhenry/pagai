@@ -31,11 +31,12 @@ int main(int argc, char* argv[]) {
     bool help = false;
     bool bad_use = false;
     char* filename=NULL;
+    char* outputname="";
 	bool debug = false;
 
 	manager = Z3_MANAGER;
 
-	 while ((o = getopt(argc, argv, "hdi:y")) != -1) {
+	 while ((o = getopt(argc, argv, "hdi:o:y")) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -45,6 +46,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'i':
             filename = optarg;
+            break;
+        case 'o':
+            outputname = optarg;
             break;
         case 'y':
             manager = YICES_MANAGER;
@@ -70,7 +74,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-	run.exec(filename,"");
+	run.exec(filename,outputname);
 	
 	return 0;
 }

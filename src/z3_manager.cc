@@ -6,6 +6,7 @@
 #include "llvm/Support/FormattedStream.h"
 
 #include "z3_manager.h"
+#include "Analyzer.h"
 
 z3_manager::z3_manager() {
 	Z3_config config = Z3_mk_config();
@@ -199,14 +200,14 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 void z3_manager::SMT_print(SMT_expr a){
-	printf("%s",Z3_benchmark_to_smtlib_string(ctx,
+	*Out << Z3_benchmark_to_smtlib_string(ctx,
 				"name",
 				"logic",
 				"unknown",
 				"",
 				0,
 				NULL,
-				(Z3_ast)a));
+				(Z3_ast)a);
 }
 
 bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
@@ -216,13 +217,13 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 
 	switch (result) {
 		case Z3_L_FALSE:
-			printf("unsat\n");
+			*Out << "unsat\n";
 			return false;
 		case Z3_L_UNDEF:
-			printf("Unknown");
+			*Out << "unknown\n";
 			return false;
 		case Z3_L_TRUE:
-			printf("MODEL:\n");
+			*Out << "sat\n";
 			unsigned n = Z3_get_model_num_constants(ctx,m);
 			for (unsigned i = 0; i < n; i++) {
 				Z3_func_decl decl = Z3_get_model_constant(ctx,m,i);
@@ -230,7 +231,7 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 				Z3_eval_func_decl (ctx,m,decl,&v);
 				Z3_symbol symbol = Z3_get_decl_name(ctx,decl);
 				std::string name (Z3_get_symbol_string (ctx,symbol));
-				printf("%s ",name.c_str());
+				*Out << name;
 
 				Z3_sort_kind sort = Z3_get_sort_kind(ctx,Z3_get_sort(ctx,v));
 
@@ -238,13 +239,13 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 					case Z3_BOOL_SORT: 
 						switch (Z3_get_bool_value(ctx,v)) {
 							case Z3_L_FALSE:
-								printf("false\n");
+								*Out << "false\n";
 								break;
 							case Z3_L_UNDEF:
-								printf("undef\n");
+								*Out << "undef\n";
 								break;
 							case Z3_L_TRUE:
-								printf("true\n");
+								*Out << "true\n";
 								true_booleans->insert(name);
 								break;
 						}
@@ -252,26 +253,24 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 					case Z3_INT_SORT:
 						int i;
 						Z3_get_numeral_int (ctx,v,&i);
-						printf("%d\n",i);
+						*Out << i << "\n";
 						break;
 					case Z3_REAL_SORT:
-						printf("real value\n");
+						*Out << "real value\n";
 						break;
 					case Z3_BV_SORT:
-						printf("bv value\n");
+						*Out << "bv value\n";
 						break;
 					case Z3_UNINTERPRETED_SORT:
-						printf("uninterpreted value\n");
+						*Out << "uninterpreted value\n";
 						break;
 					default:
-						printf("unknown sort\n");
+						*Out << "unknown sort\n";
 						break;
 				}
 			}
-			fflush(stdout);
 			break;
 	}
-	fflush(stdout);
 	return true;
 }
 

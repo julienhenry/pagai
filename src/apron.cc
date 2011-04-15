@@ -76,12 +76,3 @@ void init_apron() {
 	ap_var_operations = &var_op_manager;
 }
 
-///
-/// print_texpr - Print the apron expression in stdout 
-///
-void print_texpr(ap_texpr1_t * exp) {
-	printf("Apron expression:\n");
-	ap_texpr1_fprint(stdout,exp);
-	printf("\n");
-	fflush(stdout);
-}
