@@ -409,9 +409,31 @@ void AI::computeNode(Node * n) {
 		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			if (Succ->widening == 1) {
-				Xtemp->widening_threshold(Succ, &linconstraints);
+			if (Succ->widening == 2) {
+				Xtemp->widening(Succ);
+				//Xtemp->widening_threshold(Succ, &linconstraints);
 				Succ->widening = 0;
+
+				// if we have a self loop, we narrow
+				if (Succ == n) {
+					// backup the previous abstract value
+					Abstract * Xpred = new Abstract(Succ->X);
+
+					Join.clear();
+					Join.push_back(new Abstract(Xpred));
+					Join.push_back(new Abstract(Xtemp));
+					Xtemp->join_array(Xtemp->main->env,Join);
+					Succ->X = Xtemp;
+
+					Xtemp = new Abstract(n->X);
+					computeTransform(n,path,*Xtemp);
+
+					Join.clear();
+					Join.push_back(Xpred);
+					Join.push_back(new Abstract(Xtemp));
+					Xtemp->join_array(Xtemp->main->env,Join);
+					
+				}
 			} else {
 				Succ->widening++;
 			}
@@ -459,6 +481,10 @@ void AI::narrowNode(Node * n) {
 			LSMT->pop_context();
 			return;
 		}
+		DEBUG(
+			printPath(path);
+			Out->flush();
+		);
 		
 		Succ = Nodes[path.back()];
 
