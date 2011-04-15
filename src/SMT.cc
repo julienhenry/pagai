@@ -493,7 +493,12 @@ SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow) {
 		
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}
-	formula.push_back(man->SMT_mk_or(Or));
+	// if Or is empty, that means the block has no successor => formula has to
+	// be false
+	if (Or.size() > 0)
+		formula.push_back(man->SMT_mk_or(Or));
+	else
+		formula.push_back(man->SMT_mk_false());
 
 	return man->SMT_mk_and(formula);
 }
@@ -541,7 +546,13 @@ SMT_expr SMT::computeCondition(PHINode * inst) {
 SMT_expr SMT::computeCondition(CmpInst * inst) {
 
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) return NULL;
+	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) {
+		// the comparison is not between integers or reals
+		// we create an undeterministic choice variable
+		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(inst));
+		SMT_expr cexpr = man->SMT_mk_expr_from_bool_var(cvar);
+		return cexpr;
+	}
 
 	SMT_expr op1, op2;
 
@@ -620,8 +631,10 @@ void SMT::visitBranchInst (BranchInst &I) {
 			return;
 			// NOT IMPLEMENTED !!
 			cond = computeCondition(dyn_cast<PHINode>(I.getOperand(0)));
-		} else
-			cond = NULL;
+		} else {
+			SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(I.getOperand(0)));
+			cond = man->SMT_mk_expr_from_bool_var(cvar);
+		}
 
 		components.push_back(bexpr);
 		if (cond != NULL)

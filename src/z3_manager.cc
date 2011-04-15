@@ -231,7 +231,7 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 				Z3_eval_func_decl (ctx,m,decl,&v);
 				Z3_symbol symbol = Z3_get_decl_name(ctx,decl);
 				std::string name (Z3_get_symbol_string (ctx,symbol));
-				*Out << name;
+				*Out << name << " = ";
 
 				Z3_sort_kind sort = Z3_get_sort_kind(ctx,Z3_get_sort(ctx,v));
 

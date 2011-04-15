@@ -50,6 +50,12 @@ bool AI::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
+		Out->changeColor(raw_ostream::BLUE,true);
+		*Out << "\n\n\n"
+				<< "------------------------------------------\n"
+				<< "-         COMPUTING FUNCTION             -\n"
+				<< "------------------------------------------\n";
+		Out->resetColor();
 		initFunction(F);
 		computeFunction(F);
 	}
@@ -131,6 +137,7 @@ void AI::computeFunction(Function * F) {
 	b = F->begin();
 	if (b == F->end()) return;
 	n = Nodes[b];
+
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));

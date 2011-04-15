@@ -183,7 +183,6 @@ void yices::SMT_print(SMT_expr a) {
 	int fd = dup(fileno(stdout));
 	freopen("/tmp/yices_output.txt", "w", stdout);
 	yices_pp_expr ((yices_expr)a);
-
 	//Flush stdout so any buffered messages are delivered
 	fflush(stdout);
 	//Close file and restore standard output to stdout - which should be the terminal
@@ -207,9 +206,33 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	yices_assert(ctx,(yices_expr)a);
 	//*Out << "\n";
 	if (yices_check(ctx) == l_true) {
+		*Out << "sat\n";
 		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
 		yices_model m              = yices_get_model(ctx);
-		//yices_display_model(m);
+		
+
+		//Save position of current standard output
+		fpos_t pos;
+		fgetpos(stdout, &pos);
+		int fd = dup(fileno(stdout));
+		freopen("/tmp/yices_output.txt", "w", stdout);
+		yices_display_model(m);
+		//Flush stdout so any buffered messages are delivered
+		fflush(stdout);
+		//Close file and restore standard output to stdout - which should be the terminal
+		dup2(fd, fileno(stdout));
+		close(fd);
+		clearerr(stdout);
+		fsetpos(stdout, &pos);
+
+		FILE * tmp = fopen ("/tmp/yices_output.txt" , "r");
+		fseek(tmp,0,SEEK_SET);
+		char c;
+		while ((c = (char)fgetc(tmp))!= EOF)
+			*Out << c;
+
+		*Out << "\n";
+		
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
 			//*Out <<  yices_get_var_decl_name(d) << " = ";
