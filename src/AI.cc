@@ -145,7 +145,7 @@ void AI::computeFunction(Function * F) {
 	LI = &(getAnalysis<LoopInfo>(*F));
 	
 	LSMT->getPr(*F);
-	LSMT->man->SMT_print(LSMT->getRho(*F));
+	LSMT->getRho(*F);
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;

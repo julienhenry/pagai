@@ -583,9 +583,6 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 		op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
 	}
 
-	man->SMT_print(op1);
-	man->SMT_print(op2);
-
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
 			return man->SMT_mk_false();
