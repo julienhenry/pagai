@@ -49,6 +49,45 @@
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
+@article{CousotCousot92-2,
+   author =    {Cousot, P{.} and Cousot, R{.}},
+   title =     {Abstract Interpretation Frameworks},
+   pages =     {511--547},
+   journal =   {Journal of Logic and Computation},
+   volume =    2,
+   number =    4,
+   month =     auf,
+   year =      1992,
+   publisher = {Oxford University Press, Oxford, UK},
+}
+
+@article{CousotCousot92-1,
+   author =  {Cousot, P{.} and Cousot, R{.}},
+   title =   {Abstract Interpretation and Application to Logic Programs},
+   pages =   {103--179},
+   journal = {Journal of Logic Programming},
+   year =    1992,
+   volume =  13,
+   number =  {2--3},
+   note =    {{\footnotesize (The editor of Journal of Logic Programming{} has mistakenly published the
+              unreadable galley proof. For a correct version of this paper, see
+              \url{http://www.di.ens.fr/~cousot}.)}},
+}
+
+@inproceedings{CousotCousot92-4,
+   author =    {Cousot, P{.} and Cousot, R{.}},
+   title =     {Comparing the {G}alois Connection and Widening/Narrowing 
+                Approaches to Abstract Interpretation, invited paper},
+   editor =    {Bruynooghe, M{.} and Wirsing, M{.}},
+   pages =     {269--295},
+   booktitle = {Proceedings of the International Workshop Programming Language 
+                Implementation and Logic Programming, PLILP$\,$'92,},
+   series =    {Leuven, Belgium, 13--17 August 1992, Lecture Notes in Computer 
+                Science 631},
+   publisher = {Springer-Verlag, Berlin, Germany},
+   year =      1992,
+}
+
 @inproceedings{CH78,
   author    = {Patrick Cousot and
                Nicolas Halbwachs},
@@ -60,6 +99,65 @@
   ee        = {http://doi.acm.org/10.1145/512760.512770},
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
+
+@phdthesis{Hal79,
+    title = { D\'etermination automatique de relations lin\'eaires v\'erifi\'ees par les variables d'un programme },
+    author = {Halbwachs, Nicolas},
+    month = {March},
+    year = {1979},
+    note = {These de 3e cycle},
+    school = {Universit\'e Scientifique et M\'edicale de Grenoble},
+    team = {SYNC},
+}
+
+@article{HPR97,
+    title = { Verification of real-time systems using linear relation analysis },
+    author = {Halbwachs, Nicolas and Proy, Yann-Eric and Roumanoff, Patrick},
+    month = {aug},
+    year = {1997},
+    journal = {Formal Methods in System Design},
+    number = {2},
+    pages = {157--185},
+    publisher = {Kluwer},
+    volume = {11},
+    team = {SYNC},
+} 
+
+@inproceedings{BlanchetCousotEtAl_PLDI03,
+  author = {B{.} Blanchet and P{.} Cousot and R{.} Cousot and
+                  J{.} Feret and L{.} Mauborgne and A{.} Min{\'e} and
+                  D{.} Monniaux and X{.} Rival},
+  title = {A Static Analyzer for Large Safety-Critical
+                  Software},
+  booktitle = {PLDI},
+  pages = {196--207},
+  year = 2003,
+  organization = {ACM},
+  pdf = {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.pdf},
+  ps = {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.ps.gz},
+  abstract = {We show that abstract interpretation-based static
+                  program analysis can be made efficient and precise
+                  enough to formally verify a class of properties for
+                  a family of large programs with few or no false
+                  alarms. This is achieved by refinement of a general
+                  purpose static analyzer and later adaptation to
+                  particular programs of the family by the end-user
+                  through parametrization. This is applied to the
+                  proof of soundness of data manipulation operations
+                  at the machine level for periodic synchronous safety
+                  critical embedded software. The main novelties are
+                  the design principle of static analyzers by
+                  refinement and adaptation through parametrization,
+                  the symbolic manipulation of expressions to improve
+                  the precision of abstract transfer functions,
+                  ellipsoid, and decision tree abstract domains, all
+                  with sound handling of rounding errors in floating
+                  point computations, widening strategies (with
+                  thresholds, delayed) and the automatic determination
+                  of the parameters (parametrized packing).},
+  category = {intc}
+}
+
 
 # APRON
 @inproceedings{JM09,
@@ -90,3 +188,12 @@
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
+# bourdoncle
+
+@phdthesis{Bou92,
+    title = { Sémantiques des Langages Impératifs d'Ordre Supérieur et Interprétation Abstraite },
+    author = {Bourdoncle, François},
+    year = {1992},
+    note = {Ph.D. dissertation},
+    school = {Ecole Polytechnique}
+}
