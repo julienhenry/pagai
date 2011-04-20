@@ -1,6 +1,6 @@
 \documentclass[a4paper,english,titlepage,11pt]{article}
 
-\usepackage{mathcomp,amssymb,mathptm,verimagstudent}
+\usepackage{mathcomp,amssymb,verimagstudent}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
@@ -13,8 +13,10 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 
+\newcommand*\system[1]{\left[ \begin{array}{lllll}#1 \end{array}\right.}
 
 \def\R{\mathbb{R}}
+\def\Z{\mathbb{Z}}
 \def\N{\mathbb{N}}
 \def\Q{\mathbb{Q}}
 \def\P{\mathcal{P}}
@@ -29,14 +31,23 @@
 \usepgflibrary{snakes}
 
 \tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
-  			  fill=black!20,minimum size=4mm]
-\tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
-  			  fill=blue,minimum size=4mm,blue]
-\tikzstyle{PRstate}=[circle,fill=red!90,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{transition2}=[transition,rectangle,thick,dashed,
+  			  minimum size=4mm]
+\tikzstyle{PRstate}=[circle,double,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
 \tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
 color=blue]
 \tikzstyle{line}=[black,thick]
+
+\lstnewenvironment{LLVM}
+{\lstset{language=C,
+		basicstyle=\ttfamily\footnotesize,
+		commentstyle=\color{moka}\textit,
+		keywordstyle=\color{minuit},
+		identifierstyle=\color{trefle},
+		showstringspaces=false}}
+{}
 
 \lstnewenvironment{C}
 {\lstset{language=C,
@@ -137,10 +148,10 @@ the following properties:
 \nabla y_2$. This guarantees the correctness of the result.
 \item For any increasing sequence $y_0 \leq_A y_1 \leq_A \dots$, the sequence
 defined by 
-$$\left\{ \begin{array}{rll}
+$$\system{
 y'_0 & = &  y_0 \\
 y'_{i+1} & = &  y'_i\ \nabla\ y_{i+1},\ \  \forall i > 0
-\end{array} \right.$$
+}$$
 is not strictly increasing. Then, applying the widening operator when the
 sequence may increase indefinitely makes the computation converge to a fixpoint
 in finite time. 
@@ -152,10 +163,10 @@ of $A$) and $y_{i+1} = \Phi^\# (y_i)$. Instead of computing this least fixpoint,
 one compute an upper approximation of it, by computing the following ascending
 sequence:
 
-$$\left\{ \begin{array}{rll}
+$$\system{
 y'_0 &=& \perp \\
 y'_{i+1} &=& y'_i\ \nabla\ \Phi^\#(y'_i),\ \ \forall i > 0
-\end{array} \right.$$
+}$$
 
 which converges towards $\tilde{y}$, where $\tilde{y} \geq_A \overline{y}$.
 
@@ -163,10 +174,10 @@ $\tilde{y}$ is a correct upper approximation of the least fixpoint of $\Phi^\#$,
 and the classical technique is to regain some precision lost by the widening
 operator by computing a descending sequence:
 
-$$\left\{ \begin{array}{rll}
+$$\system{
 y''_0 &=& \tilde{y} \\
 y''_{i+1} &=& \Phi^\#(y''_i), \ \ \forall i > 0
-\end{array} \right.$$
+}$$
 
 Each element of this descending sequence is still an upper approximation of the
 least fixpoint $\overline{y}$. So, this sequence often allows to find
@@ -181,6 +192,14 @@ reachable states of a program containing numerical variables. The set of
 possible assignments for the numerical variables is abstracted by convex
 polyhedron. This technique discovers invariant linear relations between
 the numerical variables at each control point of a program.
+
+This technique is:
+\begin{itemize}
+\item \emph{sound}: Each possible assignment for the variables in the real
+program is included in the abstract value.
+\item \emph{incomplete}: The abstract value also contains assignments for the
+variables that are not possible in the real program.
+\end{itemize}
 
 \subsection{Convex polyhedra}
 
@@ -201,7 +220,7 @@ Since the domain of convex polyhedra is of infinite depth, a widening operator
 is defined to ensure convergence of the technique. There have been different
 work proposing a definition of the widening operator in LRA
 \cite{CH78,Hal79,HPR97,BlanchetCousotEtAl_PLDI03}, in order to fight
-against the loss of precision induced by widening.
+against the loss of precision induced by widening:
 
 \subsection{Program Analysis}
 
@@ -282,11 +301,10 @@ domain, we abstract it into $\tau^\#$ such as $\forall X \in D, \tau(X)
 The computation aims to find a solution for this system of abstract semantic
 inequalities:
 
-$$\left\{ \begin{array}{l}
+$$\system{
 \forall p \in P, \ \ I_p \subseteq X_p \\
 \forall (p',p) \in E,\ \  \tau^\#_{(p',p)}(X_{p'}) \subseteq X_p
-\end{array} \right.$$
-
+}$$
 
 The function $\Phi^\#$ previously described is the following:
 
@@ -324,14 +342,13 @@ value $X_p$ at the end give the different linear relations between the
 different numerical variables of the program at the control point $p$.
 
 \subsection{Precision of the analysis}
-
 In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
 apply it on a subset of $P$, called $P_w$, such as removing the nodes of $P_w$
 disconnect every cycles. For instance, one could choose $P_w$ as the set of the
 heads of loops.
 
-
+\subsubsection{Iteration strategies}
 There exist several iteration strategies for computing the fixpoint: whatever
 the order we choose for updating the different $X_p, p\in P$, the result at the
 end of the analysis is correct. Yet, the precision of the result and the time
@@ -340,18 +357,692 @@ There have been some work to find efficient iteration strategies
 \cite{Bou92}, such as first stabilizing innermost loops, or stabilizing strongly
 connected components of the graph.
 
+\subsubsection{Sources of imprecision}
+ \label{multigraph}
+Linear Relation Analysis is sound but incomplete: there is loss of precision
+during the computation, due to different reasons:
+\begin{enumerate}
+\item Since an abstract domain is used to represent the set of possible states,
+such as the domain of convex polyhedra, there is an upper approximation of the
+set of possible states to the smallest convex polyhedra including this set. This
+loss of precision is unavoidable. Still, there are techniques proposing to
+compute disjunctive invariants \cite{GulwaniZ10} to limit this upper approximation: at each
+program point, one compute a union of convex polyhedra instead of a single
+one.
+\item The widening operator, used to ensure convergence of the technique,
+also induces a loss of precision. The classical technique is then to compute
+narrowing iterations, which often recover some precision. 
+\item There is also a loss of precision each time a point in the control flow
+graph has several incoming edges. This is the case for instance for
+\emph{if} statements, loops, etc. In this case, the abstract value of this point
+is a convex hull of several convex polyhedra, inducing an upper approximation.
+Indeed, if $X_1, X_2$ are convex polyhedra,
+$$X_1 \cup X_2 \subseteq X_1 \sqcup X_2$$
+
+To limit the number of such points, a method could be
+to expand the control flow graph. For instance, instead of considering a graph
+with a sequence of $n$ \emph{if-then-else} between point $p_1$ and $p_n$, one could remove the $n$ merge node
+of these \emph{if-then-else}, each of them having two incoming edges, and adding 
+$2^n$ edges from $p_1$ to $p_n$, corresponding to the different paths through
+the \emph{if-then-else} statements. At the end, $p_n$ is the only point with
+several incoming edges. This graph transformation results in an exponential
+blowup, because of the exponential growth of the number of edges in the graph.
+\end{enumerate}
+
+
+\subsubsection{Acceleration}
+
+Typically, to analyze a program with loops, the classical approach is to use the
+widening operator, for example at the head of the loops, to ensure convergence.
+Since this induces imprecision, another technique called \emph{acceleration}
+aims to compute the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
+the following program, one could directly compute an invariant for the loop:
+
+
+\begin{minipage}[c]{.39\linewidth}
+\begin{C}
+x = 0;
+y = 0;
+while (x < N) {
+	y = y+2;
+	x = x+5;
+}
+\end{C}
+\end{minipage} 
+\begin{minipage}[c]{.59\linewidth}
+$$\begin{array}{llll}
+\exists k \geq 0,& & x  = k \\
+		&\wedge & y = 2k \\
+		&\wedge & \forall k', (0 \leq k' \leq k)
+				\Rightarrow (5k' \leq N)
+\end{array}$$
+\end{minipage}
+
+Acceleration is possible when the loop is simple enough, and come to compute the
+transitive closure $\tau_e^+$ of $\tau_e$, the transition function associated to
+the loop.
+
 \part{Path Focusing technique}
-  
-	Pour calculer les variables live en SSA, des algorithmes plus optimisés sont
-	expliqués dans la thèse de B. Boissinot\cite{Boi10}
+ 
+	In this part, we present two techniques that aim to isolate the different
+	paths of the program to compute more precise invariants.
 
+ \section{Lookahead Widening}
+
+ \section{Path Focusing}
+
+	\subsection{Multigraph}
+
+	\subsubsection{Expanding the control flow graph}
+	The main idea of the technique is to compute the fixpoint iterations on an
+	expanded multigraph instead of the classical control flow graph. A
+	multigraph is a graph that can have several edges from a point $p$ to a
+	point $q$. 
+
+	Let $(P,E)$ be the control flow graph of the program.
+	First, one choose a set of points $P_W \subseteq P$, such that the graph
+	obtained after removing these points has no cycle. The widening operator
+	will be applied at these points. The choice of $P_W$ can be guided by
+	\cite{Bou92}.
+	Then, one choose another set $P_R \subseteq P$ of nodes, satisfying the
+	following properties:
+	\begin{itemize}
+	\item $I_p = \emptyset$ for each $p \in P \ P_R$, meaning that the initial
+	points of the program are included in $P_R$.
+	\item $P_W \subseteq P_R$: all the widening points are in $P_R$.
+	\end{itemize} 
+
+	The multigraph is then the graph such as:
+	\begin{itemize}
+	\item each element of $P_R$ is a point of the graph.
+	\item for each path $p_1 \rightarrow p_2 \rightarrow \dots \rightarrow p_k$
+	in the control flow graph, such as $p_1 \in P_R, p_k \in P_R$,
+	there is a transition in the multigraph from $p_1$ to $p_k$ with the
+	semantic $$\tau_{p_1 \rightarrow \dots \rightarrow p_k} = \tau_{p_{k-1}
+	\rightarrow p_k} \circ
+	\dots \circ \tau_{p_1 \rightarrow p_2}$$ where $\tau_{p_i \rightarrow
+	p_{i+1}}$ is the transformation associated to the semantic of $p_i
+	\rightarrow p_{i+1}$.
+	\end{itemize}
+
+	As explained in \ref{multigraph}, separating the different
+	possible paths between $p$ and $q$ reduce the number of points with a join
+	operation, and results in a better precision.
+	This can result in an exponential blowup in the size of the graph. To avoid
+	it, the technique is to never construct the multigraph, and only compute
+	parts of it when needed.
+
+	Intuitively, choosing a small set $P_R$ will result in a better precision,
+	but a higher cost. 
+	Indeed, the number of paths between two points of $P_R$ will grow if $P_R$
+	contains few elements.
+	A good choice for $P_R$ requires to find a good
+	compromise between precision and cost of the technique.
+
+\begin{figure}[!h]
+\label{CFG}
+\centering
+\begin{minipage}[c]{.39\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p_0$};
+	\node[PRstate] (n1) [below of=n0] {$p_1$};
+	\node[state] (n2) [below left of=n1] {$p_2$};
+	\node[state] (n3) [below right of=n1] {$p_3$};
+	\node[state] (n4) [below left of=n3] {$p_4$};
+	\node[state] (n5) [below of=n4] {$p_5$};
+	\node[state] (n6) [below of=n5] {$p_6$};
+	\node[PRstate] (n7) [left of=n6] {$p_7$};
+
+
+  \path [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path [transition2] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path [transition] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path [transition] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path [transition2] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path [transition] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path [transition2] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path [transition2] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+\end{tikzpicture}
+\end{minipage} 
+$\Longrightarrow$
+\begin{minipage}[c]{.49\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3.2cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p_0$};
+	\node[PRstate] (n1) [below of=n0,yshift=1cm] {$p_1$};
+	\node[PRstate] (n7) [below of=n1] {$p_7$};
+
+	\node (n8) at (-3,0) {};
+	\node (n8) at (3,0) {};
+
+  \path [transition] 
+		(n0) edge              node [yshift=5mm] {$x,y \leftarrow 0$} (n1);
+  \path [transition] 
+		(n1) edge    [bend left]  node [right,yshift=-0.8cm]  {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \leq 0 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+  \path [transition2] 
+		(n1) edge    [loop left,distance=1.2cm]  node [left,xshift=3mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \geq -1 \\
+			y \leftarrow y+1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  \path [transition] 
+		(n1) edge    [loop right,distance=1.2cm]  node [right,xshift=-2mm] {$
+		\begin{array}{l}
+			x \geq 51 \\
+			y \geq 1 \\
+			y \leftarrow y-1 \\
+			x \leftarrow x+1 
+		\end{array}
+		$} (n1);
+  \path [transition] 
+		(n1) edge    [bend right]  node [left,yshift=-0.8cm,xshift=4mm] {$
+		\begin{array}{l}
+			x \leq 50 \\
+			y \leq -2 \\
+			y \leftarrow y-1
+		\end{array}
+		$} (n7);
+\end{tikzpicture}
+\end{minipage}
+\caption{Example of classical control flow graph, and its associate expanded
+multigraph, where $P_R = \{p_0, p_1, p_7\}$. The path dashed from $p_1$ to $p_1$
+in the control flow graph corresponds to a simple dashed transition in the multigraph,
+having the same semantic.}
+\end{figure}
+\FloatBarrier
+
+%\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+%                    semithick,font=\footnotesize]
+%
+%	\node[state] (n0) {$p_0$};
+%	\node[state] (n1) [below of=n0] {$p_1$};
+%	\node[state] (n2) [below left of=n1] {$p_2$};
+%	\node[state] (n3) [below right of=n1] {$p_3$};
+%	\node[state] (n4) [below left of=n3] {$p_4$};
+%	\node[state] (n5) [below of=n4] {$p_5$};
+%	\node[state] (n6) [below of=n5] {$p_6$};
+%	\node[state] (n7) [left of=n6] {$p_7$};
+%
+%	\node (n8) [right of=n6] {};
+%	\node (n9) [right of=n1] {};
+%	\node (n88) [above right of=n8] {};
+%	\node (n99) [below right of=n9] {};
+%
+%	\path[transition] plot[->,smooth,tension=0.7] coordinates {
+%		(n1)
+%		(n2)
+%		(-0.4,-3.8)
+%		(n7)
+%	};
+%	\path[transition] plot[->,smooth,tension=0.7] coordinates {
+%		(n1)
+%		(0.7,-2.6)
+%		(0,-3.8)
+%		(n7)
+%	};
+%	\path[transition] plot[->,smooth,tension=0.7] coordinates {
+%		(n1)
+%		(-0.8,-2.4)
+%		(-0.1,-3.8)
+%		(0,-6.3)
+%		(2.5,-5.5)
+%		(2.5,-2.5)
+%		(n1)
+%	};
+%	\path[transition] plot[->,smooth,tension=0.7] coordinates {
+%		(n1)
+%		(n3)
+%		(0.3,-3.8)
+%		(0.3,-6)
+%		(2.1,-5.5)
+%		(2.1,-2.5)
+%		(n1)
+%	};
+%
+%  \path [transition] 
+%		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+%
+%	\node[state] (n0) {$p_0$};
+%	\node[state] (n1) [below of=n0] {$p_1$};
+%	\node[state] (n2) [below left of=n1] {$p_2$};
+%	\node[state] (n3) [below right of=n1] {$p_3$};
+%	\node[state] (n4) [below left of=n3] {$p_4$};
+%	\node[state] (n5) [below of=n4] {$p_5$};
+%	\node[state] (n6) [below of=n5] {$p_6$};
+%	\node[state] (n7) [left of=n6] {$p_7$};
+%
+%\end{tikzpicture}
 	
-	Utilisation de la bibliothèque APRON \cite{JM09}
-  
+	\subsubsection{Static Single Assignment form}
 
-\part{Contribution}
+	Path focusing technique uses control flow graphs in static single assignment
+	(SSA) form. The main concept behind the SSA form is that every variable is
+	only being assigned once. 
 
-  \section{Conclusion}
+
+\begin{figure}[!h]
+\centering
+\begin{minipage}[c]{.39\linewidth}
+\begin{C}
+x = 0;
+y = 0;
+x = x + 2;
+y = x + 1;
+\end{C}
+\end{minipage} 
+$\Longrightarrow$ \hfill
+\begin{minipage}[c]{.49\linewidth}
+\begin{C}
+x.0 = 0;
+y.0 = 0;
+x.1 = x.0 + 2;
+y.1 = x.1 + 1;
+\end{C}
+\end{minipage}
+\caption{On the left side, a simple program. On the right side, the same
+program in SSA form.}
+\end{figure}
+
+This single definition property cannot be achieved with only the renaming of
+variables assigned most than once. In some cases, two distinct definition reach
+the same use, depending on the actual execution. To solve this issue, SSA form
+uses $\Phi$-functions.
+
+A $\Phi$-function is usually inserted at points of the control flow graph that
+have several incoming transitions, and has the same number of arguments as the point
+has incoming transitions. If we suppose these transitions are ordered, then the
+$\Phi$-function returns the value of its $i$-th argument if the point is reached
+from the $i$-th transition.
+
+\begin{figure}[!h]
+\centering
+\begin{minipage}[c]{.39\linewidth}
+\begin{C}
+if (c) x = 0;
+else x = 1;
+
+y = x+1;
+\end{C}
+\end{minipage} 
+$\Longrightarrow$ \hfill
+\begin{minipage}[c]{.49\linewidth}
+\begin{C}
+if (c) x.0 = 0;
+else x.1 = 0;
+
+x.2 = Phi (x.0, x.1)
+y.0 = x.2 + 1;
+\end{C}
+\end{minipage}
+\end{figure}
+\FloatBarrier
+
+This static single assignment form is required for the computation of the focus
+path.
+
+	\subsection{Choice of the focus paths}
+
+	\subsubsection{Reachability problem}
+	Path focusing technique aims to discover which paths to focus on for the
+	computation of the fixpoint iterations. 
+	Since the multigraph is not constructed explicitly, the different paths
+	starting and finishing on node in $P_R$ are not known. 
+	The technique proposes to express the focus path as the solution of a
+	satisfiability modulo theory (SMT) problem:
+
+	\begin{center} \emph{
+		``Is there a path starting on control point $p$, with numerical
+		variables in $X_p$, that ends on point $q$, with variables that are not
+		in $X_q$ ?''}
+	\end{center}
+
+	This problem could be rephrased as:
+	``Is there a path that starts on $p$, that can make the fixpoint computation
+	progress ?''
+	Indeed, the idea is to only focus on paths that make the abstract values
+	grow.
+
+	This is a reachability problem, that can be expressed as an SMT-formula,
+	which is a logic formula with boolean variables, and elements of a certain
+	theory $T$. Depending on the program, one can choose different theories:
+	\begin{itemize}
+	\item For programs with rational variables, whose operations (instructions,
+	transition conditions\dots) are all linear arithmetic, $T$ can be the theory
+	of linear real arithmetic (LRA).
+	\item For programs with integer variables (with a numerical state space in
+	$\Z^n$) $T$ can be the theory of linear integer arithmetic (LIA).
+	\end{itemize}
+
+	Despite deciding the satisfiability of such formula is NP-complete, there
+	has been lots of research on decision procedures \cite{Kroening08} and there exist nowadays
+	efficient programs, known as SMT-solvers, that can decide the satisfiability
+	of LRA or LIA formulas. Well-known efficient SMT-solvers are
+	Z3 \cite{MouraB08} and Yices \cite{DutertreM06}. 
+
+	If the problem has a solution,  the SMT-solver will be in position to show
+	which path in the control flow graph is selected, by giving a model: an
+	assignments of the boolean variables such as the formula is true.
+	Among these boolean variables, some of them are associated to a transition
+	in the control flow graph:
+	\begin{itemize}
+	\item if the model has set to \emph{true} the boolean variable $b_e$ associated
+	to the transition $e$, then the focus path goes through this transition.
+	\item in the other case, the focus path doesn't go through this transition.
+	\end{itemize}
+	
+	Some others are associated to the points of the control flow graph. These
+	are called \emph{reachability predicates}, and are set to \emph{true} in the
+	model if and only if the focus path goes through these points.
+
+	\subsubsection{Construction of the formula}
+	The first point of the Path Focusing technique is to compute the SMT formula
+	$\rho$ expressing the semantic of the program. For doing so, all the
+	operations in the program have to be expressible within the theory we
+	choose. Otherwise, the SMT-solver would not be able to decide if the formula
+	is \emph{sat} or not.
+
+	Since we want to find a path starting in a control point in $P_R$ and ending
+	in a point in $P_R$, we need to disconnect in the formula the points $p_i$
+	in $P_R$ into a source point $p_i^s$, with only outgoing transitions, and a
+	destination point $p_i^d$, with only incoming transitions. 
+
+	We construct the $\rho$ formula as follow:
+
+\begin{enumerate}
+\item Each numerical SSA variable of the control flow graph has its definition
+in the $\rho$ formula.
+\item For each operation in the program, we encode its semantic, expressed in
+terms of the boolean and numerical SSA variables. For instance, if the CFG
+contains the affectation $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
+the formula.
+\item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = c(i,j)$, where
+$c(i,j)$ express the condition that needs to be true to go through the
+transition. For instance, $c(i,j)$ could be of the form $x < y$, \dots
+If the transition is undeterministic, then $c(i,j) = c_{i,j}$, where
+$c_{i,j}$ is a boolean variable left undeterministic.
+\item For each point $p_i \notin P_R$, we set the reachability predicate 
+$b_i = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{i,j}$.
+\item For each point $p_i^d \in P_R$, we set the reachability predicate 
+$b_i^d = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{i,j}$. 
+\item $\Phi$-variables are treated differently, depending on the control point
+$p$ where they are defined. To be completed !!
+
+
+\end{enumerate}
+
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.49\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+\tikzstyle{s}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{t}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{PRs}=[rectangle,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
+\tikzstyle{line}=[black,thick]
+
+	\node[PRs] (n0) {$p_0$};
+	\node[PRs] (n1) [below of=n0] {$\begin{array}{l}p_1 \\ x.1 =
+	\Phi(x.0,x.1) \\ y.1 = \Phi(y.0,y.4)\end{array}$};
+	\node[s] (n2) [below left of=n1,yshift=-0.5cm] {$p_2$};
+	\node[s] (n3) [below right of=n1,yshift=-0.5cm] {$p_3$};
+	\node[s] (n4) [below left of=n3,yshift=-0.2cm] {$\begin{array}{l}p_4\\ y.4 =
+	\Phi(y.2,y.3)\end{array}$};
+	\node[s] (n5) [below of=n4] {$p_5$};
+	\node[s] (n6) [below of=n5] {$p_6$};
+	\node[PRs] (n7) [left of=n6] {$p_7$};
+
+
+  \path [transition] 
+		(n0) edge              node {$\begin{array}{l} x.0 = 0 \\ y.0 =
+		0\end{array}$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$x.1 \leq 50$} (n2);
+  \path [transition] 
+        (n1)  edge              node [right] {$x.1 \geq 51$} (n3);
+  \path [transition] 
+        (n2) edge              node [left] {$y.2 = y.1+1$} (n4);
+  \path [transition] 
+        (n3) edge			   node [right] {$y.3 = y.1-1$} (n4);
+  \path [transition] 
+        (n4) edge			   node {$y.4 \geq 0$} (n5);
+  \path [transition] 
+		(n4) edge  [out = 180, in=90] node [left] {$y.4 \leq -1$} (n7);
+  \path [transition] 
+        (n5) edge              node {$x.2 \leftarrow x.1+1$} (n6);
+  \path [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+\end{tikzpicture}
+(a) SSA form of the control flow graph seen in figure \ref{CFG}.
+\end{minipage} 
+$\Longrightarrow$ \hfill
+\begin{minipage}[c]{.49\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+\tikzstyle{s}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{t}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{PRs}=[rectangle,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
+\tikzstyle{line}=[black,thick]
+
+	\node[PRs] (n0s) {$p_0^s$};
+	\node[PRs] (n1s) [right of=n0s,xshift=1.3cm] {$p_1^s$};
+	\node[PRs] (n7s) [right of=n1s,xshift=1.3cm] {$p_7^s$};
+	\node[s] (n2) [below left of=n1s] {$p_2$};
+	\node[s] (n3) [below right of=n1s] {$p_3$};
+	\node[s] (n4) [below left of=n3,yshift=-0.2cm] {$\begin{array}{l}p_4\\ y.4 =
+	\Phi(y.2,y.3)\end{array}$};
+	\node[s] (n5) [below of=n4] {$p_5$};
+	\node[s] (n6) [below of=n5,yshift=0.3cm] {$p_6$};
+	\node[PRs] (n1d) [below of=n6] {$\begin{array}{l}p_1^d \\ x.1' =
+	\Phi(x.0,x.1) \\ y.1' = \Phi(y.0,y.4)\end{array}$};
+	\node[PRs] (n7) [right of=n1d,xshift=0.6cm] {$p_7^d$};
+	\node[PRs] (n0d) [left of=n1d,xshift=-0.6cm] {$p_0^d$};
+
+
+  \path [transition] 
+		(n0s) edge   [out=-90]           node [left] {$\begin{array}{l} x.0 = 0 \\ y.0 =
+		0\end{array}$} (n1d);
+  \path [transition] 
+        (n1s) edge			   node [left] {$x.1 \leq 50$} (n2);
+  \path [transition] 
+        (n1s)  edge              node [right] {$x.1 \geq 51$} (n3);
+  \path [transition] 
+        (n2) edge              node [left] {$y.2 = y.1+1$} (n4);
+  \path [transition] 
+        (n3) edge			   node [right] {$y.3 = y.1-1$} (n4);
+  \path [transition] 
+        (n4) edge			   node {$y.4 \geq 0$} (n5);
+  \path [transition] 
+		(n4) edge  [out = 0, in=90] node [left] {$y.4 \leq -1$} (n7);
+  \path [transition] 
+        (n5) edge              node {$x.2 \leftarrow x.1+1$} (n6);
+  \path [transition] 
+        (n6) edge				node {} (n1d);
+\end{tikzpicture}
+
+(b) control flow graph (a), such as it is represented by the SMT formula $\rho$.
+Points in $P_R$ have been split into a ``source'' point and a ``destination''
+point, and $\Phi$-variables associated to points in $P_R$ have been primed.
+\end{minipage} 
+\caption{}
+\end{figure}
+
+
+
+	\subsection{Algorithm}
+
+	\subsection {Choice of $P_R$}
+
+	\subsection{Disjunctive invariants}
+
+\part{Implementation}
+
+\emph{Lookahead Widening} and \emph{Path Focusing}
+techniques have been implemented into a small analyzer, so that we can compare
+the precision of their results. In this part, we explain some details about
+these implementations.
+
+ \section{Infrastructure}
+The analyzer is based on the \emph{Low Level Virtual Machine} (LLVM)
+\cite{LLVM:CGO04}, which is a compilation infrastructure used for instance by
+the \emph{clang} compiler.
+
+% We need layers to draw the block diagram
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+% Define a few styles and constants
+\tikzstyle{sensor}=[draw, fill=blue!20, text width=5em, 
+    text centered, minimum height=2.5em]
+\tikzstyle{ann} = [above, text width=5em]
+\tikzstyle{IR} = [sensor, text width=6em, fill=red!20, 
+    minimum height=12em, rounded corners]
+\def\leftdist{2.3}
+\def\rightdist{5.0}
+\def\edgedist{2.5}
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}
+    \node (IR) [IR] {Internal Representation\\ (IR)};
+    % Note the use of \path instead of \node at ... below. 
+    \path (IR.130)+(-\leftdist,0) node (c) [sensor] {C};
+    %\path (IR.-150)+(-\leftdist,0) node (cpp) [sensor] {C++};
+	\node [sensor] (cpp) [below of=c, yshift=-0.3cm] {C++};
+	\node  (lang) [below of=cpp] {$\vdots$};
+    
+    \path (IR.130)+(+\rightdist,0) node (x8664) [sensor] {Binary\\ x86\_64};
+	\node [sensor] (i686) [below of=x8664, yshift=-0.3cm] {Binary\\ i686};
+	\node  (Out) [below of=i686] {$\vdots$};
+	
+	\path [draw, ->] (cpp) -- (IR);
+	\path [draw, ->] (c) -- (IR);
+	\path [draw, ->] (lang) -- (IR);
+
+	\path [draw, ->] (IR) -- (x8664);
+	\path [draw, ->] (IR) -- (i686);
+	\path [draw, ->] (IR) -- (Out);
+    
+	% We could simply have written (gyros) .. (naveq.140). However, it's
+    % best to avoid hard coding coordinates
+    \node (Input) [below of=lang] {Input};
+    \node (Output) [below of=Out] {Output};
+    \path (IR.south west)+(-0.6,-0.4) node (Frontend) {Frontend};
+    \path (IR.south east)+(+0.6,-0.4) node (Backend) {Backend};
+    
+    % Now it's time to draw the colored IMU and INS rectangles.
+    % To draw them behind the blocks we use pgf layers. This way we  
+    % can use the above block coordinates to place the backgrounds   
+    \begin{pgfonlayer}{background}
+        % Compute a few helper coordinates
+        \path (c.west |- IR.north)+(-0.5,0.3) node (a) {};
+        \path (Frontend.south -| x8664.east)+(+0.5,-0.2) node (b) {};
+        \path[fill=yellow!20,rounded corners, draw=black!50, dashed]
+            (a) rectangle (b);
+        \path (c.north west)+(-0.2,0.2) node (a) {};
+        \path (Input.south -| c.east)+(+0.2,-0.2) node (b) {};
+        \path[fill=blue!10,rounded corners, draw=black!50, dashed]
+            (a) rectangle (b);
+        \path (x8664.north west)+(-0.2,0.2) node (a) {};
+        \path (Output.south -| x8664.east)+(+0.2,-0.2) node (b) {};
+        \path[fill=blue!10,rounded corners, draw=black!50, dashed]
+            (a) rectangle (b);
+    \end{pgfonlayer}
+\end{tikzpicture}
+\end{figure}
+\FloatBarrier
+
+The advantage of using such an infrastructure is that the analyzer can check
+programs written in different languages: C, C++, \dots, without needing to write
+a specific frontend for each of them. Here, the analyzer works directly on the
+internal representation (IR), which is a graph representation of
+the program. The control flow graph of the program can easily be extracted from
+this representation.
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.46\linewidth}
+\begin{C}
+int f(int n) {
+	int x;
+	int y = n;
+	if (n > 0) {
+		x = 50;
+		y++;
+	} else {
+		x = 10;
+		y--;
+	}
+	return x+y;
+}
+\end{C}
+\end{minipage}
+\begin{minipage}[c]{.46\linewidth}
+\begin{LLVM}
+define i32 @f(i32 %n) nounwind {
+  %1 = icmp sgt i32 %n, 0
+  br i1 %1, label %2, label %4
+
+; <label>:2                                       ; preds = %0
+  %3 = add nsw i32 %n, 1
+  br label %6
+
+; <label>:4                                       ; preds = %0
+  %5 = add nsw i32 %n, -1
+  br label %6
+
+; <label>:6                                       ; preds = %4, %2
+  %x.0 = phi i32 [ 50, %2 ], [ 10, %4 ]
+  %y.0 = phi i32 [ %3, %2 ], [ %5, %4 ]
+  %7 = add nsw i32 %x.0, %y.0
+  ret i32 %7
+}
+\end{LLVM}
+\end{minipage}
+\caption{Example of C program and its internal representation in SSA form}
+\end{figure}
+\FloatBarrier
+
+ \section{Abstract domain representation}
+
+		The analyzer is implemented with the APRON library \cite{JM09}.
+		% live variables
+		To compute the set of live variables in SSA: \cite{Boi10}
+
+ \section{Experiments}
+
+
+
+  \section*{Conclusion}
   
   \appendix
   

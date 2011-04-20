@@ -26,7 +26,7 @@
 
 \usepackage{a4wide}
 \usepackage{color}
-\usepackage{times}
+%\usepackage{times}
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{eso-pic} %  background image
@@ -212,7 +212,7 @@
 
 	   \bigskip
 
-	   \@title  
+	   {\scshape \@title}  
 
 	   \bigskip
 	   \bigskip
@@ -251,7 +251,7 @@
   \thispagestyle{empty}
    % ici un maketitle a la LNCS, avec institute et email address y tout
    \begin{center}
-     {\Large \bf \@title}
+     {\Large \bf \scshape  \@title}
 
      \bigskip
 
