@@ -20,6 +20,7 @@
 \def\N{\mathbb{N}}
 \def\Q{\mathbb{Q}}
 \def\P{\mathcal{P}}
+\def\ite{\textnormal{ite\ }}
 
 \definecolor{trefle}{rgb}{0,0.5,0}
 \definecolor{moka}{rgb}{0.5,0.25,0}
@@ -429,6 +430,8 @@ the loop.
 
  \section{Lookahead Widening}
 
+To Be Completed
+
  \section{Path Focusing}
 
 	\subsection{Multigraph}
@@ -776,22 +779,52 @@ in the $\rho$ formula.
 \item For each operation in the program, we encode its semantic, expressed in
 terms of the boolean and numerical SSA variables. For instance, if the CFG
 contains the affectation $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
-the formula.
-\item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = c(i,j)$, where
+the formula. This equality expression is noted $assign(x.2)$. 
+$assign(x)$ is defined for each numerical SSA-variable of the program.
+\item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = B_i\ \wedge \
+c(i,j)$, where $B_i = b_i^s$ if $p_i \in P_R$, or $b_i$ if not.
 $c(i,j)$ express the condition that needs to be true to go through the
 transition. For instance, $c(i,j)$ could be of the form $x < y$, \dots
 If the transition is undeterministic, then $c(i,j) = c_{i,j}$, where
 $c_{i,j}$ is a boolean variable left undeterministic.
 \item For each point $p_i \notin P_R$, we set the reachability predicate 
-$b_i = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{i,j}$.
+$b_i = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$.
 \item For each point $p_i^d \in P_R$, we set the reachability predicate 
-$b_i^d = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{i,j}$. 
-\item $\Phi$-variables are treated differently, depending on the control point
-$p$ where they are defined. To be completed !!
+$b_i^d = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$. 
+\item Numerical $\Phi$-variables assignations have to be expressed in the $\rho$
+formula. We simply use $\ite$ (\emph{if-then-else}) statements, standardly defined in the
+SMT-Lib format \cite{BarST-SMTLIB}, for giving the right value to the variable,
+depending on the incoming transition we come from. Generally, for a
+$Phi$-variable $x = \Phi(x_1,x_2,\dots,x_n)$ in control point $p_i$ with the
+ordered incoming transitions $t_{j_1,i},t_{j_2,i},\dots,t_{j_n,i}$, we set:
 
+$$x = \ite (t_{j_1,i})\  (x_1)\  (\ite (t_{j_2,i})\  (x_2)\  (\ite\  \dots))$$
 
+where $\ite (c)\ (x)\ (y)$ is equal to $x$ if $c = true$, else $y$.
+
+If the point where the $\Phi$-variable $x$ is defined is in
+$P_R$, one need to rename $x$ into $x'$:
+\begin{itemize}
+\item $x$ will be the value of $x$ at the beginning of the path.
+\item $x'$ will be the value of $x$ at the end of the path.
+\end{itemize}
+Indeed, there can be uses of $x$ along the path, and these uses refer to the
+old value of $x$. 
 \end{enumerate}
 
+Finally, the $\rho$ formula is the following:
+
+\begin{eqnarray*}
+\rho = & \displaystyle\bigwedge_{p_i \notin P_R}& \left[ (b_i = \bigvee_{(p_h,p_i) \in E}
+t_{h,i}) \wedge ( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i \wedge c(i,j))
+\right] \wedge \\
+ & \displaystyle\bigwedge_{p_i \in P_R}& \left[ (b_i^d = \bigvee_{(p_h,p_i) \in E}
+ t_{h,i}) \wedge ( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i^s \wedge
+ c(i,j)) \right] \wedge \\
+ & \displaystyle\bigwedge_{x \in \Sigma}& assign(x)
+\end{eqnarray*}
+
+where $\Sigma$ is the set of the numerical SSA-variables of the program.
 
 \begin{figure}[!h]
 \begin{minipage}[c]{.49\linewidth}
@@ -893,7 +926,7 @@ color=blue]
 Points in $P_R$ have been split into a ``source'' point and a ``destination''
 point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \end{minipage} 
-\caption{}
+\caption{Example (cont'd)}
 \end{figure}
 
 

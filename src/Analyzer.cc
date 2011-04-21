@@ -12,12 +12,12 @@ SMT_Solver manager;
 llvm::raw_ostream *Out;
 
 void show_help() {
-        puts("Usage :\n \
+        std::cout << "Usage :\n \
 \tanalyzer -h OR analyzer [-d] [-y]  -i <filename> \n \
 -h : help\n \
 -i : input file\n \
 -y : use Yices instead of Z3 SMT-solver\
--d : debug\n");
+-d : debug\n";
 }
 
 SMT_Solver getSMTSolver() {
@@ -54,18 +54,18 @@ int main(int argc, char* argv[]) {
             manager = YICES_MANAGER;
             break;
         case '?':
-            printf("Error : Unknown option %c\n", optopt);
+            std::cout << "Error : Unknown option" << optopt << "\n";
             bad_use = true;
         }   
     } 
     if (!help) {
         if (!filename) {
-            printf("No input file specified.\n");
+            std::cout << "No input file specified\n";
             bad_use = true;
         }
 
         if (bad_use) {
-            printf("Bad use !\n");
+            std::cout << "Bad use\n";
             show_help();
             exit(EXIT_FAILURE);
         }

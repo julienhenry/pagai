@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <vector>
 #include <sstream>
+#include <stdio.h>
 
 #include "llvm/Module.h"
 #include "llvm/Instructions.h"
