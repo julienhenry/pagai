@@ -8,6 +8,8 @@
 \usepackage{tikz}
 \usepackage{listings}
 \usepackage{placeins}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
@@ -708,6 +710,7 @@ path.
 	\subsection{Choice of the focus paths}
 
 	\subsubsection{Reachability problem}
+	\label{reachability}
 	Path focusing technique aims to discover which paths to focus on for the
 	computation of the fixpoint iterations. 
 	Since the multigraph is not constructed explicitly, the different paths
@@ -929,13 +932,168 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \caption{Example (cont'd)}
 \end{figure}
 
+	\subsubsection{Expression of the reachability problem}
 
+	$\rho$ express the semantic of the program. We still need to create the
+	formula expressing the reachability problem defined in \ref{reachability}.
+
+	The abstract domain $D$ we use is those of convex polyhedra, so an abstract
+	value $X \in D$ is simply a system of linear inequalities between the
+	different SSA-variables of the program. Then, it is easy to encode the
+	property $x \in X$ into an SMT-formula: one simply write the conjunction of
+	these inequalities, with the name of the variables in the vector $x$.
+
+	The formula given to the SMT-solver is:
+
+	$$\rho \wedge b_i^s \wedge \bigwedge_{j\neq i,\ j\in P_R} (\neg b_j^s)
+	\wedge x_i \in X_{p_i} \wedge \bigvee_{j/(p_i,p_j)\in E} (b_2^d \wedge \neg
+	(x_j \in X_{p_j}))$$
+
+	\begin{itemize}
+	\item we search a path starting in $p_i$: $b_i^s$ has to be \emph{true}, and
+	all other source points are \emph{false}.
+	\item the vector $x_i$ of the numerical variables at point $p_i$ is in our
+	abstract value $X_{p_i}$
+	\item we search a path arriving in a successor $p_j$ of $p_i$, such as the
+	vector of the numerical variables $x_j$ is not yet included in the current
+	abstract value $X_{p_j}$ of $p_j$. $b_j^d$ is \emph{true}, and the
+	conjunction of the inequalities given by $X_{p_j}$ is \emph{false}.
+	\end{itemize}
 
 	\subsection{Algorithm}
+	
+	Path Focusing algorithm is described in Algorithm \ref{pathfocusingalgo}.
+\begin{algorithm}
+\caption{Path Focusing}\label{pathfocusingalgo}
+\begin{algorithmic}[1] 
+\Procedure{pathfocusing}{$P$,$E$,$P_R$}
+\ForAll {$p \in P_R$}
+	\State Compute $Succ(p)$, the set of the successors of $p$ in the multigraph
+\EndFor
+\State $\rho \gets$ computeRho$(P,E)$
+\State $A \gets \emptyset$
+\ForAll {$p \in P_R / I_p \neq \emptyset$}
+	\State $A \gets A \cup p$
+\EndFor
+\While{$A \neq \emptyset$}
+	\State Select $p_i \in A$
+	\State $A \gets A \setminus \{p_i\}$
+	\While{true}
+		\State $res \gets SmtSolve\left[\rho \wedge b_i^s \wedge
+		\displaystyle\bigwedge_{\substack{j\neq i \\
+		j\in P_R}} (\neg b_j^s) \wedge x_i \in X_{p_i} \wedge
+		\bigvee_{\substack{j \\ p_j\in Succ(p_i)}} \left(b_2^d \wedge \neg (x'_j \in
+		X_{p_j})\right)\right]$
+		\If {$res = unsat$}
+			\State \textbf{break}
+		\EndIf
+		\State Compute the focus path $e$ from $p_i$ to $p_j$
+		\State $Y \gets \tau_e^\#(X_{p_i})$
+		\If {$p_j \in P_W$}
+			\State $X_{p_j} \gets X_{p_j} \nabla (X_{p_j} \sqcup Y)$
+		\Else
+			\State $X_{p_j} \gets X_{p_j} \sqcup Y$
+		\EndIf
+		\State $A \gets A \cup \{p_j\}$
+	\EndWhile
+\EndWhile
+\State Possibly do some narrowing steps
+\State Compute $\{X_{p_i},\ i \notin P_R\}$
+\State \textbf{return} $\{X_{p_i},\ i \in P\}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
-	\subsection {Choice of $P_R$}
 
+	\subsection {Precision of the analysis}
+
+	
 	\subsection{Disjunctive invariants}
+
+	In this subsection, we propose an extension of the path focusing technique
+	to compute disjunctive invariants, in order to improve precision of the
+	analysis.
+
+	\cite{GulwaniZ10} proposes a technique to compute transitive closure of a
+	transition system, i.e compute the invariants for a loop having its semantic
+	expressed by the transition system.
+
+	A transition system for a control point $p$ is a DNF formula where each
+	disjunct is the semantic of a path from $p$ to itself. It is of the form
+	$$\bigvee_{1 \leq i \leq n} \tau_{p,i}$$ where $n$ is the number of
+	paths, and $\tau_{p,i}$ is the semantic of the $i$-th path from $p$ to itself.
+
+	The technique aims to compute a disjunctive invariant for this control
+	point: 
+	$$\displaystyle\bigvee_{1 \leq j \leq m} X_{p,j}$$
+	where $X_{p,j}$ is a conjunction of linear inequalities, i.e a convex
+	polyhedra.
+
+	The essence of the method is to
+	choose an integer $\delta \in \{1,..,m\}$, and a mapping function
+	$\sigma: \{1,..,m\} \times \{1,..,n\} \mapsto \{1,..,m\}$.
+	For each polyhedra of the disjunctive invariant, and for each path in the
+	graph, the image of the polyhedra $X_{p,j}$ by the transition
+	$\tau_{p,i}$ is joined with $X_{p,\sigma(j,i)}$.
+
+\begin{algorithm}
+\caption{Transitive closure}\label{gulwani}
+\begin{algorithmic}[1] 
+\Procedure{TransitiveClosure}{$\bigvee_{i=1}^n X_{p,i}$}
+\ForAll {$j \in \{1,..,m\} \setminus \{\delta\}$}
+	\State $X_{p,j} \gets \perp$
+\EndFor
+\State $X_{p,\delta} \gets Id$
+\Repeat
+	\For {$i \in \{1,..,n\}$ and $j \in \{1,..,m\}$}
+		\State $X_{p,\sigma(j,i)} \gets X_{p,\sigma(j,i)} \sqcup
+		\tau_{p,i}(X_{p,j})$
+	\EndFor
+\Until {no change in $\bigvee_{j=1}^m X_{p,j}$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+There are heuristics to choose $m,\delta$ and $\sigma$ \cite[Section
+5]{GulwaniZ10}.
+
+This algorithm requires to enumerate all the paths and to compute their
+semantics, which may result in an exponential blowup. In addition, the
+\emph{for} loop at line $7$ iterates on all the $n \times m$ values of $(i,j)$:
+some of the join operations may be useless, in the sense that the value of 
+$X_{p,\sigma(j,i)}$ may not change. Here, one could use the same technique as
+Path Focusing to avoid these drawbacks: one can use SMT-solving to find the
+paths $\tau_{p,i}$.
+
+\begin{algorithm}
+\caption{Transitive closure with implicit transition system}\label{gulwani}
+\begin{algorithmic}[1] 
+\Procedure{TransitiveClosureImplicit}{$p$}
+\ForAll {$j \in \{1,..,m\} \setminus \{\delta\}$}
+	\State $X_{j} \gets \perp$
+\EndFor
+\State $X_{\delta} \gets Id$
+\While {true}
+
+		\State $res \gets SmtSolve\left[\rho \wedge b_k^s \wedge
+		\bigvee_{j=1}^m (B_j \wedge x \in X_{j})
+		\wedge b_k^d
+		\wedge \neg \left(\bigvee_{j=1}^m x' \in X_{j}\right)\right]$
+
+	\If {$res = unsat$}
+		\State \textbf{break}
+	\EndIf
+	\State Compute $\tau_{p,i}$ from $res$ 
+	\State $j$ is the number such as $B_j=true$
+	\State $X_{p,\sigma(j,i)} \gets X_{p,\sigma(j,i)} \sqcup
+	\tau_{p,i}(X_{p,j})$
+\EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+A difference is that here, we don't know the number of paths. Then, the mapping
+function $\sigma$ has to be defined on $\{1,..,m\} \times \N$.
 
 \part{Implementation}
 
