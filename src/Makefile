@@ -2,16 +2,16 @@ SRC		= $(wildcard ../src/*.cc)
 BIN_REP		= ../bin/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
-CC			= clang++
+CC			= g++
 CPPFLAGS	= -Wall -g -DPRINT_DEBUG
 LDFLAGS		=
-ICFLAGS		= -I/local/yices/include -I/local/z3/include
+ICFLAGS		= -I/net/cezanne/local/jhenry/yices/include -I/net/cezanne/local/jhenry/z3/include
 #ICFLAGS		= 
 EXEC		= analyzer
 
 GMP_PREFIX=/usr
-MPFR_PREFIX=/local/apron
-APRON_PREFIX=/local/apron
+MPFR_PREFIX=/usr
+APRON_PREFIX=/usr
 PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 

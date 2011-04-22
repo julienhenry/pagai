@@ -85,8 +85,68 @@ color=blue]
 
 \section*{Introduction} 
 
-\part{Abstract Interpretation: state of the art}
+Static analysis aims at automatically computing properties on programs, such as
+the possible values of their variables during execution. This allows to show for
+instance that a program will not overflow, will not divide by zero, to compute
+loop invariants\dots
+The main applications of static analysis are compilation-time optimisation, and
+satefy critical systems, such as avionics.
 
+Abstract Interpretation is a general framework used for static analysis.
+Linear Relation Analysis (LRA) is a direct application of this framework, that
+computes an upper-approximation of the set of the possible states of a numerical
+program. The state of a program is defined by the position where we are in the
+code, and the actual values of the different numerical variables.
+The set of possible states is expressed as a least fixpoint of a set of
+equations defining the semantic of the program. 
+
+A fundamental fact in static analysis is that it cannot be perfectly precise:
+either the set of possible states we compute is unsound (it doesn't contain all
+the possible states during execution), either it is incomplete (it contains
+states that can never be reached during execution). 
+Abstract Interpretation is incomplete, since it always computes an
+upper-approximation of the set of possible states.
+
+Linear Relation Analysis approximates the set of possible states as a convex
+polyhedron where the dimensions are the numerical variables of the program.
+Instead of convex polyhedra, one could choose intervals, octagons, etc.
+The fixpoint equation is computed iteratively; that is, successive
+approximations of the set of reachable states are computed until they converge
+to a fixpoint. 
+
+Satisfiability Modulo Theory (SMT) solving is a field in computer science that
+aims to decide the satisfiability of a logic formula containing boolean
+predicates and elements of a theory, such as linear arithmetic relations between
+integers.
+In this report, we present a novel refinment of the Abstract Interpretation
+technique, that uses SMT-solving to guide the fixpoint iterations such as it
+temporarily focus on a selected path in the control flow graph (the graph
+expressing the semantic of the program), in order to
+obtain more precise results at reasonable cost.
+
+\subsection*{Contribution and Organization}
+
+In this report we make the following contributions:
+\begin{itemize}
+\item We present a new technique, refered as \emph{Path Focusing}, that takes
+benefits of the recent advances in the field of SMT-solving to improve precision
+of static analysis by abstract interpretation. We also present an adaptation of
+this technique to compute disjunctive invariants.
+\item We present an implementation of this technique into a small analyzer, as
+well as the implementation of another technique proposed in \cite{GopanR06},
+such as we can compare precision and cost of the these two methods.
+\end{itemize}
+
+The report is organized as follows:
+Part \ref{stateoftheartpart} introduces the state of the art in Abstract
+Interpretation and more specifically in Linear Relation Analysis.
+Part \ref{pathfocusingpart} describes the two techniques
+\emph{Lookahead Widening} and \emph{Path Focusing}.
+Part \ref{implementationpart} presents the implementation of these two
+techniques into an analyzer, and the experimental results we obtained.
+
+\part{Abstract Interpretation: state of the art}
+\label{stateoftheartpart}
 \section{Abstract Interpretation}
 
 Abstract Interpretation \cite{CC77,CousotCousot92-1} is a general method to find approximate solutions of
@@ -425,7 +485,7 @@ Acceleration is possible when the loop is simple enough, and come to compute the
 transitive closure $\tau_e^+$ of $\tau_e$, the transition function associated to
 the loop.
 
-\part{Path Focusing technique}
+\part{Path Focusing technique} \label{pathfocusingpart}
  
 	In this part, we present two techniques that aim to isolate the different
 	paths of the program to compute more precise invariants.
@@ -774,7 +834,7 @@ path.
 	in $P_R$ into a source point $p_i^s$, with only outgoing transitions, and a
 	destination point $p_i^d$, with only incoming transitions. 
 
-	We construct the $\rho$ formula as follow:
+	We construct the $\rho$ formula as follows:
 
 \begin{enumerate}
 \item Each numerical SSA variable of the control flow graph has its definition
@@ -947,7 +1007,11 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	$$\rho \wedge b_i^s \wedge \bigwedge_{j\neq i,\ j\in P_R} (\neg b_j^s)
 	\wedge x_i \in X_{p_i} \wedge \bigvee_{j/(p_i,p_j)\in E} (b_2^d \wedge \neg
-	(x_j \in X_{p_j}))$$
+	(x_j' \in X_{p_j}))$$
+
+	where $x_i$ is the vector of the SSA-variables at the beginning of the path,
+	and $x_j'$ is the vector of the SSA-variable at the end: in this second
+	vector, $\Phi$-variables defined in $p_j$ are primed.
 
 	\begin{itemize}
 	\item we search a path starting in $p_i$: $b_i^s$ has to be \emph{true}, and
@@ -955,7 +1019,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	\item the vector $x_i$ of the numerical variables at point $p_i$ is in our
 	abstract value $X_{p_i}$
 	\item we search a path arriving in a successor $p_j$ of $p_i$, such as the
-	vector of the numerical variables $x_j$ is not yet included in the current
+	vector of the numerical variables $x_j'$ is not yet included in the current
 	abstract value $X_{p_j}$ of $p_j$. $b_j^d$ is \emph{true}, and the
 	conjunction of the inequalities given by $X_{p_j}$ is \emph{false}.
 	\end{itemize}
@@ -997,7 +1061,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 		\State $A \gets A \cup \{p_j\}$
 	\EndWhile
 \EndWhile
-\State Possibly do some narrowing steps
+\State Possibly perform some narrowing steps
 \State Compute $\{X_{p_i},\ i \notin P_R\}$
 \State \textbf{return} $\{X_{p_i},\ i \in P\}$
 \EndProcedure
@@ -1007,6 +1071,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	\subsection {Precision of the analysis}
 
+	To Be Completed\dots
 	
 	\subsection{Disjunctive invariants}
 
@@ -1065,8 +1130,8 @@ $X_{p,\sigma(j,i)}$ may not change. Here, one could use the same technique as
 Path Focusing to avoid these drawbacks: one can use SMT-solving to find the
 paths $\tau_{p,i}$.
 
-\begin{algorithm}
-\caption{Transitive closure with implicit transition system}\label{gulwani}
+\begin{algorithm}[!h]
+\caption{Transitive closure with implicit transition system}\label{gulwani2}
 \begin{algorithmic}[1] 
 \Procedure{TransitiveClosureImplicit}{$p$}
 \ForAll {$j \in \{1,..,m\} \setminus \{\delta\}$}
@@ -1084,7 +1149,7 @@ paths $\tau_{p,i}$.
 		\State \textbf{break}
 	\EndIf
 	\State Compute $\tau_{p,i}$ from $res$ 
-	\State $j$ is the number such as $B_j=true$
+	\State Take $j \in \{ k | B_k = true\}$ 
 	\State $X_{p,\sigma(j,i)} \gets X_{p,\sigma(j,i)} \sqcup
 	\tau_{p,i}(X_{p,j})$
 \EndWhile
@@ -1092,10 +1157,12 @@ paths $\tau_{p,i}$.
 \end{algorithmic}
 \end{algorithm}
 
+The new algorithm we propose is described in Algorithm \ref{gulwani2}.
 A difference is that here, we don't know the number of paths. Then, the mapping
-function $\sigma$ has to be defined on $\{1,..,m\} \times \N$.
+function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
+compute this number of path at the beginning of the algorithm.
 
-\part{Implementation}
+\part{Implementation}\label{implementationpart}
 
 \emph{Lookahead Widening} and \emph{Path Focusing}
 techniques have been implemented into a small analyzer, so that we can compare
@@ -1107,6 +1174,7 @@ The analyzer is based on the \emph{Low Level Virtual Machine} (LLVM)
 \cite{LLVM:CGO04}, which is a compilation infrastructure used for instance by
 the \emph{clang} compiler.
 
+\subsection{LLVM internal representation}
 % We need layers to draw the block diagram
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
@@ -1125,7 +1193,7 @@ the \emph{clang} compiler.
 \begin{figure}[!h]
 \centering
 \begin{tikzpicture}
-    \node (IR) [IR] {Internal Representation\\ (IR)};
+    \node (IR) [IR] {\small Internal\\Representation\\ (IR)};
     % Note the use of \path instead of \node at ... below. 
     \path (IR.130)+(-\leftdist,0) node (c) [sensor] {C};
     %\path (IR.-150)+(-\leftdist,0) node (cpp) [sensor] {C++};
@@ -1177,64 +1245,73 @@ The advantage of using such an infrastructure is that the analyzer can check
 programs written in different languages: C, C++, \dots, without needing to write
 a specific frontend for each of them. Here, the analyzer works directly on the
 internal representation (IR), which is a graph representation of
-the program. The control flow graph of the program can easily be extracted from
+the program. The control flow graph can easily be extracted from
 this representation.
 
 \begin{figure}[!h]
-\begin{minipage}[c]{.46\linewidth}
+\begin{minipage}[c]{.45\linewidth}
 \begin{C}
-int f(int n) {
-	int x;
-	int y = n;
-	if (n > 0) {
-		x = 50;
-		y++;
-	} else {
-		x = 10;
-		y--;
-	}
-	return x+y;
+int main() {
+   int x = 0;
+   int y = 0;
+
+   while (1) {
+      if (x <= 50) y++;
+      else y--;
+
+      if (y < 0) break;
+      x++;
+   }
 }
 \end{C}
 \end{minipage}
-\begin{minipage}[c]{.46\linewidth}
-\begin{LLVM}
-define i32 @f(i32 %n) nounwind {
-  %1 = icmp sgt i32 %n, 0
-  br i1 %1, label %2, label %4
-
-; <label>:2                                       ; preds = %0
-  %3 = add nsw i32 %n, 1
-  br label %6
-
-; <label>:4                                       ; preds = %0
-  %5 = add nsw i32 %n, -1
-  br label %6
-
-; <label>:6                                       ; preds = %4, %2
-  %x.0 = phi i32 [ 50, %2 ], [ 10, %4 ]
-  %y.0 = phi i32 [ %3, %2 ], [ %5, %4 ]
-  %7 = add nsw i32 %x.0, %y.0
-  ret i32 %7
-}
-\end{LLVM}
+\begin{minipage}[c]{.45\linewidth}
+\includegraphics[width=8.5cm]{"images/cfg_gopan"}
 \end{minipage}
-\caption{Example of C program and its internal representation in SSA form}
+\caption{Our running example and its internal representation in SSA form}
 \end{figure}
 \FloatBarrier
 
+\subsection{Drawbacks}
+
+During the implementation, we encountered problems due to the use of the LLVM
+internal representation. Indeed, this format is not provided for static
+analysis, but for code generation. Then, some informations we need to do precise
+static analysis are lacking.
+
+This is the case for the distinction between \emph{signed} and \emph{unsigned}
+integers, which is inexistant in the representation, since the compiler doesn't
+need this information to generate code. Yet, for static analysis, one need to
+have this distinction to improve precision:
+for instance, if $n$ is unsigned, one could add the constraint $n \geq 0$ in our
+	abstract value at the beginning of the analysis.
+	This lack of precision may be recovered by using disjunctive invariants: one
+	could attach two polyhedra to the control point: the first one with the
+	constraint $n \geq 0$, and the second one with $n < 0$.
+
+
+
  \section{Abstract domain representation}
 
-		The analyzer is implemented with the APRON library \cite{JM09}.
-		% live variables
+		The analyzer is implemented with the APRON library \cite{JM09}, which
+		is a common interface to libraries implementing all the features
+		for several abstract domains, such as convex polyhedra (NewPolka), 
+		octagons (OCT), intervals (BOX).
+		In our case, we used the convex polyhedra library, but we could switch
+		to octagons or intervals easily.
+
+		\subsection{Dimensions of the Abstract values}
 		To compute the set of live variables in SSA: \cite{Boi10}
 
  \section{Experiments}
 
+	To Be Completed
 
 
   \section*{Conclusion}
   
+	To Be Completed
+
   \appendix
   
 
