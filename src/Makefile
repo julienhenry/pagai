@@ -2,7 +2,7 @@ SRC		= $(wildcard ../src/*.cc)
 BIN_REP		= ../bin/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
-CC			= g++
+CC			= clang++
 CPPFLAGS	= -Wall -g -DPRINT_DEBUG
 LDFLAGS		=
 ICFLAGS		= -I/net/cezanne/local/jhenry/yices/include -I/net/cezanne/local/jhenry/z3/include
