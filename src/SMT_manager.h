@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 typedef void* SMT_expr;
 typedef void* SMT_type;

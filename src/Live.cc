@@ -1,9 +1,11 @@
 #include <stack>
 
 #include "Live.h"
+#include "llvm/Support/CFG.h"
+#include "llvm/Instructions.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/CFG.h"
+
 
 using namespace llvm;
 

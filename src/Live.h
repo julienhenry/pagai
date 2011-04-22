@@ -2,6 +2,7 @@
 #define LIVE_H
 
 #include "llvm/Pass.h"
+#include "llvm/Support/CFG.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/Analysis/Dominators.h"

@@ -4,6 +4,7 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/LinkAllVMCore.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/system_error.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -31,11 +32,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	LLVMContext & Context = getGlobalContext();
 
 	std::string ErrorMessage;
-
-	if (MemoryBuffer * Buffer
-			= MemoryBuffer::getFileOrSTDIN(InputFilename, &ErrorMessage)) {
-		M = ParseBitcodeFile(Buffer, Context, &ErrorMessage);
-		delete Buffer;
+	OwningPtr< MemoryBuffer > Buffer;
+	if (
+			MemoryBuffer::getFileOrSTDIN(InputFilename.c_str(), Buffer)) {
+		M = ParseBitcodeFile(Buffer.get(), Context, &ErrorMessage);
 	} else {
 		ferrs() << "Not able to initialize module from bitcode\n";
 		return;

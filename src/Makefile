@@ -5,13 +5,13 @@ OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
 CPPFLAGS	= -Wall -g -DPRINT_DEBUG
 LDFLAGS		=
-ICFLAGS		= -I/local/jhenry/yices/include -I/local/jhenry/z3/include
+ICFLAGS		= -I/local/yices/include -I/local/z3/include
 #ICFLAGS		= 
 EXEC		= analyzer
 
 GMP_PREFIX=/usr
-MPFR_PREFIX=/net/cezanne/local/jhenry/apron_svn/install
-APRON_PREFIX=/net/cezanne/local/jhenry/apron_svn/install
+MPFR_PREFIX=/local/apron
+APRON_PREFIX=/local/apron
 PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 

@@ -10,7 +10,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
-#include "llvm/Analysis/LiveValues.h"
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "ap_global1.h"

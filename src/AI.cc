@@ -8,7 +8,6 @@
 #include "llvm/PassManager.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Analysis/LiveValues.h"
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "llvm/Analysis/Passes.h"
