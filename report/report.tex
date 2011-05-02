@@ -90,21 +90,21 @@ the possible values of their variables during execution. This allows to show for
 instance that a program will not overflow, will not divide by zero, to compute
 loop invariants\dots
 The main applications of static analysis are compilation-time optimisation, and
-satefy critical systems, such as avionics.
+the proof of satefy properties in critical systems, such as avionics.
 
 Abstract Interpretation is a general framework used for static analysis.
 Linear Relation Analysis (LRA) is a direct application of this framework, that
 computes an upper-approximation of the set of the possible states of a numerical
-program. The state of a program is defined by the position where we are in the
-code, and the actual values of the different numerical variables.
+program. The state of a program is defined by the position of the program
+counter in the code, and the current values of the different numerical variables.
 The set of possible states is expressed as a least fixpoint of a set of
-equations defining the semantic of the program. 
+equations defining the semantics of the program. 
 
 A fundamental fact in static analysis is that it cannot be perfectly precise:
 either the set of possible states we compute is unsound (it doesn't contain all
-the possible states during execution), either it is incomplete (it contains
+the possible states during execution), or it is incomplete (it contains
 states that can never be reached during execution). 
-Abstract Interpretation is incomplete, since it always computes an
+Abstract Interpretation is sound but incomplete, since it always computes an
 upper-approximation of the set of possible states.
 
 Linear Relation Analysis approximates the set of possible states as a convex
@@ -115,13 +115,13 @@ approximations of the set of reachable states are computed until they converge
 to a fixpoint. 
 
 Satisfiability Modulo Theory (SMT) solving is a field in computer science that
-aims to decide the satisfiability of a logic formula containing boolean
+aims to decide the satisfiability of a logic formula containing Boolean
 predicates and elements of a theory, such as linear arithmetic relations between
 integers.
-In this report, we present a novel refinment of the Abstract Interpretation
-technique, that uses SMT-solving to guide the fixpoint iterations such as it
-temporarily focus on a selected path in the control flow graph (the graph
-expressing the semantic of the program), in order to
+In this report, we present a novel refinement of the Abstract Interpretation
+technique, that uses SMT-solving to guide the fixpoint iterations, so that it
+temporarily focuses on a selected path in the control flow graph (the graph
+expressing the semantics of the program), in order to
 obtain more precise results at reasonable cost.
 
 \subsection*{Contribution and Organization}
