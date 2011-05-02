@@ -23,6 +23,7 @@
 \def\Q{\mathbb{Q}}
 \def\P{\mathcal{P}}
 \def\ite{\textnormal{ite\ }}
+\def\lfp{\textnormal{\it lfp}}
 
 \definecolor{trefle}{rgb}{0,0.5,0}
 \definecolor{moka}{rgb}{0.5,0.25,0}
@@ -156,7 +157,7 @@ program often comes down to solving fixpoint equations $\Phi(x) = x$.
 However, most of the time, the solution of this fixpoint equation must be
 computed in a complex domain: in program analysis, this could be the state space
 of the program, i.e the set of all possible states of the program. This
-computation quickly becomes too costly.
+computation quickly becomes too costly or doesn't terminate.
 
 \subsection{Abstraction of the domain}
 
@@ -177,8 +178,8 @@ We have the following result:
 
 \begin{proposition}
 If $C$ is a complete lattice, and if $\Phi$ is increasing from $C$ to $C$, then
-$$\alpha(lfp(\Phi)) \leq_A lfp(\alpha(\Phi))$$
-where $lfp(\Phi)$ denotes the least fixpoint of $\Phi$.
+$$\alpha(\lfp(\Phi)) \leq_A \lfp(\alpha(\Phi))$$
+where $\lfp(\Phi)$ denotes the least fixpoint of $\Phi$.
 \end{proposition}
 
 In fact, one compute the least fixpoint of the function in the abstract
@@ -192,7 +193,7 @@ Termination of the fixpoint computation has to be guaranteed. This termination
 depends on the properties of the abstract domain:
 this one should be finite, or of finite depth, meaning that there doesn't exist
 any sequence $(y_i)_{i \geq 0}$ of elements of the abstract domain $A$ such as
-$\forall i \geq 0,\ y_i \leq_A y_{i+1}$. Indeed, in case of a domain of infinite
+$\forall i \geq 0,\ y_i <_A y_{i+1}$. Indeed, in case of a domain of infinite
 depth, the least fixpoint
 computation could run indefinitely, since the ascending sequence of elements of
 $A$ is infinite, and the fixpoint in never reached.
@@ -219,6 +220,8 @@ is not strictly increasing. Then, applying the widening operator when the
 sequence may increase indefinitely makes the computation converge to a fixpoint
 in finite time. 
 \end{itemize}
+
+\cite{Monniaux_HOSC09} gives a more general definition of the widening operator.
 
 The least fixpoint of a function $\Phi^\#$ is noted $\overline{y}$ and is equal
 to $\displaystyle \lim_{i \geq 0}\ y_i$, where $y_0 = \perp$ (the least element
@@ -270,7 +273,7 @@ Let $x_1, x_2, \dots ,x_n$ be the numerical variables of a program (assume they
 all are in $\Q$). A state of
 the program is then a point $\overrightarrow{x} \in \Q^n$.
 
-In $\Q^n$, the set of polyhedra is a lattice. The least element is $\perp$
+In $\Q^n$, the set of polyhedra ordered by inclusion is a lattice. The least element is $\perp$
 (the empty polyhedron), and the greatest element is $\top$ (the whole $Q^n$).
 
 The classical union of two convex polyhedra may not be a convex polyhedra.
@@ -283,7 +286,7 @@ Since the domain of convex polyhedra is of infinite depth, a widening operator
 is defined to ensure convergence of the technique. There have been different
 work proposing a definition of the widening operator in LRA
 \cite{CH78,Hal79,HPR97,BlanchetCousotEtAl_PLDI03}, in order to fight
-against the loss of precision induced by widening:
+against the loss of precision induced by widening.
 
 \subsection{Program Analysis}
 
@@ -291,7 +294,9 @@ Throughout the report, a program will be represented by a control flow graph:
 \begin{itemize}
 \item $P$ is a finite set of control points.
 \item $I_p$ is the (possibly empty)
-set of initial values for each control point $p \in P$.
+set of initial values for each control point $p \in P$. For an initial control
+point $p$, i.e a starting point of the program, $I_p$ is not empty. It is empty
+in the other case.
 \item $E \subseteq  P \times P$ is a set of directed edges. Each edge $e \in E$
 has a semantic $\tau_e: \P(\Q^n) \rightarrow \P(\Q^n)$, $\P(\Q^n)$ being the set
 of possible values of $\overrightarrow{x}$. $\tau_e$ maps a set of states before
@@ -369,6 +374,28 @@ $$\system{
 \forall (p',p) \in E,\ \  \tau^\#_{(p',p)}(X_{p'}) \subseteq X_p
 }$$
 
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
+                    semithick]
+
+  \node[state] (p)             [label=left:$X_{p}$]       {$p$};
+  \node[state]         (p2) [above  of=p] {};
+  \node[state]         (p1) [left of=p2,label=left:$X_{p'}$] {$p'$};
+  \node[state]         (p3) [right of=p2] {};
+  \node         (p22) [below  of=p] {};
+  \node         (p12) [left of=p22] {};
+  \node         (p32) [right of=p22] {};
+
+  \path [transition] (p1) edge              node {} (p);
+  \path [transition] (p2) edge              node {} (p);
+  \path [transition] (p3) edge              node {} (p);
+  \path [transition2] (p) edge              node {} (p12);
+  \path [transition2] (p) edge              node {} (p22);
+  \path [transition2] (p) edge              node {} (p32);
+\end{tikzpicture}
+\end{figure}
+
 The function $\Phi^\#$ previously described is the following:
 
 $$\Phi^\#\left[ \begin{array}{c}
@@ -384,7 +411,7 @@ I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\# (X_{p'}) \\
 The fixpoint computation algorithm consist in replacing iteratively each $X_p$ by its value
 on the right hand side, until the convergence.
 
-In the case of abstract domain with infinite ascending sequence, we use the
+In the case of an abstract domain with infinite ascending sequence, we use the
 previously defined widening operator:
 
 $$\left[ \begin{array}{c}
@@ -399,7 +426,6 @@ X_p \nabla \left( I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\#
 \end{array} \right]$$
 
 
-
 After a finite number of steps, the computation has reached the fixpoint and the
 value $X_p$ at the end give the different linear relations between the
 different numerical variables of the program at the control point $p$.
@@ -408,12 +434,12 @@ different numerical variables of the program at the control point $p$.
 In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
 apply it on a subset of $P$, called $P_w$, such as removing the nodes of $P_w$
-disconnect every cycles. For instance, one could choose $P_w$ as the set of the
+disconnects every cycles. For instance, one could choose $P_w$ as the set of the
 heads of loops.
 
 \subsubsection{Iteration strategies}
 There exist several iteration strategies for computing the fixpoint: whatever
-the order we choose for updating the different $X_p, p\in P$, the result at the
+order we choose for updating the different $X_p, p\in P$, the result at the
 end of the analysis is correct. Yet, the precision of the result and the time
 before convergence could be very different. 
 There have been some work to find efficient iteration strategies
@@ -435,6 +461,19 @@ one.
 \item The widening operator, used to ensure convergence of the technique,
 also induces a loss of precision. The classical technique is then to compute
 narrowing iterations, which often recover some precision. 
+
+For instance, considering the program:
+\begin{C}
+for (int i=0; i < 100; i++) {
+}
+\end{C}
+The analysis starts with $i=0$. After one iteration, one obtain $i \in
+[0,1]$, \dots. After a widening operation, the result becomes $i \in [0,
++\infty]$, which is an invariant, but very imprecise. We can do a new iteration,
+with $i\in [0, +\infty]$ at the beginning of the loop, and we find that the
+values for $i$ at the next step are in $[0, 100]$. This is still an invariant,
+but much better.
+
 \item There is also a loss of precision each time a point in the control flow
 graph has several incoming edges. This is the case for instance for
 \emph{if} statements, loops, etc. In this case, the abstract value of this point
@@ -455,7 +494,7 @@ blowup, because of the exponential growth of the number of edges in the graph.
 
 \subsubsection{Acceleration}
 
-Typically, to analyze a program with loops, the classical approach is to use the
+Typically, to analyze a program with loops, the approach is to use the
 widening operator, for example at the head of the loops, to ensure convergence.
 Since this induces imprecision, another technique called \emph{acceleration}
 aims to compute the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
@@ -504,6 +543,96 @@ To Be Completed
 	multigraph is a graph that can have several edges from a point $p$ to a
 	point $q$. 
 
+	Intuitively, expanding the graph comes back to consider independently the
+	different paths in the control flow graph, and thus to be more precise,
+	because paths that are not feasible will be ignored. Additionally, the
+	number of control points with several incoming transitions will be reduced,
+	so the loss of precision due to the convex hull of polyhedra may be
+	minimized.
+
+\begin{figure}[!h]
+\label{multigraph}
+\centering
+\begin{minipage}[c]{.19\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p$};
+	\node[state] (n1) [below left of=n0] {};
+	\node[state] (n2) [below right of=n0] {};
+	\node[state] (n3) [below right of=n1] {};
+	\node[state] (n4) [below left of=n3] {};
+	\node[state] (n5) [below right of=n3] {};
+	\node[state] (n6) [below right of=n4] {};
+	\node[state] (n7) [below left of=n6] {};
+	\node[state] (n8) [below right of=n6] {};
+	\node[PRstate] (n9) [below right of=n7] {$q$};
+
+  \path [transition] 
+		(n0) edge              node {} (n1);
+  \path [transition] 
+		(n0) edge              node {} (n2);
+  \path [transition] 
+		(n1) edge              node {} (n3);
+  \path [transition] 
+		(n2) edge              node {} (n3);
+  \path [transition] 
+		(n3) edge              node {} (n4);
+  \path [transition] 
+		(n3) edge              node {} (n5);
+  \path [transition] 
+		(n4) edge              node {} (n6);
+  \path [transition] 
+		(n5) edge              node {} (n6);
+  \path [transition] 
+		(n6) edge              node {} (n7);
+  \path [transition] 
+		(n6) edge              node {} (n8);
+  \path [transition] 
+		(n7) edge              node {} (n9);
+  \path [transition] 
+		(n8) edge              node {} (n9);
+\end{tikzpicture}
+\end{minipage} 
+$\Longrightarrow$
+\begin{minipage}[c]{.19\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p$};
+	\node (n1) [below left of=n0] {};
+	\node (n2) [below right of=n0] {};
+	\node (n3) [below right of=n1] {};
+	\node (n4) [below left of=n3] {};
+	\node (n5) [below right of=n3] {};
+	\node (n6) [below right of=n4] {};
+	\node (n7) [below left of=n6] {};
+	\node (n8) [below right of=n6] {};
+	\node[PRstate] (n9) [below right of=n7] {$q$};
+
+  \path [transition] 
+		(n0) edge  [out=0, in=0]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=180, in=180]        node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=205, in=155]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=230, in=130]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=255, in=105]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-25, in=25]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-50, in=50]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-75, in=75]            node {} (n9);
+\end{tikzpicture}
+\end{minipage}
+\caption{One can expand the graph in the left and obtain the associate graph in
+the right.}
+\end{figure}
+\FloatBarrier
+
 	Let $(P,E)$ be the control flow graph of the program.
 	First, one choose a set of points $P_W \subseteq P$, such that the graph
 	obtained after removing these points has no cycle. The widening operator
@@ -512,7 +641,7 @@ To Be Completed
 	Then, one choose another set $P_R \subseteq P$ of nodes, satisfying the
 	following properties:
 	\begin{itemize}
-	\item $I_p = \emptyset$ for each $p \in P \ P_R$, meaning that the initial
+	\item $I_p = \emptyset$ for each $p \in P \setminus P_R$, meaning that the initial
 	points of the program are included in $P_R$.
 	\item $P_W \subseteq P_R$: all the widening points are in $P_R$.
 	\end{itemize} 
@@ -809,7 +938,7 @@ path.
 
 	If the problem has a solution,  the SMT-solver will be in position to show
 	which path in the control flow graph is selected, by giving a model: an
-	assignments of the boolean variables such as the formula is true.
+	assignments of the boolean variables such that the formula is true.
 	Among these boolean variables, some of them are associated to a transition
 	in the control flow graph:
 	\begin{itemize}
@@ -841,15 +970,15 @@ path.
 in the $\rho$ formula.
 \item For each operation in the program, we encode its semantic, expressed in
 terms of the boolean and numerical SSA variables. For instance, if the CFG
-contains the affectation $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
+contains the assignment $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
 the formula. This equality expression is noted $assign(x.2)$. 
 $assign(x)$ is defined for each numerical SSA-variable of the program.
 \item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = B_i\ \wedge \
 c(i,j)$, where $B_i = b_i^s$ if $p_i \in P_R$, or $b_i$ if not.
 $c(i,j)$ express the condition that needs to be true to go through the
 transition. For instance, $c(i,j)$ could be of the form $x < y$, \dots
-If the transition is undeterministic, then $c(i,j) = c_{i,j}$, where
-$c_{i,j}$ is a boolean variable left undeterministic.
+If the transition is non-deterministic, then $c(i,j) = c_{i,j}$, where
+$c_{i,j}$ is a boolean variable left non-deterministic.
 \item For each point $p_i \notin P_R$, we set the reachability predicate 
 $b_i = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$.
 \item For each point $p_i^d \in P_R$, we set the reachability predicate 
@@ -858,7 +987,7 @@ $b_i^d = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$.
 formula. We simply use $\ite$ (\emph{if-then-else}) statements, standardly defined in the
 SMT-Lib format \cite{BarST-SMTLIB}, for giving the right value to the variable,
 depending on the incoming transition we come from. Generally, for a
-$Phi$-variable $x = \Phi(x_1,x_2,\dots,x_n)$ in control point $p_i$ with the
+$\Phi$-variable $x = \Phi(x_1,x_2,\dots,x_n)$ in control point $p_i$ with the
 ordered incoming transitions $t_{j_1,i},t_{j_2,i},\dots,t_{j_n,i}$, we set:
 
 $$x = \ite (t_{j_1,i})\  (x_1)\  (\ite (t_{j_2,i})\  (x_2)\  (\ite\  \dots))$$
@@ -994,16 +1123,17 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	\subsubsection{Expression of the reachability problem}
 
-	$\rho$ express the semantic of the program. We still need to create the
+	The SMT-formula $\rho$ express the semantic of the program. We still need to create the
 	formula expressing the reachability problem defined in \ref{reachability}.
 
 	The abstract domain $D$ we use is those of convex polyhedra, so an abstract
 	value $X \in D$ is simply a system of linear inequalities between the
 	different SSA-variables of the program. Then, it is easy to encode the
-	property $x \in X$ into an SMT-formula: one simply write the conjunction of
+	property $x \in X$ into an SMT-formula: one simply writes the conjunction of
 	these inequalities, with the name of the variables in the vector $x$.
 
-	The formula given to the SMT-solver is:
+	To compute the reachability strating from point $p_i$, the formula given to
+	the SMT-solver is:
 
 	$$\rho \wedge b_i^s \wedge \bigwedge_{j\neq i,\ j\in P_R} (\neg b_j^s)
 	\wedge x_i \in X_{p_i} \wedge \bigvee_{j/(p_i,p_j)\in E} (b_2^d \wedge \neg
@@ -1242,7 +1372,7 @@ the \emph{clang} compiler.
 \FloatBarrier
 
 The advantage of using such an infrastructure is that the analyzer can check
-programs written in different languages: C, C++, \dots, without needing to write
+programs written in various languages: C, C++, \dots, without needing to write
 a specific frontend for each of them. Here, the analyzer works directly on the
 internal representation (IR), which is a graph representation of
 the program. The control flow graph can easily be extracted from
