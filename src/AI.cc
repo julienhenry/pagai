@@ -36,9 +36,9 @@ const char * AI::getPassName() const {
 
 void AI::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
+	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
-	AU.addRequired<LoopInfo>();
 }
 
 bool AI::runOnModule(Module &M) {

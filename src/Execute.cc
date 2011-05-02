@@ -8,6 +8,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_os_ostream.h"
+
 #include "llvm/Target/TargetData.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Transforms/Scalar.h"
@@ -24,22 +25,48 @@
 
 using namespace llvm;
 
+static cl::opt<std::string>
+DefaultDataLayout("default-data-layout", 
+          cl::desc("data layout string to use if not specified by module"),
+          cl::value_desc("layout-string"), cl::init(""));
+
+
 void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
-	Module *M = NULL;
+	//Module *M = NULL;
 	raw_fd_ostream *FDOut = NULL;
-	
+
 	LLVMContext & Context = getGlobalContext();
 
+	////
+	
 	std::string ErrorMessage;
-	OwningPtr< MemoryBuffer > Buffer;
-	if (
-			MemoryBuffer::getFileOrSTDIN(InputFilename.c_str(), Buffer)) {
-		M = ParseBitcodeFile(Buffer.get(), Context, &ErrorMessage);
-	} else {
-		ferrs() << "Not able to initialize module from bitcode\n";
+	std::auto_ptr<Module> M;
+	{
+		OwningPtr<MemoryBuffer> BufferPtr;
+		if (error_code ec = MemoryBuffer::getFileOrSTDIN(InputFilename, BufferPtr))
+			ErrorMessage = ec.message();
+		else
+			M.reset(ParseBitcodeFile(BufferPtr.get(), Context, &ErrorMessage));
+	}
+	if (M.get() == 0) {
+		errs() << ": ";
+		if (ErrorMessage.size())
+			errs() << ErrorMessage << "\n";
+		else
+			errs() << "bitcode didn't read correctly.\n";
 		return;
 	}
+
+	TargetData * TD = 0;
+	const std::string &ModuleDataLayout = M.get()->getDataLayout();
+	if (!ModuleDataLayout.empty()) {
+		TD = new TargetData(ModuleDataLayout);
+	} else if (!DefaultDataLayout.empty()) {
+		TD = new TargetData(DefaultDataLayout);
+	}
+
+	////
 
 	if (OutputFilename != "") {
 
@@ -66,7 +93,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	ModulePass *AIPass = new AI();
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
-	Passes.add(new TargetData(M));
+	Passes.add(TD);
 	Passes.add(createVerifierPass());
 	Passes.add(createGCLoweringPass());
 	//Passes.add(createLowerInvokePass());
@@ -77,12 +104,12 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// this pass converts SwitchInst instructions into a sequence of
 	// chained binary branch instructions, much easier to deal with
 	Passes.add(createLowerSwitchPass());	
-	
+
 	Passes.add(new Live());
 	Passes.add(new SMT());
 	Passes.add(AIPass);
 
-	Passes.run(*M);
+	Passes.run(*M.get());
 
 	//Out->flush();
 	//delete FDOut;
