@@ -148,6 +148,76 @@ techniques into an analyzer, and the experimental results we obtained.
 
 \part{Abstract Interpretation: state of the art}
 \label{stateoftheartpart}
+
+\section{Introductive example}
+
+We consider the following program:
+
+\begin{figure}[!h]
+   \begin{minipage}[c]{.46\linewidth}
+\begin{C}
+x = 0;
+while (x < 100) {
+	x++;
+}
+\end{C}
+   \end{minipage} \hfill
+   \begin{minipage}[c]{.46\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.7cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n2) [below of=n1] {$p_2$};
+	\node[state] (n3) [left of=n1] {$p_3$};
+
+  \path [transition] 
+		(n0) edge              node {$x = 0$} (n1);
+  \path [transition] 
+        (n1) edge			   node [above] {$x \geq 100?$} (n3);
+  \path [transition] 
+        (n1) edge			   node [left] {$x < 100?$} (n2);
+  \path [transition] 
+        (n2) edge [out=0, in=0, distance=2cm] node [right] {$x = x+1$} (n1);
+
+\end{tikzpicture}
+   \end{minipage}
+\end{figure}
+\FloatBarrier
+
+Static analysis aims to discover some properties about programs. In this
+example, one would to compute the set of possible values for the variable $x$
+during execution.
+The graph at the right side represents the program. The nodes of the graph are
+called \emph{program points}. We can compute for instance the set $Y_1$ of
+values for $x$ at point $p_1$. This set depends on the sets $Y_0$ and $Y_2$,
+since there are two edges arriving at $p_1$: the first one comes from $p_0$, and
+the second one from $p_2$.
+
+There is a relation between $Y_1$ and $Y_2$ :
+\begin{eqnarray*}
+Y_1 &=& \{x\ |\ x=0 \vee \exists x' \in Y_2, x=x'+1 \} \\
+Y_2 &=& \{x\ |\ x \in Y_1 \wedge x < 100 \}
+\end{eqnarray*}
+
+We see that $Y_1$ and $Y_2$ can be computed step by step:
+we start with $Y_1 = Y_2 = \emptyset$.
+Then, we add iteratively new elements in the sets.
+\begin{itemize}
+\item  We see that $0 \in Y_1$: $Y_1 = \{0\}$.
+\item $Y_1$ contains $0$. So, $Y_2$ also contains $0$ by definition: $Y_2 =
+\{0\}$.
+\item $Y_2$ contains $0$, so $0+1=1$ is in $Y_1$: $Y_1 = \{0,1\}$.
+\item Again, we find $Y_2 = \{0,1\}$.
+\item $Y_2$ now contains $1$, so $1+1=2 \in Y_1$: $Y_1 = \{0,1,2\}$.
+\item We continue the iteration until we find no more elements in the sets\dots
+\end{itemize}
+
+This computation is a fixpoint computation: one updates the different sets until
+we find no more elements. These sets are strictly increasing (we always add new
+elements in the sets), and if we find no new elements to add, that means we have
+reached a limit.
+
 \section{Abstract Interpretation}
 
 Abstract Interpretation \cite{CC77,CousotCousot92-1} is a general method to find approximate solutions of
@@ -283,7 +353,7 @@ If $X_1, X_2$ are two convex polyhedra, $X_1 \sqcup X_2$ is the
 smallest convex polyhedron containing both $X_1$ and $X_2$.
 
 Since the domain of convex polyhedra is of infinite depth, a widening operator
-is defined to ensure convergence of the technique. There have been different
+is defined to ensure convergence of the technique. There have been various
 work proposing a definition of the widening operator in LRA
 \cite{CH78,Hal79,HPR97,BlanchetCousotEtAl_PLDI03}, in order to fight
 against the loss of precision induced by widening.
@@ -357,6 +427,7 @@ while (true) {
    \end{minipage}
    \caption{Example of program, and its associate control flow graph. This
    program comes from \cite{GopanR06}.}
+\label{runningexample}
 \end{figure}
 \FloatBarrier
 
@@ -449,7 +520,7 @@ connected components of the graph.
 \subsubsection{Sources of imprecision}
  \label{multigraph}
 Linear Relation Analysis is sound but incomplete: there is loss of precision
-during the computation, due to different reasons:
+during the computation, due to various reasons:
 \begin{enumerate}
 \item Since an abstract domain is used to represent the set of possible states,
 such as the domain of convex polyhedra, there is an upper approximation of the
@@ -531,7 +602,123 @@ the loop.
 
  \section{Lookahead Widening}
 
-To Be Completed
+In some cases, a loop can have a non-regular behaviour, especially when it has
+several paths. Some of these paths can stay impossible for a while, and become
+possible after a certain number of iterations. However, the widening operator
+extrapolates without taking care of these new possible paths. This can induce a
+loss of precision, that Lookahead widening aims to limit.
+
+Lookahead widening \cite{GopanR06} is a technique that aims to isolate the
+different loop phases during the analysis, in order to obtain more precise
+results.
+
+In the program already depicted in figure \ref{runningexample}, there is a loop
+with two perfectly distinct phases:
+\begin{itemize}
+\item During the 51 first iterations, both $x$ and $y$ are incremented.
+\item During the 51 last iterations, $x$ is incremented and $y$ is decremented.
+\end{itemize}
+
+When computing the fixpoint iterations, we only consider a subset of the graph
+for a while, until the convergence. In our example:
+\begin{itemize}
+\item Step 1:
+	we only consider the path of
+	the loop that is possible at the first iteration. The second path is
+	ignored, and will be treated later. we compute the iterations, and we obtain
+	an first invariant for this part of the graph. Then, we can do some
+	narrowing steps in order to recover some precision, before adding new paths
+	in the graph.
+\item Step 2:
+	Now, we add the new paths into our graph if they have become possible. In
+	our case, the second path of the loop is now possible, so we add the path in
+	the graph and compute new iterations until convergence\dots
+\item Step 3: finally, the path from $p_4$ to $p_7$, so we add it into the graph and
+compute the invariant for $p_7$.
+\end{itemize}
+
+\begin{figure}[!h]
+   \begin{minipage}[c]{.46\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n2) [below left of=n1] {$p_2$};
+	\node[state] (n3) [below right of=n1] {$p_3$};
+	\node[state] (n4) [below left of=n3] {$p_4$};
+	\node[state] (n5) [below of=n4] {$p_5$};
+	\node[state] (n6) [below of=n5] {$p_6$};
+	\node[state] (n7) [left of=n6] {$p_7$};
+
+	\node (n8) [right of=n6] {};
+	\node (n9) [right of=n1] {};
+
+  \path [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path [transition2] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path [transition2] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path [transition2] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+
+\end{tikzpicture}
+\centering Step 1
+   \end{minipage} \hfill
+   \begin{minipage}[c]{.46\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n2) [below left of=n1] {$p_2$};
+	\node[state] (n3) [below right of=n1] {$p_3$};
+	\node[state] (n4) [below left of=n3] {$p_4$};
+	\node[state] (n5) [below of=n4] {$p_5$};
+	\node[state] (n6) [below of=n5] {$p_6$};
+	\node[state] (n7) [left of=n6] {$p_7$};
+
+	\node (n8) [right of=n6] {};
+	\node (n9) [right of=n1] {};
+
+  \path [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path [transition] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path [transition] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path [transition2] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
+  \path [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+
+\end{tikzpicture}
+\centering Step 2
+   \end{minipage}
+   \caption{Dotted arrows are ignored by the analysis.}
+\label{gopanreps}
+\end{figure}
+\FloatBarrier
+
 
  \section{Path Focusing}
 
@@ -832,7 +1019,8 @@ having the same semantic.}
 	\subsubsection{Static Single Assignment form}
 
 	Path focusing technique uses control flow graphs in static single assignment
-	(SSA) form. The main concept behind the SSA form is that every variable is
+	(SSA) form. The main concept behind the SSA form is that, syntactically,
+	every variable is	
 	only being assigned once. 
 
 
@@ -920,7 +1108,7 @@ path.
 	grow.
 
 	This is a reachability problem, that can be expressed as an SMT-formula,
-	which is a logic formula with boolean variables, and elements of a certain
+	which is a logic formula with Boolean variables, and elements of a certain
 	theory $T$. Depending on the program, one can choose different theories:
 	\begin{itemize}
 	\item For programs with rational variables, whose operations (instructions,
@@ -930,19 +1118,19 @@ path.
 	$\Z^n$) $T$ can be the theory of linear integer arithmetic (LIA).
 	\end{itemize}
 
-	Despite deciding the satisfiability of such formula is NP-complete, there
-	has been lots of research on decision procedures \cite{Kroening08} and there exist nowadays
+	Although deciding the satisfiability of such formula is NP-complete, there
+	has been much research on decision procedures \cite{Kroening08} and there exist nowadays
 	efficient programs, known as SMT-solvers, that can decide the satisfiability
 	of LRA or LIA formulas. Well-known efficient SMT-solvers are
 	Z3 \cite{MouraB08} and Yices \cite{DutertreM06}. 
 
 	If the problem has a solution,  the SMT-solver will be in position to show
 	which path in the control flow graph is selected, by giving a model: an
-	assignments of the boolean variables such that the formula is true.
-	Among these boolean variables, some of them are associated to a transition
+	assignments of the Boolean variables such that the formula is true.
+	Among these Boolean variables, some of them are associated to a transition
 	in the control flow graph:
 	\begin{itemize}
-	\item if the model has set to \emph{true} the boolean variable $b_e$ associated
+	\item if the model has set to \emph{true} the Boolean variable $b_e$ associated
 	to the transition $e$, then the focus path goes through this transition.
 	\item in the other case, the focus path doesn't go through this transition.
 	\end{itemize}
@@ -1157,6 +1345,11 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	\subsection{Algorithm}
 	
 	Path Focusing algorithm is described in Algorithm \ref{pathfocusingalgo}.
+	We maintain a set $A$ of point in $P_R$ that need to be treated.
+	We select iteratively one of these control points, and search for new focus
+	paths starting from this point, until there is no more path to be treated.
+	At the end of the analysis, one could perform some narrowing iterations in
+	order to recover some precision.
 \begin{algorithm}
 \caption{Path Focusing}\label{pathfocusingalgo}
 \begin{algorithmic}[1] 
@@ -1198,11 +1391,90 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \end{algorithmic}
 \end{algorithm}
 
-
 	\subsection {Precision of the analysis}
 
-	To Be Completed\dots
+	One can refine the \emph{Path-focusing} algorithm by treating specially the
+	self loops of the multigraph. Indeed, instead of simply apply the widening
+	operator, one could compute some narrowing steps to regain precision before
+	focusing on another path. This is the same principle as the one we find in
+	\emph{Lookahead widening} \cite{GopanR06}.
+
+	So, the algorithm has a special case if the path we focus on goes from $p_i$
+	to itself: instead of computing $\tau_e^\#(X_{p_i})$, one compute
+	$SelfLoop(\tau_e^\#,X_{p_i})$, defined in algorithm \ref{loopiteralgo}.
+
+	The $SelfLoop$ procedure actually computes a widening operation, and
+	computes a narrowing step in order to recover precision. In some cases,
+	instead of performing widening/narrowing iterations, one could use
+	acceleration techniques to find even more precise invariants \cite{GH06}.
+
+	In order for this refinement to be precise, one needs to delay the widening
+	operator when we consider a self-loop for the first time. Then, our
+	algorithm uses a set $U$ of paths that have already been treated. If the
+	self-loop we focus on is not in $U$, we apply a simple union instead of
+	widening. Widening will be applied next time to guarantee the convergence.
 	
+\begin{algorithm}
+\caption{SelfLoop}
+\label{loopiteralgo}
+\begin{algorithmic}[1] 
+\Procedure{SelfLoop}{$\tau_e^\#$,$X_{p_i}$}
+	\State $Y \gets \tau_e^\#(X_{p_i})$
+	\State $X' \gets X_{p_i} \sqcup Y$
+	\State $Y \gets \tau_e^\#(X')$
+	\State \textbf{return} $Y$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Path Focusing with special treatment for self loops}
+\label{pathfocusingoptalgo}
+\begin{algorithmic}[1] 
+\Procedure{pathfocusing}{$P$,$E$,$P_R$}
+\ForAll {$p \in P_R$}
+	\State Compute $Succ(p)$, the set of the successors of $p$ in the multigraph
+\EndFor
+\State $\rho \gets$ computeRho$(P,E)$
+\State $A \gets \emptyset$
+\ForAll {$p \in P_R / I_p \neq \emptyset$}
+	\State $A \gets A \cup p$
+\EndFor
+\While{$A \neq \emptyset$}
+	\State Select $p_i \in A$
+	\State $A \gets A \setminus \{p_i\}$
+	\State $U \gets \emptyset$
+	\While{true}
+		\State $res \gets SmtSolve\left[\rho \wedge b_i^s \wedge
+		\displaystyle\bigwedge_{\substack{j\neq i \\
+		j\in P_R}} (\neg b_j^s) \wedge x_i \in X_{p_i} \wedge
+		\bigvee_{\substack{j \\ p_j\in Succ(p_i)}} \left(b_2^d \wedge \neg (x'_j \in
+		X_{p_j})\right)\right]$
+		\If {$res = unsat$}
+			\State \textbf{break}
+		\EndIf
+		\State Compute the focus path $e$ from $p_i$ to $p_j$
+		\If{$p_i = p_j$}
+			\State $Y \gets SelfLoop(\tau_e^\#,X_{p_i})$
+		\Else
+			\State $Y \gets \tau_e^\#(X_{p_i})$
+		\EndIf
+		\If {$(p_j \in P_W) \wedge (p_i \neq p_j \vee e \in U)$}
+			\State $X_{p_j} \gets X_{p_j} \nabla (X_{p_j} \sqcup Y)$
+		\Else
+			\State $X_{p_j} \gets X_{p_j} \sqcup Y$
+			\State $U \gets U \cup \{e\}$
+		\EndIf
+		\State $A \gets A \cup \{p_j\}$
+	\EndWhile
+\EndWhile
+\State Possibly perform some narrowing steps
+\State Compute $\{X_{p_i},\ i \notin P_R\}$
+\State \textbf{return} $\{X_{p_i},\ i \in P\}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
 	\subsection{Disjunctive invariants}
 
 	In this subsection, we propose an extension of the path focusing technique
@@ -1290,8 +1562,9 @@ paths $\tau_{p,i}$.
 The new algorithm we propose is described in Algorithm \ref{gulwani2}.
 A difference is that here, we don't know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
-compute this number of path at the beginning of the algorithm.
+compute this number of paths at the beginning of the algorithm.
 
+\FloatBarrier
 \part{Implementation}\label{implementationpart}
 
 \emph{Lookahead Widening} and \emph{Path Focusing}
@@ -1373,10 +1646,15 @@ the \emph{clang} compiler.
 
 The advantage of using such an infrastructure is that the analyzer can check
 programs written in various languages: C, C++, \dots, without needing to write
-a specific frontend for each of them. Here, the analyzer works directly on the
+a specific frontend for each of them. Here, the analyzer directly works on the
 internal representation (IR), which is a graph representation of
 the program. The control flow graph can easily be extracted from
 this representation.
+
+Our analyzer takes as parameter the LLVM internal representation of a program,
+and returns linear relations between the numerical variables at each control
+point of this program. It first applies some optimisation passes over the IR,
+and then computes the linear relations by abstract interpretation.
 
 \begin{figure}[!h]
 \begin{minipage}[c]{.45\linewidth}
@@ -1406,7 +1684,7 @@ int main() {
 
 During the implementation, we encountered problems due to the use of the LLVM
 internal representation. Indeed, this format is not provided for static
-analysis, but for code generation. Then, some informations we need to do precise
+analysis, but for code generation. Then, some informations we need for a precise
 static analysis are lacking.
 
 This is the case for the distinction between \emph{signed} and \emph{unsigned}
@@ -1420,18 +1698,92 @@ for instance, if $n$ is unsigned, one could add the constraint $n \geq 0$ in our
 	constraint $n \geq 0$, and the second one with $n < 0$.
 
 
+Another example of information that was missing is the set of live variables.
+Indeed, in LLVM, live variables computation is processed after the register
+allocation. Then, the data structure we work on doesn't have live variables
+informations yet. To solve this problem, we coded our own pass, that aims to
+compute these live variables after the transformation in SSA form.
 
  \section{Abstract domain representation}
 
-		The analyzer is implemented with the APRON library \cite{JM09}, which
-		is a common interface to libraries implementing all the features
-		for several abstract domains, such as convex polyhedra (NewPolka), 
-		octagons (OCT), intervals (BOX).
-		In our case, we used the convex polyhedra library, but we could switch
-		to octagons or intervals easily.
+	The analyzer is implemented using the APRON library \cite{JM09}, which
+	is a common interface to libraries implementing all the features
+	for several abstract domains, such as convex polyhedra (NewPolka), 
+	octagons (OCT), intervals (BOX).
+	In our case, we used the convex polyhedra library, but we could switch
+	to octagons or intervals easily.
 
-		\subsection{Dimensions of the Abstract values}
-		To compute the set of live variables in SSA: \cite{Boi10}
+	\subsection{Dimensions of the Abstract values}
+	
+	In our implementation, we tried to reduce as much as possible the dimensions
+	of the abstract values at each program point. Indeed, there is no need to
+	consider the whole set of the program numerical variables at each point $p$,
+	since lots of these variables are not \emph{live} in $p$. 
+	The definition of a \emph{live} variable is the following:
+
+	\begin{definition}[Liveness]
+	A variable is \emph{live} at the control point $p$ iff:
+	\begin{itemize}
+	\item its value is available at $p$, meaning that there is a path from the
+	point defining the variable and $p$.
+	\item its value might be used in the future, meaning that there exist a path
+	starting in $p$, that arrives in a point using the variable.
+	\end{itemize}
+	\end{definition}
+
+	LLVM internal representation allows to find the control point where
+	a variable is defined and used, thanks to def-use chains: we can
+	easily get the set of points where a variable is used, and we directly have
+	a pointer to its definition.
+	With all these informations, we implemented an LLVM pass that computes 
+	the set of live variables in SSA, using the liveness check algorithm
+	described in \cite[section 3.3]{Boi10}.
+
+	
+	At a program point $p$, the dimensions of the associate abstract value could
+	only be the numerical variables that are live at $p$. This is
+	not exactly the case in our implementation, because of another 
+	optimisation: we only consider
+	variables that are not a linear combination of other variables.
+
+	For instance, assume that $x,y,z$ are numerical variables of a program,
+	$x$ is defined as $x = y+z$, and $x,y,z$ are live at point $p$. Instead of having
+	$x$ as a dimension for $X_p$, we only have $y$ and $z$. All the properties
+	for $x$ can be directly extracted from $X_p$ and the information $x=y+z$.
+	This is an optimisation in the sense that there is redundant information in
+	the abstract value if both $x,y$ and $z$ are dimensions of $X_p$.
+
+	Then, liveness definition can be adapted in our case:
+
+	\begin{definition}[Liveness\dots]
+	A variable $v$ is \emph{live\dots} at the control point $p$ iff:
+	\begin{itemize}
+	\item 
+	its value is available at $p$, meaning that there is a path from the
+	point defining the variable to $p$,
+	\item one of these conditions holds:
+		\begin{itemize}
+		\item $v$ is live in $p$.
+		\item There is a variable $v'$, defined as a linear combination of other
+		variables $v_1, v_2, \dots, v_n$, such that $\exists i \in \{1,\dots,n\}, v = v_i$,
+		and $v'$ is live\dots in $p$.
+		\end{itemize}
+	\end{itemize}
+	\end{definition}
+
+	Finally, a variable is a dimension of $X_p$ iff it is live\dots and it is
+	not defined as a linear combination of program variables.
+
+	\subsection{SMT-solving}
+
+	\emph{Path focusing} technique requires to decide the satisfiability of some
+	SMT formula, and to extract a model when the formula is satisfiable, i.e an
+	assignement of the variables such that the formula is \emph{true}. For doing
+	this, our implementation has an interface with Microsoft Z3 \cite{MouraB08},
+	and Yices \cite{DutertreM06}. One can easily switch from one to another with
+	an argument we give as parameter to the analyzer. In this way, we can
+	compare the effectiveness of both SMT-solvers.
+
 
  \section{Experiments}
 
