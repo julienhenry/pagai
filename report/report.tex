@@ -216,7 +216,9 @@ Then, we add iteratively new elements in the sets.
 This computation is a fixpoint computation: one updates the different sets until
 we find no more elements. These sets are strictly increasing (we always add new
 elements in the sets), and if we find no new elements to add, that means we have
-reached a limit.
+reached a limit. Abstract Interpretation gives a general framework to do such
+kind of fixpoint computation.
+
 
 \section{Abstract Interpretation}
 
@@ -479,7 +481,7 @@ I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\# (X_{p'}) \\
 \vdots
 \end{array} \right]$$
 
-The fixpoint computation algorithm consist in replacing iteratively each $X_p$ by its value
+The fixpoint computation algorithm consists in replacing iteratively each $X_p$ by its value
 on the right hand side, until the convergence.
 
 In the case of an abstract domain with infinite ascending sequence, we use the
@@ -595,6 +597,367 @@ Acceleration is possible when the loop is simple enough, and come to compute the
 transitive closure $\tau_e^+$ of $\tau_e$, the transition function associated to
 the loop.
 
+\section{Example}
+
+We apply the linear relation analysis technique over the program in figure
+\ref{runningexample}. The set of state where we apply widening is $\{p_1\}$: it
+is sufficient, since removing $p_1$ cuts all cycles in the graph.
+
+To each point of the control flow graph $\{p_0, p_1,\dots, p_7\}$, we attach a
+convex polyhedron, whose dimensions are the numerical variables $x,y$.
+For instance, at point $p_1$, the effective set of possible assignments for
+$(x,y)$ is the union of the two segments $(0,0) - (51,51)$ and $(51,51) -
+(102,0)$, depicted in figure \ref{result}.a. Since this union of segments is not
+a convex polyhedra, the best result we can wait for after abstraction is the
+polyhedra depicted in figure \ref{result}.b, which is the smallest convex
+polyhedra containing the two segments.
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.39\linewidth}
+\centering
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (8,8) -- cycle;
+	\draw[line] (16,0) -- (8,8) -- cycle;
+	
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks and labels      
+     		\draw [dotted](8,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw [dotted] (8,8) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw [dotted] (16,1pt) -- (16,-3pt) 
+     			node[anchor=north] {$102$}; 
+
+	\node[right=1.9cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+	\node[right=3cm] at (y axis mid) {$p_1$};
+\end{tikzpicture}
+
+a. During execution, $(x,y)$ can only be in one of these two segments.
+\end{minipage} 
+\begin{minipage}[c]{.59\linewidth}
+\centering
+\begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
+
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (8,8) -- cycle;
+	\draw[line] (16,0) -- (8,8) -- cycle;
+	
+	\fill[polyhedra] (0,0) -- (8,8) -- (16,0) -- cycle;
+
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+
+	%ticks and labels      
+     		\draw [dotted](8,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw [dotted] (8,8) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+     		\draw [dotted] (16,1pt) -- (16,-3pt) 
+     			node[anchor=north] {$102$}; 
+
+	\node[right=1.9cm] at (x axis mid) {$x$};
+	\node[above=1.2cm] at (y axis mid) {$y$};
+
+	\node[right=3cm] at (y axis mid) {$p_1$};
+\end{tikzpicture} 
+
+b. The best result we can have is the polyhedra in hashed lines.
+\end{minipage}
+\caption{Best results we can get from the analysis}
+\label{result}
+\end{figure}
+
+We apply abstract interpretation to this program. Let $X_i$ be the polyhedra
+attached to point $p_i$. Initially, $X_i = \perp$ for each $i \in \{1,7\}$, and
+$X_0 = \top$. The tabular in figure \ref{iterations} shows the evolution of the
+polyhedron during the iterations.
+
+After 3 iterations, we have reached an invariant. We can then apply a narrowing
+iteration, that recovers some precision. Finally, at point $p_1$, we see that
+the obtained result is not as precise as we could wish (Figure \ref{result}.b).
+This is due to the widening operator applied at point $p_1$, and the convex hull
+applied at point $p_4$.
+
+\begin{figure}[!h]
+\centering
+\caption{Polyhedron attached to the different points during iterations.}
+\label{iterations}
+\begin{tabular}{|c||c|c|c|c|} \hline
+Iteration & $X_0 \sqcup X_6$ & $X_1$ (widening) & $X_4$ & $X_6$ \\ \hline
+1& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill[line] (0,0) circle (0.8);
+	%\draw[line] (0,0) -- (8,8) -- cycle;
+	%\draw[line] (16,0) -- (8,8) -- cycle;
+	%\fill[polyhedra] (0,0) -- (8,8) -- (16,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+&
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill[line] (0,0) circle (0.8);
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill[line] (0,2) circle (0.8);
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](1pt,2) -- (-3pt,2) 
+     			node[anchor=east] {$1$}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\fill[line] (2,2) circle (0.8);
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](2,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+     		\draw [dotted](2,2) -- (2,-3pt) 
+     			node[anchor=north] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+\\ \hline
+2&
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (2,2) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](2,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+     		\draw [dotted](2,2) -- (2,-3pt) 
+     			node[anchor=north] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (12,12) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+&
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,2) -- (6,8) -- cycle;
+	\draw[line] (8,6) -- (14,12) -- cycle;
+	\fill[polyhedra] (0,2) -- (10,12) -- (14,12) -- (8,6) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	     	\draw [dotted](6,8) -- (-3pt,8) 
+     			node[anchor=east,yshift=2pt] { {\tiny $51$}}; 
+     		\draw [dotted] (8,6) -- (-3pt,6) 
+     			node[anchor=east, yshift=-2pt] { {\tiny $50$}}; 
+     		\draw [dotted](8,6) -- (8,-3pt) 
+     			node[anchor=north,xshift=2pt] { {\tiny $51$}}; 
+     		\draw [dotted] (6,8) -- (6,-3pt) 
+     			node[anchor=north,xshift=-2pt] { {\tiny $50$}};
+     		\draw [dotted](1pt,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+&
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	%\draw[line] (2,2) -- (6,8) -- cycle;
+	%\draw[line] (8,6) -- (14,12) -- cycle;
+	\fill[polyhedra] (2,2) -- (12,12) -- (16,12) -- (10,6) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted] (10,6) -- (-3pt,6) 
+     			node[anchor=east, yshift=-2pt] { {\tiny $50$}}; 
+     		\draw [dotted](10,6) -- (10,-3pt) 
+     			node[anchor=north,xshift=2pt] { {\tiny $52$}}; 
+     		\draw [dotted](2,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+     		\draw [dotted](2,2) -- (2,-3pt) 
+     			node[anchor=north] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+\\ \hline
+3& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	%\draw[line] (2,2) -- (6,8) -- cycle;
+	%\draw[line] (8,6) -- (14,12) -- cycle;
+	\fill[polyhedra] (0,0) -- (12,12) -- (16,12) -- (10,6) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted] (10,6) -- (-3pt,6) 
+     			node[anchor=east, yshift=-2pt] { {\tiny $50$}}; 
+     		\draw [dotted](10,6) -- (10,-3pt) 
+     			node[anchor=north,xshift=2pt] { {\tiny $52$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (-4,-4) -- (12,12) -- cycle;
+	\fill[polyhedra] (-4,-4) -- (12,12) -- (20,12) -- (20,-4) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (-4,-2) -- (10,12) -- cycle;
+	\fill[polyhedra] (-4,-4) -- (-4,-2) -- (10,12) -- (20,12) -- (20,-4) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](1pt,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+&
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (12,12) -- cycle;
+	\fill[polyhedra] (0,0) -- (12,12) -- (20,12) -- (20,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+\\ \hline
+narrowing& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (12,12) -- cycle;
+	\fill[polyhedra] (0,0) -- (12,12) -- (20,12) -- (20,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,0) -- (12,12) -- cycle;
+	\fill[polyhedra] (0,0) -- (12,12) -- (20,12) -- (20,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (0,2) -- (10,12) -- cycle;
+	\draw[line] (0,2) -- (10,-2) -- cycle;
+	\draw[line] (20,-2) -- (10,-2) -- cycle;
+	\fill[polyhedra] (0,2) -- (10,12) -- (20,12) -- (20,-2) --
+	(10,-2) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](1pt,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+     		\draw [dotted](10,-2) -- (-3pt,-2) 
+     			node[anchor=east] { {\tiny $-1$}}; 
+     		\draw [dotted](10,-2) -- (10,1pt) 
+     			node[anchor=south] { {\tiny $51$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+& 
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+	\node (t1) at (-5,-4) {};
+	\node (t2) at (13,11) {};
+	\draw[line] (2,2) -- (12,12) -- cycle;
+	\draw[line] (2,2) -- (7,0) -- cycle;
+	\fill[polyhedra] (2,2) -- (12,12) -- (20,12) -- (20,0) --
+	(7,0) -- cycle;
+ 	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,10);
+	%ticks and labels      
+     		\draw [dotted](2,2) -- (-3pt,2) 
+     			node[anchor=east] { {\tiny $1$}}; 
+     		\draw [dotted](2,2) -- (2,-3pt) 
+     			node[anchor=north] { {\tiny $1$}}; 
+	\node[right=0.9cm] at (x axis mid) {$x$};
+	\node[above=0.6cm] at (y axis mid) {$y$};
+\end{tikzpicture} 
+\\ \hline
+\end{tabular}
+\end{figure}
+
 \part{Path Focusing technique} \label{pathfocusingpart}
  
 	In this part, we present two techniques that aim to isolate the different
@@ -626,16 +989,27 @@ for a while, until the convergence. In our example:
 	we only consider the path of
 	the loop that is possible at the first iteration. The second path is
 	ignored, and will be treated later. we compute the iterations, and we obtain
-	an first invariant for this part of the graph. Then, we can do some
+	an first invariant for this part of the graph: at point $p_1$, $x =
+	y \wedge x \geq 0$.
+	Then, we can do some
 	narrowing steps in order to recover some precision, before adding new paths
-	in the graph.
+	in the graph. At point $p_1$ after narrowing, $x=y \wedge 0 \leq x \leq 51$.
 \item Step 2:
 	Now, we add the new paths into our graph if they have become possible. In
-	our case, the second path of the loop is now possible, so we add the path in
-	the graph and compute new iterations until convergence\dots
-\item Step 3: finally, the path from $p_4$ to $p_7$, so we add it into the graph and
-compute the invariant for $p_7$.
+	our case, the second path of the loop is now possible, because $x$ can be
+	equal to $51$, so we add the path in
+	the graph and compute new iterations until convergence\dots. After
+	convergence, at point $p_1$, $x + y - 102 \leq 0 \wedge x
+	\leq y$. We then apply a narrowing step and at $p_1$, 
+$x + y - 102 \leq 0 \wedge x \leq y \wedge y \geq 0$.
+\item Step 3: finally, the path from $p_4$ to $p_7$ becomes possible, so we add
+it into the graph and compute the invariant for $p_7$.
 \end{itemize}
+
+Finally, at $p_1$, the result we obtain is the best we can have using convex
+polyhedra (see Figure \ref{result}.b). This method allows to find the
+constraint $x + y - 102 \leq 0$, which is not the case in the classical abstract
+interpretation technique.
 
 \begin{figure}[!h]
    \begin{minipage}[c]{.46\linewidth}
@@ -1677,8 +2051,18 @@ int main() {
 \includegraphics[width=8.5cm]{"images/cfg_gopan"}
 \end{minipage}
 \caption{Our running example and its internal representation in SSA form}
+\label{IR}
 \end{figure}
 \FloatBarrier
+
+As we see if Figure \ref{IR}, LLVM IR is slightly different from
+our definition of control flow graph: it uses the notion of \emph{BasicBlock}.
+A \emph{BasicBlock} is a series of instructions that are necessarily executed
+one after the others, meaning that if the first intruction of a BasicBlock is
+executed, then the rest of the instructions are necessarily executed exactly
+once, in order.
+
+In our case, a control point will be a BasicBlock of the program.
 
 \subsection{Drawbacks}
 
@@ -1712,6 +2096,65 @@ compute these live variables after the transformation in SSA form.
 	octagons (OCT), intervals (BOX).
 	In our case, we used the convex polyhedra library, but we could switch
 	to octagons or intervals easily.
+
+	\subsection{Attachment to LLVM Internal Representation}
+
+	We attach only one abstract value to each BasicBlock of the IR. Indeed,
+	there would be a huge memory consumption if we would attach a polyhedra
+	after each instruction. A BasicBlock begins with all its $\Phi$-variables,
+	and ends with the other instructions. We choose to attach our abstract value
+	just after the $\Phi$-variables assignments. In this way, the
+	$\Phi$-variables of the associate BasicBlock will be part of the dimensions
+	of the polyhedron.
+
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}
+	\tikzstyle{bb} = [text width=6em, minimum height=12em]
+	\tikzstyle{part}=[draw, fill=blue!10, text width=5em, 
+    text centered, minimum height=2.5em, rounded corners, dashed]
+	\tikzstyle{abstract}=[draw, circle, fill=red!20, text width=5em, 
+    text centered, minimum height=2em,
+	decorate,
+    decoration={random steps,
+		segment length=6pt,
+		amplitude=4pt}
+	]
+    \node (bb) [bb]  {};
+    \node (Phi) [part] [above of=bb] {\small $\Phi$-variables};
+    \node (middle)  [below of=Phi] {};
+    \node (inst) [part] [below of=bb] {\small Instructions};
+	\node [abstract] (A) [left of=bb, xshift=-2cm] {Abstract \\ value};
+	
+	\path [draw, ->] (A) -- (middle);
+	\path [draw, ->] (Phi) -- (inst);
+
+    \path (inst.south)+(0,-1) node (label) {BasicBlock};
+    
+    \begin{pgfonlayer}{background}
+        % Compute a few helper coordinates
+        \path (Phi.north east)+(0.2,0.2) node (a) {};
+        \path (inst.south west)+(-0.2,-0.2) node (b) {};
+        \path[fill=yellow!20,rounded corners, draw=black!50, dashed]
+            (a) rectangle (b);
+
+        %\path (Phi.north west)+(-0.2,0.2) node (a) {};
+        %\path (Phi.south east)+(+0.2,-0.2) node (b) {};
+        %\path[fill=blue!10,rounded corners, draw=black!50, dashed]
+        %    (a) rectangle (b);
+        %\path (inst.north west)+(-0.2,0.2) node (a) {};
+        %\path (inst.south east)+(+0.2,-0.2) node (b) {};
+        %\path[fill=blue!10,rounded corners, draw=black!50, dashed]
+        %    (a) rectangle (b);
+       % \path (IR.north west)+(-0.2,0.2) node (a) {};
+       % \path (IR.south -| IR.east)+(+0.2,-0.2) node (b) {};
+       % \path[fill=blue!10,rounded corners, draw=black!50, dashed]
+       %     (a) rectangle (b);
+    \end{pgfonlayer}
+\end{tikzpicture}
+\end{figure}
+\FloatBarrier
 
 	\subsection{Dimensions of the Abstract values}
 	
@@ -1755,8 +2198,8 @@ compute these live variables after the transformation in SSA form.
 
 	Then, liveness definition can be adapted in our case:
 
-	\begin{definition}[Liveness\dots]
-	A variable $v$ is \emph{live\dots} at the control point $p$ iff:
+	\begin{definition}[Liveness by linearity]
+	A variable $v$ is \emph{live by linearity} at the control point $p$ iff:
 	\begin{itemize}
 	\item 
 	its value is available at $p$, meaning that there is a path from the
@@ -1766,13 +2209,25 @@ compute these live variables after the transformation in SSA form.
 		\item $v$ is live in $p$.
 		\item There is a variable $v'$, defined as a linear combination of other
 		variables $v_1, v_2, \dots, v_n$, such that $\exists i \in \{1,\dots,n\}, v = v_i$,
-		and $v'$ is live\dots in $p$.
+		and $v'$ is live by linearity in $p$.
 		\end{itemize}
 	\end{itemize}
 	\end{definition}
 
-	Finally, a variable is a dimension of $X_p$ iff it is live\dots and it is
-	not defined as a linear combination of program variables.
+	Finally, a variable is a dimension of $X_p$ iff it is live by linearity and
+	it is not defined as a linear combination of program variables.
+
+
+	There is a special case for $\Phi$-variables: in some cases, a
+	$\Phi$-variable can be considered as a linear combination of program
+	variables, when only a single incoming value is possible. This is the case
+	when all but one polyhedra associated to a predessor are at bottom.
+	For instance, let say point $p$ has $p_1, p_2, \dots, p_n$ as ordered 
+	predecessors. At point $p$, we have $x = \Phi(x_1, x_2,\dots,x_n)$.
+	If $\forall i \in \{2,\dots,n\}, X_i = \perp$, and $X_1 \neq \perp$, then we
+	can use the linear relation $x = x_1$ instead of the $\Phi$ function. In
+	practical cases, this is a way to reduce the size of the abstract values.
+
 
 	\subsection{SMT-solving}
 
