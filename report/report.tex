@@ -67,8 +67,29 @@ color=blue]
 \date{2011}
 \shorttitle{Static Analysis by Path Focusing}
 \institute{Grenoble-INP}
-\abstract{an abstract}
-\keywords{keywords}
+\abstract{
+	Program verification aims at statically discover properties on programs,
+	such as the values that can take the different variables during execution.
+	Abstract Interpretation is a technique that allows to compute an
+	approximation of the set of these values, since it is impossible to compute
+	the real set in general.
+	This report takes place in the many attempts to improve the precision of
+	static Analysis by Abstract Interpretation. It proposes a technique that
+	takes benefit of SMT-solving to obtain more precise results at reasonable
+	cost.
+	\\ \\  
+	La vérification de programme consiste à découvrir statiquement des
+	propriétés sur des programmes, comme l'ensemble des valeurs que peuvent
+	prendre les variables durant l'exécution. L'Interprétation Abstraite est une
+	technique permettant de calculer une approximation de cet ensemble, le
+	véritable ensemble étant impossible à calculer en général.
+	Ce report s'inscrit dans la lignée des travaux visant à améliorer la
+	précision de l'analyse par interprétation abstraite, et propose une
+	technique tirant parti du SMT-solving pour obtenir de meilleurs résultats
+	à un coût raisonnable.
+}
+\keywords{Static Program Analysis, Verification, Abstract Interpretation, Invariant
+Generation}
 \tutor{David Monniaux - Matthieu Moy}
 \notes{some notes}
 \webaddress{Julien.Henry@imag.fr}
@@ -84,7 +105,7 @@ color=blue]
   \newpage
 
 
-\section*{Introduction} 
+\part{Introduction} 
 
 Static analysis aims at automatically computing properties on programs, such as
 the possible values of their variables during execution. This allows to show for
@@ -106,10 +127,12 @@ either the set of possible states we compute is unsound (it doesn't contain all
 the possible states during execution), or it is incomplete (it contains
 states that can never be reached during execution). 
 Abstract Interpretation is sound but incomplete, since it always computes an
-upper-approximation of the set of possible states.
+upper-approximation of the set of possible states. The challenge is then to be
+as precise as possible, so that we can prove properties about the program.
 
-Linear Relation Analysis approximates the set of possible states as a convex
-polyhedron where the dimensions are the numerical variables of the program.
+Linear Relation Analysis over-approximates the set of possible states as a
+convex polyhedron where the dimensions are the numerical variables of the
+program.
 Instead of convex polyhedra, one could choose intervals, octagons, etc.
 The fixpoint equation is computed iteratively; that is, successive
 approximations of the set of reachable states are computed until they converge
@@ -135,7 +158,7 @@ of static analysis by abstract interpretation. We also present an adaptation of
 this technique to compute disjunctive invariants.
 \item We present an implementation of this technique into a small analyzer, as
 well as the implementation of another technique proposed in \cite{GopanR06},
-such as we can compare precision and cost of the these two methods.
+such that we can compare precision and cost of the these two methods.
 \end{itemize}
 
 The report is organized as follows:
@@ -145,6 +168,7 @@ Part \ref{pathfocusingpart} describes the two techniques
 \emph{Lookahead Widening} and \emph{Path Focusing}.
 Part \ref{implementationpart} presents the implementation of these two
 techniques into an analyzer, and the experimental results we obtained.
+Finally, Part \ref{future} introduces some directions to explore.
 
 \part{Abstract Interpretation: state of the art}
 \label{stateoftheartpart}
@@ -222,9 +246,11 @@ kind of fixpoint computation.
 
 \section{Abstract Interpretation}
 
-Abstract Interpretation \cite{CC77,CousotCousot92-1} is a general method to find approximate solutions of
+Abstract Interpretation \cite{CC77,CousotCousot92-1} is a general method for
+finding approximate solutions of
 fixpoint equations. This method is used for program analysis, since analyzing a
-program often comes down to solving fixpoint equations $\Phi(x) = x$.
+program often comes down to solving fixpoint equations, because of the loops and
+recursive procedures.
 
 However, most of the time, the solution of this fixpoint equation must be
 computed in a complex domain: in program analysis, this could be the state space
@@ -234,29 +260,64 @@ computation quickly becomes too costly or doesn't terminate.
 \subsection{Abstraction of the domain}
 
 Abstract Interpretation method proposes to represent more efficiently the
-elements of this complex domain $C$ of concrete values, by choosing an simpler
-domain  $A$ called \emph{abstract domain}. The relation between these two
-domains is characterized by two functions, usually called 
-$\alpha\ :\ C \mapsto A$, $\gamma \ : \ A \mapsto C$, such as:
+elements of this complex domain $C$ of concrete values,
+by choosing an simpler domain  $A$ called \emph{abstract domain}. 
 
-$$\forall x \in C, \forall y \in A, \alpha(x) \leq_{A} y \Leftrightarrow x
-\leq_{C} \gamma(y) $$
+A concretization function $\gamma$ maps the elements of $A$ to elements of $C$:
+\begin{eqnarray*}
+\gamma: & A &\longrightarrow C \\
+		& x &\longmapsto \gamma(x)
+\end{eqnarray*}
 
-where $\leq_C$ and $\leq_A$ are the order relations on $C$ and $A$. Then, the
-fixpoint computation is done in the abstract domain, using the approximation of
-the function $\Phi$, i.e $\alpha(\Phi) = \alpha \circ \Phi \circ \gamma$, also
-noted $\Phi^\#$.
-We have the following result:
+The concrete semantics is a monotonic function $\Phi: C \rightarrow C$.
+One can choose an abstract semantics $\Phi^\#: A \rightarrow A$ satisfying this
+condition:
+
+$$\forall x \in A, \Phi \circ \gamma (x) \subseteq_C \gamma \circ \Phi^\#(x)$$
+
+$\Phi^\#$ is then an abstraction of $\Phi$, that gives an upper
+approximation of $\gamma(x)$ when composed with $\gamma$. 
 
 \begin{proposition}
-If $C$ is a complete lattice, and if $\Phi$ is increasing from $C$ to $C$, then
-$$\alpha(\lfp(\Phi)) \leq_A \lfp(\alpha(\Phi))$$
-where $\lfp(\Phi)$ denotes the least fixpoint of $\Phi$.
+Suppose $C$ is a complete lattice, and $\Phi$ is increasing from $C$ to $C$.
+Each $x \in A$, satisfying the condition $\Phi^\#(x) = x$, is an abstraction of
+the least fixpoint of $\Phi$.
 \end{proposition}
 
-In fact, one compute the least fixpoint of the function in the abstract
-domain, and the result of the computation also gives an upper approximation of
-the fixpoint in the concrete domain.
+Indeed, if $\Phi^\#(x) = x$, then $\Phi \circ \gamma (x) \subseteq \gamma(x)
+= \gamma \circ \Phi^\#(x)$. Abstract interpretation technique aims at computing
+one of these $x$. It computes the stationary limit of an ascending sequence
+$(x_i)_{i \geq 0}$ defined by the induction:
+
+$$\left[
+\begin{array}{lll}
+x_0 &=& \perp \\
+x_{n+1} &=& \Phi^\#(x_n)
+\end{array}
+\right.
+$$
+%The relation between these two
+%domains is characterized by two functions, usually called 
+%$\alpha\ :\ C \mapsto A$, $\gamma \ : \ A \mapsto C$, such as:
+%
+%$$\forall x \in C, \forall y \in A, \alpha(x) \leq_{A} y \Leftrightarrow x
+%\leq_{C} \gamma(y) $$
+%
+%where $\leq_C$ and $\leq_A$ are the order relations on $C$ and $A$. Then, the
+%fixpoint computation is done in the abstract domain, using the approximation of
+%the function $\Phi$, i.e $\alpha(\Phi) = \alpha \circ \Phi \circ \gamma$, also
+%noted $\Phi^\#$.
+%We have the following result:
+%
+%\begin{proposition}
+%If $C$ is a complete lattice, and if $\Phi$ is increasing from $C$ to $C$, then
+%$$\alpha(\lfp(\Phi)) \leq_A \lfp(\alpha(\Phi))$$
+%where $\lfp(\Phi)$ denotes the least fixpoint of $\Phi$.
+%\end{proposition}
+%
+%In fact, one compute the least fixpoint of the function in the abstract
+%domain, and the result of the computation also gives an upper approximation of
+%the fixpoint in the concrete domain.
 
 
 \subsection{Termination}
@@ -264,8 +325,8 @@ the fixpoint in the concrete domain.
 Termination of the fixpoint computation has to be guaranteed. This termination
 depends on the properties of the abstract domain:
 this one should be finite, or of finite depth, meaning that there doesn't exist
-any sequence $(y_i)_{i \geq 0}$ of elements of the abstract domain $A$ such as
-$\forall i \geq 0,\ y_i <_A y_{i+1}$. Indeed, in case of a domain of infinite
+any sequence $(x_i)_{i \geq 0}$ of elements of the abstract domain $A$ such that
+$\forall i \geq 0,\ x_i <_A x_{i+1}$. Indeed, in case of a domain of infinite
 depth, the least fixpoint
 computation could run indefinitely, since the ascending sequence of elements of
 $A$ is infinite, and the fixpoint in never reached.
@@ -280,13 +341,13 @@ operator} is usually noted $\nabla: A \times A \rightarrow A$, and satisfies
 the following properties:
 
 \begin{itemize}
-\item $\forall y_1, y_2 \in A,\ y_1 \leq_A y_1 \nabla y_2$ and $y_2 \leq_A y_1
-\nabla y_2$. This guarantees the correctness of the result.
-\item For any increasing sequence $y_0 \leq_A y_1 \leq_A \dots$, the sequence
+\item $\forall x_1, x_2 \in A,\ x_1 \leq_A x_1 \nabla x_2$ and $x_2 \leq_A x_1
+\nabla x_2$. This guarantees the correctness of the result.
+\item For any increasing sequence $x_0 \leq_A x_1 \leq_A \dots$, the sequence
 defined by 
 $$\system{
-y'_0 & = &  y_0 \\
-y'_{i+1} & = &  y'_i\ \nabla\ y_{i+1},\ \  \forall i > 0
+x'_0 & = &  x_0 \\
+x'_{i+1} & = &  x'_i\ \nabla\ x_{i+1},\ \  \forall i > 0
 }$$
 is not strictly increasing. Then, applying the widening operator when the
 sequence may increase indefinitely makes the computation converge to a fixpoint
@@ -295,30 +356,30 @@ in finite time.
 
 \cite{Monniaux_HOSC09} gives a more general definition of the widening operator.
 
-The least fixpoint of a function $\Phi^\#$ is noted $\overline{y}$ and is equal
-to $\displaystyle \lim_{i \geq 0}\ y_i$, where $y_0 = \perp$ (the least element
-of $A$) and $y_{i+1} = \Phi^\# (y_i)$. Instead of computing this least fixpoint,
+The least fixpoint of a function $\Phi^\#$ is noted $\overline{x}$ and is equal
+to $\displaystyle \lim_{i \geq 0}\ x_i$, where $x_0 = \perp$ (the least element
+of $A$) and $x_{i+1} = \Phi^\# (x_i)$. Instead of computing this least fixpoint,
 one compute an upper approximation of it, by computing the following ascending
 sequence:
 
 $$\system{
-y'_0 &=& \perp \\
-y'_{i+1} &=& y'_i\ \nabla\ \Phi^\#(y'_i),\ \ \forall i > 0
+x'_0 &=& \perp \\
+x'_{i+1} &=& x'_i\ \nabla\ \Phi^\#(x'_i),\ \ \forall i > 0
 }$$
 
-which converges towards $\tilde{y}$, where $\tilde{y} \geq_A \overline{y}$.
+which converges towards $\tilde{x}$, where $\tilde{x} \geq_A \overline{x}$.
 
-$\tilde{y}$ is a correct upper approximation of the least fixpoint of $\Phi^\#$,
+$\tilde{x}$ is a correct upper approximation of the least fixpoint of $\Phi^\#$,
 and the classical technique is to regain some precision lost by the widening
 operator by computing a descending sequence:
 
 $$\system{
-y''_0 &=& \tilde{y} \\
-y''_{i+1} &=& \Phi^\#(y''_i), \ \ \forall i > 0
+x''_0 &=& \tilde{x} \\
+x''_{i+1} &=& \Phi^\#(x''_i), \ \ \forall i > 0
 }$$
 
 Each element of this descending sequence is still an upper approximation of the
-least fixpoint $\overline{y}$. So, this sequence often allows to find
+least fixpoint $\overline{x}$. So, this sequence often allows to find
 approximate least fixpoints that are more precise than the one obtained after
 the ascending sequence.
 
@@ -436,7 +497,7 @@ while (true) {
 To each state $p \in P$ of the control flow graph, we associate an abstract
 value $X_p \in D$, $D$ being in our case the domain of convex polyhedra over
 $\Q^n$. Since the exact operation $\tau$ may not be expressed in the abstract
-domain, we abstract it into $\tau^\#$ such as $\forall X \in D, \tau(X)
+domain, we abstract it into $\tau^\#$ such that $\forall X \in D, \tau(X)
 \subseteq \tau^\#(X)$. 
 
 The computation aims to find a solution for this system of abstract semantic
@@ -506,7 +567,7 @@ different numerical variables of the program at the control point $p$.
 \subsection{Precision of the analysis}
 In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
-apply it on a subset of $P$, called $P_w$, such as removing the nodes of $P_w$
+apply it on a subset of $P$, called $P_w$, such that removing the nodes of $P_w$
 disconnects every cycles. For instance, one could choose $P_w$ as the set of the
 heads of loops.
 
@@ -971,9 +1032,14 @@ possible after a certain number of iterations. However, the widening operator
 extrapolates without taking care of these new possible paths. This can induce a
 loss of precision, that Lookahead widening aims to limit.
 
-Lookahead widening \cite{GopanR06} is a technique that aims to isolate the
-different loop phases during the analysis, in order to obtain more precise
-results.
+Lookahead widening \cite{GopanR06} is a technique that isolates the
+different loop phases during the analysis, and stabilizes each of these loop
+phases before proceeding to the next. One only consider paths that are feasible
+at the first iteration, and forget the others for a while. The iterations end
+when the analysis of these paths has converged. After that, one can compute some
+narrowing iterations. Then, paths that
+become feasible are reinserted into the control flow graph, and we redo
+iterations.
 
 In the program already depicted in figure \ref{runningexample}, there is a loop
 with two perfectly distinct phases:
@@ -1093,6 +1159,12 @@ interpretation technique.
 \end{figure}
 \FloatBarrier
 
+In the classical abstract interpretation technique, narrowing iterations are
+computed at the end of the analysis, when all the fixpoint computation has
+converged.
+The interest of this method is to apply narrowing iterations right after each
+path computation. This allows to recover precision before analyzing new paths,
+and then to be more precise. 
 
  \section{Path Focusing}
 
@@ -1195,7 +1267,7 @@ the right.}
 \FloatBarrier
 
 	Let $(P,E)$ be the control flow graph of the program.
-	First, one choose a set of points $P_W \subseteq P$, such that the graph
+	First, one choose a set of points $P_W \subseteq P$, so that the graph
 	obtained after removing these points has no cycle. The widening operator
 	will be applied at these points. The choice of $P_W$ can be guided by
 	\cite{Bou92}.
@@ -1207,11 +1279,11 @@ the right.}
 	\item $P_W \subseteq P_R$: all the widening points are in $P_R$.
 	\end{itemize} 
 
-	The multigraph is then the graph such as:
+	The multigraph is then the graph such that:
 	\begin{itemize}
 	\item each element of $P_R$ is a point of the graph.
 	\item for each path $p_1 \rightarrow p_2 \rightarrow \dots \rightarrow p_k$
-	in the control flow graph, such as $p_1 \in P_R, p_k \in P_R$,
+	in the control flow graph, such that $p_1 \in P_R, p_k \in P_R$,
 	there is a transition in the multigraph from $p_1$ to $p_k$ with the
 	semantic $$\tau_{p_1 \rightarrow \dots \rightarrow p_k} = \tau_{p_{k-1}
 	\rightarrow p_k} \circ
@@ -1325,6 +1397,7 @@ $\Longrightarrow$
 multigraph, where $P_R = \{p_0, p_1, p_7\}$. The path dashed from $p_1$ to $p_1$
 in the control flow graph corresponds to a simple dashed transition in the multigraph,
 having the same semantic.}
+\label{multigraphtransformGopan}
 \end{figure}
 \FloatBarrier
 
@@ -1500,7 +1573,7 @@ path.
 
 	If the problem has a solution,  the SMT-solver will be in position to show
 	which path in the control flow graph is selected, by giving a model: an
-	assignments of the Boolean variables such that the formula is true.
+	assignments of the Boolean variables so that the formula is true.
 	Among these Boolean variables, some of them are associated to a transition
 	in the control flow graph:
 	\begin{itemize}
@@ -1681,6 +1754,7 @@ Points in $P_R$ have been split into a ``source'' point and a ``destination''
 point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \end{minipage} 
 \caption{Example (cont'd)}
+\label{multigraphGopan}
 \end{figure}
 
 	\subsubsection{Expression of the reachability problem}
@@ -1710,7 +1784,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	all other source points are \emph{false}.
 	\item the vector $x_i$ of the numerical variables at point $p_i$ is in our
 	abstract value $X_{p_i}$
-	\item we search a path arriving in a successor $p_j$ of $p_i$, such as the
+	\item we search a path arriving in a successor $p_j$ of $p_i$, such that the
 	vector of the numerical variables $x_j'$ is not yet included in the current
 	abstract value $X_{p_j}$ of $p_j$. $b_j^d$ is \emph{true}, and the
 	conjunction of the inequalities given by $X_{p_j}$ is \emph{false}.
@@ -1787,7 +1861,11 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	algorithm uses a set $U$ of paths that have already been treated. If the
 	self-loop we focus on is not in $U$, we apply a simple union instead of
 	widening. Widening will be applied next time to guarantee the convergence.
-	
+
+	When the self loop is accelerable \cite{Gon07}, instead of doing a
+	widening/narrowing sequence, one can directly accelerate the loop and find
+	its transitive closure.
+
 \begin{algorithm}
 \caption{SelfLoop}
 \label{loopiteralgo}
@@ -1848,6 +1926,54 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+	
+	\subsection{Example}
+
+	We apply the \emph{Path Focusing} technique to our running example from
+	Figures \ref{runningexample}, \ref{multigraphtransformGopan} and
+	\ref{multigraphGopan}.
+	The control points in $P_R$ are $p_0$, $p_1$ and $p_7$. One computes
+	iteratively the associate abstract values $X_0$, $X_1$ and $X_7$.
+
+\begin{itemize}
+\item Step 0: Initially, $X_0 = \top, X_1 = \perp, X_7 = \perp$, and $A =
+\{p_0\}$.
+\item Step 1: We start in $p_0$. Is there a path starting in $p_0$, that arrives
+in a state in $P_R$ and makes its abstract value grow? The SMT-solver answers
+\emph{yes}, and gives the path $p_0 \rightarrow p_1$. We update $X_1$:
+it is the polyhedron $x=y=0$. We update $A = \{p_1\}$. 
+We do another SMT query: is there another path
+starting in $p_0$ that makes an abstract value grow? Answer is no.
+\item Step 2: We now work on $p_1$. Is there a path starting in $p_1$ that
+arrives in a successor of $p_1$, and makes its abstract value grow? Answer is
+yes, and the model given by the SMT-solver is the path $p_1 \rightarrow p_2
+\rightarrow p_4 \rightarrow p_5 \rightarrow p_6 \rightarrow p_1$. Actually, this
+is the first phase of the loop. 
+The image of $x=y=0$ by this transition is $x=y=1$. The new $X_1$ is then $x=y
+\wedge 0\leq x \leq 1$. The path is a self loop, but is seen for the first time,
+so we do not apply widening yet. So, we redo an SMT-query, that gives us exactly
+the same path. Then, we can do a widening/narrowing sequence. 
+After widening, we have $x=y \wedge x \geq 0$, and narrowing gives $X_1 = (x=y)
+\wedge (0 \leq x \leq 51)$.
+\item Step 3: We still are in $p_1$: we ask for another focus path, and the
+SMT-solver finds the path $p_1 \rightarrow p_3
+\rightarrow p_4 \rightarrow p_5 \rightarrow p_6 \rightarrow p_1$. This is the
+second phase of the loop, which is possible since $(x,y)=(51,51) \in X_1$.
+Again, this is a self-loop, but we do not widen yet. The
+image of $X_1$ by the transition is the single point $(52,50)$. $X_1$ is then
+the convex hull of this point with the old $X_1$. A new SMT query gives the same
+path, and we can now apply widening/narrowing. We obtain
+$X_1 = (x \leq y) \wedge (102 - x - y \geq 0)$ after widening, and narrowing
+gives $X_1 = (x \leq y) \wedge (102 - x - y \geq 0) \wedge y \geq 0$.
+We can see that $X_1$ is the smallest polyhedron containing the possible values
+for $(x,y)$ (see Figure \ref{result}.b).
+\item Step 4: Again, we ask the SMT-solver for a new focus path, and it returns
+$p_1 \rightarrow p_3 \rightarrow p_4 \rightarrow p_7$. The image of the
+polyhedra $X_1$ after this path transformation is the single point $y=-1 \wedge
+x = 102$. We can update $X_7 = {(102,-1)}$. Path focusing technique gives us the
+precise result of this program. After that, the SMT-solver can't find any new
+path, so the analysis terminates.
+\end{itemize}
 
 	\subsection{Disjunctive invariants}
 
@@ -2208,7 +2334,7 @@ compute these live variables after the transformation in SSA form.
 		\begin{itemize}
 		\item $v$ is live in $p$.
 		\item There is a variable $v'$, defined as a linear combination of other
-		variables $v_1, v_2, \dots, v_n$, such that $\exists i \in \{1,\dots,n\}, v = v_i$,
+		variables $v_1, v_2, \dots, v_n$, so that $\exists i \in \{1,\dots,n\}, v = v_i$,
 		and $v'$ is live by linearity in $p$.
 		\end{itemize}
 	\end{itemize}
@@ -2229,11 +2355,11 @@ compute these live variables after the transformation in SSA form.
 	practical cases, this is a way to reduce the size of the abstract values.
 
 
-	\subsection{SMT-solving}
+	\section{SMT-solving}
 
 	\emph{Path focusing} technique requires to decide the satisfiability of some
 	SMT formula, and to extract a model when the formula is satisfiable, i.e an
-	assignement of the variables such that the formula is \emph{true}. For doing
+	assignement of the variables so that the formula is \emph{true}. For doing
 	this, our implementation has an interface with Microsoft Z3 \cite{MouraB08},
 	and Yices \cite{DutertreM06}. One can easily switch from one to another with
 	an argument we give as parameter to the analyzer. In this way, we can
@@ -2242,16 +2368,98 @@ compute these live variables after the transformation in SSA form.
 
  \section{Experiments}
 
-	To Be Completed
+	To be completed\dots
 
+\part{Future Work}
+\label{future}
+\emph{Path Focusing} technique allows to work on control flow graphs with a huge
+number of paths, since they are computed only when needed. With this in mind,
+one could think of several improvements using path focusing, by encoding into
+the control flow graph new informations as paths, such as arithmetic overflows,
+alias analysis, \dots
+In this part, we explain how to encode such kind of informations into implicit
+paths of the CFG.
 
-  \section*{Conclusion}
+	\section{Arithmetic Overflows}
+
+Some operations such as additions, soustractions\dots may overflow if their
+result is not in the type's definition interval. For instance, an
+\emph{int} variable can only take values in $[-2^{31}, 2^{31} -1]$. Then, there
+are two kind of overflows. Suppose $N=2^{31}$:
+\begin{itemize}
+\item The result $r$ of the operation may be greater than $N-1$. In this case,
+the result we obtain is actually $r-2N$.
+\item $r$ may be lesser than $-N$. Then, the result is $r+2N$.
+\end{itemize}
+
+The idea would be to distinguish the correct behaviour and the two kind of
+overflow in the control flow graph, each behaviour corresponding to a specific
+path (see Figure \ref{overflow}).
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge [out=-140,in=140]  node [xshift=-0.2mm] 
+		{$\begin{array}{l} x+y < -N\ /\\ r=x+y+2N\end{array}$} (n1)
+		(n0) edge [in=170,out=190,distance=2cm]  node [left]
+		{$\begin{array}{l} x+y > N-1\ / \\ r=x+y-2N\end{array}$} (n1)
+		(n0) edge [in=10,out=-10,distance=2.5cm]  node [right] 
+		{$\begin{array}{l} -N \leq x+y \leq N-1\ /\\ r=x+y\end{array}$} (n1)
+		;
+\end{tikzpicture}
+\caption{How to treat overflows of the addition $x+y$}
+\label{overflow}
+\end{figure}
+
+This results in a huge blowup in the number of paths, but hopefully a lot of
+them will never be possible, so they will never be computed by our algorithm.
+
+	\section{Alias analysis}
+
+One could use the same idea as for overflows, in order to treat aliases.
+Assume a pointer $p$ that possibly points to variables $x,y,z$ or $t$. For each
+operation involving $*p$, one distinguishes these different cases by
+creating a specific path for each of them. 
+If the pointers are manipulated in a tricky way, one considers they may
+point to each variable of the program. Again, there is an exponential blowup in
+the number of paths, but these are treated implicitly.
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge [in=170,out=190,distance=2.5cm]  node [left] 
+		{$\begin{array}{l}p=\&x/ \\ x++\end{array}$} (n1);
+	\path [transition] 
+		(n0) edge  [in=120, out=-120] node [left,xshift=0.2cm] 
+		{$\begin{array}{l}p=\&y/ \\ y++\end{array}$} (n1);
+	\path [transition] 
+		(n0) edge [in=60,out=-60]  node  [right,xshift=-0.2cm]
+		{$\begin{array}{l}p=\&z/ \\ z++\end{array}$} (n1);
+	\path [transition] 
+		(n0) edge [in=10,out=-10,distance=2.5cm]  node [right] 
+		{$\begin{array}{l}p=\&t/ \\ t++\end{array}$} (n1);
+\end{tikzpicture}
+\caption{How to treat pointers: $(*p)++$}
+\label{pointers}
+\end{figure}
+
+\part{Conclusion}
   
 	To Be Completed
 
   \appendix
   
 
-\bibliographystyle{plain}
+\bibliographystyle{alpha}
   \bibliography{report}
 \end{document}
