@@ -1,4 +1,4 @@
-\documentclass[a4paper,english,titlepage,11pt]{article}
+\documentclass[a4paper,english,titlepage,11pt]{report}
 
 \usepackage{mathcomp,amssymb,verimagstudent}
 \usepackage[utf8]{inputenc}
@@ -16,6 +16,7 @@
 \newtheorem{proposition}[theorem]{Proposition}
 
 \newcommand*\system[1]{\left[ \begin{array}{lllll}#1 \end{array}\right.}
+
 
 \def\R{\mathbb{R}}
 \def\Z{\mathbb{Z}}
@@ -105,7 +106,7 @@ Generation}
   \newpage
 
 
-\part{Introduction} 
+\chapter{Introduction} 
 
 Static analysis aims at automatically computing properties on programs, such as
 the possible values of their variables during execution. This allows to show for
@@ -170,7 +171,7 @@ Part \ref{implementationpart} presents the implementation of these two
 techniques into an analyzer, and the experimental results we obtained.
 Finally, Part \ref{future} introduces some directions to explore.
 
-\part{Abstract Interpretation: state of the art}
+\chapter{Abstract Interpretation: state of the art}
 \label{stateoftheartpart}
 
 \section{Introductive example}
@@ -606,7 +607,9 @@ The analysis starts with $i=0$. After one iteration, one obtain $i \in
 +\infty]$, which is an invariant, but very imprecise. We can do a new iteration,
 with $i\in [0, +\infty]$ at the beginning of the loop, and we find that the
 values for $i$ at the next step are in $[0, 100]$. This is still an invariant,
-but much better.
+but much better. We can repeat such iterations as long as the set narrows, and
+we always obtain a correct over-approximation.
+In practice, a single narrowing iteration is enough to recover the precision.
 
 \item There is also a loss of precision each time a point in the control flow
 graph has several incoming edges. This is the case for instance for
@@ -1019,7 +1022,7 @@ narrowing&
 \end{tabular}
 \end{figure}
 
-\part{Path Focusing technique} \label{pathfocusingpart}
+\chapter{Path Focusing technique} \label{pathfocusingpart}
  
 	In this part, we present two techniques that aim to isolate the different
 	paths of the program to compute more precise invariants.
@@ -1996,7 +1999,7 @@ path, so the analysis terminates.
 	where $X_{p,j}$ is a conjunction of linear inequalities, i.e a convex
 	polyhedra.
 
-	The essence of the method is to
+	The principle of the method is to
 	choose an integer $\delta \in \{1,..,m\}$, and a mapping function
 	$\sigma: \{1,..,m\} \times \{1,..,n\} \mapsto \{1,..,m\}$.
 	For each polyhedra of the disjunctive invariant, and for each path in the
@@ -2065,7 +2068,7 @@ function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 compute this number of paths at the beginning of the algorithm.
 
 \FloatBarrier
-\part{Implementation}\label{implementationpart}
+\chapter{Implementation}\label{implementationpart}
 
 \emph{Lookahead Widening} and \emph{Path Focusing}
 techniques have been implemented into a small analyzer, so that we can compare
@@ -2157,7 +2160,8 @@ point of this program. It first applies some optimisation passes over the IR,
 and then computes the linear relations by abstract interpretation.
 
 \begin{figure}[!h]
-\begin{minipage}[c]{.45\linewidth}
+\begin{minipage}[c]{.35\linewidth}
+{\small
 \begin{C}
 int main() {
    int x = 0;
@@ -2172,9 +2176,126 @@ int main() {
    }
 }
 \end{C}
+}
 \end{minipage}
-\begin{minipage}[c]{.45\linewidth}
-\includegraphics[width=8.5cm]{"images/cfg_gopan"}
+\begin{minipage}[c]{.69\linewidth}
+%\includegraphics[width=8.5cm]{"images/cfg_gopan"}
+
+{\tiny
+% \begin{tikzpicture}[anchor=mid,>=latex',line join=bevel,]
+\begin{tikzpicture}[>=latex',line join=bevel,scale=0.5]
+  \pgfsetlinewidth{1bp}
+%%
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (273bp,13bp) node {CFG for 'main' function};
+\end{scope}
+  \pgfsetcolor{black}
+  % Edge: Node0x9828da8 -> Node0x9828dd8
+  \draw [->] (356.55bp,400.82bp) .. controls (333.72bp,390.36bp) and (308.41bp,378.75bp)  .. (274.21bp,363.07bp);
+  % Edge: Node0x9828b18 -> Node0x9828d48
+  \draw [->] (310bp,694.72bp) .. controls (310bp,686.41bp) and (310bp,677bp)  .. (310bp,657.09bp);
+  % Edge: Node0x9828dd8 -> Node0x9828e08
+  \draw [->] (70bp,241bp) .. controls (70bp,229.11bp) and (70bp,216.19bp)  .. (70bp,194.35bp);
+  % Edge: Node0x9828d48 -> Node0x9828da8
+  \draw [->] (456bp,530bp) .. controls (475.15bp,530bp) and (473.05bp,509.87bp)  .. (461.87bp,479.21bp);
+  % Edge: Node0x9828e08 -> Node0x9828e68
+  \draw [->] (70bp,133.91bp) .. controls (70bp,122.63bp) and (70bp,109.61bp)  .. (70bp,87.235bp);
+  % Edge: Node0x9828d78 -> Node0x9828dd8
+  \draw [->] (155.32bp,400.82bp) .. controls (154.06bp,392.13bp) and (152.69bp,382.65bp)  .. (149.87bp,363.2bp);
+  % Edge: Node0x9828d48 -> Node0x9828d78
+  \draw [->] (164bp,530bp) .. controls (145.24bp,530bp) and (143.41bp,510.23bp)  .. (148.69bp,479.21bp);
+  % Edge: Node0x9828e38 -> Node0x9828d48
+  \draw [->] (285.99bp,203.34bp) .. controls (287.87bp,215.1bp) and (289.73bp,228.04bp)  .. (291bp,240bp) .. controls (300.66bp,331.07bp) and (305.54bp,436.13bp)  .. (308.25bp,516.72bp);
+  % Edge: Node0x9828dd8 -> Node0x9828e38
+  %\draw [->] (284bp,254bp) .. controls (293.39bp,254bp) and (292.88bp,234.23bp)  .. (287.99bp,203.21bp);
+  \draw [->] (210bp,240bp) -- (240.99bp,203.21bp);
+  % Node: Node0x9828d48
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (165bp,517bp) -- (165bp,657bp) -- (455bp,657bp) -- (455bp,517bp) -- cycle;
+  \draw (165bp,543bp) -- (455bp,543bp);
+  \draw (310bp,517bp) -- (310bp,543bp);
+  \draw (173bp,639bp) node[right] {\%1:};
+  \draw (173bp,605bp) node[right] { \%x.0 = phi i32 [ 0, \%0 ], [ \%11, \%10 ]};
+  \draw (173bp,587bp) node[right] { \%y.1 = phi i32 [ 0, \%0 ], [ \%y.0, \%10 ]};
+  \draw (173bp,569bp) node[right] { \%2 = icmp sle i32 \%x.0, 50};
+  \draw (173bp,551bp) node[right] { br i1 \%2, label \%3, label \%5};
+  \draw (238bp,525bp) node {T};
+  \draw (383bp,525bp) node {F};
+\end{scope}
+  % Node: Node0x9828b18
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (261bp,695bp) -- (261bp,755bp) -- (360bp,755bp) -- (360bp,695bp) -- cycle;
+  \draw (269bp,737bp) node[right] {\%0:};
+  \draw (269bp,703bp) node[right] { br label \%1};
+\end{scope}
+  % Node: Node0x9828e68
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (30bp,27bp) -- (30bp,87bp) -- (111bp,87bp) -- (111bp,27bp) -- cycle;
+  \draw (38bp,69bp) node[right] {\%12:};
+  \draw (38bp,35bp) node[right] { ret i32 0};
+\end{scope}
+  % Node: Node0x9828e38
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (172bp,125bp) -- (172bp,203bp) -- (387bp,203bp) -- (387bp,125bp) -- cycle;
+  \draw (180bp,185bp) node[right] {\%10:};
+  \draw (180bp,151bp) node[right] { \%11 = add nsw i32 \%x.0, 1};
+  \draw (180bp,133bp) node[right] { br label \%1};
+\end{scope}
+  % Node: Node0x9828da8
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (338bp,401bp) -- (338bp,479bp) -- (547bp,479bp) -- (547bp,401bp) -- cycle;
+  \draw (346bp,461bp) node[right] {\%5:};
+  \draw (346bp,427bp) node[right] { \%6 = add nsw i32 \%y.1, -1};
+  \draw (346bp,409bp) node[right] { br label \%7};
+\end{scope}
+  % Node: Node0x9828d78
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (59bp,401bp) -- (59bp,479bp) -- (263bp,479bp) -- (263bp,401bp) -- cycle;
+  \draw (67bp,461bp) node[right] {\%3:};
+  \draw (67bp,427bp) node[right] { \%4 = add nsw i32 \%y.1, 1};
+  \draw (67bp,409bp) node[right] { br label \%7};
+\end{scope}
+  % Node: Node0x9828dd8
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (-1bp,241bp) -- (-1bp,363bp) -- (283bp,363bp) -- (283bp,241bp) -- cycle;
+  \draw (-1bp,267bp) -- (283bp,267bp);
+  \draw (142bp,241bp) -- (142bp,267bp);
+  \draw (8bp,345bp) node[right] {\%7:};
+  \draw (8bp,311bp) node[right] { \%y.0 = phi i32 [ \%4, \%3 ], [ \%6, \%5 ]};
+  \draw (8bp,293bp) node[right] { \%8 = icmp slt i32 \%y.0, 0};
+  \draw (8bp,275bp) node[right] { br i1 \%8, label \%9, label \%10};
+  \draw (71bp,249bp) node {T};
+  \draw (212bp,249bp) node {F};
+\end{scope}
+  % Node: Node0x9828e08
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (16bp,134bp) -- (16bp,194bp) -- (124bp,194bp) -- (124bp,134bp) -- cycle;
+  \draw (24bp,176bp) node[right] {\%9:};
+  \draw (24bp,142bp) node[right] { br label \%12};
+\end{scope}
+%
+\end{tikzpicture}
+}
+
+
 \end{minipage}
 \caption{Our running example and its internal representation in SSA form}
 \label{IR}
@@ -2183,7 +2304,7 @@ int main() {
 
 As we see if Figure \ref{IR}, LLVM IR is slightly different from
 our definition of control flow graph: it uses the notion of \emph{BasicBlock}.
-A \emph{BasicBlock} is a series of instructions that are necessarily executed
+A \emph{BasicBlock} is a sequence of instructions that are necessarily executed
 one after the others, meaning that if the first intruction of a BasicBlock is
 executed, then the rest of the instructions are necessarily executed exactly
 once, in order.
@@ -2203,7 +2324,7 @@ need this information to generate code. Yet, for static analysis, one need to
 have this distinction to improve precision:
 for instance, if $n$ is unsigned, one could add the constraint $n \geq 0$ in our
 	abstract value at the beginning of the analysis.
-	This lack of precision may be recovered by using disjunctive invariants: one
+	This lack of precision may be limited by using disjunctive invariants: one
 	could attach two polyhedra to the control point: the first one with the
 	constraint $n \geq 0$, and the second one with $n < 0$.
 
@@ -2226,7 +2347,7 @@ compute these live variables after the transformation in SSA form.
 	\subsection{Attachment to LLVM Internal Representation}
 
 	We attach only one abstract value to each BasicBlock of the IR. Indeed,
-	there would be a huge memory consumption if we would attach a polyhedra
+	there would be a huge memory consumption if we would attach a polyhedron
 	after each instruction. A BasicBlock begins with all its $\Phi$-variables,
 	and ends with the other instructions. We choose to attach our abstract value
 	just after the $\Phi$-variables assignments. In this way, the
@@ -2370,7 +2491,7 @@ compute these live variables after the transformation in SSA form.
 
 	To be completed\dots
 
-\part{Future Work}
+\chapter{Future Work}
 \label{future}
 \emph{Path Focusing} technique allows to work on control flow graphs with a huge
 number of paths, since they are computed only when needed. With this in mind,
@@ -2453,7 +2574,23 @@ the number of paths, but these are treated implicitly.
 \label{pointers}
 \end{figure}
 
-\part{Conclusion}
+	\section{Combining Lookahead Widening and Path Focusing}
+
+	Path Focusing technique works on the expanded multigraph.
+	Its limitation is that it does narrowing
+	sequences during the iterations only for self-loops of this multigraph.
+	
+	Lookahead Widening works on the classical control flow graph, and stabilizes
+	temporarily the fixpoint analysis on a part of this graph, forgetting paths
+	that are not feasible at the first iteration.
+
+	One could try to combine these two techniques, and apply Lookahead Widening
+	on the expanded multigraph, where the different paths are maintained
+	implicit thanks to Path Focusing technique. The advantage of this approach
+	compared to the classical Path Focusing is that narrowing iterations could
+	be computed on loops that are not self-loops.
+
+\chapter{Conclusion}
   
 	To Be Completed
 
