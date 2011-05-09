@@ -7,7 +7,6 @@
 
 using namespace llvm;
 
-
 class execute {
 public :
 	void exec(std::string InputFilename, std::string OutputFilename);

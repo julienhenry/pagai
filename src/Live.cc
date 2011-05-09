@@ -6,7 +6,6 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Support/FormattedStream.h"
 
-
 using namespace llvm;
 
 char Live::ID = 0;
