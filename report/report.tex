@@ -357,9 +357,8 @@ in finite time.
 
 \cite{Monniaux_HOSC09} gives a more general definition of the widening operator.
 
-The least fixpoint of a function $\Phi^\#$ is noted $\overline{x}$ and is equal
-to $\displaystyle \lim_{i \geq 0}\ x_i$, where $x_0 = \perp$ (the least element
-of $A$) and $x_{i+1} = \Phi^\# (x_i)$. Instead of computing this least fixpoint,
+The least fixpoint of a function $\Phi^\#$ is noted $\overline{x}$.
+Instead of computing this least fixpoint,
 one compute an upper approximation of it, by computing the following ascending
 sequence:
 
@@ -1270,11 +1269,11 @@ the right.}
 \FloatBarrier
 
 	Let $(P,E)$ be the control flow graph of the program.
-	First, one choose a set of points $P_W \subseteq P$, so that the graph
+	First, one chooses a set of widening points $P_W \subseteq P$, so that the graph
 	obtained after removing these points has no cycle. The widening operator
 	will be applied at these points. The choice of $P_W$ can be guided by
 	\cite{Bou92}.
-	Then, one choose another set $P_R \subseteq P$ of nodes, satisfying the
+	Then, one chooses another set $P_R \subseteq P$ of nodes, satisfying the
 	following properties:
 	\begin{itemize}
 	\item $I_p = \emptyset$ for each $p \in P \setminus P_R$, meaning that the initial
