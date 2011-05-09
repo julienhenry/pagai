@@ -19,6 +19,7 @@
 #include "Node.h"
 #include "Live.h"
 #include "SMT.h"
+#include "PathTree.h"
 
 using namespace llvm;
 
@@ -40,6 +41,10 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// man - apron manager we use along the pass
 		ap_manager_t* man;
 
+		/// paths - remembers all the paths that have already been
+		/// visited
+		PathTree* pathtree;
+
 	public:
 		static char ID;	
 	
@@ -47,12 +52,14 @@ class AI : public ModulePass, public InstVisitor<AI> {
 
 		AI () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
 				man = pk_manager_alloc(true);
+				pathtree = new PathTree();
 				init_apron();
 				//linconstraints = ap_lincons1_array_make(ap_environment_alloc_empty(),0);
 			}
 
 		~AI () {
 				ap_manager_free(man);
+				delete pathtree;
 			}
 
 		const char *getPassName() const;

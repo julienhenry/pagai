@@ -23,6 +23,7 @@
 #include "SMT.h"
 #include "Debug.h"
 #include "Analyzer.h"
+#include "PathTree.h"
 
 using namespace llvm;
 
@@ -350,6 +351,7 @@ void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
 	Node * Succ;
+	std::vector<Abstract*> Join;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
@@ -387,7 +389,7 @@ void AI::computeNode(Node * n) {
 			printPath(path);
 			Out->flush();
 		);
-		
+	
 		Succ = Nodes[path.back()];
 
 		// computing the image of the abstract value by the path's tranformation
@@ -400,43 +402,48 @@ void AI::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
-		std::vector<Abstract*> Join;
+
+		// if we have a self loop, we apply loopiter
+		if (Succ == n) {
+			// backup the previous abstract value
+			Abstract * Xpred = new Abstract(Succ->X);
+
+			Join.clear();
+			Join.push_back(new Abstract(Xpred));
+			Join.push_back(new Abstract(Xtemp));
+			Xtemp->join_array(Xtemp->main->env,Join);
+
+			Xtemp->widening(Succ);
+			
+			Succ->X = Xtemp;
+
+			Xtemp = new Abstract(n->X);
+			computeTransform(n,path,*Xtemp);
+			
+			Succ->X = Xpred;
+		} 
+		
+		Join.clear();
 		Join.push_back(new Abstract(Succ->X));
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		Succ->X->change_environment(Xtemp->main->env);
 
-		if (LI->isLoopHeader(Succ->bb)) {
-			if (Succ->widening == 2) {
+		if (LI->isLoopHeader(Succ->bb) && (Succ != n || pathtree->exist(path))) {
+				//if (Succ->widening == 1) {
 				Xtemp->widening(Succ);
 				//Xtemp->widening_threshold(Succ, &linconstraints);
-				Succ->widening = 0;
-
-				// if we have a self loop, we narrow
-				if (Succ == n) {
-					// backup the previous abstract value
-					Abstract * Xpred = new Abstract(Succ->X);
-
-					Join.clear();
-					Join.push_back(new Abstract(Xpred));
-					Join.push_back(new Abstract(Xtemp));
-					Xtemp->join_array(Xtemp->main->env,Join);
-					Succ->X = Xtemp;
-
-					Xtemp = new Abstract(n->X);
-					computeTransform(n,path,*Xtemp);
-
-					Join.clear();
-					Join.push_back(Xpred);
-					Join.push_back(new Abstract(Xtemp));
-					Xtemp->join_array(Xtemp->main->env,Join);
-					
-				}
-			} else {
-				Succ->widening++;
-			}
-		} 
+				//Succ->widening = 0;
+			//	} else {
+			//		Succ->widening++;
+			//	}
+		} else {
+			pathtree->insert(path);
+			DEBUG(
+				*Out << "PATH NEVER SEEN BEFORE !!\n";
+			);
+		}
 		ap_lincons1_array_clear(&linconstraints);
 		
 		Succ->X = Xtemp;
