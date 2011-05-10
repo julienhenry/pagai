@@ -402,6 +402,7 @@ void AI::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
+		Succ->X->change_environment(Xtemp->main->env);
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
@@ -428,7 +429,6 @@ void AI::computeNode(Node * n) {
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		Succ->X->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb) && (Succ != n || pathtree->exist(path))) {
 				//if (Succ->widening == 1) {
