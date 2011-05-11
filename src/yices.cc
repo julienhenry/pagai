@@ -15,6 +15,7 @@
 
 #include "yices.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 using namespace llvm;
 
@@ -207,11 +208,13 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	yices_assert(ctx,(yices_expr)a);
 	//*Out << "\n";
 	if (yices_check(ctx) == l_true) {
+		DEBUG(
 		*Out << "sat\n";
+		);
 		yices_var_decl_iterator it = yices_create_var_decl_iterator(ctx);
 		yices_model m              = yices_get_model(ctx);
 		
-
+		DEBUG(
 		//Save position of current standard output
 		fpos_t pos;
 		fgetpos(stdout, &pos);
@@ -233,6 +236,7 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 			*Out << c;
 
 		*Out << "\n";
+		);
 		
 		while (yices_iterator_has_next(it)) {
 			yices_var_decl d         = yices_iterator_next(it);
@@ -253,7 +257,9 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 		}
 		yices_del_iterator(it);
 	} else {
+		DEBUG(
 		*Out << "unsat\n";
+		);
 		return false;
 	}
 	return true;

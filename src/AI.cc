@@ -297,7 +297,9 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
-				tcons1_array_print((*i)->front());
+				DEBUG(
+					tcons1_array_print((*i)->front());
+				);
 				Xtemp.meet_tcons_array((*i)->front());
 				// creating the associated lincons for a future widening with
 				// threshold
@@ -368,10 +370,12 @@ void AI::computeNode(Node * n) {
 
 	while (true) {
 		is_computed[n] = true;
-		Out->changeColor(raw_ostream::RED,true);
-		*Out << "--------------- NEW SMT SOLVE -------------------------\n";
-		Out->resetColor();
-		Out->flush();
+		DEBUG(
+			Out->changeColor(raw_ostream::RED,true);
+			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			Out->resetColor();
+			Out->flush();
+		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
@@ -471,10 +475,12 @@ void AI::narrowNode(Node * n) {
 	while (true) {
 		is_computed[n] = true;
 
-		Out->changeColor(raw_ostream::RED,true);
-		*Out << "--------------- NEW SMT SOLVE -------------------------\n";
-		Out->resetColor();
-		Out->flush();
+		DEBUG(
+			Out->changeColor(raw_ostream::RED,true);
+			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			Out->resetColor();
+			Out->flush();
+		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true);
@@ -825,8 +831,9 @@ void AI::visitPHINode (PHINode &I){
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
-	*Out << I << "\n";
-
+	DEBUG(
+		*Out << I << "\n";
+	);
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
@@ -837,9 +844,11 @@ void AI::visitPHINode (PHINode &I){
 				n->add_var(&I);
 				PHIvars.name.push_back((ap_var_t)&I);
 				PHIvars.expr.push_back(*expr);
-				*Out << I << " is equal to ";
-				texpr1_print(expr);
-				*Out << "\n";
+				DEBUG(
+					*Out << I << " is equal to ";
+					texpr1_print(expr);
+					*Out << "\n";
+				);
 			} else {
 				set_ap_expr(&I,expr);
 				ap_environment_t * env = expr->env;

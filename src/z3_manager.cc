@@ -7,6 +7,7 @@
 
 #include "z3_manager.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 z3_manager::z3_manager() {
 	Z3_config config = Z3_mk_config();
@@ -218,13 +219,19 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 
 	switch (result) {
 		case Z3_L_FALSE:
-			*Out << "unsat\n";
+			DEBUG(
+				*Out << "unsat\n";
+			);
 			return false;
 		case Z3_L_UNDEF:
+			DEBUG(
 			*Out << "unknown\n";
+			);
 			return false;
 		case Z3_L_TRUE:
+			DEBUG(
 			*Out << "sat\n";
+			);
 			unsigned n = Z3_get_model_num_constants(ctx,m);
 			for (unsigned i = 0; i < n; i++) {
 				Z3_func_decl decl = Z3_get_model_constant(ctx,m,i);
@@ -232,41 +239,58 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 				Z3_eval_func_decl (ctx,m,decl,&v);
 				Z3_symbol symbol = Z3_get_decl_name(ctx,decl);
 				std::string name (Z3_get_symbol_string (ctx,symbol));
+				DEBUG(
 				*Out << name << " = ";
-
+				);
 				Z3_sort_kind sort = Z3_get_sort_kind(ctx,Z3_get_sort(ctx,v));
 
 				switch (sort) {
 					case Z3_BOOL_SORT: 
 						switch (Z3_get_bool_value(ctx,v)) {
 							case Z3_L_FALSE:
-								*Out << "false\n";
+								DEBUG(
+									*Out << "false\n";
+								);
 								break;
 							case Z3_L_UNDEF:
+								DEBUG(
 								*Out << "undef\n";
+								);
 								break;
 							case Z3_L_TRUE:
+								DEBUG(
 								*Out << "true\n";
+								);
 								true_booleans->insert(name);
 								break;
 						}
 						break;
 					case Z3_INT_SORT:
+						DEBUG(
 						int i;
 						Z3_get_numeral_int (ctx,v,&i);
 						*Out << i << "\n";
+						);
 						break;
 					case Z3_REAL_SORT:
+						DEBUG(
 						*Out << "real value\n";
+						);
 						break;
 					case Z3_BV_SORT:
+						DEBUG(
 						*Out << "bv value\n";
+						);
 						break;
 					case Z3_UNINTERPRETED_SORT:
+						DEBUG(
 						*Out << "uninterpreted value\n";
+						);
 						break;
 					default:
+						DEBUG(
 						*Out << "unknown sort\n";
+						);
 						break;
 				}
 			}

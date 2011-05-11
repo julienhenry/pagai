@@ -10,6 +10,7 @@
 \usepackage{placeins}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{multirow}
 
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
@@ -2310,6 +2311,29 @@ once, in order.
 
 In our case, a control point will be a BasicBlock of the program.
 
+\subsection{Transformation passes}
+
+LLVM internal representation can be applied transformation passes that modifies
+parts of it. These passes are mostly used for optimisation purpose. In our
+analyzer, we apply some already existing passes before running our 
+abstract interpretation pass. Among the passes we run, one could cite:
+\begin{itemize}
+\item the \emph{PromoteMemoryToRegister} Pass, that transforms the internal
+representation by promoting the memory variables to Static Single Assignment
+(SSA) registers. This pass transform the control flow graph such that all the
+variables are in SSA form, and removes most of the \emph{Load/Store} operations
+into memory. It is useful since our analyzer doesn't have a memory model, and
+then loses lots of precision in the case of \emph{Load/Store} instructions.
+\item the \emph{LoopSimplify} and \emph{LoopInfo} Passes, that transform all loops into a canonical
+format, and compute some information related to loops (for instance, the set of
+BasicBlocks that are parts of the loop, etc.).
+\item the \emph{LowerSwitch} Pass, that transform a switch instruction into its
+corresponding \emph{if-then-else} instructions. After running this pass, there
+is no more \emph{Switch} instruction in the control flow graph, so the
+implementation of the static analysis is easier.
+\end{itemize}
+
+
 \subsection{Drawbacks}
 
 During the implementation, we encountered problems due to the use of the LLVM
@@ -2414,7 +2438,7 @@ compute these live variables after the transformation in SSA form.
 	A variable is \emph{live} at the control point $p$ iff:
 	\begin{itemize}
 	\item its value is available at $p$, meaning that there is a path from the
-	point defining the variable and $p$.
+	point defining the variable to $p$.
 	\item its value might be used in the future, meaning that there exist a path
 	starting in $p$, that arrives in a point using the variable.
 	\end{itemize}
@@ -2485,10 +2509,53 @@ compute these live variables after the transformation in SSA form.
 	an argument we give as parameter to the analyzer. In this way, we can
 	compare the effectiveness of both SMT-solvers.
 
+	\section{Example}
+
+	In our running example (Figures \ref{runningexample},
+	\ref{multigraphtransformGopan} and \ref{multigraphGopan}), the analyzer
+	outputs the following result for the basicblock $1$:
+
+\begin{C}
+RESULT FOR BASICBLOCK: -------------------
+; <label>:1                                 ; preds = %10, %0
+  %x.0 = phi i32 [ 0, %0 ], [ %11, %10 ]
+  %y.0 = phi i32 [ 0, %0 ], [ %y.1, %10 ]
+  %2 = icmp sle i32 %x.0, 50
+  br i1 %2, label %3, label %5
+-----
+environment: dim = (2,0), count = 77
+ 0: x.0
+ 1: y.0
+polyhedron of dim (2,0)
+array of constraints of size 3
+ 0: -x.0 - y.0 + 102 >= 0
+ 1: y.0 >= 0
+ 2: x.0 - y.0 >= 0
+\end{C}
+
+First, it shows the BasicBlock we work on, and its associated abstract value:
+\begin{itemize}
+\item The environment of the abstract value is its dimensions. Here, $x.0$ and
+$y.0$ are the dimensions of the polyhedron.
+\item The array of constraints defining the polyhedron. The three constraints
+here define the polyhedra seen in Figure \ref{result}.b.
+\end{itemize}
 
  \section{Experiments}
 
 	To be completed\dots
+
+\begin{tabular}{|c|c|c|c||c|c|} \hline
+
+			& \multicolumn{3}{c||}{Path Focusing} & \multicolumn{2}{c|}{Lookahead
+			Widening} \\ \hline
+Benchmark	& \multicolumn{2}{c|}{time} & result	& time	& result	\\
+\cline{2-3}	& z3 & Yices				& & & \\
+\hline
+
+
+
+\end{tabular}
 
 \chapter{Future Work}
 \label{future}
@@ -2591,11 +2658,66 @@ the number of paths, but these are treated implicitly.
 
 \chapter{Conclusion}
   
-	To Be Completed
+	In this report, we proposed a new approach to guide the iterations of the
+	analyzer, in order to distinguish the different paths and to treat them
+	independently. The loss of precision due to widening and control-flow merges
+	is then reduced. This technique allows us, for instance, to do narrowing
+	steps right after widening, or to use acceleration techniques when a path
+	actually is a simple loop.
 
-  \appendix
-  
-
+	We implemented this technique into a small analyzer, 
+	and it appears that in lots of cases, 
+	the precision of the result is improved 
+	compared to the classical abstract interpretation technique.
+	We compared it with \emph{Lookahead Widening}, and our technique seems to
+	perform better in the case of loops containing control-flow merges. 
+	
 \bibliographystyle{alpha}
   \bibliography{report}
+
+  \appendix
+
+\begin{figure}
+\begin{C}
+(and (= bd_0 false)
+        (= t_0_1 bs_0)
+        (or (not bd_0) true)
+        (= b_5 t_1_5)
+        (= x_%6_ (+ x_y.0_ -1))
+        (= t_5_7 b_5)
+        (or (not b_5) true)
+        (= b_3 t_1_3)
+        (= x_%4_ (+ x_y.0_ 1))
+        (= t_3_7 b_3)
+        (or (not b_3) true)
+        (= b_7
+           (or t_5_7 t_3_7))
+        (= t_7_9 (and b_7 (< x_y.1_ 0)))
+        (= t_7_10
+           (and b_7 (not (< x_y.1_ 0))))
+        (or (not b_7)
+            (= x_y.1_ (ite t_3_7 x_%4_ x_%6_)))
+        (= b_10 t_7_10)
+        (= x_%11_ (+ x_x.0_ 1))
+        (= t_10_1 b_10)
+        (or (not b_10) true)
+        (= bd_1
+           (or t_10_1 t_0_1))
+        (= t_1_3 (and bs_1 (<= x_x.0_ 50)))
+        (= t_1_5
+           (and bs_1 (not (<= x_x.0_ 50))))
+        (or (not bd_1)
+            (and (= x'_x.0_ (ite t_0_1 0 x_%11_))
+                 (= x'_y.0_ (ite t_0_1 0 x_y.1_))))
+        (= b_9 t_7_9)
+        (= t_9_12 b_9)
+        (or (not b_9) true)
+        (= bd_12 t_9_12)
+        (or (not bd_12) true))
+\end{C}
+\caption{Expression of $\rho$ associated to the program in Figures
+\ref{runningexample}, \ref{multigraphtransformGopan} and
+\ref{multigraphGopan}.}
+\end{figure}
+
 \end{document}
