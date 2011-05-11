@@ -2543,19 +2543,99 @@ here define the polyhedra seen in Figure \ref{result}.b.
 
  \section{Experiments}
 
-	To be completed\dots
+	In this section, we evaluate our \emph{Lookahead Widening} and \emph{Path
+	Focusing} implementations. We can compare their execution time in some
+	practical cases, and the precision of their results. Table \ref{experiments}
+	gives the results of the analyzer in various examples, some of them taken
+	from the recent literature \cite{CGGMP05,GopanR06}.
 
-\begin{tabular}{|c|c|c|c||c|c|} \hline
+	In all experiments, the set $P_R$ is chosen equal to $P_W \cup P_{ret} \cup
+	P_{init}$,
+	where $P_W$ is the set of widening points. $P_{init}$ is the set of starting
+	points of the program, and $P_{ret}$ is the set of points that have no
+	successors.
+
+\begin{table}[!h]
+\centering \scriptsize
+\begin{tabular}{|c|c|c|l||c|l|} \hline
 
 			& \multicolumn{3}{c||}{Path Focusing} & \multicolumn{2}{c|}{Lookahead
-			Widening} \\ \hline
+			Widening} \\ \cline{2-6}
 Benchmark	& \multicolumn{2}{c|}{time} & result	& time	& result	\\
-\cline{2-3}	& z3 & Yices				& & & \\
-\hline
+\cline{2-3}	& Z3 & Yices				& & & \\
+\hline \hline
 
+Gopan.c & 0.088s & 0.080s & \begin{tabular}{l}
+-x.0 - y.0 + 102 >= 0 \\
+y.0 >= 0              \\
+x.0 - y.0 >= 0        
+\end{tabular} & 0.032 & \begin{tabular}{l}
+-x.0 - y.0 + 102 >= 0 \\
+y.0 >= 0              \\
+x.0 - y.0 >= 0        
+\end{tabular} \\ \hline
 
+Beyer.c & 0.084s & 0.076s & \begin{tabular}{l}
+ -x.0  + 100 >= 0 \\
+ y.0 - 50 >= 0    \\
+ -x.0 + y.0 >= 0  
+\end{tabular} & 0.032 & \begin{tabular}{l}
+-x.0  + 100 >= 0 \\
+ y.0 - 50 >= 0 \\
+-x.0 + y.0 >= 0
+\end{tabular} \\ \hline
+
+Boustr.c & 0.100s & 0.088s & \begin{tabular}{l}
+ -2x.0 + d.0 + 1999 >= 0 \\
+ -2x.0 + 3d.0 + 2001 >= 0 \\
+ -d.0 + 1 >= 0
+\end{tabular} & 0.064 & \begin{tabular}{l}
+ -1996x.0 + 4991d.0 + 1998995 >= 0\\
+ -2x.0 + d.0 + 1999 >= 0 \\
+ -d.0 + 1 >= 0 \\
+\end{tabular} \\ \hline
+
+ex8.cpp & 0.516s & 0.408s & \begin{tabular}{l}
+ -y.0 - x.0 + 1 >= 0\\
+ -y.0 + x.0 + 1 >= 0\\
+ y.0 - x.0 + 1 >= 0\\
+ y.0 + x.0 + 1 >= 0
+\end{tabular} & 0.208 & \begin{tabular}{l}
+-x.0 + 1 >= 0 \\
+x.0 + 1 >= 0 
+\end{tabular} \\ \hline
+
+ex9.cpp & 0.084s & 0.082s & \begin{tabular}{l}
+ r.0 = 0 \\
+-i.0 + 100 >= 0 \\
+i.0 >= 0
+\end{tabular} & 0.052 & \begin{tabular}{l}
+-i.0 + 100 >= 0\\
+r.0 >= 0 \\
+i.0 - r.0 >= 0 \\
+24i.0 - 25r.0 + 75 >= 0
+\end{tabular} \\ \hline
+
+test1.c & 0.064s & 0.064s & \begin{tabular}{l}
+2j.0 + i.0 - 21 = 0 \\
+-j.0 + 10 >= 0 \\
+j.0 - 6 >= 0
+\end{tabular} & 0.016 & \begin{tabular}{l}
+2j.0 + i.0 - 21 = 0 \\
+-j.0 + 10 >= 0 \\
+j.0 - 6 >= 0
+\end{tabular} \\ \hline
 
 \end{tabular}
+\caption{Results of \emph{Path Focusing} and \emph{Lookahead Widening}
+techniques applied to various benchmarks}
+\label{experiments}
+\end{table}
+
+\emph{Path Focusing} appears to always perform similarly or better than 
+\emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
+containing control-flow merges inside of loops, because of the distinction
+between all the paths of the loop.
 
 \chapter{Future Work}
 \label{future}
