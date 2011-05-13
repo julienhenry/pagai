@@ -1,4 +1,4 @@
-#include<iostream>
+//#include<iostream>
 
 int main() {
 	int x;
@@ -8,7 +8,7 @@ int main() {
 	y = 0;
 
 	while(1) {
-		std::cout << x << " " << y << "\n";
+	//	std::cout << x << " " << y << "\n";
 		if (x > 0) {
 		} else if (x < 0) {
 		} else {

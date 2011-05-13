@@ -7,6 +7,7 @@
 
 #include "Execute.h" 
 #include "Analyzer.h" 
+#include "Debug.h" 
 
 SMT_Solver manager;
 llvm::raw_ostream *Out;
@@ -35,6 +36,9 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 
 	manager = Z3_MANAGER;
+	n_totalpaths = 0;
+	n_paths = 0;
+	n_iterations = 0;
 
 	 while ((o = getopt(argc, argv, "hdi:o:y")) != -1) {
         switch (o) {

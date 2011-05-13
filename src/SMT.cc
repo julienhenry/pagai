@@ -19,6 +19,7 @@
 #include "yices.h"
 #include "Expr.h"
 #include "apron.h"
+#include "Debug.h"
 
 using namespace std;
 
@@ -388,21 +389,24 @@ void SMT::computeRhoRec(Function &F,
 
 	bool first = (visited->count(b) > 0);
 	visited->insert(b);
-	
+
 
 	if (!Pr[&F]->count(b) || newPr) {
 		// we recursively construct Rho, starting from the predecessors
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
-			computeRhoRec(F,pred,dest,false,visited);
-			if (!Pr[&F]->count(pred))
+			//computeRhoRec(F,pred,dest,false,visited);
+			if (!Pr[&F]->count(pred)) {
+				computeRhoRec(F,pred,dest,false,visited);
 				primed[b].insert(primed[pred].begin(),primed[pred].end());
-			else {
+			} else {
 				Pr_succ[pred].insert(dest);
 				Pr_pred[dest].insert(pred);
 			}
 		}
+	} else {
+		n_totalpaths++;
 	}
 
 	if (first) return;

@@ -79,7 +79,8 @@ color=blue]
 	static Analysis by Abstract Interpretation. It proposes a technique that
 	takes benefit of SMT-solving to obtain more precise results at reasonable
 	cost.
-	\\ \\  
+}
+\resume{  
 	La vérification de programme consiste à découvrir statiquement des
 	propriétés sur des programmes, comme l'ensemble des valeurs que peuvent
 	prendre les variables durant l'exécution. L'Interprétation Abstraite est une
@@ -90,8 +91,10 @@ color=blue]
 	technique tirant parti du SMT-solving pour obtenir de meilleurs résultats
 	à un coût raisonnable.
 }
-\keywords{Static Program Analysis, Verification, Abstract Interpretation, Invariant
-Generation}
+\keywords{Static Program Analysis, Verification, Abstract Interpretation,
+Invariant Generation, Path Focusing, SMT-Solving}
+\motscles{Analyse Statique de Programmes, Vérification, Interprétation
+Abstraite, Génération d'invariants, Découverte de Chemins, SMT-Solving}
 \tutor{David Monniaux - Matthieu Moy}
 \notes{some notes}
 \webaddress{Julien.Henry@imag.fr}
@@ -1985,13 +1988,18 @@ path, so the analysis terminates.
 	analysis.
 
 	\cite{GulwaniZ10} proposes a technique to compute transitive closure of a
-	transition system, i.e compute the invariants for a loop having its semantic
-	expressed by the transition system.
+	loop, i.e compute the invariants for a loop having its semantic
+	expressed by a transition system. The definition of a transition system is
+	the following:
 
-	A transition system for a control point $p$ is a DNF formula where each
+	\begin{definition}
+	A transition system for a control point $p$ is a DNF formula (i.e a
+	disjunction of conjunctions), where each
 	disjunct is the semantic of a path from $p$ to itself. It is of the form
 	$$\bigvee_{1 \leq i \leq n} \tau_{p,i}$$ where $n$ is the number of
-	paths, and $\tau_{p,i}$ is the semantic of the $i$-th path from $p$ to itself.
+	paths, and $\tau_{p,i}$ is the semantic of the $i$-th path from $p$ to
+	itself.
+	\end{definition}
 
 	The technique aims to compute a disjunctive invariant for this control
 	point: 
@@ -2065,7 +2073,7 @@ paths $\tau_{p,i}$.
 The new algorithm we propose is described in Algorithm \ref{gulwani2}.
 A difference is that here, we don't know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
-compute this number of paths at the beginning of the algorithm.
+easily compute this number of paths when computing the $\rho$ formula.
 
 \FloatBarrier
 \chapter{Implementation}\label{implementationpart}
@@ -2499,6 +2507,41 @@ compute these live variables after the transformation in SSA form.
 	practical cases, this is a way to reduce the size of the abstract values.
 
 
+\subsection{Diseq comparisons}
+
+The set of elements $x$ satisfying $x \neq N$ is not convex: it is the union of
+two intervals: $]-\infty, N[\  \cup\  ]N,+\infty[$. Since we use convex polyhedra to
+represent the set of possible states of our program, we loose information when
+the analysis comes across a \emph{diseq} operation.
+One classical approach would be to compute a disjunctive invariant, by attaching
+two different polyhedron to the BasicBlock. However, we prefered the following
+technique: we transform all the operations of the form $x \neq y$ into
+$x < y \vee x > y$, meaning that we separate the cases \emph{lesser than} and
+\emph{greater than} into two distinct paths.
+
+\begin{minipage}[c]{.29\linewidth}
+\begin{C}
+if (x != y) {
+	...
+}
+\end{C}
+\end{minipage} $\Rightarrow$
+\begin{minipage}[c]{.69\linewidth}
+\centering
+\begin{C}
+	if (x > y) {
+	} else if (x < y) {
+	} else {
+		...
+	}
+\end{C}
+\end{minipage}
+
+To do so, one could implement an LLVM pass that transform the internal
+representation according to this principle. However, this pass has not been
+implemented in our analyzer, and this transformation has to be done manually.
+
+
 	\section{SMT-solving}
 
 	\emph{Path focusing} technique requires to decide the satisfiability of some
@@ -2507,7 +2550,31 @@ compute these live variables after the transformation in SSA form.
 	this, our implementation has an interface with Microsoft Z3 \cite{MouraB08},
 	and Yices \cite{DutertreM06}. One can easily switch from one to another with
 	an argument we give as parameter to the analyzer. In this way, we can
-	compare the effectiveness of both SMT-solvers.
+	compare the efficiency of both SMT-solvers.
+
+	\section{Limitations}
+
+	Our analyzer could be extended in many ways. Indeed, it is intra-procedural,
+	meaning that it does not consider that a variable may change after a
+	function call. In addition, the return value of a function call is
+	considered unconstrained. This limitation can be addressed by simply
+	inlining the function call, provided the function is not recursive.
+	There have been research to find efficient interprocedural analysis
+	techniques \cite{Bourdoncle90,Bou92}.
+
+	Additionnaly, our analyzer has no memory model:
+\begin{itemize}
+\item \emph{Store} instructions, that store a value in the memory, has no effect
+in the analysis.
+\item \emph{Load} instructions, that get a value $v$ in the memory and assign it
+to a variable $x$, doesn't provide properties about the value $v$. Then, our
+analyzer considers $x$ can take all values of its type.
+\end{itemize}
+In the case of local variables, the transformation of the internal
+representation into SSA form removes the \emph{Load/Store} instructions.
+The use of global variables instead of local ones will induce huge
+loss of precision, since there will still be \emph{Load/Store} instructions in
+the IA.
 
 	\section{Example}
 
@@ -2549,7 +2616,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 	gives the results of the analyzer in various examples, some of them taken
 	from the recent literature \cite{CGGMP05,GopanR06}.
 
-	In all experiments, the set $P_R$ is chosen equal to $P_W \cup P_{ret} \cup
+	In all experiments, the set $P_R$ is chosen equals to $P_W \cup P_{ret} \cup
 	P_{init}$,
 	where $P_W$ is the set of widening points. $P_{init}$ is the set of starting
 	points of the program, and $P_{ret}$ is the set of points that have no
@@ -2626,6 +2693,37 @@ j.0 - 6 >= 0
 j.0 - 6 >= 0
 \end{tabular} \\ \hline
 
+ex6.c & 0.104s & $\infty$ & \begin{tabular}{l}
+-y.0 + 51 >= 0 \\
+y.0 >= 0 \\
+x.0 - 51y.0 + 2550 >= 0 \\
+x.0 >= 0
+\end{tabular} & 0.032 & \begin{tabular}{l}
+y.0 >= 0
+\end{tabular} \\ \hline
+
+ex8c.c & 191m50.935s & $\infty$ & \begin{tabular}{l}
+c.0 + a.0 = 0 \\
+b.0 + d.0 = 0\\
+-b.0 - c.0 + 1 >= 0\\
+-b.0 + c.0 + 1 >= 0\\
+b.0 - c.0 + 1 >= 0\\
+b.0 + c.0 + 1 >= 0\\
+\end{tabular} & 0.928 & \begin{tabular}{l}
+-b.0 + 1 >= 0\\
+-b.0 + a.0 + 1 >= 0\\
+-c.0 + 1 >= 0\\
+-c.0 + d.0 + 1 >= 0\\
+-a.0 + 1 >= 0\\
+-d.0 + 1 >= 0\\
+a.0 + 1 >= 0\\
+c.0 - d.0 + 1 >= 0\\
+c.0 + d.0 + 1 >= 0\\
+b.0 - a.0 + 1 >= 0\\
+b.0 + 1 >= 0
+\end{tabular} \\ \hline
+
+
 \end{tabular}
 \caption{Results of \emph{Path Focusing} and \emph{Lookahead Widening}
 techniques applied to various benchmarks}
@@ -2636,6 +2734,21 @@ techniques applied to various benchmarks}
 \emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
 containing control-flow merges inside of loops, because of the distinction
 between all the paths of the loop.
+
+To be completed\dots
+
+\begin{table}[!h]
+\begin{tabular}{|l||c|c|c|c|c|c|c|} \hline
+Benchmark  & Gopan.c & Beyer.c & Boustr.c & ex8.cpp & ex9.cpp & test1.c & ex6.c\\ \hline \hline
+paths (total) & 5 & 4 & 10 & 75626 & 8 & 3 & 5 \\ \hline
+paths (computed) & 5 & 4 & 4 & 4 & 4 & 3 & 4\\ \hline
+iterations  & 6 & 5 & 5 & 4 & 4 & 3 & 4\\ \hline
+\end{tabular}
+\caption{Number of path in the expanded multigraph, number of path the
+algorithm actually computes, and total number of iterations}
+\end{table}
+
+To be completed\dots
 
 \chapter{Future Work}
 \label{future}
@@ -2738,20 +2851,55 @@ the number of paths, but these are treated implicitly.
 
 \chapter{Conclusion}
   
+	Validation of softwares has become an essential domain in industry,
+	especially those dealing with embedded systems, where a bug in the program
+	can endanger the safety of people, or induce huge costs to fix. These
+	domains constitute a privileged application field for formal verification
+	techniques.
+	Abstract Interpretation is a common used technique to do static analysis of
+	programs. It aims to compute iteratively an over-approximation of the set of
+	possible states of the program, and allows to prove properties such as
+	``In this program, $x$ is always between 1 and 10'', ``The program never
+	divides by zero'', etc.
+
 	In this report, we proposed a new approach to guide the iterations of the
-	analyzer, in order to distinguish the different paths and to treat them
+	analyzer, in order to distinguish the different paths of the program
+	and to treat them
 	independently. The loss of precision due to widening and control-flow merges
 	is then reduced. This technique allows us, for instance, to do narrowing
 	steps right after widening, or to use acceleration techniques when a path
 	actually is a simple loop.
 
-	We implemented this technique into a small analyzer, 
-	and it appears that in lots of cases, 
+	Since distinguishing all the paths leads to an exponential blowup in time
+	and memory, we do compute a path only when needed, otherwise the path is
+	kept implicit. In this way, memory consumption is preserved, and the
+	computation time is reduced, but still potentially exponential.
+	In order to find which path we should compute, we use SMT-solving to find
+	paths that makes the abstract interpretation analysis progress.
+
+	We implemented this technique into a small analyzer dealing with C and C++
+	programs, and run it on several
+	benchmarks.
+	It appears that in lots of cases, 
 	the precision of the result is improved 
 	compared to the classical abstract interpretation technique.
 	We compared it with \emph{Lookahead Widening}, and our technique seems to
 	perform better in the case of loops containing control-flow merges. 
-	
+
+	Our technique performs better because of the distinction between
+	paths. Then, encoding some properties, such as arithmetic overflows or
+	aliases, into distinct paths in the control flow graph is one direction to
+	explore.
+
+	Our analyzer is able to deal with small- and middle-sized programs, but lose
+	precision in the case of programs with pointers or several functions.
+	It could be improved in many ways, in order to support
+	for instance interprocedural analysis. A memory model could be added to
+	handle programs with pointers and \emph{load/store} instructions.
+	One could also try to compute disjunctive invariants using the technique
+	described in this report.
+	To be completed\dots
+
 \bibliographystyle{alpha}
   \bibliography{report}
 

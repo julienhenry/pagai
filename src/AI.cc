@@ -29,6 +29,7 @@ using namespace llvm;
 
 char AI::ID = 0;
 
+
 static RegisterPass<AI> X("AI", "Abstract Interpretation Pass", false, true);
 
 const char * AI::getPassName() const {
@@ -81,6 +82,9 @@ bool AI::runOnModule(Module &M) {
 		}
 		delete it->second;
 	}
+	*Out << "Number of iterations: " << n_iterations << "\n";
+	*Out << "Number of paths: " << n_totalpaths << "\n";
+	*Out << "Number of paths computed: " << n_paths << "\n";
 	return 0;
 }
 
@@ -143,9 +147,11 @@ void AI::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
-	
+
+	*Out << "Computing Pr and Rho...";
 	LSMT->getPr(*F);
 	LSMT->getRho(*F);
+	*Out << "OK\n";
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -359,23 +365,23 @@ void AI::computeNode(Node * n) {
 		return;
 	}
 	
-	DEBUG (
+	//DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";
 		*Out << "Computing node: " << b << "\n";
 		Out->resetColor();
 		*Out << *b << "\n";
-	);
+	//);
 
 
 	while (true) {
 		is_computed[n] = true;
-		DEBUG(
+		//DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 			Out->flush();
-		);
+		//);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
@@ -395,6 +401,9 @@ void AI::computeNode(Node * n) {
 		);
 	
 		Succ = Nodes[path.back()];
+
+		n_iterations++;
+		if (!pathtree->exist(path)) n_paths++;
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
