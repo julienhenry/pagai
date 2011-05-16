@@ -398,15 +398,14 @@ void SMT::computeRhoRec(Function &F,
 			pred = *p;
 			//computeRhoRec(F,pred,dest,false,visited);
 			if (!Pr[&F]->count(pred)) {
-				computeRhoRec(F,pred,dest,false,visited);
-				primed[b].insert(primed[pred].begin(),primed[pred].end());
+				if (!visited->count(pred)) 
+					computeRhoRec(F,pred,dest,false,visited);
+				//primed[b].insert(primed[pred].begin(),primed[pred].end());
 			} else {
 				Pr_succ[pred].insert(dest);
 				Pr_pred[dest].insert(pred);
 			}
 		}
-	} else {
-		n_totalpaths++;
 	}
 
 	if (first) return;

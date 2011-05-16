@@ -11,6 +11,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{multirow}
+\usepackage[toc,page]{appendix} 
 
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
@@ -110,6 +111,7 @@ Abstraite, Génération d'invariants, Découverte de Chemins, SMT-Solving}
   \newpage
 
 
+
 \chapter{Introduction} 
 
 Static analysis aims at automatically computing properties on programs, such as
@@ -163,7 +165,7 @@ of static analysis by abstract interpretation. We also present an adaptation of
 this technique to compute disjunctive invariants.
 \item We present an implementation of this technique into a small analyzer, as
 well as the implementation of another technique proposed in \cite{GopanR06},
-such that we can compare precision and cost of the these two methods.
+such that we can compare precision and cost of these two methods.
 \end{itemize}
 
 The report is organized as follows:
@@ -215,7 +217,7 @@ while (x < 100) {
 \FloatBarrier
 
 Static analysis aims to discover some properties about programs. In this
-example, one would to compute the set of possible values for the variable $x$
+example, one would compute the set of possible values for the variable $x$
 during execution.
 The graph at the right side represents the program. The nodes of the graph are
 called \emph{program points}. We can compute for instance the set $Y_1$ of
@@ -242,7 +244,7 @@ Then, we add iteratively new elements in the sets.
 \item We continue the iteration until we find no more elements in the sets\dots
 \end{itemize}
 
-This computation is a fixpoint computation: one updates the different sets until
+This computation is a fixpoint computation: the different sets are updated until
 we find no more elements. These sets are strictly increasing (we always add new
 elements in the sets), and if we find no new elements to add, that means we have
 reached a limit. Abstract Interpretation gives a general framework to do such
@@ -301,6 +303,8 @@ x_{n+1} &=& \Phi^\#(x_n)
 \end{array}
 \right.
 $$
+
+where $\perp$ is the least element of $A$.
 %The relation between these two
 %domains is characterized by two functions, usually called 
 %$\alpha\ :\ C \mapsto A$, $\gamma \ : \ A \mapsto C$, such as:
@@ -420,10 +424,45 @@ If $X_1, X_2$ are two convex polyhedra, $X_1 \sqcup X_2$ is the
 smallest convex polyhedron containing both $X_1$ and $X_2$.
 
 Since the domain of convex polyhedra is of infinite depth, a widening operator
-is defined to ensure convergence of the technique. There have been various
-work proposing a definition of the widening operator in LRA
+is defined to ensure convergence of the technique. 
+Intuitively, the polyhedron $P \nabla Q$ is obtained after 
+removing from the system of linear equations defining $P$ all the inequalities
+that are not satisfied by $Q$.
+For instance, if $P = \{(x,y)\ |\ 0 \leq x \leq y \leq 1 \}$ and $Q = 
+\{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$, then the result of the widening operator
+will be $P \nabla Q = \{(x,y)\ |\ 0 \leq x \leq y \}$.
+
+There have been various
+work proposing a definition or a refinment of the widening operator in LRA
 \cite{CH78,Hal79,HPR97,BlanchetCousotEtAl_PLDI03}, in order to fight
-against the loss of precision induced by widening.
+against loss of precision:
+\begin{itemize}
+\item \emph{Delayed widening}: instead of applying windening at the first
+iteration of the analysis, one apply it after a number $n$ of iterations. During
+the $n-1$ first iterations, only a convex hull is computed. In some cases,
+delaying the widening operation is more precise. The algorithm still terminates,
+since widening is applied within a finite time after $n$ iterations. Most of the
+cases, $n$ can be choosen equals to $2$.
+\item \emph{Widening with threshold (or ``up to'')}: In some cases, instead of
+brutally applying the widening operator, a fixed set of linear inequalities $T$
+can be chosen, and the widening operator $\nabla_T$ is defined as follows:
+$P \nabla_T Q$ is the intersection of $P \nabla Q$ with all the inequalities in
+$T$ satisfied by both $P$ and $Q$.
+
+For instance, consider the program:
+\begin{C}
+while (x <= 50) {
+	x++;
+	y++;
+}
+\end{C}
+If $P = \{(x,y)\ |\ 0 \leq x \leq y \leq 1 \}$, after one iteration of the loop,
+we have $Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$. Instead of a classic
+widening (which gives the result $P \nabla Q = \{(x,y)\ |\ 0 \leq x \leq y \}$),
+a widening with the threshold $x \leq 50$ gives 
+$P \nabla_T Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 50\}$. In such cases, widening
+with threshold helps to find better invariants.
+\end{itemize}
 
 \subsection{Program Analysis}
 
@@ -572,7 +611,7 @@ different numerical variables of the program at the control point $p$.
 In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
 apply it on a subset of $P$, called $P_w$, such that removing the nodes of $P_w$
-disconnects every cycles. For instance, one could choose $P_w$ as the set of the
+disconnects every cycles. For instance, $P_w$ can be chosen as the set of the
 heads of loops.
 
 \subsubsection{Iteration strategies}
@@ -594,7 +633,7 @@ such as the domain of convex polyhedra, there is an upper approximation of the
 set of possible states to the smallest convex polyhedra including this set. This
 loss of precision is unavoidable. Still, there are techniques proposing to
 compute disjunctive invariants \cite{GulwaniZ10} to limit this upper approximation: at each
-program point, one compute a union of convex polyhedra instead of a single
+program point, a union of convex polyhedra is computed instead of a single
 one.
 \item The widening operator, used to ensure convergence of the technique,
 also induces a loss of precision. The classical technique is then to compute
@@ -605,8 +644,9 @@ For instance, considering the program:
 for (int i=0; i < 100; i++) {
 }
 \end{C}
-The analysis starts with $i=0$. After one iteration, one obtain $i \in
-[0,1]$, \dots. After a widening operation, the result becomes $i \in [0,
+The analysis starts with $i=0$. After one iteration, $i \in
+[0,1]$, then $i\in [0,2]$ after the second iteration\dots. 
+After a widening operation, the result becomes $i \in [0,
 +\infty]$, which is an invariant, but very imprecise. We can do a new iteration,
 with $i\in [0, +\infty]$ at the beginning of the loop, and we find that the
 values for $i$ at the next step are in $[0, 100]$. This is still an invariant,
@@ -623,9 +663,11 @@ $$X_1 \cup X_2 \subseteq X_1 \sqcup X_2$$
 
 To limit the number of such points, a method could be
 to expand the control flow graph. For instance, instead of considering a graph
-with a sequence of $n$ \emph{if-then-else} between point $p_1$ and $p_n$, one could remove the $n$ merge node
-of these \emph{if-then-else}, each of them having two incoming edges, and adding 
-$2^n$ edges from $p_1$ to $p_n$, corresponding to the different paths through
+with a sequence of $n$ \emph{if-then-else} between point $p_1$ and $p_n$, 
+the $n$ merge node
+of these \emph{if-then-else} could be removed, each of them having two incoming
+edges, and 
+$2^n$ edges from $p_1$ to $p_n$ are added, corresponding to the different paths through
 the \emph{if-then-else} statements. At the end, $p_n$ is the only point with
 several incoming edges. This graph transformation results in an exponential
 blowup, because of the exponential growth of the number of edges in the graph.
@@ -638,7 +680,7 @@ Typically, to analyze a program with loops, the approach is to use the
 widening operator, for example at the head of the loops, to ensure convergence.
 Since this induces imprecision, another technique called \emph{acceleration}
 aims to compute the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
-the following program, one could directly compute an invariant for the loop:
+the following program, an invariant could be directly computed for the loop:
 
 
 \begin{minipage}[c]{.39\linewidth}
@@ -1042,8 +1084,8 @@ Lookahead widening \cite{GopanR06} is a technique that isolates the
 different loop phases during the analysis, and stabilizes each of these loop
 phases before proceeding to the next. One only consider paths that are feasible
 at the first iteration, and forget the others for a while. The iterations end
-when the analysis of these paths has converged. After that, one can compute some
-narrowing iterations. Then, paths that
+when the analysis of these paths has converged. After that, some
+narrowing iterations can be computed. Then, paths that
 become feasible are reinserted into the control flow graph, and we redo
 iterations.
 
@@ -1277,7 +1319,7 @@ the right.}
 	obtained after removing these points has no cycle. The widening operator
 	will be applied at these points. The choice of $P_W$ can be guided by
 	\cite{Bou92}.
-	Then, one chooses another set $P_R \subseteq P$ of nodes, satisfying the
+	Then, another set $P_R \subseteq P$ of nodes is chosen, satisfying the
 	following properties:
 	\begin{itemize}
 	\item $I_p = \emptyset$ for each $p \in P \setminus P_R$, meaning that the initial
@@ -1562,7 +1604,7 @@ path.
 
 	This is a reachability problem, that can be expressed as an SMT-formula,
 	which is a logic formula with Boolean variables, and elements of a certain
-	theory $T$. Depending on the program, one can choose different theories:
+	theory $T$. Depending on the program, different theories may be used:
 	\begin{itemize}
 	\item For programs with rational variables, whose operations (instructions,
 	transition conditions\dots) are all linear arithmetic, $T$ can be the theory
@@ -1636,7 +1678,7 @@ $$x = \ite (t_{j_1,i})\  (x_1)\  (\ite (t_{j_2,i})\  (x_2)\  (\ite\  \dots))$$
 where $\ite (c)\ (x)\ (y)$ is equal to $x$ if $c = true$, else $y$.
 
 If the point where the $\Phi$-variable $x$ is defined is in
-$P_R$, one need to rename $x$ into $x'$:
+$P_R$, $x$ needs to be renamed into $x'$:
 \begin{itemize}
 \item $x$ will be the value of $x$ at the beginning of the path.
 \item $x'$ will be the value of $x$ at the end of the path.
@@ -1802,7 +1844,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	We maintain a set $A$ of point in $P_R$ that need to be treated.
 	We select iteratively one of these control points, and search for new focus
 	paths starting from this point, until there is no more path to be treated.
-	At the end of the analysis, one could perform some narrowing iterations in
+	At the end of the analysis, some narrowing iterations can be performed in
 	order to recover some precision.
 \begin{algorithm}
 \caption{Path Focusing}\label{pathfocusingalgo}
@@ -1849,9 +1891,9 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	One can refine the \emph{Path-focusing} algorithm by treating specially the
 	self loops of the multigraph. Indeed, instead of simply apply the widening
-	operator, one could compute some narrowing steps to regain precision before
-	focusing on another path. This is the same principle as the one we find in
-	\emph{Lookahead widening} \cite{GopanR06}.
+	operator,  some narrowing steps could be performed to regain precision
+	before focusing on another path. This is the same principle as the one we
+	find in \emph{Lookahead widening} \cite{GopanR06}.
 
 	So, the algorithm has a special case if the path we focus on goes from $p_i$
 	to itself: instead of computing $\tau_e^\#(X_{p_i})$, one compute
@@ -1859,17 +1901,19 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	The $SelfLoop$ procedure actually computes a widening operation, and
 	computes a narrowing step in order to recover precision. In some cases,
-	instead of performing widening/narrowing iterations, one could use
-	acceleration techniques to find even more precise invariants \cite{GH06}.
+	instead of performing widening/narrowing iterations, 
+	acceleration techniques could be used 
+	to find even more precise invariants \cite{GH06}.
 
-	In order for this refinement to be precise, one needs to delay the widening
-	operator when we consider a self-loop for the first time. Then, our
+	In order for this refinement to be precise, the widening
+	operator needs to be delayed
+	when we consider a self-loop for the first time. Then, our
 	algorithm uses a set $U$ of paths that have already been treated. If the
 	self-loop we focus on is not in $U$, we apply a simple union instead of
 	widening. Widening will be applied next time to guarantee the convergence.
 
 	When the self loop is accelerable \cite{Gon07}, instead of doing a
-	widening/narrowing sequence, one can directly accelerate the loop and find
+	widening/narrowing sequence,  acceleration directly finds
 	its transitive closure.
 
 \begin{algorithm}
@@ -1938,7 +1982,10 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	We apply the \emph{Path Focusing} technique to our running example from
 	Figures \ref{runningexample}, \ref{multigraphtransformGopan} and
 	\ref{multigraphGopan}.
-	The control points in $P_R$ are $p_0$, $p_1$ and $p_7$. One computes
+	The control points in $P_R$ are $p_0$, $p_1$ and $p_7$. 
+	The $Ŕho$ formula associated to this program is depicted in
+	Figure \ref{rhoformula}.
+	One computes
 	iteratively the associate abstract values $X_0$, $X_1$ and $X_7$.
 
 \begin{itemize}
@@ -1980,6 +2027,7 @@ x = 102$. We can update $X_7 = {(102,-1)}$. Path focusing technique gives us the
 precise result of this program. After that, the SMT-solver can't find any new
 path, so the analysis terminates.
 \end{itemize}
+
 
 	\subsection{Disjunctive invariants}
 
@@ -2039,9 +2087,9 @@ This algorithm requires to enumerate all the paths and to compute their
 semantics, which may result in an exponential blowup. In addition, the
 \emph{for} loop at line $7$ iterates on all the $n \times m$ values of $(i,j)$:
 some of the join operations may be useless, in the sense that the value of 
-$X_{p,\sigma(j,i)}$ may not change. Here, one could use the same technique as
-Path Focusing to avoid these drawbacks: one can use SMT-solving to find the
-paths $\tau_{p,i}$.
+$X_{p,\sigma(j,i)}$ may not change. Here, the same technique as
+Path Focusing is achievable to avoid these drawbacks:  SMT-solving is used
+to find the paths $\tau_{p,i}$.
 
 \begin{algorithm}[!h]
 \caption{Transitive closure with implicit transition system}\label{gulwani2}
@@ -2074,6 +2122,121 @@ The new algorithm we propose is described in Algorithm \ref{gulwani2}.
 A difference is that here, we don't know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 easily compute this number of paths when computing the $\rho$ formula.
+
+	\section{Efficiency comparison: example}
+
+In this subsection, we propose an example showing that \emph{Path Focusing}
+technique performs better than \emph{Lookahead Widening} in the case of loops
+with intermediate control-flow merges.
+
+We consider the program depicted in figure \ref{ex9}.
+Here, we would like to show that the returned value $r$ is zero.
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.49\linewidth}
+\begin{C}
+x = 0;
+i = 0;
+r = 0;
+while (i < 100) {
+	if (i < 50)
+		x = -1;
+	else
+		x = 1;
+
+	if (x == 0) r++;
+	i++;
+}
+return r;
+\end{C}
+\end{minipage}
+\begin{minipage}[c]{.49\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n2) [below of=n1] {$p_2$};
+	\node[state] (n3) [below left of=n2] {$p_3$};
+	\node[state] (n4) [below right of=n2] {$p_4$};
+	\node[state] (n5) [below right of=n3] {$p_5$};
+	\node[state] (n6) [below left of=n5] {$p_6$};
+	\node[state] (n7) [below right of=n5] {$p_7$};
+	\node[state] (n8) [below left of=n7] {$p_8$};
+	\node[state] (n9) [left of=n1] {$p_9$};
+
+
+  \path [transition] 
+		(n0) edge              node {$x,i,r \leftarrow 0$} (n1);
+  \path [transition] 
+		(n1) edge              node {$i < 100$} (n2);
+  \path [transition] 
+		(n1) edge              node {$i \geq 100$} (n9);
+  \path [transition] 
+        (n2) edge			   node [left] {$i < 50$} (n3);
+  \path [transition] 
+        (n2)  edge              node [right] {$i \geq 50$} (n4);
+  \path [transition] 
+        (n3) edge              node [left] {$x \leftarrow -1$} (n5);
+  \path [transition] 
+        (n4) edge			   node [right] {$x \leftarrow 1$} (n5);
+  \path [transition] 
+        (n5) edge			   node [left] {$x = 0$} (n6);
+  \path [transition] 
+        (n5) edge			   node [right] {$x \neq 0$} (n7);
+  \path [transition] 
+        (n6) edge              node [left] {$r \gets r+1$} (n8);
+  \path [transition] 
+        (n7) edge              node {} (n8);
+  \path [transition] 
+        (n8) edge [out=0, in=0, distance=3.5cm] node [right] {$i \gets i+1$} (n1);
+
+\end{tikzpicture}
+\end{minipage}
+\caption{Example of program. $p_5$ is a control-flow merge point, which is in
+the middle of the containing loop.}
+\label{ex9}
+\end{figure}
+
+\paragraph{Lookahead Widening} 
+The analysis begins with $p_1: x=i=r=0$. Then, the path $p_1 \rightarrow p_2
+\rightarrow p_3 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$ is the only one
+possible. The technique is then to stabilize the iterations over this subgraph,
+removing $p_4$ and $p_6$ for a while. After stabilization and narrowing phases,
+we obtain $ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at
+control point $p_1$, and 
+$ 0 \leq i \leq 49 \wedge r=0 \wedge x=-1$ at point $p_5$.
+
+Then, point $p_4$ becomes reachable. We continue the iterations and have to do
+a convex hull of polyhedra at point $p_5$, because of the two possible incoming
+transitions.
+We obtain the polyhedron
+$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 1$.
+Point $p_6$ now becomes reachable, since $x=0$ is inside our polyhedron.
+Finally, the analysis terminates after some steps and finds $0 \leq r \leq i$.
+\emph{Lookahead Widening} is not able to prove that $r = 0$ at the end of the
+funtion.
+
+\paragraph{Path Focusing} 
+The analysis of the loop starts with 
+$p_1: x=i=r=0$. Then, the SMT-solver discovers the path $p_1 \rightarrow p_2
+\rightarrow p_3 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. We do a
+widening/narrowing sequence and we find 
+$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at $p_1$. The smt gives
+another path: 
+$p_1 \rightarrow p_2
+\rightarrow p_4 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. After
+analyzing this path, we obtain 
+$ 0 \leq i \leq 100 \wedge r=0 \wedge x=0$. Analysis terminates since the
+SMT-solver gives $unsat$ answers. Here, We never focused on paths going through
+point $p_6$, so our analysis gives us the invariant $x=0$ at the end of the
+program. Indeed, there is no feasible paths going through $p_6$, but
+\emph{Lookahead Widening} don't know it because of the convex hull at point
+$p_5$.
+
+
+
+
 
 \FloatBarrier
 \chapter{Implementation}\label{implementationpart}
@@ -2324,7 +2487,7 @@ In our case, a control point will be a BasicBlock of the program.
 LLVM internal representation can be applied transformation passes that modifies
 parts of it. These passes are mostly used for optimisation purpose. In our
 analyzer, we apply some already existing passes before running our 
-abstract interpretation pass. Among the passes we run, one could cite:
+abstract interpretation pass. Among the passes we run, we could cite:
 \begin{itemize}
 \item the \emph{PromoteMemoryToRegister} Pass, that transforms the internal
 representation by promoting the memory variables to Static Single Assignment
@@ -2351,10 +2514,10 @@ static analysis are lacking.
 
 This is the case for the distinction between \emph{signed} and \emph{unsigned}
 integers, which is inexistant in the representation, since the compiler doesn't
-need this information to generate code. Yet, for static analysis, one need to
-have this distinction to improve precision:
-for instance, if $n$ is unsigned, one could add the constraint $n \geq 0$ in our
-	abstract value at the beginning of the analysis.
+need this information to generate code. Yet, for static analysis, 
+this distinction is required to improve precision:
+for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
+	our abstract value at the beginning of the analysis.
 	This lack of precision may be limited by using disjunctive invariants: one
 	could attach two polyhedra to the control point: the first one with the
 	constraint $n \geq 0$, and the second one with $n < 0$.
@@ -2537,7 +2700,7 @@ if (x != y) {
 \end{C}
 \end{minipage}
 
-To do so, one could implement an LLVM pass that transform the internal
+To do so, we could implement an LLVM pass that transform the internal
 representation according to this principle. However, this pass has not been
 implemented in our analyzer, and this transformation has to be done manually.
 
@@ -2576,6 +2739,12 @@ The use of global variables instead of local ones will induce huge
 loss of precision, since there will still be \emph{Load/Store} instructions in
 the IA.
 
+Additionally, some optimization in the code could be proposed in order to
+reduce time and/or memory complexity. For instance, paths that have already been
+computed are until now stored in a tree. An optimization could be to store them
+in a Binary Decision Diagram, in order to reduce significantly the memory
+consumption when there is a huge number of paths.
+
 	\section{Example}
 
 	In our running example (Figures \ref{runningexample},
@@ -2611,7 +2780,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
  \section{Experiments}
 
 	In this section, we evaluate our \emph{Lookahead Widening} and \emph{Path
-	Focusing} implementations. We can compare their execution time in some
+	Focusing} implementations. We compare their execution time in some
 	practical cases, and the precision of their results. Table \ref{experiments}
 	gives the results of the analyzer in various examples, some of them taken
 	from the recent literature \cite{CGGMP05,GopanR06}.
@@ -2621,6 +2790,53 @@ here define the polyhedra seen in Figure \ref{result}.b.
 	where $P_W$ is the set of widening points. $P_{init}$ is the set of starting
 	points of the program, and $P_{ret}$ is the set of points that have no
 	successors.
+
+
+\emph{Path Focusing} appears to always perform similarly or better than 
+\emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
+containing control-flow merges inside of loops, because of the distinction
+between all the paths of the loop. In simpler programs, it performs as well as
+\emph{Lookahead Widening}
+
+\emph{ex6.c} is a program containing non-linear arithmetic: there is an integer
+multiplication inside the loop. The Apron library handles multiplication using
+a linearization technique. However, multiplications is not allowed in LIA
+(Linear Integer Arithmetic) or LRA (Linear Real Arithmetic). Then, Yices
+SMT-solver errs with a message ``not implemented'' (which is the reason of the
+$\infty$ symbol in the table), when Z3 still works correctly.
+
+We tried our technique on example with a huge number of paths: ex8, ex8b and
+ex8c (see Table \ref{npaths}). These benchmarks are constructed such that the
+loop contains only a few
+possible paths, but a lot of unfeasible paths. The idea is to show that our
+technique doesn't blow up, even with a huge expanded multigraph. Results show
+that in such benchmarks, our technique finds a much better invariant and is even
+faster than \emph{Lookahead Widening}.
+
+For small programs, our execution time may not be significant. Indeed, the cost
+for reading the program, initializing the SMT-solver, \dots, may have a
+	non-negligible cost compared to the abstract interpretation analysis itself.
+	The only interest of these times is to show our algorithm is pretty fast.
+
+\begin{table}[!h]
+\begin{tabular}{|l||c|c|c|c|c|c|c|c|c|} \hline
+Benchmark  & Gopan & Beyer & Boustr & ex9 & test1 & ex6 & ex8 &
+ex8c & ex8b\\ \hline \hline
+paths (total) & 5 & 4 & 10 & 8 & 3 & 5 & 75626 & 5.7$.10^9$ & $4.10^{14}$\\
+\hline
+paths (computed) & 5 & 4 & 4 & 4 & 3 & 4 & 4 & 4 & 4\\ \hline
+iterations  & 6 & 5 & 5 & 4 & 3 & 4 & 4 & 4 & 4\\ \hline
+\end{tabular}
+\caption{Number of path in the expanded multigraph, number of path the
+algorithm actually computes, and total number of iterations}
+\label{npaths}
+\end{table}
+
+The last remark is about the efficiency of Yices and Z3. Yices seems to always
+be slightly faster than Z3, but in some cases, Yices appeared to blow up, or to
+err with a message ``not implemented'', for instance when adding non-linear
+relations into the formula. Then, it was a good choice to link our analyzer with
+both SMT-solvers.
 
 \begin{table}[!h]
 \centering \scriptsize
@@ -2632,7 +2848,7 @@ Benchmark	& \multicolumn{2}{c|}{time} & result	& time	& result	\\
 \cline{2-3}	& Z3 & Yices				& & & \\
 \hline \hline
 
-Gopan.c & 0.088s & 0.080s & \begin{tabular}{l}
+Gopan.c & 0.076s & 0.076s & \begin{tabular}{l}
 -x.0 - y.0 + 102 >= 0 \\
 y.0 >= 0              \\
 x.0 - y.0 >= 0        
@@ -2660,16 +2876,6 @@ Boustr.c & 0.100s & 0.088s & \begin{tabular}{l}
  -1996x.0 + 4991d.0 + 1998995 >= 0\\
  -2x.0 + d.0 + 1999 >= 0 \\
  -d.0 + 1 >= 0 \\
-\end{tabular} \\ \hline
-
-ex8.cpp & 0.516s & 0.408s & \begin{tabular}{l}
- -y.0 - x.0 + 1 >= 0\\
- -y.0 + x.0 + 1 >= 0\\
- y.0 - x.0 + 1 >= 0\\
- y.0 + x.0 + 1 >= 0
-\end{tabular} & 0.208 & \begin{tabular}{l}
--x.0 + 1 >= 0 \\
-x.0 + 1 >= 0 
 \end{tabular} \\ \hline
 
 ex9.cpp & 0.084s & 0.082s & \begin{tabular}{l}
@@ -2702,14 +2908,24 @@ x.0 >= 0
 y.0 >= 0
 \end{tabular} \\ \hline
 
-ex8c.c & 191m50.935s & $\infty$ & \begin{tabular}{l}
-c.0 + a.0 = 0 \\
+ex8.c & 0.516s & 0.408s & \begin{tabular}{l}
+ -y.0 - x.0 + 1 >= 0\\
+ -y.0 + x.0 + 1 >= 0\\
+ y.0 - x.0 + 1 >= 0\\
+ y.0 + x.0 + 1 >= 0
+\end{tabular} & 0.208 & \begin{tabular}{l}
+-x.0 + 1 >= 0 \\
+x.0 + 1 >= 0 
+\end{tabular} \\ \hline
+
+ex8c.c & 0.656s & 0.548s & \begin{tabular}{l}
+c.0 + a.0 = 0\\
 b.0 + d.0 = 0\\
 -b.0 - c.0 + 1 >= 0\\
 -b.0 + c.0 + 1 >= 0\\
 b.0 - c.0 + 1 >= 0\\
 b.0 + c.0 + 1 >= 0\\
-\end{tabular} & 0.928 & \begin{tabular}{l}
+\end{tabular} & 0.916s & \begin{tabular}{l}
 -b.0 + 1 >= 0\\
 -b.0 + a.0 + 1 >= 0\\
 -c.0 + 1 >= 0\\
@@ -2720,35 +2936,44 @@ a.0 + 1 >= 0\\
 c.0 - d.0 + 1 >= 0\\
 c.0 + d.0 + 1 >= 0\\
 b.0 - a.0 + 1 >= 0\\
-b.0 + 1 >= 0
+b.0 + 1 >= 0\\
+\end{tabular} \\ \hline
+
+ex8b.c & 1.016s & 0.816s & \begin{tabular}{l}
+c.0 + y.0 = 0\\
+c.0 + a.0 = 0\\
+b.0 + d.0 = 0\\
+b.0 + x.0 = 0\\
+-b.0 - c.0 + 1 >= 0\\
+-b.0 + c.0 + 1 >= 0\\
+b.0 - c.0 + 1 >= 0\\
+b.0 + c.0 + 1 >= 0\\
+\end{tabular} & 36.300s & \begin{tabular}{l}
+-b.0 + 1 >= 0 \\
+-b.0 + a.0 + 1 >= 0\\
+-c.0 + 1 >= 0\\
+-c.0 + d.0 + 1 >= 0\\
+-a.0 + 1 >= 0\\
+-y.0 - x.0 + 1 >= 0\\
+-y.0 + x.0 + 1 >= 0\\
+-d.0 + 1 >= 0\\
+x.0 + 1 >= 0\\
+y.0 - x.0 + 1 >= 0\\
+y.0 + 1 >= 0\\
+a.0 + 1 >= 0\\
+c.0 - d.0 + 1 >= 0\\
+c.0 + d.0 + 1 >= 0\\
+b.0 - a.0 + 1 >= 0\\
+b.0 + 1 >= 0\\
 \end{tabular} \\ \hline
 
 
 \end{tabular}
 \caption{Results of \emph{Path Focusing} and \emph{Lookahead Widening}
-techniques applied to various benchmarks}
+techniques applied to various benchmarks. The invariant we give is the one at
+the head of the loop.}
 \label{experiments}
 \end{table}
-
-\emph{Path Focusing} appears to always perform similarly or better than 
-\emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
-containing control-flow merges inside of loops, because of the distinction
-between all the paths of the loop.
-
-To be completed\dots
-
-\begin{table}[!h]
-\begin{tabular}{|l||c|c|c|c|c|c|c|} \hline
-Benchmark  & Gopan.c & Beyer.c & Boustr.c & ex8.cpp & ex9.cpp & test1.c & ex6.c\\ \hline \hline
-paths (total) & 5 & 4 & 10 & 75626 & 8 & 3 & 5 \\ \hline
-paths (computed) & 5 & 4 & 4 & 4 & 4 & 3 & 4\\ \hline
-iterations  & 6 & 5 & 5 & 4 & 4 & 3 & 4\\ \hline
-\end{tabular}
-\caption{Number of path in the expanded multigraph, number of path the
-algorithm actually computes, and total number of iterations}
-\end{table}
-
-To be completed\dots
 
 \chapter{Future Work}
 \label{future}
@@ -2860,7 +3085,9 @@ the number of paths, but these are treated implicitly.
 	programs. It aims to compute iteratively an over-approximation of the set of
 	possible states of the program, and allows to prove properties such as
 	``In this program, $x$ is always between 1 and 10'', ``The program never
-	divides by zero'', etc.
+	divides by zero'', etc. The objective is to obtain a result as precise as
+	possible, by limiting the loss of precision during the analysis, induced for
+	instance by the widening operator, or control-flow merges.
 
 	In this report, we proposed a new approach to guide the iterations of the
 	analyzer, in order to distinguish the different paths of the program
@@ -2886,25 +3113,33 @@ the number of paths, but these are treated implicitly.
 	We compared it with \emph{Lookahead Widening}, and our technique seems to
 	perform better in the case of loops containing control-flow merges. 
 
-	Our technique performs better because of the distinction between
-	paths. Then, encoding some properties, such as arithmetic overflows or
-	aliases, into distinct paths in the control flow graph is one direction to
-	explore.
-
-	Our analyzer is able to deal with small- and middle-sized programs, but lose
+	Our analyzer is able to deal with small- and middle-sized programs, but
+	looses
 	precision in the case of programs with pointers or several functions.
+	It has been tested with program having loops containing several hundreds
+	lines of code, and gave results after a time in the order of the second.
 	It could be improved in many ways, in order to support
 	for instance interprocedural analysis. A memory model could be added to
 	handle programs with pointers and \emph{load/store} instructions.
 	One could also try to compute disjunctive invariants using the technique
 	described in this report.
-	To be completed\dots
+	Since our technique combines well with acceleration techniques, another
+	direction is to implement this last technique to improve our results
+	obtained with classical widening/narrowing.
+	
+
+	\emph{Path Focusing} technique performs better because of the distinction
+	between
+	paths. Then, encoding some properties in the control flow graph, such as
+	arithmetic overflows or aliases, is one direction to explore. One could also
+	try to combine \emph{Path Focusing} with other techniques, such as
+	\emph{Lookahead Widening}.
 
 \bibliographystyle{alpha}
   \bibliography{report}
 
+\addcontentsline{toc}{chapter}{Bibliography}
   \appendix
-
 \begin{figure}
 \begin{C}
 (and (= bd_0 false)
@@ -2945,7 +3180,8 @@ the number of paths, but these are treated implicitly.
 \end{C}
 \caption{Expression of $\rho$ associated to the program in Figures
 \ref{runningexample}, \ref{multigraphtransformGopan} and
-\ref{multigraphGopan}.}
+\ref{multigraphGopan}, in the SMT-lib format.}
+\label{rhoformula}
 \end{figure}
 
 \end{document}

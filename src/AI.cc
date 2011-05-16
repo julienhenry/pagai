@@ -148,10 +148,12 @@ void AI::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
-	*Out << "Computing Pr and Rho...";
+	*Out << "Computing Pr...";
 	LSMT->getPr(*F);
+	*Out << "OK\nComputing Rho...";
 	LSMT->getRho(*F);
 	*Out << "OK\n";
+	LSMT->man->SMT_print(LSMT->getRho(*F));
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -258,6 +260,7 @@ void AI::computeEnv(Node * n) {
 
 void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
 	
+	*Out << "computeTransform...\n";
 	// setting the focus path, such that the instructions can be correctly
 	// handled
 	focuspath.clear();
@@ -289,7 +292,6 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		}
 		focusblock++;
 	}
-
 	ap_environment_t * env = NULL;
 	succ->create_env(&env);
 
@@ -324,11 +326,11 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				A.push_back(X2);
 				// creating the associated lincons for a future widening with
 				// threshold
-				ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*it));
-				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
-				linconssize += ap_lincons1_array_size(&lincons);
-				linconsts.push_back(lincons);
-				ap_abstract1_clear(man,&AX);
+				//ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*it));
+				//ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
+				//linconssize += ap_lincons1_array_size(&lincons);
+				//linconsts.push_back(lincons);
+				//ap_abstract1_clear(man,&AX);
 			}
 			Xtemp.join_array(env,A);
 		}
@@ -352,6 +354,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//
 
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+	*Out << "computeTransform OK\n";
 }
 
 
@@ -847,7 +850,9 @@ void AI::visitPHINode (PHINode &I){
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
 			nb = Nodes[I.getIncomingBlock(i)];
+			*Out << "1...";
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
+			*Out << "OK\n";
 
 			if (focusblock == focuspath.size()-1) {
 				n->add_var(&I);
@@ -859,6 +864,7 @@ void AI::visitPHINode (PHINode &I){
 					*Out << "\n";
 				);
 			} else {
+				if (expr == NULL) continue;
 				set_ap_expr(&I,expr);
 				ap_environment_t * env = expr->env;
 				insert_env_vars_into_node_vars(env,n,(Value*)&I);
@@ -1013,7 +1019,9 @@ void AI::visitBinaryOperator (BinaryOperator &I){
 		case Instruction::Or  :
 		case Instruction::Xor :
 		case Instruction::BinaryOpsEnd:
-			// NOT IMPLEMENTED
+			// we consider the result is unknown
+			// so we create a new variable
+			visitInstAndAddVarIfNecessary(I);
 			return;
 	}
 	ap_texpr_rtype_t type;
