@@ -600,6 +600,32 @@ void AIGopan::computeConstantCondition(	ConstantInt * inst,
 		}
 }
 
+void AIGopan::computePHINodeCondition(	PHINode * inst, 
+		std::vector<ap_tcons1_array_t*> * true_cons, 
+		std::vector<ap_tcons1_array_t *> * false_cons) {
+
+	Value * pv;
+	BasicBlock * pred;
+
+	for (unsigned i = 0; i < inst->getNumIncomingValues(); i++) {
+		pred = inst->getIncomingBlock(i);
+		pv = inst->getIncomingValue(i);
+
+		if (CmpInst * cmp = dyn_cast<CmpInst>(pv)) {
+			ap_texpr_rtype_t ap_type;
+			if (get_ap_type(cmp->getOperand(0), ap_type)) return;
+			computeCondition(cmp,true_cons,false_cons);
+		} else if (ConstantInt * c = dyn_cast<ConstantInt>(pv)) {
+			computeConstantCondition(c,true_cons,false_cons);
+		} else if (PHINode * phi = dyn_cast<PHINode>(pv)) {
+			// I.getOperand(0) could also be a
+			// boolean PHI-variable
+			computePHINodeCondition(phi,true_cons,false_cons);
+		} else {
+			// loss of precision...
+		}
+	}
+}
 
 void AIGopan::visitBranchInst (BranchInst &I){
 	//fouts() << "BranchInst\n" << I << "\n";	
@@ -618,19 +644,20 @@ void AIGopan::visitBranchInst (BranchInst &I){
 	std::vector<ap_tcons1_array_t*> * true_cons = new std::vector<ap_tcons1_array_t*>();
 	std::vector<ap_tcons1_array_t*> * false_cons = new std::vector<ap_tcons1_array_t*>();
 
-	CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0));
-	if (cmp == NULL) {
-		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
-			computeConstantCondition(c,true_cons,false_cons);
-		} else {
-			// here, we loose precision, because I.getOperand(0) could also be a
-			// boolean PHI-variable
-			return;
-		}
-	} else {
+	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
 		ap_texpr_rtype_t ap_type;
 		if (get_ap_type(cmp->getOperand(0), ap_type)) return;
 		computeCondition(cmp,true_cons,false_cons);
+	} else if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
+		computeConstantCondition(c,true_cons,false_cons);
+	} else if (PHINode * phi = dyn_cast<PHINode>(I.getOperand(0))) {
+		// I.getOperand(0) could also be a
+		// boolean PHI-variable
+		computePHINodeCondition(phi,true_cons,false_cons);
+	} else {
+		// here, we loose precision, because I.getOperand(0) could also be a
+		// boolean PHI-variable
+		return;
 	}
 
 	// free the previous tcons

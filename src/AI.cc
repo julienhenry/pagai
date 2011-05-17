@@ -744,7 +744,6 @@ bool AI::computePHINodeCondition(PHINode * inst,
 
 	bool res;
 
-	*Out << "PHINODECONDITION\n";
 	// we only consider one single predecessor: the predecessor from the path
 	BasicBlock * pred = focuspath[focusblock-1];
 	Value * pv;
@@ -753,20 +752,16 @@ bool AI::computePHINodeCondition(PHINode * inst,
 			pv = inst->getIncomingValue(i);
 
 			if (CmpInst * cmp = dyn_cast<CmpInst>(pv)) {
-				*Out << "CMPINST\n";
 				ap_texpr_rtype_t ap_type;
 				if (get_ap_type(cmp->getOperand(0), ap_type)) return false;
 				res = computeCondition(cmp,result,cons);
 			} else if (ConstantInt * c = dyn_cast<ConstantInt>(pv)) {
-				*Out << "CONSTANTINST\n";
 				res = computeConstantCondition(c,result,cons);
 			} else if (PHINode * phi = dyn_cast<PHINode>(pv)) {
-				*Out << "PHINODE\n";
 				// I.getOperand(0) could also be a
 				// boolean PHI-variable
 				res = computePHINodeCondition(phi,result,cons);
 			} else {
-				*Out << "NOTHING!\n";
 				// loss of precision...
 				return false;
 			}

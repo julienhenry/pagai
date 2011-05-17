@@ -101,6 +101,10 @@ class AIGopan : public ModulePass, public InstVisitor<AIGopan> {
 				std::vector<ap_tcons1_array_t*> * true_cons, 
 				std::vector<ap_tcons1_array_t *> * false_cons);
 
+		void computePHINodeCondition(	PHINode * inst, 
+				std::vector<ap_tcons1_array_t*> * true_cons, 
+				std::vector<ap_tcons1_array_t *> * false_cons);
+
 		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
 
 
