@@ -74,7 +74,6 @@ bool AIGopan::runOnModule(Module &M) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
-			Out->flush();
 			n->Xgopan->print(true);
 		}
 		delete it->second;
@@ -96,16 +95,15 @@ void AIGopan::initFunction(Function * F) {
 	}
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
-	fouts().flush();
 }
 
 void AIGopan::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
 	if (LI.isLoopHeader(b)) {
-		fouts() << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
+		*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	} else {
-		fouts() << b << ": SCC=" << n->sccId << ":" << *b;
+		*Out << b << ": SCC=" << n->sccId << ":" << *b;
 	}
 }
 
@@ -128,7 +126,7 @@ void AIGopan::computeFunction(Function * F) {
 		if (!(arg->use_empty()))
 			n->add_var(arg);
 		else 
-			DEBUG(fouts() << "argument " << *a << " never used !\n";);
+			DEBUG(*Out << "argument " << *a << " never used !\n";);
 	}
 	// first abstract value is top
 	ap_environment_t * env = NULL;
@@ -283,9 +281,9 @@ void AIGopan::computeHull(
 			e = n->intVar.end();i != e; ++i) {
 		Value * v = (Value *) (*i).first;	
 		if (LV->isLiveThroughBlock(v,b)) {
-			fouts() << "Value is Live :" << *v << "\n";
+			*Out << "Value is Live :" << *v << "\n";
 		} else {
-			fouts() << "Value is NOT Live :" << *v << "\n";
+			*Out << "Value is NOT Live :" << *v << "\n";
 		}
 	}
 	);
@@ -311,9 +309,9 @@ void AIGopan::computeNode(Node * n) {
 	}
 	
 	DEBUG (
-	fouts() << "#######################################################\n";
-	fouts() << "Computing node: " << b << "\n";
-	fouts() << *b << "\n";
+	*Out << "#######################################################\n";
+	*Out << "Computing node: " << b << "\n";
+	*Out << *b << "\n";
 	);
 
 	is_computed[n] = true;
@@ -355,7 +353,7 @@ void AIGopan::computeNode(Node * n) {
 
 	for (; i != e; i++) {
 		var = *i;
-		DEBUG(fouts() << "value " << *(Value*)var <<  " is added\n";)
+		DEBUG(*Out << "value " << *(Value*)var <<  " is added\n";)
 
 		// we get the previous definition of the expression
 			expr = get_phivar_previous_expr((Value*)var);
@@ -379,9 +377,9 @@ void AIGopan::computeNode(Node * n) {
 				Names.size(),
 				NULL);
 
-	//fouts() << "n->Xgopan:\n";
+	//*Out << "n->Xgopan:\n";
 	//n->Xgopan->print();
-	//fouts() << "Xtemp:\n";
+	//*Out << "Xtemp:\n";
 	//Xtemp->print();
 	
 	// if it is a loop header, then widening 
@@ -406,8 +404,7 @@ void AIGopan::computeNode(Node * n) {
 		}
 	}
 	DEBUG(
-	fouts() << "RESULT:\n";
-	fouts().flush();
+	*Out << "RESULT:\n";
 	n->Xgopan->print();
 	);
 }
@@ -428,7 +425,7 @@ void AIGopan::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, V
 }
 
 void AIGopan::visitReturnInst (ReturnInst &I){
-	//fouts() << "returnInst\n" << I << "\n";
+	//*Out << "returnInst\n" << I << "\n";
 }
 
 // create_constraints - this function is called by computeCondition
@@ -564,7 +561,7 @@ void AIGopan::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_UNO:
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
-			fouts() << "ERROR : Unknown predicate\n";
+			*Out << "ERROR : Unknown predicate\n";
 			break;
 	}
 	// creating the TRUE constraints
@@ -628,12 +625,12 @@ void AIGopan::computePHINodeCondition(	PHINode * inst,
 }
 
 void AIGopan::visitBranchInst (BranchInst &I){
-	//fouts() << "BranchInst\n" << I << "\n";	
+	//*Out << "BranchInst\n" << I << "\n";	
 	Node * n = Nodes[I.getParent()];
 	Node * iftrue;
 	Node * iffalse;
 
-	//fouts() << "BranchInst\n" << I << "\n";	
+	//*Out << "BranchInst\n" << I << "\n";	
 	if (I.isUnconditional()) {
 		/* no constraints */
 		return;
@@ -682,7 +679,7 @@ void AIGopan::visitBranchInst (BranchInst &I){
 /// This code is dead since we use the LowerSwitch pass before doing abstract
 /// interpretation.
 void AIGopan::visitSwitchInst (SwitchInst &I){
-	//fouts() << "SwitchInst\n" << I << "\n";	
+	//*Out << "SwitchInst\n" << I << "\n";	
 	Node * n = Nodes[I.getParent()];
 	ap_tcons1_array_t * false_cons;
 	ap_texpr1_t * expr;
@@ -724,56 +721,56 @@ void AIGopan::visitSwitchInst (SwitchInst &I){
 }
 
 void AIGopan::visitIndirectBrInst (IndirectBrInst &I){
-	//fouts() << "IndirectBrInst\n" << I << "\n";	
+	//*Out << "IndirectBrInst\n" << I << "\n";	
 }
 
 void AIGopan::visitInvokeInst (InvokeInst &I){
-	//fouts() << "InvokeInst\n" << I << "\n";	
+	//*Out << "InvokeInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitUnwindInst (UnwindInst &I){
-	//fouts() << "UnwindInst\n" << I << "\n";	
+	//*Out << "UnwindInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitUnreachableInst (UnreachableInst &I){
-	//fouts() << "UnreachableInst\n" << I << "\n";	
+	//*Out << "UnreachableInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitICmpInst (ICmpInst &I){
-	//fouts() << "ICmpInst\n" << I << "\n";	
+	//*Out << "ICmpInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitFCmpInst (FCmpInst &I){
-	//fouts() << "FCmpInst\n" << I << "\n";	
+	//*Out << "FCmpInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitAllocaInst (AllocaInst &I){
-	//fouts() << "AllocaInst\n" << I << "\n";	
+	//*Out << "AllocaInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitLoadInst (LoadInst &I){
-	//fouts() << "LoadInst\n" << I << "\n";	
+	//*Out << "LoadInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitStoreInst (StoreInst &I){
-	//fouts() << "StoreInst\n" << I << "\n";	
+	//*Out << "StoreInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitGetElementPtrInst (GetElementPtrInst &I){
-	//fouts() << "GetElementPtrInst\n" << I << "\n";	
+	//*Out << "GetElementPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitPHINode (PHINode &I){
-	//fouts() << "PHINode\n" << I << "\n";
+	//*Out << "PHINode\n" << I << "\n";
 	ap_var_t var = (Value *) &I; 
 	BasicBlock * b = I.getParent();
 	Node * n = Nodes[b];
@@ -800,7 +797,7 @@ void AIGopan::visitPHINode (PHINode &I){
 		// variable, since Value I is directly equal to the associated incoming
 		// value
 		DEBUG(
-		fouts() << I << " has one single incoming value\n";
+		*Out << I << " has one single incoming value\n";
 		)
 		int i = IncomingValues.front();
 		pv = I.getIncomingValue(i);
@@ -838,67 +835,67 @@ void AIGopan::visitPHINode (PHINode &I){
 }
 
 void AIGopan::visitTruncInst (TruncInst &I){
-	//fouts() << "TruncInst\n" << I << "\n";	
+	//*Out << "TruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitZExtInst (ZExtInst &I){
-	//fouts() << "ZExtInst\n" << I << "\n";	
+	//*Out << "ZExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitSExtInst (SExtInst &I){
-	//fouts() << "SExtInst\n" << I << "\n";	
+	//*Out << "SExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitFPTruncInst (FPTruncInst &I){
-	//fouts() << "FPTruncInst\n" << I << "\n";	
+	//*Out << "FPTruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitFPExtInst (FPExtInst &I){
-	//fouts() << "FPExtInst\n" << I << "\n";	
+	//*Out << "FPExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitFPToUIInst (FPToUIInst &I){
-	//fouts() << "FPToUIInst\n" << I << "\n";	
+	//*Out << "FPToUIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitFPToSIInst (FPToSIInst &I){
-	//fouts() << "FPToSIInst\n" << I << "\n";	
+	//*Out << "FPToSIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitUIToFPInst (UIToFPInst &I){
-	//fouts() << "UIToFPInst\n" << I << "\n";	
+	//*Out << "UIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitSIToFPInst (SIToFPInst &I){
-	//fouts() << "SIToFPInst\n" << I << "\n";	
+	//*Out << "SIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitPtrToIntInst (PtrToIntInst &I){
-	//fouts() << "PtrToIntInst\n" << I << "\n";	
+	//*Out << "PtrToIntInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitIntToPtrInst (IntToPtrInst &I){
-	//fouts() << "IntToPtrInst\n" << I << "\n";	
+	//*Out << "IntToPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitBitCastInst (BitCastInst &I){
-	//fouts() << "BitCastInst\n" << I << "\n";	
+	//*Out << "BitCastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitSelectInst (SelectInst &I){
-	//fouts() << "SelectInst\n" << I << "\n";	
+	//*Out << "SelectInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -907,49 +904,49 @@ void AIGopan::visitSelectInst (SelectInst &I){
 // variable, and we the result returned by the function is a new variable of
 // type int or float, depending on the return type
 void AIGopan::visitCallInst(CallInst &I){
-	//fouts() << "CallInst\n" << I << "\n";	
+	//*Out << "CallInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitVAArgInst (VAArgInst &I){
-	//fouts() << "VAArgInst\n" << I << "\n";	
+	//*Out << "VAArgInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitExtractElementInst (ExtractElementInst &I){
-	//fouts() << "ExtractElementInst\n" << I << "\n";	
+	//*Out << "ExtractElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitInsertElementInst (InsertElementInst &I){
-	//fouts() << "InsertElementInst\n" << I << "\n";	
+	//*Out << "InsertElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitShuffleVectorInst (ShuffleVectorInst &I){
-	//fouts() << "ShuffleVectorInst\n" << I << "\n";	
+	//*Out << "ShuffleVectorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitExtractValueInst (ExtractValueInst &I){
-	//fouts() << "ExtractValueInst\n" << I << "\n";	
+	//*Out << "ExtractValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitInsertValueInst (InsertValueInst &I){
-	//fouts() << "InsertValueInst\n" << I << "\n";	
+	//*Out << "InsertValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitTerminatorInst (TerminatorInst &I){
-	//fouts() << "TerminatorInst\n" << I << "\n";	
+	//*Out << "TerminatorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[I.getParent()];
 
-	//fouts() << "BinaryOperator\n" << I << "\n";	
+	//*Out << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
 	switch(I.getOpcode()) {
 		// Standard binary operators...
@@ -1009,12 +1006,12 @@ void AIGopan::visitBinaryOperator (BinaryOperator &I){
 }
 
 void AIGopan::visitCmpInst (CmpInst &I){
-	//fouts() << "CmpInst\n" << I << "\n";	
+	//*Out << "CmpInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIGopan::visitCastInst (CastInst &I){
-	//fouts() << "CastInst\n" << I << "\n";	
+	//*Out << "CastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 

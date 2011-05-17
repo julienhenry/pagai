@@ -826,7 +826,7 @@ void SMT::visitTerminatorInst (TerminatorInst &I) {
 
 void SMT::visitBinaryOperator (BinaryOperator &I) {
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)&I, ap_type)) return;
+	int t = get_ap_type((Value*)&I, ap_type);
 
 	//primed[I.getParent()].insert(&I);
 	//exist_prime.insert(&I);
@@ -850,9 +850,11 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 			assign = man->SMT_mk_mul(operands);
 			break;
 		case Instruction::And :
+			if (!t) return;
 			assign = man->SMT_mk_and(operands);
 			break;
 		case Instruction::Or  :
+			if (!t) return;
 			assign = man->SMT_mk_or(operands);
 			break;
 			// the others are not implemented

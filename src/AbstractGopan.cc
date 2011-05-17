@@ -7,6 +7,7 @@
 #include "AbstractGopan.h"
 #include "Node.h"
 #include "Expr.h"
+#include "Analyzer.h"
 
 AbstractGopan::AbstractGopan(ap_manager_t* _man, ap_environment_t * env) {
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
@@ -184,15 +185,22 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<AbstractGopan
 }
 
 void AbstractGopan::print(bool only_main) {
+
+	FILE* tmp = tmpfile();
+	if (tmp == NULL) return;
+
 	if (!only_main)
-		printf("MAIN VALUE:\n");
-	ap_environment_fdump(stdout,main->env);
-	ap_abstract1_fprint(stdout,man,main);
+		fprintf(tmp,"MAIN VALUE:\n");
+	ap_environment_fdump(tmp,main->env);
+	ap_abstract1_fprint(tmp,man,main);
 
 	if (!only_main) {
-		printf("PILOT VALUE:\n");
-		ap_environment_fdump(stdout,pilot->env);
-		ap_abstract1_fprint(stdout,man,pilot);
+		fprintf(tmp,"PILOT VALUE:\n");
+		ap_environment_fdump(tmp,pilot->env);
+		ap_abstract1_fprint(tmp,man,pilot);
 	}
-	fflush(stdout);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
 }
