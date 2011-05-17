@@ -57,26 +57,18 @@ bool AIGopan::runOnModule(Module &M) {
 		Out->resetColor();
 		initFunction(F);
 		computeFunction(F);
-	}
 
-	Out->changeColor(raw_ostream::BLUE,true);
-	*Out << "\n\n\n"
-			<< "------------------------------------------\n"
-			<< "-   RESULT OF LOOKAHEAD WIDENING         -\n"
-			<< "------------------------------------------\n";
-	Out->resetColor();
-
-	std::map<BasicBlock*,Node*>::iterator it;
-	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
-		b = it->first;
-		n = Nodes[b];
-		if (LSMT->getPr(*b->getParent())->count(b)) {
-			Out->changeColor(raw_ostream::MAGENTA,true);
-			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-			Out->resetColor();
-			n->Xgopan->print(true);
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			n = Nodes[b];
+			if (LSMT->getPr(*b->getParent())->count(b)) {
+				Out->changeColor(raw_ostream::MAGENTA,true);
+				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+				Out->resetColor();
+				n->Xgopan->print(true);
+			}
+			delete Nodes[b];
 		}
-		delete it->second;
 	}
 	return 0;
 }
@@ -93,8 +85,9 @@ void AIGopan::initFunction(Function * F) {
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-		printBasicBlock(i);
+	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+	//	printBasicBlock(i);
+	*Out << *F;
 }
 
 void AIGopan::printBasicBlock(BasicBlock* b) {

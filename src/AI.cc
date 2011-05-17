@@ -60,28 +60,20 @@ bool AI::runOnModule(Module &M) {
 		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
-	}
 
-	Out->changeColor(raw_ostream::BLUE,true);
-	*Out << "\n\n\n"
-			<< "------------------------------------------\n"
-			<< "-         RESULT OF THE ANALYSIS         -\n"
-			<< "------------------------------------------\n";
-	Out->resetColor();
-
-	std::map<BasicBlock*,Node*>::iterator it;
-	for ( it=Nodes.begin() ; it != Nodes.end(); it++ ) {
-		b = it->first;
-		n = Nodes[b];
-		if (LSMT->getPr(*b->getParent())->count(b)) {
-			Out->changeColor(raw_ostream::MAGENTA,true);
-			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-			Out->resetColor();
-			Out->flush();
-			n->Y->print(true);
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			n = Nodes[b];
+			if (LSMT->getPr(*b->getParent())->count(b)) {
+				Out->changeColor(raw_ostream::MAGENTA,true);
+				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+				Out->resetColor();
+				n->Y->print(true);
+			}
+			delete Nodes[b];
 		}
-		delete it->second;
 	}
+
 	*Out << "Number of iterations: " << n_iterations << "\n";
 	*Out << "Number of paths: " << n_totalpaths << "\n";
 	*Out << "Number of paths computed: " << n_paths << "\n";
@@ -100,9 +92,9 @@ void AI::initFunction(Function * F) {
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-		printBasicBlock(i);
-	Out->flush();
+	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+	//	printBasicBlock(i);
+	*Out << *F;
 }
 
 void AI::printBasicBlock(BasicBlock* b) {
@@ -148,12 +140,18 @@ void AI::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
-	*Out << "Computing Pr...";
+	DEBUG(
+		*Out << "Computing Pr...";
+	);
 	LSMT->getPr(*F);
-	*Out << "OK\nComputing Rho...";
+	DEBUG(
+		*Out << "OK\nComputing Rho...";
+	);
 	LSMT->getRho(*F);
-	*Out << "OK\n";
-	LSMT->man->SMT_print(LSMT->getRho(*F));
+	DEBUG(
+		*Out << "OK\n";
+		LSMT->man->SMT_print(LSMT->getRho(*F));
+	);
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -187,7 +185,6 @@ void AI::computeFunction(Function * F) {
 		*Out << "NARROWING ITERATIONS\n";
 		*Out << "#######################################################\n";
 		Out->resetColor();
-		Out->flush();
 	);
 
 	// narrowing phase
@@ -373,23 +370,22 @@ void AI::computeNode(Node * n) {
 		return;
 	}
 	
-	//DEBUG (
+	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";
 		*Out << "Computing node: " << b << "\n";
 		Out->resetColor();
 		*Out << *b << "\n";
-	//);
+	);
 
 
 	while (true) {
 		is_computed[n] = true;
-		//DEBUG(
+		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
-			Out->flush();
-		//);
+		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
@@ -405,7 +401,6 @@ void AI::computeNode(Node * n) {
 	
 		DEBUG(
 			printPath(path);
-			Out->flush();
 		);
 	
 		Succ = Nodes[path.back()];
@@ -419,7 +414,6 @@ void AI::computeNode(Node * n) {
 		
 		DEBUG(
 			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
-			Out->flush();
 			Xtemp->print();
 		);
 
@@ -471,7 +465,6 @@ void AI::computeNode(Node * n) {
 
 		DEBUG(
 			*Out << "RESULT:\n";
-			Out->flush();
 			Succ->X->print();
 		);
 
@@ -496,7 +489,6 @@ void AI::narrowNode(Node * n) {
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
-			Out->flush();
 		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
@@ -512,7 +504,6 @@ void AI::narrowNode(Node * n) {
 		}
 		DEBUG(
 			printPath(path);
-			Out->flush();
 		);
 		
 		Succ = Nodes[path.back()];
@@ -523,7 +514,6 @@ void AI::narrowNode(Node * n) {
 
 		DEBUG(
 			*Out << "POLYHEDRA TO JOIN\n";
-			Out->flush();
 			Xtemp->print();
 		);
 
