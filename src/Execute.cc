@@ -17,6 +17,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "AI.h"
+#include "AIGopan.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -90,7 +91,11 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
 
-	ModulePass *AIPass = new AI();
+	ModulePass *AIPass;
+	if (useLookaheadWidening())
+		AIPass = new AIGopan();
+	else
+		AIPass = new AI();
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
 	Passes.add(TD);

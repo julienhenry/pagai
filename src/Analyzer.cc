@@ -10,6 +10,7 @@
 #include "Debug.h" 
 
 SMT_Solver manager;
+bool gopan;
 llvm::raw_ostream *Out;
 
 void show_help() {
@@ -17,6 +18,7 @@ void show_help() {
 \tanalyzer -h OR analyzer [-d] [-y]  -i <filename> \n \
 -h : help\n \
 -i : input file\n \
+-g : use Lookahead Widening technique\
 -y : use Yices instead of Z3 SMT-solver\
 -d : debug\n";
 }
@@ -24,6 +26,11 @@ void show_help() {
 SMT_Solver getSMTSolver() {
 	return manager;
 }
+
+bool useLookaheadWidening() {
+	return gopan;
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -36,17 +43,21 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 
 	manager = Z3_MANAGER;
+	gopan = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	n_iterations = 0;
 
-	 while ((o = getopt(argc, argv, "hdi:o:y")) != -1) {
+	 while ((o = getopt(argc, argv, "hdi:o:yg")) != -1) {
         switch (o) {
         case 'h':
             help = true;
             break;
         case 'd':
             debug = true;
+            break;
+        case 'g':
+            gopan = true;
             break;
         case 'i':
             filename = optarg;

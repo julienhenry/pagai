@@ -1,5 +1,5 @@
-#ifndef _AI_H
-#define _AI_H
+#ifndef _AIGOPAN_H
+#define _AIGOPAN_H
 
 #include <queue>
 #include <vector>
@@ -10,6 +10,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
+#include "llvm/Analysis/LiveValues.h"
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "ap_global1.h"
@@ -17,13 +18,12 @@
 
 #include "apron.h"
 #include "Node.h"
-#include "Live.h"
 #include "SMT.h"
-#include "PathTree.h"
+#include "Live.h"
 
 using namespace llvm;
 
-class AI : public ModulePass, public InstVisitor<AI> {
+class AIGopan : public ModulePass, public InstVisitor<AIGopan> {
 
 	private:
 		/// LV - result of the Live pass
@@ -41,25 +41,18 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// man - apron manager we use along the pass
 		ap_manager_t* man;
 
-		/// paths - remembers all the paths that have already been
-		/// visited
-		PathTree* pathtree;
-
 	public:
 		static char ID;	
 	
 	public:
 
-		AI () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
+		AIGopan () : ModulePass(ID), LV(NULL), LI(NULL) {
 				man = pk_manager_alloc(true);
-				pathtree = new PathTree();
 				init_apron();
-				//linconstraints = ap_lincons1_array_make(ap_environment_alloc_empty(),0);
 			}
 
-		~AI () {
+		~AIGopan () {
 				ap_manager_free(man);
-				delete pathtree;
 			}
 
 		const char *getPassName() const;
@@ -74,49 +67,21 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		
 		/// printBasicBlock - print a basicBlock on standard output
 		void printBasicBlock(BasicBlock * b);
-
-		/// printPath - print a path on standard output
-		void printPath(std::list<BasicBlock*> path);
 	
 		/// computeEnv - compute the new environment of Node n, based on 
 		/// its intVar and RealVar maps
 		void computeEnv(Node * n);
-		
-		/// focuspath - path we focus on
-		std::vector<BasicBlock*> focuspath;
-		/// index in focuspath of the focuspath's basicblock we are working on
-		unsigned focusblock;
-		
 
-		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
-		ap_lincons1_array_t linconstraints;
-		phivar PHIvars;
-		
-		/// computeTransform - computes in Xtemp the polyhedra resulting from
-		/// the transformation  of n->X through the path
-		void computeTransform (	Node * n, 
-								std::list<BasicBlock*> path, 
-								Abstract &Xtemp);
+		/// computeHull - compute the abstract domain resulting from the union
+		/// of the abstract of all predecessors of Node n
+		/// and assign it to Xtemp
+		void computeHull(ap_environment_t * env, 
+				Node * n, 
+				AbstractGopan &Xtemp, 
+				bool &update);
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);
-		
-		/// narrowNode - apply narrowing at node n
-		void narrowNode(Node * n);
-
-		/// computeCondition - creates the constraint arrays resulting from a
-		/// comparison instruction.
-		bool computeCondition(CmpInst * inst, 
-				bool result,
-				std::vector<ap_tcons1_array_t *> * cons);
-
-		bool computeConstantCondition(ConstantInt * inst, 
-				bool result,
-				std::vector<ap_tcons1_array_t*> * cons);
-
-		bool computePHINodeCondition(PHINode * inst, 
-				bool result,
-				std::vector<ap_tcons1_array_t*> * cons);
 
 		// create_constraints - this function is called by computeCondition
 		// it creates the constraint from its arguments and insert it into t_cons
@@ -126,7 +91,18 @@ class AI : public ModulePass, public InstVisitor<AI> {
 			ap_texpr1_t * nexpr,
 			std::vector<ap_tcons1_array_t*> * t_cons);
 
+		/// computeCondition - creates the constraint arrays resulting from a
+		/// comparison instruction.
+		void computeCondition(CmpInst * inst, 
+				std::vector<ap_tcons1_array_t *> * true_cons, 
+				std::vector<ap_tcons1_array_t *> * false_cons);
+
+		void computeConstantCondition(ConstantInt * inst, 
+				std::vector<ap_tcons1_array_t*> * true_cons, 
+				std::vector<ap_tcons1_array_t *> * false_cons);
+
 		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
+
 
 		void visitInstAndAddVarIfNecessary(Instruction &I);
 		// Visit methods

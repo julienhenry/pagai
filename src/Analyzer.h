@@ -9,6 +9,8 @@ enum SMT_Solver {
 
 SMT_Solver getSMTSolver();
 
+bool useLookaheadWidening();
+
 extern llvm::raw_ostream *Out;
 
 #endif

@@ -11,6 +11,7 @@
 #include "ap_global1.h"
 
 #include "Abstract.h"
+#include "AbstractGopan.h"
 
 using namespace llvm;
 
@@ -36,8 +37,10 @@ class Node {
 
 		/// X - Abstract domain 
 		Abstract * X;
+		AbstractGopan * Xgopan;
 		/// Y - Abstract domain after narrowing operations
 		Abstract * Y;
+		AbstractGopan * Ygopan;
 		ap_environment_t * env;
 
 		/// count the number of computation of X since the last widening
@@ -55,6 +58,10 @@ class Node {
 
 		/// tcons - contains the constraints for the outgoing transitions 
 		std::map<Node*, std::vector<ap_tcons1_array_t*> > tcons;
+
+		/// phi_vars - associates the right expression to each PHI-variable,
+		/// depending on the incoming block
+		std::map<Node*,phivar> phi_vars;
 
 	public:
 		Node(ap_manager_t * man, BasicBlock * _bb);

@@ -544,7 +544,7 @@ void AI::narrowNode(Node * n) {
 /// insert_env_vars_into_node_vars - this function takes all apron variables of
 /// an environment, and adds them into the Node's variables, with a Value V as
 /// a use.
-void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V) {
+void AI::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V) {
 	ap_var_t var;
 	for (size_t i = 0; i < env->intdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
@@ -562,7 +562,7 @@ void AI::visitReturnInst (ReturnInst &I){
 
 // create_constraints - this function is called by computeCondition
 // it creates the constraint from its arguments and insert it into t_cons
-void create_constraints(
+void AI::create_constraints(
 	ap_constyp_t constyp,
 	ap_texpr1_t * expr,
 	ap_texpr1_t * nexpr,
