@@ -260,7 +260,6 @@ void AI::computeEnv(Node * n) {
 
 void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
 	
-	*Out << "computeTransform...\n";
 	// setting the focus path, such that the instructions can be correctly
 	// handled
 	focuspath.clear();
@@ -298,9 +297,8 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
 
-
-	std::vector<ap_lincons1_array_t> linconsts;
-	size_t linconssize = 0;
+	//std::vector<ap_lincons1_array_t> linconsts;
+	//size_t linconssize = 0;
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
@@ -311,11 +309,11 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				Xtemp.meet_tcons_array((*i)->front());
 				// creating the associated lincons for a future widening with
 				// threshold
-				ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
-				ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
-				linconssize += ap_lincons1_array_size(&lincons);
-				linconsts.push_back(lincons);
-				ap_abstract1_clear(man,&AX);
+				//ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
+				//ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
+				//linconssize += ap_lincons1_array_size(&lincons);
+				//linconsts.push_back(lincons);
+				//ap_abstract1_clear(man,&AX);
 		} else {
 			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
@@ -332,29 +330,36 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				//linconsts.push_back(lincons);
 				//ap_abstract1_clear(man,&AX);
 			}
-			Xtemp.join_array(env,A);
+			//if (A.size() > 0)
+				Xtemp.join_array(env,A);
 		}
 	}
 
 	//
-	linconstraints = ap_lincons1_array_make(Xtemp.main->env,linconssize);
-	size_t x = 0;
-	size_t N = linconsts.size();
-	for (size_t k = 0; k < N; k++) {
-		for (size_t j=0; j < ap_lincons1_array_size(&linconsts[k]); j++) {
-			ap_lincons1_t cons = ap_lincons1_array_get(&linconsts[k],j);
-			ap_lincons1_array_set(&linconstraints,x,&cons);	
-			x++;
-		}
-	}
+	//linconstraints = ap_lincons1_array_make(Xtemp.main->env,linconssize);
+	//size_t x = 0;
+	//size_t N = linconsts.size();
+	//for (size_t k = 0; k < N; k++) {
+	//	for (size_t j=0; j < ap_lincons1_array_size(&linconsts[k]); j++) {
+	//		ap_lincons1_t cons = ap_lincons1_array_get(&linconsts[k],j);
+	//		ap_lincons1_array_set(&linconstraints,x,&cons);	
+	//		x++;
+	//	}
+	//}
 //	ap_abstract1_t A = ap_abstract1_of_lincons_array(man,Xtemp.main->env,&linconstraints);
 //	A = ap_abstract1_assign_texpr_array(man,false,&A,&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 //	linconstraints = ap_abstract1_to_lincons_array(man,&A);
 
 	//
-
+//	DEBUG(
+//		*Out << "PHIvars to be assigned:\n" << PHIvars.name.size() << " " << PHIvars.expr.size();
+//		for (size_t i = 0; i < PHIvars.name.size(); i++) {
+//			*Out << *((Value*)PHIvars.name[i]) << " assigned to value : ";
+//			texpr1_print(&PHIvars.expr[i]);
+//			*Out << "\n";
+//		}
+//	)
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
-	*Out << "computeTransform OK\n";
 }
 
 
@@ -460,7 +465,7 @@ void AI::computeNode(Node * n) {
 				*Out << "PATH NEVER SEEN BEFORE !!\n";
 			);
 		}
-		ap_lincons1_array_clear(&linconstraints);
+		//ap_lincons1_array_clear(&linconstraints);
 		
 		Succ->X = Xtemp;
 
@@ -600,7 +605,7 @@ void create_constraints(
 }
 
 
-void AI::computeCondition(	CmpInst * inst, 
+bool AI::computeCondition(	CmpInst * inst, 
 		bool result,
 		std::vector<ap_tcons1_array_t *> * cons) {
 
@@ -699,40 +704,81 @@ void AI::computeCondition(	CmpInst * inst,
 		// creating the FALSE constraints
 		create_constraints(nconstyp,nexpr,expr,cons);
 	}
+	return true;
 }
 
-void AI::computeConstantCondition(	ConstantInt * inst, 
+bool AI::computeConstantCondition(	ConstantInt * inst, 
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
-		if (result) {
-			// always true
-			return;
-		}
+		// this is always true
+		return false;
 
-		// we create a unsat constraint
-		// such as one of the successor is unreachable
-		ap_tcons1_t tcons;
-		ap_tcons1_array_t * consarray;
-		ap_environment_t * env = ap_environment_alloc_empty();
-		consarray = new ap_tcons1_array_t();
-		tcons = ap_tcons1_make(
-				AP_CONS_SUP,
-				ap_texpr1_cst_scalar_double(env,1.),
-				ap_scalar_alloc_set_double(0.));
-		*consarray = ap_tcons1_array_make(tcons.env,1);
-		ap_tcons1_array_set(consarray,0,&tcons);
-		
-		if (inst->isZero()) {
-			// condition is always false
-			cons->push_back(consarray);
-		}
+	//	if (result) {
+	//		// always true
+	//		return false;
+	//	}
+
+	//	// we create a unsat constraint
+	//	// such as one of the successor is unreachable
+	//	ap_tcons1_t tcons;
+	//	ap_tcons1_array_t * consarray;
+	//	ap_environment_t * env = ap_environment_alloc_empty();
+	//	consarray = new ap_tcons1_array_t();
+	//	tcons = ap_tcons1_make(
+	//			AP_CONS_SUP,
+	//			ap_texpr1_cst_scalar_double(env,1.),
+	//			ap_scalar_alloc_set_double(0.));
+	//	*consarray = ap_tcons1_array_make(tcons.env,1);
+	//	ap_tcons1_array_set(consarray,0,&tcons);
+	//	
+	//	if (inst->isZero() && !result) {
+	//		// condition is always false
+	//		cons->push_back(consarray);
+	//	}
 }
 
+bool AI::computePHINodeCondition(PHINode * inst, 
+		bool result,
+		std::vector<ap_tcons1_array_t*> * cons) {
+
+	bool res;
+
+	*Out << "PHINODECONDITION\n";
+	// we only consider one single predecessor: the predecessor from the path
+	BasicBlock * pred = focuspath[focusblock-1];
+	Value * pv;
+	for (unsigned i = 0; i < inst->getNumIncomingValues(); i++) {
+		if (pred == inst->getIncomingBlock(i)) {
+			pv = inst->getIncomingValue(i);
+
+			if (CmpInst * cmp = dyn_cast<CmpInst>(pv)) {
+				*Out << "CMPINST\n";
+				ap_texpr_rtype_t ap_type;
+				if (get_ap_type(cmp->getOperand(0), ap_type)) return false;
+				res = computeCondition(cmp,result,cons);
+			} else if (ConstantInt * c = dyn_cast<ConstantInt>(pv)) {
+				*Out << "CONSTANTINST\n";
+				res = computeConstantCondition(c,result,cons);
+			} else if (PHINode * phi = dyn_cast<PHINode>(pv)) {
+				*Out << "PHINODE\n";
+				// I.getOperand(0) could also be a
+				// boolean PHI-variable
+				res = computePHINodeCondition(phi,result,cons);
+			} else {
+				*Out << "NOTHING!\n";
+				// loss of precision...
+				return false;
+			}
+		}
+	}
+	return res;
+}
 
 void AI::visitBranchInst (BranchInst &I){
 	//*Out << "BranchInst\n" << I << "\n";	
 	bool test;
+	bool res;
 
 	//*Out << "BranchInst\n" << I << "\n";	
 	if (I.isUnconditional()) {
@@ -754,25 +800,24 @@ void AI::visitBranchInst (BranchInst &I){
 
 	std::vector<ap_tcons1_array_t*> * cons = new std::vector<ap_tcons1_array_t*>();
 
-	CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0));
-	if (cmp == NULL) {
-		if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
-			computeConstantCondition(c,test,cons);
-		} else {
-			// here, we loose precision, because I.getOperand(0) could also be a
-			// boolean PHI-variable
-			return;
-		}
-	} else {
+	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
 		ap_texpr_rtype_t ap_type;
 		if (get_ap_type(cmp->getOperand(0), ap_type)) return;
-		computeCondition(cmp,test,cons);
+		res = computeCondition(cmp,test,cons);
+	} else if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
+		res = computeConstantCondition(c,test,cons);
+	} else if (PHINode * phi = dyn_cast<PHINode>(I.getOperand(0))) {
+		// I.getOperand(0) could also be a
+		// boolean PHI-variable
+		res = computePHINodeCondition(phi,test,cons);
+	} else {
+		// loss of precision...
+		return;
 	}
 
 	// we add cons in the set of constraints of the path
-	constraints.push_back(cons);
+	if (res) constraints.push_back(cons);
 }
-
 
 /// for the moment, we only create the constraint for the default branch of the
 /// switch. The other branches lose information...
@@ -850,9 +895,7 @@ void AI::visitPHINode (PHINode &I){
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
 			nb = Nodes[I.getIncomingBlock(i)];
-			*Out << "1...";
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
-			*Out << "OK\n";
 
 			if (focusblock == focuspath.size()-1) {
 				n->add_var(&I);
@@ -865,6 +908,11 @@ void AI::visitPHINode (PHINode &I){
 				);
 			} else {
 				if (expr == NULL) continue;
+				DEBUG(
+					*Out << I << " is equal to ";
+					texpr1_print(expr);
+					*Out << "\n";
+				);
 				set_ap_expr(&I,expr);
 				ap_environment_t * env = expr->env;
 				insert_env_vars_into_node_vars(env,n,(Value*)&I);

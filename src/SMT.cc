@@ -202,6 +202,7 @@ SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 		lincons = ap_lincons1_array_get(&lincons_array,i);
 		constraints.push_back(lincons1ToSmt(b,lincons));
 	}
+	ap_lincons1_array_clear(&lincons_array);
 	if (constraints.size() == 0)
 		return man->SMT_mk_true();
 	else

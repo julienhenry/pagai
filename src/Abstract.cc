@@ -64,6 +64,7 @@ void Abstract::widening(Node * n) {
 	Xmain_widening = ap_abstract1_widening(man,n->X->main,&Xmain);
 	ap_abstract1_clear(man,&Xmain);
 	
+	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
 
@@ -138,6 +139,7 @@ ap_lincons1_array_t Abstract::to_lincons_array() {
 void Abstract::print(bool only_main) {
 
 	FILE* tmp = tmpfile();
+	if (tmp == NULL) return;
 
 	ap_environment_fdump(tmp,main->env);
 	ap_abstract1_fprint(tmp,man,main);

@@ -132,6 +132,10 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		break;
 	case Type::IntegerTyID:
 		ap_type = AP_RTYPE_INT;
+		if (val->getType()->getPrimitiveSizeInBits() == 1) {
+			// actually, this is a boolean variable
+			return 1;
+		}
 		break;
 	case Type::X86_FP80TyID:
 		ap_type = AP_RTYPE_REAL;
@@ -153,6 +157,10 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 void environment_print(ap_environment_t * env) {
 
 	FILE* tmp = tmpfile();
+	if (tmp == NULL) {
+		*Out << "ERROR: tmpfile has not been created\n";
+		return;
+	}
 
 	ap_environment_fdump(tmp,env);
 	fseek(tmp,0,SEEK_SET);
@@ -164,6 +172,10 @@ void environment_print(ap_environment_t * env) {
 void texpr1_print(ap_texpr1_t * expr) {
 
 	FILE* tmp = tmpfile();
+	if (tmp == NULL) {
+		*Out << "ERROR: tmpfile has not been created\n";
+		return;
+	}
 
 	ap_texpr1_fprint(tmp,expr);
 	fseek(tmp,0,SEEK_SET);
@@ -175,6 +187,10 @@ void texpr1_print(ap_texpr1_t * expr) {
 void tcons1_array_print(ap_tcons1_array_t * cons) {
 
 	FILE* tmp = tmpfile();
+	if (tmp == NULL) {
+		*Out << "ERROR: tmpfile has not been created\n";
+		return;
+	}
 
 	ap_tcons1_array_fprint(tmp,cons);
 	fseek(tmp,0,SEEK_SET);
