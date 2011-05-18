@@ -3,7 +3,7 @@ BIN_REP		= ../bin/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
-#CPPFLAGS	= -Wall -g -DPRINT_DEBUG
+#CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O3
 CPPFLAGS	= -O3
 LDFLAGS		=
 ICFLAGS		= -I/net/cezanne/local/jhenry/yices/include -I/net/cezanne/local/jhenry/z3/include

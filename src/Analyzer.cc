@@ -15,12 +15,12 @@ llvm::raw_ostream *Out;
 
 void show_help() {
         std::cout << "Usage :\n \
-\tanalyzer -h OR analyzer [-d] [-y]  -i <filename> \n \
+\tanalyzer -h OR analyzer [-g] [-y]  -i <filename> \n \
 -h : help\n \
 -i : input file\n \
+-o : output file\n \
 -g : use Lookahead Widening technique\
--y : use Yices instead of Z3 SMT-solver\
--d : debug\n";
+-y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
 
 SMT_Solver getSMTSolver() {
