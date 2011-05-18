@@ -2152,7 +2152,17 @@ easily compute this number of paths when computing the $\rho$ formula.
 
 	In the case of path focusing algorithm, we simply conjunct our formula with
 	$(i \neq j) \vee (x'_j \neq x_i)$, such that the SMT-solving only proposes
-	paths that are not the identity.
+	paths that are not the identity. Actually, it never focuses on such paths
+	during the acending sequence, but during narrowing iterations that occur 
+	at the end of the algorithm.
+
+	Ignoring these identity transitions makes the narrowing sequence recover
+	more precision.
+	Indeed, narrowing sequence updates the invariant $X$ with $\Phi(X)$, which
+	is still an invariant, while precision is recovered, meaning that $\Phi(X)
+	\subset X$. In the case of an expansive function, where $X \subseteq
+	\Phi(X)$, we never have $\Phi(X) \subset X$, so narrowing iterations are
+	useless.
 
 	\section{Efficiency comparison: example}
 
@@ -2822,6 +2832,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 	points of the program, and $P_{ret}$ is the set of points that have no
 	successors.
 
+	\subsection{Benchmarks}
 
 \emph{Path Focusing} appears to always perform similarly or better than 
 \emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
@@ -3005,6 +3016,15 @@ techniques applied to various benchmarks. The invariant we give is the one at
 the head of the loop.}
 \label{experiments}
 \end{table}
+
+
+	\subsection{Analysis of real code}
+
+	In this section, we show that \emph{Path Focusing} technique performs better
+	that \emph{Lookahead} widening on some code taken from real open-source
+	programs.
+
+	To Be Completed\dots
 
 \chapter{Future Work}
 \label{future}
