@@ -264,7 +264,33 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 	SMT_var var;
 
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type(v, ap_type)) return NULL;
+	if (get_ap_type(v, ap_type)) {
+		*Out << "getValueExpr returns NULL\n";
+		// this may be a boolean
+		if (ap_type == AP_RTYPE_INT) {
+			// this is a boolean
+			// so we can create a boolean variable
+			SMT_expr cond = NULL;
+			if (isa<CmpInst>(v)) {
+				cond = computeCondition(dyn_cast<CmpInst>(v));
+			} else if (isa<PHINode>(v)) {
+				cond = computeCondition(dyn_cast<PHINode>(v));
+			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
+				if (vint->isZero()) {
+					cond = man->SMT_mk_false();
+				} else if (vint->isOne()) {
+					cond = man->SMT_mk_true();
+				}
+			} 
+			if (cond == NULL) {
+				SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(v));
+				cond = man->SMT_mk_expr_from_bool_var(cvar);
+			}
+			return cond;
+		} else {
+			return NULL;
+		}
+	}
 
 	if (isa<Constant>(v)) {
 		if (isa<ConstantInt>(v)) { 
@@ -556,10 +582,7 @@ void SMT::visitReturnInst (ReturnInst &I) {
 }
 
 SMT_expr SMT::computeCondition(PHINode * inst) {
-
-	//SMT_expr expr = getValueExpr(inst);	
 	return construct_phi_ite(*inst,0,inst->getNumIncomingValues());
-
 }
 
 SMT_expr SMT::computeCondition(CmpInst * inst) {
@@ -648,8 +671,6 @@ void SMT::visitBranchInst (BranchInst &I) {
 		if (isa<CmpInst>(I.getOperand(0)))
 			cond = computeCondition(dyn_cast<CmpInst>(I.getOperand(0)));
 		else if (isa<PHINode>(I.getOperand(0))) {
-			return;
-			// NOT IMPLEMENTED !!
 			cond = computeCondition(dyn_cast<PHINode>(I.getOperand(0)));
 		} else {
 			SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(I.getOperand(0)));
@@ -736,6 +757,7 @@ void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
 SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
+		*Out << "Hello1 !\n";
 		return getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
 	}
 	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
@@ -744,6 +766,11 @@ SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
 
 	SMT_expr tail = construct_phi_ite(I,i+1,n);
+	*Out << "Hello !\n";
+	man->SMT_print(tail);
+	*Out << "\n";
+	man->SMT_print(incomingVal);
+	*Out << "\n";
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }
 

@@ -71,7 +71,7 @@ color=blue]
 \shorttitle{Static Analysis by Path Focusing}
 \institute{Grenoble-INP}
 \abstract{
-	Program verification aims at statically discover properties on programs,
+	Program verification is aimed at statically discover properties on programs,
 	such as the values that can take the different variables during execution.
 	Abstract Interpretation is a technique that allows to compute an
 	approximation of the set of these values, since it is impossible to compute
@@ -114,7 +114,7 @@ Abstraite, Génération d'invariants, Découverte de Chemins, SMT-Solving}
 
 \chapter{Introduction} 
 
-Static analysis aims at automatically computing properties on programs, such as
+Static analysis is aimed at automatically computing properties on programs, such as
 the possible values of their variables during execution. This allows to show for
 instance that a program will not overflow, will not divide by zero, to compute
 loop invariants\dots
@@ -146,7 +146,7 @@ approximations of the set of reachable states are computed until they converge
 to a fixpoint. 
 
 Satisfiability Modulo Theory (SMT) solving is a field in computer science that
-aims to decide the satisfiability of a logic formula containing Boolean
+is aimed to decide the satisfiability of a logic formula containing Boolean
 predicates and elements of a theory, such as linear arithmetic relations between
 integers.
 In this report, we present a novel refinement of the Abstract Interpretation
@@ -216,7 +216,7 @@ while (x < 100) {
 \end{figure}
 \FloatBarrier
 
-Static analysis aims to discover some properties about programs. In this
+Static analysis is aimed at discovering some properties about programs. In this
 example, one would compute the set of possible values for the variable $x$
 during execution.
 The graph at the right side represents the program. The nodes of the graph are
@@ -292,7 +292,7 @@ the least fixpoint of $\Phi$.
 \end{proposition}
 
 Indeed, if $\Phi^\#(x) = x$, then $\Phi \circ \gamma (x) \subseteq \gamma(x)
-= \gamma \circ \Phi^\#(x)$. Abstract interpretation technique aims at computing
+= \gamma \circ \Phi^\#(x)$. Abstract interpretation technique is aimed at computing
 one of these $x$. It computes the stationary limit of an ascending sequence
 $(x_i)_{i \geq 0}$ defined by the induction:
 
@@ -394,7 +394,7 @@ the ascending sequence.
 \section{Linear Relation Analysis}
 
 Linear Relation Analysis \cite{CH78} (also noted LRA) is a direct application of
-Abstract Interpretation. It aims at computing an upper approximation of the
+Abstract Interpretation. It is aimed at computing an upper approximation of the
 reachable states of a program containing numerical variables. The set of
 possible assignments for the numerical variables is abstracted by convex
 polyhedron. This technique discovers invariant linear relations between
@@ -543,7 +543,7 @@ $\Q^n$. Since the exact operation $\tau$ may not be expressed in the abstract
 domain, we abstract it into $\tau^\#$ such that $\forall X \in D, \tau(X)
 \subseteq \tau^\#(X)$. 
 
-The computation aims to find a solution for this system of abstract semantic
+The computation is aimed at finding a solution for this system of abstract semantic
 inequalities:
 
 $$\system{
@@ -679,7 +679,7 @@ blowup, because of the exponential growth of the number of edges in the graph.
 Typically, to analyze a program with loops, the approach is to use the
 widening operator, for example at the head of the loops, to ensure convergence.
 Since this induces imprecision, another technique called \emph{acceleration}
-aims to compute the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
+is aimed at computing the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
 the following program, an invariant could be directly computed for the loop:
 
 
@@ -1078,7 +1078,7 @@ In some cases, a loop can have a non-regular behaviour, especially when it has
 several paths. Some of these paths can stay impossible for a while, and become
 possible after a certain number of iterations. However, the widening operator
 extrapolates without taking care of these new possible paths. This can induce a
-loss of precision, that Lookahead widening aims to limit.
+loss of precision, that Lookahead widening tries to limit.
 
 Lookahead widening \cite{GopanR06} is a technique that isolates the
 different loop phases during the analysis, and stabilizes each of these loop
@@ -1583,7 +1583,7 @@ path.
 
 	\subsubsection{Reachability problem}
 	\label{reachability}
-	Path focusing technique aims to discover which paths to focus on for the
+	Path focusing technique tries to discover which paths to focus on for the
 	computation of the fixpoint iterations. 
 	Since the multigraph is not constructed explicitly, the different paths
 	starting and finishing on node in $P_R$ are not known. 
@@ -1983,7 +1983,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	Figures \ref{runningexample}, \ref{multigraphtransformGopan} and
 	\ref{multigraphGopan}.
 	The control points in $P_R$ are $p_0$, $p_1$ and $p_7$. 
-	The $Ŕho$ formula associated to this program is depicted in
+	The $\rho$ formula associated to this program is depicted in
 	Figure \ref{rhoformula}.
 	One computes
 	iteratively the associate abstract values $X_0$, $X_1$ and $X_7$.
@@ -2049,7 +2049,7 @@ path, so the analysis terminates.
 	itself.
 	\end{definition}
 
-	The technique aims to compute a disjunctive invariant for this control
+	The technique is aimed at computing a disjunctive invariant for this control
 	point: 
 	$$\displaystyle\bigvee_{1 \leq j \leq m} X_{p,j}$$
 	where $X_{p,j}$ is a conjunction of linear inequalities, i.e a convex
@@ -2122,6 +2122,37 @@ The new algorithm we propose is described in Algorithm \ref{gulwani2}.
 A difference is that here, we don't know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 easily compute this number of paths when computing the $\rho$ formula.
+
+
+	\subsection{Removing Identity transitions}
+
+	When computing iterations, some of the loop paths may not change the state
+	of the variables, i.e the transition function associated to this path is the
+	identity function. This happens in the case of expansive transition
+	relations $\Phi$, defined by the property $X \subseteq \Phi(X)$.
+
+	Considering the set of initial states $I$, and the transition function 
+	$\tau$ mapping a state to its successor, we can define:
+
+	$$\Phi(X) = \{ x'\ |\ \exists x \in X, x' = \tau(x)\} \cup I$$
+
+	$\Phi$ is the function we classically use to find an inductive invariant
+	$X$,satisfying the property $\Phi(X) \subseteq X$. To improve the analysis,
+	we propose to compute this invariant using another function $\Psi$, by
+	removing the transitions that are actually the identity. Indeed, these
+	transitions make no change to the set $X$.
+	The $\Psi$ function could be expressed as follows:
+
+	$$\Psi(X) = \{ x'\ |\ \exists x \in X, x' = \tau(x) \wedge x' \neq x\}
+	\cup I$$
+
+	It is easy to prove that $\Psi(X) \subseteq X \Leftrightarrow \Phi(X)
+	\subseteq(X)$, so we can use $\Psi$ instead of $\Phi$ to compute our
+	invariant.
+
+	In the case of path focusing algorithm, we simply conjunct our formula with
+	$(i \neq j) \vee (x'_j \neq x_i)$, such that the SMT-solving only proposes
+	paths that are not the identity.
 
 	\section{Efficiency comparison: example}
 
@@ -2526,8 +2557,8 @@ for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
 Another example of information that was missing is the set of live variables.
 Indeed, in LLVM, live variables computation is processed after the register
 allocation. Then, the data structure we work on doesn't have live variables
-informations yet. To solve this problem, we coded our own pass, that aims to
-compute these live variables after the transformation in SSA form.
+informations yet. To solve this problem, we coded our own pass, that is aimed at
+computing these live variables after the transformation in SSA form.
 
  \section{Abstract domain representation}
 
@@ -3082,7 +3113,7 @@ the number of paths, but these are treated implicitly.
 	domains constitute a privileged application field for formal verification
 	techniques.
 	Abstract Interpretation is a common used technique to do static analysis of
-	programs. It aims to compute iteratively an over-approximation of the set of
+	programs. It is aimed at computing iteratively an over-approximation of the set of
 	possible states of the program, and allows to prove properties such as
 	``In this program, $x$ is always between 1 and 10'', ``The program never
 	divides by zero'', etc. The objective is to obtain a result as precise as
