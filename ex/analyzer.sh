@@ -8,10 +8,10 @@ Usage:
 OPTIONS :
 	-h        : help
 
-	-o [FILE ]: name of the output file
+	-o [FILE ]: name of the IR generated file
 	-p        : print the optimized llvm bytecode
-	-g        : generate the .dot CFG
-	-G        : use Lookahead Widening instead of Path Focusing
+	-G        : generate the .dot CFG
+	-g        : use Lookahead Widening instead of Path Focusing
 	-y        : use Yices instead of Microsoft Z3
 	-c        : add compile options for clang
 "
@@ -38,13 +38,13 @@ while getopts “hpygGi:o:c:” opt ; do
 		i)
 			FILENAME=$OPTARG
 			;;
-		g)
+		G)
 			GRAPH=1
 			;;
 		y)
 			YICES=1
 			;;
-		G)
+		g)
 			GOPAN=1
 			;;
 		o)

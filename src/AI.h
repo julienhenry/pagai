@@ -45,6 +45,8 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// visited
 		PathTree* pathtree;
 
+		std::list<BasicBlock*> lastpath;
+
 	public:
 		static char ID;	
 	

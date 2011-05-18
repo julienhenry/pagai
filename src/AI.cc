@@ -360,11 +360,27 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 }
 
 
+bool isequal(std::list<BasicBlock*> p, std::list<BasicBlock*> q) {
+
+	if (p.size() != q.size()) return false;
+	std::list<BasicBlock*> P,Q;
+	P.assign(p.begin(),p.end());
+	Q.assign(q.begin(),q.end());
+
+	while (P.size() > 0) {
+		if (P.front() != Q.front()) return false;
+		P.pop_front();
+		Q.pop_front();
+	}
+	return true;
+}
+
 void AI::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
 	Node * Succ;
 	std::vector<Abstract*> Join;
+	bool only_join = false;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
@@ -408,6 +424,16 @@ void AI::computeNode(Node * n) {
 		n_iterations++;
 		if (!pathtree->exist(path)) n_paths++;
 
+		if (!isequal(path,lastpath)) {
+			only_join = true;
+			*Out << "only join\n";
+		} else {
+			only_join = false;
+			*Out << "NOT only join\n";
+		}
+		lastpath.clear();
+		lastpath.assign(path.begin(),path.end());
+
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
@@ -420,7 +446,7 @@ void AI::computeNode(Node * n) {
 		Succ->X->change_environment(Xtemp->main->env);
 
 		// if we have a self loop, we apply loopiter
-		if (Succ == n) {
+		if (Succ == n && !only_join) {
 			// backup the previous abstract value
 			Abstract * Xpred = new Abstract(Succ->X);
 
@@ -445,7 +471,7 @@ void AI::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 
-		if (LI->isLoopHeader(Succ->bb) && (Succ != n || pathtree->exist(path))) {
+		if (LI->isLoopHeader(Succ->bb) && (Succ != n) && !only_join) {
 				//if (Succ->widening == 1) {
 				Xtemp->widening(Succ);
 				//Xtemp->widening_threshold(Succ, &linconstraints);
