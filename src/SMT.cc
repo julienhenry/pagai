@@ -601,14 +601,14 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 	// that's a trick: outgoing edges from Pr states never have primed variables
 	// in their branchment condition. So, we use an emptyset instead of the one
 	// we should use (which is dedicated to the destination node only)
-	if (Pr[inst->getParent()->getParent()]->count(inst->getParent())) {
+	//if (Pr[inst->getParent()->getParent()]->count(inst->getParent())) {
 		std::set<Value*> emptyset;
 		op1 = getValueExpr(inst->getOperand(0), emptyset);
 		op2 = getValueExpr(inst->getOperand(1), emptyset);
-	} else {
-		op1 = getValueExpr(inst->getOperand(0), primed[inst->getParent()]);
-		op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
-	}
+	//} else {
+	//	op1 = getValueExpr(inst->getOperand(0), primed[inst->getParent()]);
+	//	op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
+	//}
 
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
@@ -757,9 +757,9 @@ void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
 SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
-		return getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
+		return getValueExpr(I.getIncomingValue(i), primed[NULL]);
 	}
-	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
+	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[NULL]);
 
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
@@ -779,7 +779,7 @@ void SMT::visitPHINode (PHINode &I) {
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
-	instructions.push_back(man->SMT_mk_eq(expr,assign));
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMT::visitTruncInst (TruncInst &I) {
@@ -854,8 +854,8 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;
-	operands.push_back(getValueExpr(I.getOperand(0), primed[I.getParent()]));
-	operands.push_back(getValueExpr(I.getOperand(1), primed[I.getParent()]));
+	operands.push_back(getValueExpr(I.getOperand(0), primed[NULL]));
+	operands.push_back(getValueExpr(I.getOperand(1), primed[NULL]));
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 

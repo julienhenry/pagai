@@ -138,8 +138,11 @@ void AIGopan::computeFunction(Function * F) {
 void AIGopan::computeEnv(Node * n) {
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
-	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
-	std::set<Value*>::iterator it, et;
+	std::map<Value*,std::set<ap_var_t> >::iterator i, e;
+	std::set<ap_var_t>::iterator it, et;
+
+	std::map<Value*,std::set<ap_var_t> > intVars;
+	std::map<Value*,std::set<ap_var_t> > realVars;
 
 	// we erase all previous elements from the maps
 	n->phi_vars.clear();
@@ -171,28 +174,23 @@ void AIGopan::computeEnv(Node * n) {
 		pred = Nodes[pb];
 		if (pred->Xgopan->main != NULL) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
-				std::set<Value*> S;
-				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
-					Value * v = *it;
-					if (LV->isLiveThroughBlock(v,b)) 
-						S.insert(v);
+				if (LV->isLiveThroughBlock((*i).first,b)) {
+					*Out << *((*i).first) << "is live through " << b << "\n";
+					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
-				if (S.size()>0)
-					n->intVar[(*i).first].insert(S.begin(),S.end());
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
-				std::set<Value*> S;
-				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
-					Value * v = *it;
-					if (LV->isLiveThroughBlock(v,b)) 
-						S.insert(v);
+				if (LV->isLiveThroughBlock((*i).first,b)) {
+					realVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
-				if (S.size()>0)
-					n->realVar[(*i).first].insert(S.begin(),S.end());
 			}
 		}
 	}
+	n->intVar.clear();
+	n->realVar.clear();
+	n->intVar.insert(intVars.begin(), intVars.end());
+	n->realVar.insert(realVars.begin(), realVars.end());
 }
 
 // This function is only used by AIGopan::ComputeHull 
@@ -269,18 +267,6 @@ void AIGopan::computeHull(
 		}
 	}
 	
-	DEBUG(
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = n->intVar.begin(), 
-			e = n->intVar.end();i != e; ++i) {
-		Value * v = (Value *) (*i).first;	
-		if (LV->isLiveThroughBlock(v,b)) {
-			*Out << "Value is Live :" << *v << "\n";
-		} else {
-			*Out << "Value is NOT Live :" << *v << "\n";
-		}
-	}
-	);
-
 	// Xtemp is the join of all predecessors we just computed
 
 	if (X_pred.size() > 0) {
@@ -409,11 +395,11 @@ void AIGopan::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, V
 	ap_var_t var;
 	for (size_t i = 0; i < env->intdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
-		n->intVar[var].insert(V);
+		n->intVar[V].insert(var);
 	}
 	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
-		n->realVar[var].insert(V);
+		n->realVar[V].insert(var);
 	}
 }
 

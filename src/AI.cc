@@ -196,13 +196,14 @@ void AI::computeFunction(Function * F) {
 }
 
 void AI::computeEnv(Node * n) {
+	*Out << "computeEnv\n";
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
-	std::map<ap_var_t,std::set<Value*> >::iterator i, e;
-	std::set<Value*>::iterator it, et;
+	std::map<Value*,std::set<ap_var_t> >::iterator i, e;
+	std::set<ap_var_t>::iterator it, et;
 
-	std::map<ap_var_t,std::set<Value*> > intVars;
-	std::map<ap_var_t,std::set<Value*> > realVars;
+	std::map<Value*,std::set<ap_var_t> > intVars;
+	std::map<Value*,std::set<ap_var_t> > realVars;
 
 
 	std::set<BasicBlock*> preds = LSMT->getPrPredecessors(b);
@@ -225,30 +226,21 @@ void AI::computeEnv(Node * n) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 		if (pred->X->main != NULL) {
+			//*Out << "Hello\n";
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
-				std::set<Value*> S;
-				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
-					Value * v = *it;
-					if (LV->isLiveThroughBlock(v,b)) 
-						S.insert(v);
+				if (LV->isLiveThroughBlock((*i).first,b)) {
+					*Out << *((*i).first) << " is live through " << b << "\n";
+					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
-				if (S.size()>0)
-					intVars[(*i).first].insert(S.begin(),S.end());
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
-				std::set<Value*> S;
-				for (it = (*i).second.begin(), et = (*i).second.end(); it != et; ++it) {
-					Value * v = *it;
-					if (LV->isLiveThroughBlock(v,b)) 
-						S.insert(v);
+				if (LV->isLiveThroughBlock((*i).first,b)) {
+					realVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
-				if (S.size()>0)
-					realVars[(*i).first].insert(S.begin(),S.end());
 			}
 		}
 	}
-
 	//n->intVar.clear();
 	//n->realVar.clear();
 	n->intVar.insert(intVars.begin(), intVars.end());
@@ -294,6 +286,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
 
+
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
@@ -318,7 +311,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 
 	// the environment may have changed because of the constraints and the Phi
 	// assignations
-	Xtemp.change_environment(env);
+	//Xtemp.change_environment(env);
 }
 
 
@@ -386,19 +379,21 @@ void AI::computeNode(Node * n) {
 		n_iterations++;
 		if (!pathtree->exist(path)) n_paths++;
 
-		if (!isequal(path,lastpath)) {
+		if (!isequal(path,lastpath[n->bb])) {
 			only_join = true;
 		} else {
 			only_join = false;
 		}
-		lastpath.clear();
-		lastpath.assign(path.begin(),path.end());
+		lastpath[n->bb].clear();
+		lastpath[n->bb].assign(path.begin(),path.end());
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
 		computeTransform(n,path,*Xtemp);
 		
 		DEBUG(
+			*Out << "POLYHEDRA AT THE STARTING NODE\n";
+			n->X->print();
 			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
@@ -430,7 +425,6 @@ void AI::computeNode(Node * n) {
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-
 		if (LI->isLoopHeader(Succ->bb) && (Succ != n) && !only_join) {
 				//if (Succ->widening == 1) {
 				Xtemp->widening(Succ);
@@ -439,7 +433,8 @@ void AI::computeNode(Node * n) {
 			//	} else {
 			//		Succ->widening++;
 			//	}
-		} else {
+		} 
+		if (only_join) {
 			pathtree->insert(path);
 			DEBUG(
 				*Out << "PATH NEVER SEEN BEFORE !!\n";
@@ -447,6 +442,10 @@ void AI::computeNode(Node * n) {
 		}
 		//ap_lincons1_array_clear(&linconstraints);
 		
+		DEBUG(
+			*Out << "BEFORE:\n";
+			Succ->X->print();
+		);
 		Succ->X = Xtemp;
 
 		DEBUG(
@@ -524,11 +523,11 @@ void AI::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value 
 	ap_var_t var;
 	for (size_t i = 0; i < env->intdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
-		n->intVar[var].insert(V);
+		n->intVar[V].insert(var);
 	}
 	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
-		n->realVar[var].insert(V);
+		n->realVar[V].insert(var);
 	}
 }
 
@@ -625,10 +624,13 @@ bool AI::computeCondition(	CmpInst * inst,
 			constyp = AP_CONS_EQ; // equality constraint
 			nconstyp = AP_CONS_DISEQ;
 			break;
-		case CmpInst::FCMP_OGT:
-		case CmpInst::FCMP_UGT:
 		case CmpInst::ICMP_UGT: 
 		case CmpInst::ICMP_SGT: 
+			// in the case of the false constraint, we have to add 1
+			// to the nexpr
+
+		case CmpInst::FCMP_OGT:
+		case CmpInst::FCMP_UGT:
 			constyp = AP_CONS_SUP; // > constraint
 			nconstyp = AP_CONS_SUPEQ;
 			break;

@@ -94,11 +94,11 @@ void Node::add_var(Value * val) {
 
 	switch (type) {
 		case AP_RTYPE_INT:
-			intVar[var].insert(val);
+			intVar[val].insert(var);
 			env = ap_environment_alloc(&var,1,NULL,0);
 			break;
 		default:
-			realVar[var].insert(val);
+			realVar[val].insert(var);
 			env = ap_environment_alloc(NULL,0,&var,1);
 			break;
 	}
@@ -107,27 +107,38 @@ void Node::add_var(Value * val) {
 }
 
 void Node::create_env(ap_environment_t ** env) {
+	std::set<ap_var_t> Sintvars;
+	std::set<ap_var_t> Srealvars;
 
-	ap_var_t * intvars = (ap_var_t*)malloc(intVar.size()*sizeof(ap_var_t));
-	ap_var_t * realvars = (ap_var_t*)malloc(realVar.size()*sizeof(ap_var_t));
+	for (std::map<Value*,std::set<ap_var_t> >::iterator i = intVar.begin(),
+			e = intVar.end(); i != e; ++i) {
+		Sintvars.insert((*i).second.begin(), (*i).second.end());
+	}
+	for (std::map<Value*,std::set<ap_var_t> >::iterator i = realVar.begin(),
+			e = realVar.end(); i != e; ++i) {
+		Srealvars.insert((*i).second.begin(), (*i).second.end());
+	}
+
+	ap_var_t * intvars = (ap_var_t*)malloc(Sintvars.size()*sizeof(ap_var_t));
+	ap_var_t * realvars = (ap_var_t*)malloc(Srealvars.size()*sizeof(ap_var_t));
 
 	int j = 0;
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = intVar.begin(),
-			e = intVar.end(); i != e; ++i) {
-		intvars[j] = (*i).first;
+	for (std::set<ap_var_t>::iterator i = Sintvars.begin(),
+			e = Sintvars.end(); i != e; ++i) {
+		intvars[j] = *i;
 		j++;
 	}
 
 	j = 0;
-	for (std::map<ap_var_t,std::set<Value*> >::iterator i = realVar.begin(), 
-			e = realVar.end(); i != e; ++i) {
-		realvars[j] = (*i).first;
+	for (std::set<ap_var_t>::iterator i = Srealvars.begin(),
+			e = Srealvars.end(); i != e; ++i) {
+		realvars[j] = *i;
 		j++;
 	}
 
 	if (*env != NULL)
 		ap_environment_free(*env);
-	*env = ap_environment_alloc(intvars,intVar.size(),realvars,realVar.size());
+	*env = ap_environment_alloc(intvars,Sintvars.size(),realvars,Srealvars.size());
 	
 	free(intvars);
 	free(realvars);

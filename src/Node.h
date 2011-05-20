@@ -51,10 +51,10 @@ class Node {
 		/// list of Values, that directly use this variable : if one of these
 		/// Value is live, then the variable should not be removed from the Abstract
 		/// domain's dimensions
-		std::map<ap_var_t,std::set<Value*> > intVar;
+		std::map<Value*,std::set<ap_var_t> > intVar;
 		
 		/// realVar - same as intVar, but for real variables
-		std::map<ap_var_t,std::set<Value*> > realVar;
+		std::map<Value*,std::set<ap_var_t> > realVar;
 
 		/// tcons - contains the constraints for the outgoing transitions 
 		std::map<Node*, std::vector<ap_tcons1_array_t*> > tcons;
