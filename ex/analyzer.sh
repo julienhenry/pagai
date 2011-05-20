@@ -10,6 +10,7 @@ OPTIONS :
 
 	-o [FILE ]: name of the IR generated file
 	-p        : print the optimized llvm bytecode
+	-u        : unroll loops once
 	-G        : generate the .dot CFG
 	-g        : use Lookahead Widening instead of Path Focusing
 	-y        : use Yices instead of Microsoft Z3
@@ -21,6 +22,7 @@ PRINT=0
 GRAPH=0
 GOPAN=0
 YICES=0
+UNROLL=0
 COMPILE_OPTIONS=
 
 while getopts “hpygGi:o:c:” opt ; do
@@ -37,6 +39,9 @@ while getopts “hpygGi:o:c:” opt ; do
 			;;
 		i)
 			FILENAME=$OPTARG
+			;;
+		u)
+			UNROLL=1
 			;;
 		G)
 			GRAPH=1
@@ -71,7 +76,11 @@ clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTP
 "
 clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
 #opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
-opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
+if [ $UNROLL -eq 1 ] ; then
+	opt -mem2reg -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
+else
+	opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
+fi
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT

@@ -265,7 +265,6 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type(v, ap_type)) {
-		*Out << "getValueExpr returns NULL\n";
 		// this may be a boolean
 		if (ap_type == AP_RTYPE_INT) {
 			// this is a boolean
@@ -288,6 +287,7 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			}
 			return cond;
 		} else {
+			*Out << "ERROR: getValueExpr returns NULL\n";
 			return NULL;
 		}
 	}
@@ -757,7 +757,6 @@ void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
 SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
-		*Out << "Hello1 !\n";
 		return getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
 	}
 	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[I.getParent()]);
@@ -766,11 +765,6 @@ SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
 
 	SMT_expr tail = construct_phi_ite(I,i+1,n);
-	*Out << "Hello !\n";
-	man->SMT_print(tail);
-	*Out << "\n";
-	man->SMT_print(incomingVal);
-	*Out << "\n";
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }
 

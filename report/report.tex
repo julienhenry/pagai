@@ -396,7 +396,7 @@ the ascending sequence.
 Linear Relation Analysis \cite{CH78} (also noted LRA) is a direct application of
 Abstract Interpretation. It is aimed at computing an upper approximation of the
 reachable states of a program containing numerical variables. The set of
-possible assignments for the numerical variables is abstracted by convex
+possible assignments for the numerical variables is abstracted by a convex
 polyhedron. This technique discovers invariant linear relations between
 the numerical variables at each control point of a program.
 
@@ -417,7 +417,7 @@ the program is then a point $\overrightarrow{x} \in \Q^n$.
 In $\Q^n$, the set of polyhedra ordered by inclusion is a lattice. The least element is $\perp$
 (the empty polyhedron), and the greatest element is $\top$ (the whole $Q^n$).
 
-The classical union of two convex polyhedra may not be a convex polyhedra.
+The classical union of two convex polyhedra may not be a convex polyhedron.
 Therefore, we use the convex hull operation, noted $\sqcup$, for joining
 polyhedra. 
 If $X_1, X_2$ are two convex polyhedra, $X_1 \sqcup X_2$ is the
@@ -630,7 +630,7 @@ during the computation, due to various reasons:
 \begin{enumerate}
 \item Since an abstract domain is used to represent the set of possible states,
 such as the domain of convex polyhedra, there is an upper approximation of the
-set of possible states to the smallest convex polyhedra including this set. This
+set of possible states to the smallest convex polyhedron including this set. This
 loss of precision is unavoidable. Still, there are techniques proposing to
 compute disjunctive invariants \cite{GulwaniZ10} to limit this upper approximation: at each
 program point, a union of convex polyhedra is computed instead of a single
@@ -717,9 +717,9 @@ convex polyhedron, whose dimensions are the numerical variables $x,y$.
 For instance, at point $p_1$, the effective set of possible assignments for
 $(x,y)$ is the union of the two segments $(0,0) - (51,51)$ and $(51,51) -
 (102,0)$, depicted in figure \ref{result}.a. Since this union of segments is not
-a convex polyhedra, the best result we can wait for after abstraction is the
-polyhedra depicted in figure \ref{result}.b, which is the smallest convex
-polyhedra containing the two segments.
+a convex polyhedron, the best result we can wait for after abstraction is the
+polyhedron depicted in figure \ref{result}.b, which is the smallest convex
+polyhedron containing the two segments.
 
 \begin{figure}[!h]
 \begin{minipage}[c]{.39\linewidth}
@@ -780,16 +780,16 @@ a. During execution, $(x,y)$ can only be in one of these two segments.
 	\node[right=3cm] at (y axis mid) {$p_1$};
 \end{tikzpicture} 
 
-b. The best result we can have is the polyhedra in hashed lines.
+b. The best result we can have is the polyhedron in hashed lines.
 \end{minipage}
 \caption{Best results we can get from the analysis}
 \label{result}
 \end{figure}
 
-We apply abstract interpretation to this program. Let $X_i$ be the polyhedra
+We apply abstract interpretation to this program. Let $X_i$ be the polyhedron
 attached to point $p_i$. Initially, $X_i = \perp$ for each $i \in \{1,7\}$, and
 $X_0 = \top$. The tabular in figure \ref{iterations} shows the evolution of the
-polyhedron during the iterations.
+polyhedra during the iterations.
 
 After 3 iterations, we have reached an invariant. We can then apply a narrowing
 iteration, that recovers some precision. Finally, at point $p_1$, we see that
@@ -1806,7 +1806,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 \end{figure}
 
 	\subsubsection{Expression of the reachability problem}
-
+	\label{smtformula}
 	The SMT-formula $\rho$ express the semantic of the program. We still need to create the
 	formula expressing the reachability problem defined in \ref{reachability}.
 
@@ -2150,7 +2150,8 @@ easily compute this number of paths when computing the $\rho$ formula.
 	\subseteq(X)$, so we can use $\Psi$ instead of $\Phi$ to compute our
 	invariant.
 
-	In the case of path focusing algorithm, we simply conjunct our formula with
+	In the case of path focusing algorithm, we simply conjunct our formula
+	(see \ref{smtformula}) with
 	$(i \neq j) \vee (x'_j \neq x_i)$, such that the SMT-solving only proposes
 	paths that are not the identity. Actually, it never focuses on such paths
 	during the acending sequence, but during narrowing iterations that occur 
@@ -2745,6 +2746,145 @@ To do so, we could implement an LLVM pass that transform the internal
 representation according to this principle. However, this pass has not been
 implemented in our analyzer, and this transformation has to be done manually.
 
+\section{Unrolling loops}
+
+In some cases, the number of iterations inside a loop during execution 
+may be equals to zero. This happens if the condition of the \emph{while}
+statement is false at the first time the head of loop is reached.
+
+In our analyzer, this kind of loops gives imprecise results. In this section, we
+propose to unroll loops once in order to avoid it.
+This behaviour can happen in very simple programs, such as the one
+depicted in Figure \ref{loop}. Indeed, in the case of $n \leq 0$, the condition
+$i < n$ is always false.
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.29\linewidth}
+\begin{C}
+i=0;
+while (i < n)
+	i++;
+\end{C}
+\end{minipage}
+\begin{minipage}[c]{.69\linewidth}
+\centering
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.3cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n3) [below right of=n1] {$p_3$};
+	\node[state] (n4) [below of=n3] {$p_4$};
+	\node[state] (n2) [left of=n4,xshift=-1cm] {$p_f$};
+
+  \path [transition] 
+		(n0) edge              node {$i \gets 0$} (n1);
+  \path [transition] 
+        (n1) edge [out=180,in=90]	node [left] {$i \geq n$} (n2);
+  \path [transition] 
+        (n1) edge			   node [right] {$i < n$} (n3);
+  \path [transition] 
+		(n3) edge              node {$i \gets i+1$} (n4);
+  \path [transition] 
+        (n4) edge [out=0, in=0, distance=2.5cm] node {} (n1);
+
+\end{tikzpicture}
+\end{minipage}
+\caption{If $n \leq 0$, there is no loop iterations.}
+\label{loop}
+\end{figure}
+
+In this example, our program behaves as follows:
+\begin{itemize}
+\item At point $p_1$, we first have the polyhedra $i=0$, where $n$ in
+unconstrained.
+\item The image of this polyhedra after the loop transition is $i \leq n \wedge
+i=1$. After a convex hull, we obtain for $p_1$ $0 \leq i \leq 1$.
+\item Again, we
+compute the image of this polyhedron by the transition, $1 \leq i \leq 2 \wedge
+i \leq n$, and after widening we
+obtain at $p_1$ the polyhedron $0 \leq i$.
+\item Finally, at point $p_f$, we have the polyhedron $0 \leq i \wedge i \geq
+n$.
+\end{itemize}
+
+Now, after unrolling the loop once, the program is the one in Figure
+\ref{loopunroll}. The analysis gives:
+\begin{itemize}
+\item At point $p_1$, we have $i=0$, then we directly have at point $p_f$ the
+polyhedron $i=0 \wedge n \leq 0$.
+\item At point $p_4$, we first have $i=1 \wedge n \geq 1$.
+\item the image of the polyhedron after the loop transition is $2 \leq n \wedge
+i=2$, which gives after a convex hull $ 1 \leq i \leq 2 \wedge i \leq n$.
+\item After one iteration and an application of widening, we find at $p_4$ the
+polyhedron $1 \leq i \leq n$.
+\item Then, at the exit point $p_f'$ of the loop, we have the polyhedron
+$i = n \wedge i \geq 1$.
+\end{itemize}
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.29\linewidth}
+\begin{C}
+i=0;
+if (i < n) {
+	i++;
+	while (i < n)
+		i++;
+}
+\end{C}
+\end{minipage}
+\begin{minipage}[c]{.69\linewidth}
+\centering
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.3cm,
+                    semithick,font=\footnotesize]
+
+	\node[state] (n0) {$p_0$};
+	\node[state] (n1) [below of=n0] {$p_1$};
+	\node[state] (n3) [below right of=n1] {$p_3$};
+	\node[state] (n4) [below of=n3] {$p_4$};
+	\node[state] (n2) [left of=n4,xshift=-1cm] {$p_f$};
+	\node[state] (n22) [below of=n2,yshift=0.5cm] {$p_f'$};
+	\node[state] (n5) [below of=n4] {$p_5$};
+	\node[state] (n6) [below of=n5] {$p_6$};
+
+  \path [transition] 
+		(n0) edge              node {$i \gets 0$} (n1);
+  \path [transition] 
+        (n1) edge [out=180,in=90]	node [left] {$i \geq n$} (n2);
+  \path [transition] 
+        (n1) edge			   node [right] {$i < n$} (n3);
+  \path [transition] 
+		(n3) edge              node {$i \gets i+1$} (n4);
+  \path [transition] 
+		(n4) edge              node {$i \geq n$} (n22);
+  \path [transition] 
+		(n4) edge              node {$i < n$} (n5);
+  \path [transition] 
+		(n5) edge              node [right] {$i \gets i+1$} (n6);
+  \path [transition] 
+        (n6) edge [out=0, in=0, distance=2.5cm] node {} (n4);
+
+\end{tikzpicture}
+\end{minipage}
+\caption{Program of Figure \ref{loop} after unrolling the loop once.}
+\label{loopunroll}
+\end{figure}
+
+
+The convex hull of the polyhedron from $p_f$ with the one from $p_f'$ also gives
+$0 \leq i \wedge i \geq n$. Then, unrolling the loop does not give a better
+solution, since
+$p_f$ and $p_f'$ may be the same control point.
+
+However, our technique does a convex hull only if this exit point is in $P_R$. 
+If not, we consider independently the paths starting from $p_4$ and the ones
+starting from $p_1$, hence the better precision. Indeed, this comes to computing
+a disjunctive invariant for the loop, by distinguishing the case where the
+number of iterations is zero. 
+
+In our analyzer, we unroll every loops once, by using LLVM optimisation
+passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
+
 
 	\section{SMT-solving}
 
@@ -3021,7 +3161,7 @@ the head of the loop.}
 	\subsection{Analysis of real code}
 
 	In this section, we show that \emph{Path Focusing} technique performs better
-	that \emph{Lookahead} widening on some code taken from real open-source
+	that \emph{Lookahead widening} on some code taken from real open-source
 	programs.
 
 	To Be Completed\dots

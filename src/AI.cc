@@ -294,9 +294,6 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
 
-	//std::vector<ap_lincons1_array_t> linconsts;
-	//size_t linconssize = 0;
-
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
@@ -304,13 +301,6 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 					tcons1_array_print((*i)->front());
 				);
 				Xtemp.meet_tcons_array((*i)->front());
-				// creating the associated lincons for a future widening with
-				// threshold
-				//ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*i)->front());
-				//ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
-				//linconssize += ap_lincons1_array_size(&lincons);
-				//linconsts.push_back(lincons);
-				//ap_abstract1_clear(man,&AX);
 		} else {
 			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
@@ -319,44 +309,16 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 				X2 = new Abstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
-				// creating the associated lincons for a future widening with
-				// threshold
-				//ap_abstract1_t AX = ap_abstract1_of_tcons_array(man,Xtemp.main->env,(*it));
-				//ap_lincons1_array_t lincons = ap_abstract1_to_lincons_array(man,&AX);
-				//linconssize += ap_lincons1_array_size(&lincons);
-				//linconsts.push_back(lincons);
-				//ap_abstract1_clear(man,&AX);
 			}
-			//if (A.size() > 0)
-				Xtemp.join_array(env,A);
+			Xtemp.join_array(env,A);
 		}
 	}
 
-	//
-	//linconstraints = ap_lincons1_array_make(Xtemp.main->env,linconssize);
-	//size_t x = 0;
-	//size_t N = linconsts.size();
-	//for (size_t k = 0; k < N; k++) {
-	//	for (size_t j=0; j < ap_lincons1_array_size(&linconsts[k]); j++) {
-	//		ap_lincons1_t cons = ap_lincons1_array_get(&linconsts[k],j);
-	//		ap_lincons1_array_set(&linconstraints,x,&cons);	
-	//		x++;
-	//	}
-	//}
-//	ap_abstract1_t A = ap_abstract1_of_lincons_array(man,Xtemp.main->env,&linconstraints);
-//	A = ap_abstract1_assign_texpr_array(man,false,&A,&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
-//	linconstraints = ap_abstract1_to_lincons_array(man,&A);
-
-	//
-//	DEBUG(
-//		*Out << "PHIvars to be assigned:\n" << PHIvars.name.size() << " " << PHIvars.expr.size();
-//		for (size_t i = 0; i < PHIvars.name.size(); i++) {
-//			*Out << *((Value*)PHIvars.name[i]) << " assigned to value : ";
-//			texpr1_print(&PHIvars.expr[i]);
-//			*Out << "\n";
-//		}
-//	)
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+
+	// the environment may have changed because of the constraints and the Phi
+	// assignations
+	Xtemp.change_environment(env);
 }
 
 
@@ -426,10 +388,8 @@ void AI::computeNode(Node * n) {
 
 		if (!isequal(path,lastpath)) {
 			only_join = true;
-			*Out << "only join\n";
 		} else {
 			only_join = false;
-			*Out << "NOT only join\n";
 		}
 		lastpath.clear();
 		lastpath.assign(path.begin(),path.end());
