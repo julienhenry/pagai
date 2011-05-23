@@ -19,7 +19,7 @@ void show_help() {
 -h : help\n \
 -i : input file\n \
 -o : output file\n \
--g : use Lookahead Widening technique\
+-g : use Lookahead Widening technique\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
 

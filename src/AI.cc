@@ -75,7 +75,6 @@ bool AI::runOnModule(Module &M) {
 	}
 
 	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths: " << n_totalpaths << "\n";
 	*Out << "Number of paths computed: " << n_paths << "\n";
 	return 0;
 }
@@ -196,7 +195,6 @@ void AI::computeFunction(Function * F) {
 }
 
 void AI::computeEnv(Node * n) {
-	*Out << "computeEnv\n";
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 	std::map<Value*,std::set<ap_var_t> >::iterator i, e;
@@ -229,7 +227,6 @@ void AI::computeEnv(Node * n) {
 			//*Out << "Hello\n";
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b)) {
-					*Out << *((*i).first) << " is live through " << b << "\n";
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
 			}

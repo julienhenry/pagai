@@ -1,6 +1,7 @@
 \documentclass[a4paper,english,titlepage,11pt]{report}
 
-\usepackage{mathcomp,amssymb,verimagstudent}
+\usepackage{verimagstudent}
+\usepackage{mathcomp,amssymb}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
@@ -12,7 +13,8 @@
 \usepackage{algpseudocode}
 \usepackage{multirow}
 \usepackage[toc,page]{appendix} 
-
+% DM: verimagstudent charge hyperref, et hyperref doit habituellement
+% DM: passer en dernier
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
@@ -27,6 +29,7 @@
 \def\P{\mathcal{P}}
 \def\ite{\textnormal{ite\ }}
 \def\lfp{\textnormal{\it lfp}}
+\newcommand{\widening}{\mathop{\triangledown}}
 
 \definecolor{trefle}{rgb}{0,0.5,0}
 \definecolor{moka}{rgb}{0.5,0.25,0}
@@ -71,7 +74,7 @@ color=blue]
 \shorttitle{Static Analysis by Path Focusing}
 \institute{Grenoble-INP}
 \abstract{
-	Program verification is aimed at statically discover properties on programs,
+	Program verification is aims at statically discovering properties on programs,
 	such as the values that can take the different variables during execution.
 	Abstract Interpretation is a technique that allows to compute an
 	approximation of the set of these values, since it is impossible to compute
@@ -114,12 +117,12 @@ Abstraite, Génération d'invariants, Découverte de Chemins, SMT-Solving}
 
 \chapter{Introduction} 
 
-Static analysis is aimed at automatically computing properties on programs, such as
+Static analysis aims at automatically computing properties on programs, such as
 the possible values of their variables during execution. This allows to show for
-instance that a program will not overflow, will not divide by zero, to compute
+instance that a program will not overflow, will not divide by zero, and to compute
 loop invariants\dots
 The main applications of static analysis are compilation-time optimisation, and
-the proof of satefy properties in critical systems, such as avionics.
+the proof of safety properties in critical systems, such as avionics.
 
 Abstract Interpretation is a general framework used for static analysis.
 Linear Relation Analysis (LRA) is a direct application of this framework, that
@@ -145,8 +148,8 @@ The fixpoint equation is computed iteratively; that is, successive
 approximations of the set of reachable states are computed until they converge
 to a fixpoint. 
 
-Satisfiability Modulo Theory (SMT) solving is a field in computer science that
-is aimed to decide the satisfiability of a logic formula containing Boolean
+Satisfiability Modulo Theory (SMT) solving is a technique
+for deciding the satisfiability of a logic formula containing Boolean
 predicates and elements of a theory, such as linear arithmetic relations between
 integers.
 In this report, we present a novel refinement of the Abstract Interpretation
@@ -155,32 +158,32 @@ temporarily focuses on a selected path in the control flow graph (the graph
 expressing the semantics of the program), in order to
 obtain more precise results at reasonable cost.
 
-\subsection*{Contribution and Organization}
+\subsection*{Contribution and Organisation}
 
 In this report we make the following contributions:
 \begin{itemize}
-\item We present a new technique, refered as \emph{Path Focusing}, that takes
+\item We present a new technique, referred as \emph{Path Focusing}, that takes
 benefits of the recent advances in the field of SMT-solving to improve precision
 of static analysis by abstract interpretation. We also present an adaptation of
 this technique to compute disjunctive invariants.
-\item We present an implementation of this technique into a small analyzer, as
+\item We present an implementation of this technique into a small analyser, as
 well as the implementation of another technique proposed in \cite{GopanR06},
 such that we can compare precision and cost of these two methods.
 \end{itemize}
 
-The report is organized as follows:
+The report is organised as follows:
 Part \ref{stateoftheartpart} introduces the state of the art in Abstract
 Interpretation and more specifically in Linear Relation Analysis.
 Part \ref{pathfocusingpart} describes the two techniques
 \emph{Lookahead Widening} and \emph{Path Focusing}.
 Part \ref{implementationpart} presents the implementation of these two
-techniques into an analyzer, and the experimental results we obtained.
+techniques into an analyser, and the experimental results we obtained.
 Finally, Part \ref{future} introduces some directions to explore.
 
 \chapter{Abstract Interpretation: state of the art}
 \label{stateoftheartpart}
 
-\section{Introductive example}
+\section{Introductory example}
 
 We consider the following program:
 
@@ -230,7 +233,8 @@ There is a relation between $Y_1$ and $Y_2$ :
 Y_1 &=& \{x\ |\ x=0 \vee \exists x' \in Y_2, x=x'+1 \} \\
 Y_2 &=& \{x\ |\ x \in Y_1 \wedge x < 100 \}
 \end{eqnarray*}
-
+% DM: d'habitude on met des ' sur les variables de l'etat d'arrivee
+% DM: et pas de depart
 We see that $Y_1$ and $Y_2$ can be computed step by step:
 we start with $Y_1 = Y_2 = \emptyset$.
 Then, we add iteratively new elements in the sets.
@@ -255,7 +259,7 @@ kind of fixpoint computation.
 
 Abstract Interpretation \cite{CC77,CousotCousot92-1} is a general method for
 finding approximate solutions of
-fixpoint equations. This method is used for program analysis, since analyzing a
+fixpoint equations. This method is used for program analysis, since analysing a
 program often comes down to solving fixpoint equations, because of the loops and
 recursive procedures.
 
@@ -266,9 +270,10 @@ computation quickly becomes too costly or doesn't terminate.
 
 \subsection{Abstraction of the domain}
 
-Abstract Interpretation method proposes to represent more efficiently the
+Abstract Interpretation proposes to represent more efficiently the
 elements of this complex domain $C$ of concrete values,
 by choosing an simpler domain  $A$ called \emph{abstract domain}. 
+% DM: un peu lourd et peu clair
 
 A concretization function $\gamma$ maps the elements of $A$ to elements of $C$:
 \begin{eqnarray*}
@@ -292,8 +297,8 @@ the least fixpoint of $\Phi$.
 \end{proposition}
 
 Indeed, if $\Phi^\#(x) = x$, then $\Phi \circ \gamma (x) \subseteq \gamma(x)
-= \gamma \circ \Phi^\#(x)$. Abstract interpretation technique is aimed at computing
-one of these $x$. It computes the stationary limit of an ascending sequence
+= \gamma \circ \Phi^\#(x)$. Abstract interpretation aims at computing
+such an~$x$. It computes the stationary limit of an ascending sequence
 $(x_i)_{i \geq 0}$ defined by the induction:
 
 $$\left[
@@ -303,7 +308,6 @@ x_{n+1} &=& \Phi^\#(x_n)
 \end{array}
 \right.
 $$
-
 where $\perp$ is the least element of $A$.
 %The relation between these two
 %domains is characterized by two functions, usually called 
@@ -333,30 +337,32 @@ where $\perp$ is the least element of $A$.
 
 Termination of the fixpoint computation has to be guaranteed. This termination
 depends on the properties of the abstract domain:
-this one should be finite, or of finite depth, meaning that there doesn't exist
+this one should be finite, of finite height,
+or more generally satisfy the \emph{ascending chain condition},
+meaning that there doesn't exist
 any sequence $(x_i)_{i \geq 0}$ of elements of the abstract domain $A$ such that
-$\forall i \geq 0,\ x_i <_A x_{i+1}$. Indeed, in case of a domain of infinite
-depth, the least fixpoint
+$\forall i \geq 0,\ x_i <_A x_{i+1}$. Indeed, otherwise, the least fixpoint
 computation could run indefinitely, since the ascending sequence of elements of
 $A$ is infinite, and the fixpoint in never reached.
 
 
-Most of the domains that are used for program analysis doesn't satisfy this
-finiteness property. To ensure convergence in this case, another approximation
+Many of the domains that are used for program analysis, including those of intervals and convex polyhedra, don't satisfy this ascending chain condition. To ensure convergence in this case, another approximation
 is performed: a new operator is defined, called \emph{widening operator}, that
 extrapolates the limit of a sequence of abstract values
 \cite{CC77,CousotCousot92-4}. This \emph{widening
-operator} is usually noted $\nabla: A \times A \rightarrow A$, and satisfies
+operator} is usually noted $\widening: A \times A \rightarrow A$, and satisfies
 the following properties:
 
 \begin{itemize}
-\item $\forall x_1, x_2 \in A,\ x_1 \leq_A x_1 \nabla x_2$ and $x_2 \leq_A x_1
-\nabla x_2$. This guarantees the correctness of the result.
+\item $\forall x_1, x_2 \in A,\ x_1 \leq_A x_1 \widening x_2$ and $x_2 \leq_A x_1
+\widening x_2$. This guarantees the correctness of the result.
+% DM: souvent n'est defini que pour x1<=x2 ce qui oblige a utiliser
+% DM: une union abstraite juste avant
 \item For any increasing sequence $x_0 \leq_A x_1 \leq_A \dots$, the sequence
 defined by 
 $$\system{
 x'_0 & = &  x_0 \\
-x'_{i+1} & = &  x'_i\ \nabla\ x_{i+1},\ \  \forall i > 0
+x'_{i+1} & = &  x'_i\ \widening\ x_{i+1},\ \  \forall i > 0
 }$$
 is not strictly increasing. Then, applying the widening operator when the
 sequence may increase indefinitely makes the computation converge to a fixpoint
@@ -364,6 +370,7 @@ in finite time.
 \end{itemize}
 
 \cite{Monniaux_HOSC09} gives a more general definition of the widening operator.
+% DM: c'est gentil de me citer!
 
 The least fixpoint of a function $\Phi^\#$ is noted $\overline{x}$.
 Instead of computing this least fixpoint,
@@ -372,7 +379,7 @@ sequence:
 
 $$\system{
 x'_0 &=& \perp \\
-x'_{i+1} &=& x'_i\ \nabla\ \Phi^\#(x'_i),\ \ \forall i > 0
+x'_{i+1} &=& x'_i\ \widening\ \Phi^\#(x'_i),\ \ \forall i > 0
 }$$
 
 which converges towards $\tilde{x}$, where $\tilde{x} \geq_A \overline{x}$.
@@ -423,30 +430,31 @@ polyhedra.
 If $X_1, X_2$ are two convex polyhedra, $X_1 \sqcup X_2$ is the
 smallest convex polyhedron containing both $X_1$ and $X_2$.
 
-Since the domain of convex polyhedra is of infinite depth, a widening operator
+Since the domain of convex polyhedra is of infinite height, a widening operator
 is defined to ensure convergence of the technique. 
-Intuitively, the polyhedron $P \nabla Q$ is obtained after 
+Intuitively, the polyhedron $P \widening Q$ is obtained after 
 removing from the system of linear equations defining $P$ all the inequalities
-that are not satisfied by $Q$.
+that are not satisfied by $Q$ (the actual definition is somewhat more involved,
+see e.g. \cite{BagnaraHRZ05SCP}).
 For instance, if $P = \{(x,y)\ |\ 0 \leq x \leq y \leq 1 \}$ and $Q = 
 \{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$, then the result of the widening operator
-will be $P \nabla Q = \{(x,y)\ |\ 0 \leq x \leq y \}$.
+will be $P \widening Q = \{(x,y)\ |\ 0 \leq x \leq y \}$.
 
 There have been various
-work proposing a definition or a refinment of the widening operator in LRA
+work proposing a definition or a refinement of the widening operator in LRA
 \cite{CH78,Hal79,HPR97,BlanchetCousotEtAl_PLDI03}, in order to fight
 against loss of precision:
 \begin{itemize}
-\item \emph{Delayed widening}: instead of applying windening at the first
+\item \emph{Delayed widening}: instead of applying widening at the first
 iteration of the analysis, one apply it after a number $n$ of iterations. During
 the $n-1$ first iterations, only a convex hull is computed. In some cases,
 delaying the widening operation is more precise. The algorithm still terminates,
 since widening is applied within a finite time after $n$ iterations. Most of the
-cases, $n$ can be choosen equals to $2$.
+cases, $n$ can be chosen equals to $2$.
 \item \emph{Widening with threshold (or ``up to'')}: In some cases, instead of
 brutally applying the widening operator, a fixed set of linear inequalities $T$
-can be chosen, and the widening operator $\nabla_T$ is defined as follows:
-$P \nabla_T Q$ is the intersection of $P \nabla Q$ with all the inequalities in
+can be chosen, and the widening operator $\widening_T$ is defined as follows:
+$P \widening_T Q$ is the intersection of $P \widening Q$ with all the inequalities in
 $T$ satisfied by both $P$ and $Q$.
 
 For instance, consider the program:
@@ -458,9 +466,9 @@ while (x <= 50) {
 \end{C}
 If $P = \{(x,y)\ |\ 0 \leq x \leq y \leq 1 \}$, after one iteration of the loop,
 we have $Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$. Instead of a classic
-widening (which gives the result $P \nabla Q = \{(x,y)\ |\ 0 \leq x \leq y \}$),
+widening (which gives the result $P \widening Q = \{(x,y)\ |\ 0 \leq x \leq y \}$),
 a widening with the threshold $x \leq 50$ gives 
-$P \nabla_T Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 50\}$. In such cases, widening
+$P \widening_T Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 50\}$. In such cases, widening
 with threshold helps to find better invariants.
 \end{itemize}
 
@@ -597,7 +605,7 @@ X_p \\
 \vdots
 \end{array} \right] \longleftarrow \left[ \begin{array}{c} 
 \vdots \\
-X_p \nabla \left( I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\#
+X_p \widening \left( I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\#
 (X_{p'}) \right) \\
 \vdots
 \end{array} \right]$$
@@ -620,7 +628,7 @@ order we choose for updating the different $X_p, p\in P$, the result at the
 end of the analysis is correct. Yet, the precision of the result and the time
 before convergence could be very different. 
 There have been some work to find efficient iteration strategies
-\cite{Bou92}, such as first stabilizing innermost loops, or stabilizing strongly
+\cite{Bou92}, such as first stabilising innermost loops, or stabilising strongly
 connected components of the graph.
 
 \subsubsection{Sources of imprecision}
@@ -652,7 +660,7 @@ with $i\in [0, +\infty]$ at the beginning of the loop, and we find that the
 values for $i$ at the next step are in $[0, 100]$. This is still an invariant,
 but much better. We can repeat such iterations as long as the set narrows, and
 we always obtain a correct over-approximation.
-In practice, a single narrowing iteration is enough to recover the precision.
+In practise, a single narrowing iteration is enough to recover the precision.
 
 \item There is also a loss of precision each time a point in the control flow
 graph has several incoming edges. This is the case for instance for
@@ -663,7 +671,7 @@ $$X_1 \cup X_2 \subseteq X_1 \sqcup X_2$$
 
 To limit the number of such points, a method could be
 to expand the control flow graph. For instance, instead of considering a graph
-with a sequence of $n$ \emph{if-then-else} between point $p_1$ and $p_n$, 
+with a sequence of $n$ \emph{if-then-else} between points $p_1$ and $p_n$, 
 the $n$ merge node
 of these \emph{if-then-else} could be removed, each of them having two incoming
 edges, and 
@@ -676,7 +684,7 @@ blowup, because of the exponential growth of the number of edges in the graph.
 
 \subsubsection{Acceleration}
 
-Typically, to analyze a program with loops, the approach is to use the
+Typically, to analyse a program with loops, the approach is to use the
 widening operator, for example at the head of the loops, to ensure convergence.
 Since this induces imprecision, another technique called \emph{acceleration}
 is aimed at computing the exact effect of the loop when possible \cite{Gon07,GH06}. For instance, for
@@ -1081,7 +1089,7 @@ extrapolates without taking care of these new possible paths. This can induce a
 loss of precision, that Lookahead widening tries to limit.
 
 Lookahead widening \cite{GopanR06} is a technique that isolates the
-different loop phases during the analysis, and stabilizes each of these loop
+different loop phases during the analysis, and stabilises each of these loop
 phases before proceeding to the next. One only consider paths that are feasible
 at the first iteration, and forget the others for a while. The iterations end
 when the analysis of these paths has converged. After that, some
@@ -1211,7 +1219,7 @@ In the classical abstract interpretation technique, narrowing iterations are
 computed at the end of the analysis, when all the fixpoint computation has
 converged.
 The interest of this method is to apply narrowing iterations right after each
-path computation. This allows to recover precision before analyzing new paths,
+path computation. This allows to recover precision before analysing new paths,
 and then to be more precise. 
 
  \section{Path Focusing}
@@ -1229,7 +1237,7 @@ and then to be more precise.
 	because paths that are not feasible will be ignored. Additionally, the
 	number of control points with several incoming transitions will be reduced,
 	so the loss of precision due to the convex hull of polyhedra may be
-	minimized.
+	minimised.
 
 \begin{figure}[!h]
 \label{multigraph}
@@ -1549,7 +1557,7 @@ uses $\Phi$-functions.
 
 A $\Phi$-function is usually inserted at points of the control flow graph that
 have several incoming transitions, and has the same number of arguments as the point
-has incoming transitions. If we suppose these transitions are ordered, then the
+has incoming transitions. Assuming these transitions are ordered, the
 $\Phi$-function returns the value of its $i$-th argument if the point is reached
 from the $i$-th transition.
 
@@ -1593,7 +1601,7 @@ path.
 	\begin{center} \emph{
 		``Is there a path starting on control point $p$, with numerical
 		variables in $X_p$, that ends on point $q$, with variables that are not
-		in $X_q$ ?''}
+		in $X_q$?''}
 	\end{center}
 
 	This problem could be rephrased as:
@@ -1616,7 +1624,7 @@ path.
 	Although deciding the satisfiability of such formula is NP-complete, there
 	has been much research on decision procedures \cite{Kroening08} and there exist nowadays
 	efficient programs, known as SMT-solvers, that can decide the satisfiability
-	of LRA or LIA formulas. Well-known efficient SMT-solvers are
+	of LRA or LIA formulae. Well-known efficient SMT-solvers are
 	Z3 \cite{MouraB08} and Yices \cite{DutertreM06}. 
 
 	If the problem has a solution,  the SMT-solver will be in position to show
@@ -1652,22 +1660,22 @@ path.
 \item Each numerical SSA variable of the control flow graph has its definition
 in the $\rho$ formula.
 \item For each operation in the program, we encode its semantic, expressed in
-terms of the boolean and numerical SSA variables. For instance, if the CFG
+terms of the Boolean and numerical SSA variables. For instance, if the CFG
 contains the assignment $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
 the formula. This equality expression is noted $assign(x.2)$. 
 $assign(x)$ is defined for each numerical SSA-variable of the program.
 \item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = B_i\ \wedge \
 c(i,j)$, where $B_i = b_i^s$ if $p_i \in P_R$, or $b_i$ if not.
-$c(i,j)$ express the condition that needs to be true to go through the
+$c(i,j)$ expresses the condition that needs to be true to go through the
 transition. For instance, $c(i,j)$ could be of the form $x < y$, \dots
 If the transition is non-deterministic, then $c(i,j) = c_{i,j}$, where
-$c_{i,j}$ is a boolean variable left non-deterministic.
+$c_{i,j}$ is a Boolean variable left non-deterministic.
 \item For each point $p_i \notin P_R$, we set the reachability predicate 
 $b_i = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$.
 \item For each point $p_i^d \in P_R$, we set the reachability predicate 
 $b_i^d = \displaystyle \bigvee_{(p_j,p_i)\in E} t_{j,i}$. 
 \item Numerical $\Phi$-variables assignations have to be expressed in the $\rho$
-formula. We simply use $\ite$ (\emph{if-then-else}) statements, standardly defined in the
+formula. We simply use $\ite$ (\emph{if-then-else}) statements, a standard feature of the
 SMT-Lib format \cite{BarST-SMTLIB}, for giving the right value to the variable,
 depending on the incoming transition we come from. Generally, for a
 $\Phi$-variable $x = \Phi(x_1,x_2,\dots,x_n)$ in control point $p_i$ with the
@@ -1816,7 +1824,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	property $x \in X$ into an SMT-formula: one simply writes the conjunction of
 	these inequalities, with the name of the variables in the vector $x$.
 
-	To compute the reachability strating from point $p_i$, the formula given to
+	To compute the reachability starting from point $p_i$, the formula given to
 	the SMT-solver is:
 
 	$$\rho \wedge b_i^s \wedge \bigwedge_{j\neq i,\ j\in P_R} (\neg b_j^s)
@@ -1840,8 +1848,8 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	\subsection{Algorithm}
 	
-	Path Focusing algorithm is described in Algorithm \ref{pathfocusingalgo}.
-	We maintain a set $A$ of point in $P_R$ that need to be treated.
+	The Path Focusing algorithm is described in Algorithm \ref{pathfocusingalgo}.
+	We maintain a set $A$ of points in $P_R$ that need to be treated.
 	We select iteratively one of these control points, and search for new focus
 	paths starting from this point, until there is no more path to be treated.
 	At the end of the analysis, some narrowing iterations can be performed in
@@ -1873,7 +1881,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 		\State Compute the focus path $e$ from $p_i$ to $p_j$
 		\State $Y \gets \tau_e^\#(X_{p_i})$
 		\If {$p_j \in P_W$}
-			\State $X_{p_j} \gets X_{p_j} \nabla (X_{p_j} \sqcup Y)$
+			\State $X_{p_j} \gets X_{p_j} \widening (X_{p_j} \sqcup Y)$
 		\Else
 			\State $X_{p_j} \gets X_{p_j} \sqcup Y$
 		\EndIf
@@ -1892,8 +1900,8 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	One can refine the \emph{Path-focusing} algorithm by treating specially the
 	self loops of the multigraph. Indeed, instead of simply apply the widening
 	operator,  some narrowing steps could be performed to regain precision
-	before focusing on another path. This is the same principle as the one we
-	find in \emph{Lookahead widening} \cite{GopanR06}.
+	before focusing on another path. This relates to the ideas in
+        \emph{Lookahead widening} \cite{GopanR06}.
 
 	So, the algorithm has a special case if the path we focus on goes from $p_i$
 	to itself: instead of computing $\tau_e^\#(X_{p_i})$, one compute
@@ -1912,7 +1920,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	self-loop we focus on is not in $U$, we apply a simple union instead of
 	widening. Widening will be applied next time to guarantee the convergence.
 
-	When the self loop is accelerable \cite{Gon07}, instead of doing a
+	When the self loop can be accelerated \cite{Gon07}, instead of doing a
 	widening/narrowing sequence,  acceleration directly finds
 	its transitive closure.
 
@@ -1962,7 +1970,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 			\State $Y \gets \tau_e^\#(X_{p_i})$
 		\EndIf
 		\If {$(p_j \in P_W) \wedge (p_i \neq p_j \vee e \in U)$}
-			\State $X_{p_j} \gets X_{p_j} \nabla (X_{p_j} \sqcup Y)$
+			\State $X_{p_j} \gets X_{p_j} \widening (X_{p_j} \sqcup Y)$
 		\Else
 			\State $X_{p_j} \gets X_{p_j} \sqcup Y$
 			\State $U \gets U \cup \{e\}$
@@ -2028,6 +2036,12 @@ precise result of this program. After that, the SMT-solver can't find any new
 path, so the analysis terminates.
 \end{itemize}
 
+
+%DM: en quoi tout ceci est de la transitive closure?
+%DM: transitive closure c'est sur des relations i/o
+%DM: note que tu pourrais faire des relations (summaries de boucles, etc.)
+%DM: en gardant dans tes polyedres une copie des variables en tete
+%DM: du bloc/fonction/truc
 
 	\subsection{Disjunctive invariants}
 
@@ -2154,7 +2168,7 @@ easily compute this number of paths when computing the $\rho$ formula.
 	(see \ref{smtformula}) with
 	$(i \neq j) \vee (x'_j \neq x_i)$, such that the SMT-solving only proposes
 	paths that are not the identity. Actually, it never focuses on such paths
-	during the acending sequence, but during narrowing iterations that occur 
+	during the ascending sequence, but during narrowing iterations that occur 
 	at the end of the algorithm.
 
 	Ignoring these identity transitions makes the narrowing sequence recover
@@ -2243,8 +2257,8 @@ the middle of the containing loop.}
 \paragraph{Lookahead Widening} 
 The analysis begins with $p_1: x=i=r=0$. Then, the path $p_1 \rightarrow p_2
 \rightarrow p_3 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$ is the only one
-possible. The technique is then to stabilize the iterations over this subgraph,
-removing $p_4$ and $p_6$ for a while. After stabilization and narrowing phases,
+possible. The technique is then to stabilise the iterations over this subgraph,
+removing $p_4$ and $p_6$ for a while. After stabilisation and narrowing phases,
 we obtain $ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at
 control point $p_1$, and 
 $ 0 \leq i \leq 49 \wedge r=0 \wedge x=-1$ at point $p_5$.
@@ -2257,18 +2271,18 @@ $ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 1$.
 Point $p_6$ now becomes reachable, since $x=0$ is inside our polyhedron.
 Finally, the analysis terminates after some steps and finds $0 \leq r \leq i$.
 \emph{Lookahead Widening} is not able to prove that $r = 0$ at the end of the
-funtion.
+function.
 
 \paragraph{Path Focusing} 
 The analysis of the loop starts with 
 $p_1: x=i=r=0$. Then, the SMT-solver discovers the path $p_1 \rightarrow p_2
 \rightarrow p_3 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. We do a
 widening/narrowing sequence and we find 
-$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at $p_1$. The smt gives
+$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at $p_1$. The SMT gives
 another path: 
 $p_1 \rightarrow p_2
 \rightarrow p_4 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. After
-analyzing this path, we obtain 
+analysing this path, we obtain 
 $ 0 \leq i \leq 100 \wedge r=0 \wedge x=0$. Analysis terminates since the
 SMT-solver gives $unsat$ answers. Here, We never focused on paths going through
 point $p_6$, so our analysis gives us the invariant $x=0$ at the end of the
@@ -2284,12 +2298,12 @@ $p_5$.
 \chapter{Implementation}\label{implementationpart}
 
 \emph{Lookahead Widening} and \emph{Path Focusing}
-techniques have been implemented into a small analyzer, so that we can compare
+techniques have been implemented into a small analyser, so that we can compare
 the precision of their results. In this part, we explain some details about
 these implementations.
 
  \section{Infrastructure}
-The analyzer is based on the \emph{Low Level Virtual Machine} (LLVM)
+The analyser is based on the \emph{Low Level Virtual Machine} (LLVM)
 \cite{LLVM:CGO04}, which is a compilation infrastructure used for instance by
 the \emph{clang} compiler.
 
@@ -2360,14 +2374,14 @@ the \emph{clang} compiler.
 \end{figure}
 \FloatBarrier
 
-The advantage of using such an infrastructure is that the analyzer can check
+The advantage of using such an infrastructure is that the analyser can check
 programs written in various languages: C, C++, \dots, without needing to write
-a specific frontend for each of them. Here, the analyzer directly works on the
+a specific frontend for each of them. Here, the analyser directly works on the
 internal representation (IR), which is a graph representation of
 the program. The control flow graph can easily be extracted from
 this representation.
 
-Our analyzer takes as parameter the LLVM internal representation of a program,
+Our analyser takes as parameter the LLVM internal representation of a program,
 and returns linear relations between the numerical variables at each control
 point of this program. It first applies some optimisation passes over the IR,
 and then computes the linear relations by abstract interpretation.
@@ -2528,14 +2542,14 @@ In our case, a control point will be a BasicBlock of the program.
 
 LLVM internal representation can be applied transformation passes that modifies
 parts of it. These passes are mostly used for optimisation purpose. In our
-analyzer, we apply some already existing passes before running our 
+analyser, we apply some already existing passes before running our 
 abstract interpretation pass. Among the passes we run, we could cite:
 \begin{itemize}
 \item the \emph{PromoteMemoryToRegister} Pass, that transforms the internal
 representation by promoting the memory variables to Static Single Assignment
 (SSA) registers. This pass transform the control flow graph such that all the
 variables are in SSA form, and removes most of the \emph{Load/Store} operations
-into memory. It is useful since our analyzer doesn't have a memory model, and
+into memory. It is useful since our analyser doesn't have a memory model, and
 then loses lots of precision in the case of \emph{Load/Store} instructions.
 \item the \emph{LoopSimplify} and \emph{LoopInfo} Passes, that transform all loops into a canonical
 format, and compute some information related to loops (for instance, the set of
@@ -2555,7 +2569,7 @@ analysis, but for code generation. Then, some informations we need for a precise
 static analysis are lacking.
 
 This is the case for the distinction between \emph{signed} and \emph{unsigned}
-integers, which is inexistant in the representation, since the compiler doesn't
+integers, which is nonexistent in the representation, since the compiler doesn't
 need this information to generate code. Yet, for static analysis, 
 this distinction is required to improve precision:
 for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
@@ -2573,7 +2587,7 @@ computing these live variables after the transformation in SSA form.
 
  \section{Abstract domain representation}
 
-	The analyzer is implemented using the APRON library \cite{JM09}, which
+	The analyser is implemented using the APRON library \cite{JM09}, which
 	is a common interface to libraries implementing all the features
 	for several abstract domains, such as convex polyhedra (NewPolka), 
 	octagons (OCT), intervals (BOX).
@@ -2704,7 +2718,7 @@ computing these live variables after the transformation in SSA form.
 	There is a special case for $\Phi$-variables: in some cases, a
 	$\Phi$-variable can be considered as a linear combination of program
 	variables, when only a single incoming value is possible. This is the case
-	when all but one polyhedra associated to a predessor are at bottom.
+	when all but one polyhedra associated to a predecessor are at bottom.
 	For instance, let say point $p$ has $p_1, p_2, \dots, p_n$ as ordered 
 	predecessors. At point $p$, we have $x = \Phi(x_1, x_2,\dots,x_n)$.
 	If $\forall i \in \{2,\dots,n\}, X_i = \perp$, and $X_1 \neq \perp$, then we
@@ -2719,7 +2733,7 @@ two intervals: $]-\infty, N[\  \cup\  ]N,+\infty[$. Since we use convex polyhedr
 represent the set of possible states of our program, we loose information when
 the analysis comes across a \emph{diseq} operation.
 One classical approach would be to compute a disjunctive invariant, by attaching
-two different polyhedron to the BasicBlock. However, we prefered the following
+two different polyhedron to the BasicBlock. However, we preferred the following
 technique: we transform all the operations of the form $x \neq y$ into
 $x < y \vee x > y$, meaning that we separate the cases \emph{lesser than} and
 \emph{greater than} into two distinct paths.
@@ -2744,7 +2758,7 @@ if (x != y) {
 
 To do so, we could implement an LLVM pass that transform the internal
 representation according to this principle. However, this pass has not been
-implemented in our analyzer, and this transformation has to be done manually.
+implemented in our analyser, and this transformation has to be done manually.
 
 \section{Unrolling loops}
 
@@ -2752,7 +2766,7 @@ In some cases, the number of iterations inside a loop during execution
 may be equals to zero. This happens if the condition of the \emph{while}
 statement is false at the first time the head of loop is reached.
 
-In our analyzer, this kind of loops gives imprecise results. In this section, we
+In our analyser, this kind of loops gives imprecise results. In this section, we
 propose to unroll loops once in order to avoid it.
 This behaviour can happen in very simple programs, such as the one
 depicted in Figure \ref{loop}. Indeed, in the case of $n \leq 0$, the condition
@@ -2882,7 +2896,7 @@ starting from $p_1$, hence the better precision. Indeed, this comes to computing
 a disjunctive invariant for the loop, by distinguishing the case where the
 number of iterations is zero. 
 
-In our analyzer, we unroll every loops once, by using LLVM optimisation
+In our analyser, we unroll every loops once, by using LLVM optimisation
 passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
 
 
@@ -2890,15 +2904,15 @@ passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
 
 	\emph{Path focusing} technique requires to decide the satisfiability of some
 	SMT formula, and to extract a model when the formula is satisfiable, i.e an
-	assignement of the variables so that the formula is \emph{true}. For doing
+	assignment of the variables so that the formula is \emph{true}. For doing
 	this, our implementation has an interface with Microsoft Z3 \cite{MouraB08},
 	and Yices \cite{DutertreM06}. One can easily switch from one to another with
-	an argument we give as parameter to the analyzer. In this way, we can
+	an argument we give as parameter to the analyser. In this way, we can
 	compare the efficiency of both SMT-solvers.
 
 	\section{Limitations}
 
-	Our analyzer could be extended in many ways. Indeed, it is intra-procedural,
+	Our analyser could be extended in many ways. Indeed, it is intra-procedural,
 	meaning that it does not consider that a variable may change after a
 	function call. In addition, the return value of a function call is
 	considered unconstrained. This limitation can be addressed by simply
@@ -2906,13 +2920,13 @@ passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
 	There have been research to find efficient interprocedural analysis
 	techniques \cite{Bourdoncle90,Bou92}.
 
-	Additionnaly, our analyzer has no memory model:
+	Additionally, our analyser has no memory model:
 \begin{itemize}
 \item \emph{Store} instructions, that store a value in the memory, has no effect
 in the analysis.
 \item \emph{Load} instructions, that get a value $v$ in the memory and assign it
 to a variable $x$, doesn't provide properties about the value $v$. Then, our
-analyzer considers $x$ can take all values of its type.
+analyser considers $x$ can take all values of its type.
 \end{itemize}
 In the case of local variables, the transformation of the internal
 representation into SSA form removes the \emph{Load/Store} instructions.
@@ -2920,17 +2934,17 @@ The use of global variables instead of local ones will induce huge
 loss of precision, since there will still be \emph{Load/Store} instructions in
 the IA.
 
-Additionally, some optimization in the code could be proposed in order to
+Additionally, some optimisation in the code could be proposed in order to
 reduce time and/or memory complexity. For instance, paths that have already been
-computed are until now stored in a tree. An optimization could be to store them
+computed are until now stored in a tree. An optimisation could be to store them
 in a Binary Decision Diagram, in order to reduce significantly the memory
 consumption when there is a huge number of paths.
 
 	\section{Example}
 
 	In our running example (Figures \ref{runningexample},
-	\ref{multigraphtransformGopan} and \ref{multigraphGopan}), the analyzer
-	outputs the following result for the basicblock $1$:
+	\ref{multigraphtransformGopan} and \ref{multigraphGopan}), the analyser
+	outputs the following result for the basic block $1$:
 
 \begin{C}
 RESULT FOR BASICBLOCK: -------------------
@@ -2963,7 +2977,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 	In this section, we evaluate our \emph{Lookahead Widening} and \emph{Path
 	Focusing} implementations. We compare their execution time in some
 	practical cases, and the precision of their results. Table \ref{experiments}
-	gives the results of the analyzer in various examples, some of them taken
+	gives the results of the analyser in various examples, some of them taken
 	from the recent literature \cite{CGGMP05,GopanR06}.
 
 	In all experiments, the set $P_R$ is chosen equals to $P_W \cup P_{ret} \cup
@@ -2996,7 +3010,7 @@ that in such benchmarks, our technique finds a much better invariant and is even
 faster than \emph{Lookahead Widening}.
 
 For small programs, our execution time may not be significant. Indeed, the cost
-for reading the program, initializing the SMT-solver, \dots, may have a
+for reading the program, initialising the SMT-solver, \dots, may have a
 	non-negligible cost compared to the abstract interpretation analysis itself.
 	The only interest of these times is to show our algorithm is pretty fast.
 
@@ -3017,7 +3031,7 @@ algorithm actually computes, and total number of iterations}
 The last remark is about the efficiency of Yices and Z3. Yices seems to always
 be slightly faster than Z3, but in some cases, Yices appeared to blow up, or to
 err with a message ``not implemented'', for instance when adding non-linear
-relations into the formula. Then, it was a good choice to link our analyzer with
+relations into the formula. Then, it was a good choice to link our analyser with
 both SMT-solvers.
 
 \begin{table}[!h]
@@ -3178,7 +3192,7 @@ paths of the CFG.
 
 	\section{Arithmetic Overflows}
 
-Some operations such as additions, soustractions\dots may overflow if their
+Some operations such as additions, subtractions\dots may overflow if their
 result is not in the type's definition interval. For instance, an
 \emph{int} variable can only take values in $[-2^{31}, 2^{31} -1]$. Then, there
 are two kind of overflows. Suppose $N=2^{31}$:
@@ -3255,7 +3269,7 @@ the number of paths, but these are treated implicitly.
 	Its limitation is that it does narrowing
 	sequences during the iterations only for self-loops of this multigraph.
 	
-	Lookahead Widening works on the classical control flow graph, and stabilizes
+	Lookahead Widening works on the classical control flow graph, and stabilises
 	temporarily the fixpoint analysis on a part of this graph, forgetting paths
 	that are not feasible at the first iteration.
 
@@ -3267,7 +3281,7 @@ the number of paths, but these are treated implicitly.
 
 \chapter{Conclusion}
   
-	Validation of softwares has become an essential domain in industry,
+	Validation of software has become an essential domain in industry,
 	especially those dealing with embedded systems, where a bug in the program
 	can endanger the safety of people, or induce huge costs to fix. These
 	domains constitute a privileged application field for formal verification
@@ -3281,7 +3295,7 @@ the number of paths, but these are treated implicitly.
 	instance by the widening operator, or control-flow merges.
 
 	In this report, we proposed a new approach to guide the iterations of the
-	analyzer, in order to distinguish the different paths of the program
+	analyser, in order to distinguish the different paths of the program
 	and to treat them
 	independently. The loss of precision due to widening and control-flow merges
 	is then reduced. This technique allows us, for instance, to do narrowing
@@ -3295,7 +3309,7 @@ the number of paths, but these are treated implicitly.
 	In order to find which path we should compute, we use SMT-solving to find
 	paths that makes the abstract interpretation analysis progress.
 
-	We implemented this technique into a small analyzer dealing with C and C++
+	We implemented this technique into a small analyser dealing with C and C++
 	programs, and run it on several
 	benchmarks.
 	It appears that in lots of cases, 
@@ -3304,7 +3318,7 @@ the number of paths, but these are treated implicitly.
 	We compared it with \emph{Lookahead Widening}, and our technique seems to
 	perform better in the case of loops containing control-flow merges. 
 
-	Our analyzer is able to deal with small- and middle-sized programs, but
+	Our analyser is able to deal with small- and middle-sized programs, but
 	looses
 	precision in the case of programs with pointers or several functions.
 	It has been tested with program having loops containing several hundreds
