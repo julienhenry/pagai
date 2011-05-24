@@ -162,7 +162,7 @@ void AI::computeFunction(Function * F) {
 	// first abstract value is top
 	ap_environment_t * env = NULL;
 	computeEnv(n);
-	n->create_env(&env);
+	n->create_env(&env,LV);
 	n->X->set_top(env);
 	n->Y = new Abstract(man,env);
 	n->Y->set_top(env);
@@ -279,7 +279,7 @@ void AI::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract &Xtem
 		focusblock++;
 	}
 	ap_environment_t * env = NULL;
-	succ->create_env(&env);
+	succ->create_env(&env,LV);
 
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);

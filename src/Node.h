@@ -11,6 +11,7 @@
 #include "ap_global1.h"
 
 #include "Abstract.h"
+#include "Live.h"
 #include "AbstractGopan.h"
 
 using namespace llvm;
@@ -75,7 +76,7 @@ class Node {
 		
 		/// create_env - creates an environment containing all live variables
 		/// that needs to be used as dimension in the abstract domain
-		void create_env(ap_environment_t ** env);
+		void create_env(ap_environment_t ** env, Live * LV);
 
 };
 

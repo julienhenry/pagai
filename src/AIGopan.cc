@@ -123,7 +123,7 @@ void AIGopan::computeFunction(Function * F) {
 	}
 	// first abstract value is top
 	ap_environment_t * env = NULL;
-	n->create_env(&env);
+	n->create_env(&env,LV);
 	n->Xgopan->set_top(env);
 	A.push(n);
 
@@ -297,7 +297,7 @@ void AIGopan::computeNode(Node * n) {
 
 	// compute the environement we will use to create our abstract domain
 	computeEnv(n);
-	n->create_env(&n->env);
+	n->create_env(&n->env,LV);
 	Xtemp = new AbstractGopan(man,n->env);
 	// computing the new abstract value, by doing the convex hull of all
 	// predecessors

@@ -106,17 +106,19 @@ void Node::add_var(Value * val) {
 	set_ap_expr(val,exp);
 }
 
-void Node::create_env(ap_environment_t ** env) {
+void Node::create_env(ap_environment_t ** env, Live * LV) {
 	std::set<ap_var_t> Sintvars;
 	std::set<ap_var_t> Srealvars;
 
 	for (std::map<Value*,std::set<ap_var_t> >::iterator i = intVar.begin(),
 			e = intVar.end(); i != e; ++i) {
-		Sintvars.insert((*i).second.begin(), (*i).second.end());
+		if (LV->isLiveThroughBlock((*i).first,bb) || LV->isUsedInBlock((*i).first,bb) || isa<UndefValue>((*i).first))
+			Sintvars.insert((*i).second.begin(), (*i).second.end());
 	}
 	for (std::map<Value*,std::set<ap_var_t> >::iterator i = realVar.begin(),
 			e = realVar.end(); i != e; ++i) {
-		Srealvars.insert((*i).second.begin(), (*i).second.end());
+		if (LV->isLiveThroughBlock((*i).first,bb) || LV->isUsedInBlock((*i).first,bb) || isa<UndefValue>((*i).first))
+			Srealvars.insert((*i).second.begin(), (*i).second.end());
 	}
 
 	ap_var_t * intvars = (ap_var_t*)malloc(Sintvars.size()*sizeof(ap_var_t));
