@@ -168,6 +168,7 @@ void AI::computeFunction(Function * F) {
 	n->Y->set_top(env);
 	A.push(n);
 
+	is_computed.clear();
 	// Simple Abstract Interpretation algorithm
 	while (!A.empty()) {
 		current = A.top();
@@ -509,6 +510,7 @@ void AI::narrowNode(Node * n) {
 			Succ->Y->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
+		is_computed[Succ] = false;
 		LSMT->pop_context();
 	}
 }
