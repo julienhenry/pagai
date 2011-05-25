@@ -36,6 +36,9 @@ class AbstractGopan {
 		/// change_environment - change the environment of the abstract value
 		void change_environment(ap_environment_t * env);
 
+		/// is_bottom - return true iff this is bottom
+		bool is_bottom();
+
 		/// is_leq - return true iff this <= d
 		bool is_leq(AbstractGopan * d);
 

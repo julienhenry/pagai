@@ -53,10 +53,15 @@ void AbstractGopan::set_bottom(ap_environment_t * env) {
 }
 
 void AbstractGopan::change_environment(ap_environment_t * env) {
+
 	if (!ap_environment_is_eq(env,main->env))
 		*main = ap_abstract1_change_environment(man,true,main,env,false);
 	if (pilot != main && !ap_environment_is_eq(env,pilot->env))
 		*pilot = ap_abstract1_change_environment(man,true,pilot,env,false);
+}
+
+bool AbstractGopan::is_bottom() {
+	return ap_abstract1_is_bottom(man,main);
 }
 
 bool AbstractGopan::is_leq (AbstractGopan *d) {
@@ -76,25 +81,25 @@ bool AbstractGopan::is_leq (AbstractGopan *d) {
 void AbstractGopan::widening(Node * n) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;
-	ap_abstract1_t Xpilot;
 
 	if (is_leq(n->Xgopan)) {
 		Xmain_widening = ap_abstract1_copy(man,n->Xgopan->main);
 		Xpilot_widening = ap_abstract1_copy(man,n->Xgopan->pilot);
-	} else if (ap_abstract1_is_leq(man,pilot,n->Xgopan->pilot)) {
-		Xmain_widening = ap_abstract1_copy(man,pilot);
-		Xpilot_widening = ap_abstract1_copy(man,pilot);
 	} else {
-		// we apply the widening operator only on the pilot value,
-		// and we only join the main values.
-		Xmain_widening = ap_abstract1_join(man,false,n->Xgopan->main,main);
-		// before widening, n->Xgopan->pilot has to be included in pilot
-		Xpilot = ap_abstract1_join(man,false,n->Xgopan->pilot,pilot);
-		Xpilot_widening = ap_abstract1_widening(man,n->Xgopan->pilot,&Xpilot);
-		ap_abstract1_clear(man,&Xpilot);
-	}
-	if (pilot != main)
+		ap_abstract1_t dpUcm = ap_abstract1_join(man,false,pilot,n->Xgopan->main);
+		if (ap_abstract1_is_leq(man,&dpUcm,n->Xgopan->pilot)) {
+			Xmain_widening = ap_abstract1_copy(man,&dpUcm);
+			Xpilot_widening = ap_abstract1_copy(man,&dpUcm);
+		} else {
+			Xmain_widening = ap_abstract1_join(man,false,main,n->Xgopan->main);
+			Xpilot_widening = ap_abstract1_widening(man,n->Xgopan->pilot,&dpUcm);
+		}
+		ap_abstract1_clear(man,&dpUcm);
+	}	
+	
+	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
+	}
 	ap_abstract1_clear(man,main);
 	
 	*main = Xmain_widening;

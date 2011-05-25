@@ -18,6 +18,7 @@
 
 #include "AI.h"
 #include "AIGopan.h"
+#include "AIGopan2.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -93,7 +94,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	ModulePass *AIPass;
 	if (useLookaheadWidening())
-		AIPass = new AIGopan();
+		AIPass = new AIGopan2();
 	else
 		AIPass = new AI();
 	FunctionPass *LoopInfoPass = new LoopInfo();

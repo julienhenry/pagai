@@ -245,7 +245,8 @@ Then, we add iteratively new elements in the sets.
 \item $Y_2$ contains $0$, so $0+1=1$ is in $Y_1$: $Y_1 = \{0,1\}$.
 \item Again, we find $Y_2 = \{0,1\}$.
 \item $Y_2$ now contains $1$, so $1+1=2 \in Y_1$: $Y_1 = \{0,1,2\}$.
-\item We continue the iteration until we find no more elements in the sets\dots
+\item We continue the iteration until we find no more new elements in the
+sets\dots
 \end{itemize}
 
 This computation is a fixpoint computation: the different sets are updated until
@@ -272,7 +273,7 @@ computation quickly becomes too costly or doesn't terminate.
 
 Abstract Interpretation proposes to represent more efficiently the
 elements of this complex domain $C$ of concrete values,
-by choosing an simpler domain  $A$ called \emph{abstract domain}. 
+by choosing a simpler domain  $A$ called \emph{abstract domain}. 
 % DM: un peu lourd et peu clair
 
 A concretization function $\gamma$ maps the elements of $A$ to elements of $C$:
@@ -362,7 +363,7 @@ the following properties:
 defined by 
 $$\system{
 x'_0 & = &  x_0 \\
-x'_{i+1} & = &  x'_i\ \widening\ x_{i+1},\ \  \forall i > 0
+x'_{i+1} & = &  x'_i\ \widening\ x_{i+1},\ \  \forall i \geq 0
 }$$
 is not strictly increasing. Then, applying the widening operator when the
 sequence may increase indefinitely makes the computation converge to a fixpoint
@@ -379,7 +380,7 @@ sequence:
 
 $$\system{
 x'_0 &=& \perp \\
-x'_{i+1} &=& x'_i\ \widening\ \Phi^\#(x'_i),\ \ \forall i > 0
+x'_{i+1} &=& x'_i\ \widening\ \Phi^\#(x'_i),\ \ \forall i \geq 0
 }$$
 
 which converges towards $\tilde{x}$, where $\tilde{x} \geq_A \overline{x}$.
@@ -390,7 +391,7 @@ operator by computing a descending sequence:
 
 $$\system{
 x''_0 &=& \tilde{x} \\
-x''_{i+1} &=& \Phi^\#(x''_i), \ \ \forall i > 0
+x''_{i+1} &=& \Phi^\#(x''_i), \ \ \forall i \geq 0
 }$$
 
 Each element of this descending sequence is still an upper approximation of the
@@ -400,7 +401,8 @@ the ascending sequence.
 
 \section{Linear Relation Analysis}
 
-Linear Relation Analysis \cite{CH78} (also noted LRA) is a direct application of
+Linear Relation Analysis \cite{CH78} (also denoted LRA) is a direct application
+of
 Abstract Interpretation. It is aimed at computing an upper approximation of the
 reachable states of a program containing numerical variables. The set of
 possible assignments for the numerical variables is abstracted by a convex
@@ -449,8 +451,8 @@ against loss of precision:
 iteration of the analysis, one apply it after a number $n$ of iterations. During
 the $n-1$ first iterations, only a convex hull is computed. In some cases,
 delaying the widening operation is more precise. The algorithm still terminates,
-since widening is applied within a finite time after $n$ iterations. Most of the
-cases, $n$ can be chosen equals to $2$.
+since widening is applied within a finite time after $n$ iterations. In most of
+the cases, $n$ can be chosen equals to $2$.
 \item \emph{Widening with threshold (or ``up to'')}: In some cases, instead of
 brutally applying the widening operator, a fixed set of linear inequalities $T$
 can be chosen, and the widening operator $\widening_T$ is defined as follows:
@@ -482,7 +484,8 @@ set of initial values for each control point $p \in P$. For an initial control
 point $p$, i.e a starting point of the program, $I_p$ is not empty. It is empty
 in the other case.
 \item $E \subseteq  P \times P$ is a set of directed edges. Each edge $e \in E$
-has a semantic $\tau_e: \P(\Q^n) \rightarrow \P(\Q^n)$, $\P(\Q^n)$ being the set
+has a semantics $\tau_e: \P(\Q^n) \rightarrow \P(\Q^n)$, $\P(\Q^n)$ being the
+set
 of possible values of $\overrightarrow{x}$. $\tau_e$ maps a set of states before
 the transition to the set of states after the transition.
 \end{itemize}
@@ -539,7 +542,7 @@ while (true) {
 
 \end{tikzpicture}
    \end{minipage}
-   \caption{Example of program, and its associate control flow graph. This
+   \caption{Example of program, and its associated control flow graph. This
    program comes from \cite{GopanR06}.}
 \label{runningexample}
 \end{figure}
@@ -710,9 +713,9 @@ $$\begin{array}{llll}
 \end{array}$$
 \end{minipage}
 
-Acceleration is possible when the loop is simple enough, and come to compute the
-transitive closure $\tau_e^+$ of $\tau_e$, the transition function associated to
-the loop.
+Acceleration is possible when the loop is simple enough, and comes to compute
+the transitive closure $\tau_e^+$ of $\tau_e$, the transition function
+associated to the loop.
 
 \section{Example}
 
@@ -1086,7 +1089,7 @@ In some cases, a loop can have a non-regular behaviour, especially when it has
 several paths. Some of these paths can stay impossible for a while, and become
 possible after a certain number of iterations. However, the widening operator
 extrapolates without taking care of these new possible paths. This can induce a
-loss of precision, that Lookahead widening tries to limit.
+loss of precision, that \emph{Lookahead widening} tries to limit.
 
 Lookahead widening \cite{GopanR06} is a technique that isolates the
 different loop phases during the analysis, and stabilises each of these loop
@@ -1110,7 +1113,7 @@ for a while, until the convergence. In our example:
 \item Step 1:
 	we only consider the path of
 	the loop that is possible at the first iteration. The second path is
-	ignored, and will be treated later. we compute the iterations, and we obtain
+	ignored, and will be treated later. We compute the iterations, and we obtain
 	an first invariant for this part of the graph: at point $p_1$, $x =
 	y \wedge x \geq 0$.
 	Then, we can do some
@@ -1317,7 +1320,7 @@ $\Longrightarrow$
 		(n0) edge  [out=-75, in=75]            node {} (n9);
 \end{tikzpicture}
 \end{minipage}
-\caption{One can expand the graph in the left and obtain the associate graph in
+\caption{One can expand the graph in the left and obtain the associated graph in
 the right.}
 \end{figure}
 \FloatBarrier
@@ -1449,7 +1452,7 @@ $\Longrightarrow$
 		$} (n7);
 \end{tikzpicture}
 \end{minipage}
-\caption{Example of classical control flow graph, and its associate expanded
+\caption{Example of classical control flow graph, and its associated expanded
 multigraph, where $P_R = \{p_0, p_1, p_7\}$. The path dashed from $p_1$ to $p_1$
 in the control flow graph corresponds to a simple dashed transition in the multigraph,
 having the same semantic.}
@@ -1584,7 +1587,7 @@ y.0 = x.2 + 1;
 \end{figure}
 \FloatBarrier
 
-This static single assignment form is required for the computation of the focus
+This static single assignment form is used for the computation of the focus
 path.
 
 	\subsection{Choice of the focus paths}
@@ -1698,12 +1701,13 @@ old value of $x$.
 Finally, the $\rho$ formula is the following:
 
 \begin{eqnarray*}
-\rho = & \displaystyle\bigwedge_{p_i \notin P_R}& \left[ (b_i = \bigvee_{(p_h,p_i) \in E}
-t_{h,i}) \wedge ( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i \wedge c(i,j))
+\rho = & \displaystyle\bigwedge_{p_i \notin P_R}& \left[ \left(b_i = \bigvee_{(p_h,p_i) \in E}
+t_{h,i}\right) \wedge \left( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i \wedge
+c(i,j)\right)
 \right] \wedge \\
- & \displaystyle\bigwedge_{p_i \in P_R}& \left[ (b_i^d = \bigvee_{(p_h,p_i) \in E}
- t_{h,i}) \wedge ( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i^s \wedge
- c(i,j)) \right] \wedge \\
+ & \displaystyle\bigwedge_{p_i \in P_R}& \left[ \left(b_i^d = \bigvee_{(p_h,p_i) \in E}
+ t_{h,i}\right) \wedge \left( \bigwedge_{(p_i,p_j)\in E} t_{i,j} = b_i^s \wedge
+ c(i,j)\right) \right] \wedge \\
  & \displaystyle\bigwedge_{x \in \Sigma}& assign(x)
 \end{eqnarray*}
 
@@ -1815,7 +1819,8 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 
 	\subsubsection{Expression of the reachability problem}
 	\label{smtformula}
-	The SMT-formula $\rho$ express the semantic of the program. We still need to create the
+	The SMT-formula $\rho$ express the semantics of the program. We still need
+	to create the
 	formula expressing the reachability problem defined in \ref{reachability}.
 
 	The abstract domain $D$ we use is those of convex polyhedra, so an abstract
@@ -1994,7 +1999,7 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	The $\rho$ formula associated to this program is depicted in
 	Figure \ref{rhoformula}.
 	One computes
-	iteratively the associate abstract values $X_0$, $X_1$ and $X_7$.
+	iteratively the associated abstract values $X_0$, $X_1$ and $X_7$.
 
 \begin{itemize}
 \item Step 0: Initially, $X_0 = \top, X_1 = \perp, X_7 = \perp$, and $A =
@@ -2004,7 +2009,7 @@ in a state in $P_R$ and makes its abstract value grow? The SMT-solver answers
 \emph{yes}, and gives the path $p_0 \rightarrow p_1$. We update $X_1$:
 it is the polyhedron $x=y=0$. We update $A = \{p_1\}$. 
 We do another SMT query: is there another path
-starting in $p_0$ that makes an abstract value grow? Answer is no.
+starting in $p_0$ that makes an abstract value grow? The answer is no.
 \item Step 2: We now work on $p_1$. Is there a path starting in $p_1$ that
 arrives in a successor of $p_1$, and makes its abstract value grow? Answer is
 yes, and the model given by the SMT-solver is the path $p_1 \rightarrow p_2
@@ -2138,7 +2143,7 @@ function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 easily compute this number of paths when computing the $\rho$ formula.
 
 
-	\subsection{Removing Identity transitions}
+	\subsection{Removing identity transitions}
 
 	When computing iterations, some of the loop paths may not change the state
 	of the variables, i.e the transition function associated to this path is the
@@ -2151,7 +2156,7 @@ easily compute this number of paths when computing the $\rho$ formula.
 	$$\Phi(X) = \{ x'\ |\ \exists x \in X, x' = \tau(x)\} \cup I$$
 
 	$\Phi$ is the function we classically use to find an inductive invariant
-	$X$,satisfying the property $\Phi(X) \subseteq X$. To improve the analysis,
+	$X$, satisfying the property $\Phi(X) \subseteq X$. To improve the analysis,
 	we propose to compute this invariant using another function $\Psi$, by
 	removing the transitions that are actually the identity. Indeed, these
 	transitions make no change to the set $X$.
@@ -2185,7 +2190,7 @@ In this subsection, we propose an example showing that \emph{Path Focusing}
 technique performs better than \emph{Lookahead Widening} in the case of loops
 with intermediate control-flow merges.
 
-We consider the program depicted in figure \ref{ex9}.
+We consider the program depicted in Figure \ref{ex9}, page \pageref{ex9}.
 Here, we would like to show that the returned value $r$ is zero.
 
 \begin{figure}[!h]
@@ -2278,8 +2283,8 @@ The analysis of the loop starts with
 $p_1: x=i=r=0$. Then, the SMT-solver discovers the path $p_1 \rightarrow p_2
 \rightarrow p_3 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. We do a
 widening/narrowing sequence and we find 
-$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at $p_1$. The SMT gives
-another path: 
+$ 0 \leq i \leq 50 \wedge r=0 \wedge -1 \leq x \leq 0$ at $p_1$. The SMT-solver
+gives another path: 
 $p_1 \rightarrow p_2
 \rightarrow p_4 \rightarrow p_5 \rightarrow p_7 \rightarrow p_1$. After
 analysing this path, we obtain 
@@ -2580,7 +2585,7 @@ for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
 
 
 Another example of information that was missing is the set of live variables.
-Indeed, in LLVM, live variables computation is processed after the register
+Indeed, in LLVM, live variables computation is processed during the register
 allocation. Then, the data structure we work on doesn't have live variables
 informations yet. To solve this problem, we coded our own pass, that is aimed at
 computing these live variables after the transformation in SSA form.
@@ -2601,7 +2606,7 @@ computing these live variables after the transformation in SSA form.
 	after each instruction. A BasicBlock begins with all its $\Phi$-variables,
 	and ends with the other instructions. We choose to attach our abstract value
 	just after the $\Phi$-variables assignments. In this way, the
-	$\Phi$-variables of the associate BasicBlock will be part of the dimensions
+	$\Phi$-variables of the associated BasicBlock will be part of the dimensions
 	of the polyhedron.
 
 
@@ -2680,7 +2685,7 @@ computing these live variables after the transformation in SSA form.
 	described in \cite[section 3.3]{Boi10}.
 
 	
-	At a program point $p$, the dimensions of the associate abstract value could
+	At a program point $p$, the dimensions of the associated abstract value could
 	only be the numerical variables that are live at $p$. This is
 	not exactly the case in our implementation, because of another 
 	optimisation: we only consider
@@ -2719,7 +2724,7 @@ computing these live variables after the transformation in SSA form.
 	$\Phi$-variable can be considered as a linear combination of program
 	variables, when only a single incoming value is possible. This is the case
 	when all but one polyhedra associated to a predecessor are at bottom.
-	For instance, let say point $p$ has $p_1, p_2, \dots, p_n$ as ordered 
+	For instance, let's say point $p$ has $p_1, p_2, \dots, p_n$ as ordered 
 	predecessors. At point $p$, we have $x = \Phi(x_1, x_2,\dots,x_n)$.
 	If $\forall i \in \{2,\dots,n\}, X_i = \perp$, and $X_1 \neq \perp$, then we
 	can use the linear relation $x = x_1$ instead of the $\Phi$ function. In
@@ -2735,7 +2740,7 @@ the analysis comes across a \emph{diseq} operation.
 One classical approach would be to compute a disjunctive invariant, by attaching
 two different polyhedron to the BasicBlock. However, we preferred the following
 technique: we transform all the operations of the form $x \neq y$ into
-$x < y \vee x > y$, meaning that we separate the cases \emph{lesser than} and
+$x < y \vee x > y$, meaning that we separate the cases \emph{less than} and
 \emph{greater than} into two distinct paths.
 
 \begin{minipage}[c]{.29\linewidth}
@@ -2763,7 +2768,7 @@ implemented in our analyser, and this transformation has to be done manually.
 \section{Unrolling loops}
 
 In some cases, the number of iterations inside a loop during execution 
-may be equals to zero. This happens if the condition of the \emph{while}
+may be equal to zero. This happens if the condition of the \emph{while}
 statement is false at the first time the head of loop is reached.
 
 In our analyser, this kind of loops gives imprecise results. In this section, we
@@ -2810,9 +2815,9 @@ while (i < n)
 
 In this example, our program behaves as follows:
 \begin{itemize}
-\item At point $p_1$, we first have the polyhedra $i=0$, where $n$ in
+\item At point $p_1$, we first have the polyhedron $i=0$, where $n$ in
 unconstrained.
-\item The image of this polyhedra after the loop transition is $i \leq n \wedge
+\item The image of this polyhedron after the loop transition is $i \leq n \wedge
 i=1$. After a convex hull, we obtain for $p_1$ $0 \leq i \leq 1$.
 \item Again, we
 compute the image of this polyhedron by the transition, $1 \leq i \leq 2 \wedge
@@ -2918,7 +2923,7 @@ passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
 	considered unconstrained. This limitation can be addressed by simply
 	inlining the function call, provided the function is not recursive.
 	There have been research to find efficient interprocedural analysis
-	techniques \cite{Bourdoncle90,Bou92}.
+	techniques \cite{Bourdoncle90,Bou92,jeannet09b}.
 
 	Additionally, our analyser has no memory model:
 \begin{itemize}
@@ -2980,7 +2985,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 	gives the results of the analyser in various examples, some of them taken
 	from the recent literature \cite{CGGMP05,GopanR06}.
 
-	In all experiments, the set $P_R$ is chosen equals to $P_W \cup P_{ret} \cup
+	In all experiments, the set $P_R$ is chosen equal to $P_W \cup P_{ret} \cup
 	P_{init}$,
 	where $P_W$ is the set of widening points. $P_{init}$ is the set of starting
 	points of the program, and $P_{ret}$ is the set of points that have no
@@ -2990,7 +2995,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 
 \emph{Path Focusing} appears to always perform similarly or better than 
 \emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
-containing control-flow merges inside of loops, because of the distinction
+containing control-flow merges inside of loops, thanks to the distinction
 between all the paths of the loop. In simpler programs, it performs as well as
 \emph{Lookahead Widening}
 
@@ -3333,7 +3338,7 @@ the number of paths, but these are treated implicitly.
 	obtained with classical widening/narrowing.
 	
 
-	\emph{Path Focusing} technique performs better because of the distinction
+	\emph{Path Focusing} technique performs better thanks to the distinction
 	between
 	paths. Then, encoding some properties in the control flow graph, such as
 	arithmetic overflows or aliases, is one direction to explore. One could also
