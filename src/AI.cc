@@ -872,14 +872,16 @@ void AI::visitPHINode (PHINode &I){
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
 
 			if (focusblock == focuspath.size()-1) {
-				n->add_var(&I);
-				PHIvars.name.push_back((ap_var_t)&I);
-				PHIvars.expr.push_back(*expr);
-				DEBUG(
-					*Out << I << " is equal to ";
-					texpr1_print(expr);
-					*Out << "\n";
-				);
+				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+					n->add_var(&I);
+					PHIvars.name.push_back((ap_var_t)&I);
+					PHIvars.expr.push_back(*expr);
+					DEBUG(
+						*Out << I << " is equal to ";
+						texpr1_print(expr);
+						*Out << "\n";
+					);
+				}
 			} else {
 				if (expr == NULL) continue;
 				DEBUG(

@@ -64,6 +64,7 @@ class AbstractGopan {
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
 		void join_array(ap_environment_t * env, std::vector<AbstractGopan*> X_pred);
+		void join_array_dpUcm(ap_environment_t *env, AbstractGopan* n);
 
 		/// print - print the abstract domain on standard output
 		void print(bool only_main = false);

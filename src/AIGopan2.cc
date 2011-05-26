@@ -195,7 +195,6 @@ void AIGopan2::computeEnv(Node * n) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 		if (pred->X->main != NULL) {
-			//*Out << "Hello\n";
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
@@ -273,7 +272,6 @@ void AIGopan2::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract
 	}
 	//Xtemp.set_top(env);
 	Xtemp.change_environment(env);
-
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 
 	// the environment may have changed because of the constraints and the Phi
@@ -329,6 +327,8 @@ void AIGopan2::computeNode(Node * n) {
 
 		if (LI->isLoopHeader(Succ->bb)) {
 			Xtemp->widening(Succ);
+		} else {
+			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->Xgopan);
 		}
 
 		if ( !Xtemp->is_leq(Succ->Xgopan)) {
@@ -762,14 +762,16 @@ void AIGopan2::visitPHINode (PHINode &I){
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
 
 			if (focusblock == focuspath.size()-1) {
-				n->add_var(&I);
-				PHIvars.name.push_back((ap_var_t)&I);
-				PHIvars.expr.push_back(*expr);
-				DEBUG(
-					*Out << I << " is equal to ";
-					texpr1_print(expr);
-					*Out << "\n";
-				);
+				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+					n->add_var(&I);
+					PHIvars.name.push_back((ap_var_t)&I);
+					PHIvars.expr.push_back(*expr);
+					DEBUG(
+						*Out << I << " is equal to ";
+						texpr1_print(expr);
+						*Out << "\n";
+					);
+				}
 			} else {
 				if (expr == NULL) continue;
 				DEBUG(

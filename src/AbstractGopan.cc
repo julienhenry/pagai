@@ -189,6 +189,22 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<AbstractGopan
 	}
 }
 
+void AbstractGopan::join_array_dpUcm(ap_environment_t *env, AbstractGopan* n) {
+
+	ap_abstract1_t Xmain;
+	ap_abstract1_t Xpilot;
+	Xmain =ap_abstract1_join(man,false,main,n->main);
+	Xpilot =ap_abstract1_join(man,false,pilot,n->main);
+	
+	if (pilot == main) {
+		pilot = new ap_abstract1_t(Xpilot);
+	} else {
+		*pilot = Xpilot;
+	}
+	ap_abstract1_clear(man,main);
+	*main = Xmain;
+}
+
 void AbstractGopan::print(bool only_main) {
 
 	FILE* tmp = tmpfile();
