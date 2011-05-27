@@ -876,6 +876,8 @@ void AI::visitPHINode (PHINode &I){
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
+					ap_environment_t * env = expr->env;
+					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					DEBUG(
 						*Out << I << " is equal to ";
 						texpr1_print(expr);

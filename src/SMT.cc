@@ -303,7 +303,7 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			double x = FP->getValueAPF().convertToDouble();
 			return man->SMT_mk_real(x);
 		}
-		if (isa<UndefValue>(v)) {
+		if (!isa<ConstantInt>(v) || !isa<ConstantFP>(v) ) {
 			if (ssa_defs.count(v))
 				var = getVar(v,true);
 			else
@@ -317,9 +317,11 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			var = getVar(v,false);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
-		*Out << "ERROR in getValueExpr" << *v << "\n";
-		Out->flush();
-		return NULL;
+		if (ssa_defs.count(v))
+			var = getVar(v,true);
+		else
+			var = getVar(v,false);
+		return man->SMT_mk_expr_from_var(var);
 	}
 	return NULL;
 }

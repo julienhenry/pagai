@@ -199,6 +199,7 @@ void yices::SMT_print(SMT_expr a) {
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
 		*Out << c;
+	fclose(tmp);
 
 	*Out << "\n";
 }
@@ -238,6 +239,7 @@ bool yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 					*Out << c;
 
 				*Out << "\n";
+				fclose(tmp);
 			}
 		}
 		);

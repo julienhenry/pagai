@@ -147,5 +147,5 @@ void Abstract::print(bool only_main) {
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
 		*Out << c;
-
+	fclose(tmp);
 }

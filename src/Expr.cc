@@ -36,6 +36,10 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
 	}
+	if (Exprs.count(val) == 0) {
+		n->add_var(val);
+	}
+
 	return Exprs[val];
 }
 
@@ -50,7 +54,8 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 		if (isa<Constant>(val)) {
 			return create_ap_expr(n,dyn_cast<Constant>(val));
 		} else {
-			return NULL;
+			n->add_var(val);
+			return Exprs[val];
 		}
 	}
 }
@@ -167,6 +172,7 @@ void environment_print(ap_environment_t * env) {
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
 		*Out << c;
+	fclose(tmp);
 }
 
 void texpr1_print(ap_texpr1_t * expr) {
@@ -182,6 +188,7 @@ void texpr1_print(ap_texpr1_t * expr) {
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
 		*Out << c;
+	fclose(tmp);
 }
 
 void tcons1_array_print(ap_tcons1_array_t * cons) {
@@ -197,4 +204,5 @@ void tcons1_array_print(ap_tcons1_array_t * cons) {
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
 		*Out << c;
+	fclose(tmp);
 }

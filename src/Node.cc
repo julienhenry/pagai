@@ -11,6 +11,8 @@
 #include "Node.h"
 #include "Expr.h"
 #include "Abstract.h"
+#include "Debug.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -90,7 +92,9 @@ void Node::add_var(Value * val) {
 	ap_var_t var = val; 
 	ap_texpr_rtype_t type;
 
-	if (get_ap_type(val,type)) return;
+	if (get_ap_type(val,type)) {
+		return;
+	}
 
 	switch (type) {
 		case AP_RTYPE_INT:

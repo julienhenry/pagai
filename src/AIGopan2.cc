@@ -766,6 +766,8 @@ void AIGopan2::visitPHINode (PHINode &I){
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
+					ap_environment_t * env = expr->env;
+					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					DEBUG(
 						*Out << I << " is equal to ";
 						texpr1_print(expr);
@@ -899,7 +901,6 @@ void AIGopan2::visitTerminatorInst (TerminatorInst &I){
 void AIGopan2::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[focuspath.back()];
 
-	//*Out << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
 	switch(I.getOpcode()) {
 		// Standard binary operators...
