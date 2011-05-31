@@ -43,6 +43,6 @@ class yices: public SMT_manager {
 		void pop_context();
 
 		void SMT_print(SMT_expr a);
-		bool SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
+		int SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
 };
 #endif

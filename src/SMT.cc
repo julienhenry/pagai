@@ -427,7 +427,7 @@ void SMT::computeRhoRec(Function &F,
 			pred = *p;
 			//computeRhoRec(F,pred,dest,false,visited);
 			if (!Pr[&F]->count(pred)) {
-				if (!visited->count(pred)) 
+				//if (!visited->count(pred)) 
 					computeRhoRec(F,pred,dest,false,visited);
 				//primed[b].insert(primed[pred].begin(),primed[pred].end());
 			} else {
@@ -437,7 +437,9 @@ void SMT::computeRhoRec(Function &F,
 		}
 	}
 
+
 	if (first) return;
+
 
 	// we create a boolean reachability predicate for the basicblock
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
@@ -552,10 +554,12 @@ SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow) {
 
 /// SMTsolve - solve an SMT formula and computes its model in case of a 'sat'
 /// formula
-bool SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
-	if (!man->SMT_check(expr,&true_booleans)) return false;
+	int res;
+	res = man->SMT_check(expr,&true_booleans);
+	if (res != 1) return res;
 	bool isEdge, start;
 	BasicBlock * src;
 	BasicBlock * dest;
@@ -577,7 +581,7 @@ bool SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 		path->push_back(succ[path->back()]);
 		if (path->back() == path->front()) break;
 	}
-	return true;	
+	return res;	
 }
 
 void SMT::visitReturnInst (ReturnInst &I) {

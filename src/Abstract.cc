@@ -5,6 +5,7 @@
 #include "ap_global1.h"
 
 #include "Abstract.h"
+#include "AbstractGopan.h"
 #include "Node.h"
 #include "Expr.h"
 #include "Analyzer.h"
@@ -48,6 +49,14 @@ void Abstract::change_environment(ap_environment_t * env) {
 
 bool Abstract::is_leq (Abstract *d) {
 		return ap_abstract1_is_leq(man,main,d->main);
+}
+
+bool Abstract::is_leq (AbstractGopan *d) {
+		return ap_abstract1_is_leq(man,main,d->main);
+}
+
+bool Abstract::is_eq (AbstractGopan *d) {
+		return ap_abstract1_is_eq(man,main,d->main);
 }
 
 bool Abstract::is_bottom() {

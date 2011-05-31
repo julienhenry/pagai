@@ -7,8 +7,8 @@ BIN_REP		= ../bin/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
 CC			= clang++
-#CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2
-CPPFLAGS	= -O2
+#CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
+CPPFLAGS	= -O2 
 LDFLAGS		=
 ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include
 #ICFLAGS		= 
@@ -20,7 +20,7 @@ APRON_PREFIX=/usr
 PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 
-CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native)
+CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native) 
 
 LDFLAGS  += $(shell llvm-config --ldflags --libs core jit bitreader bitwriter native)
 

@@ -135,7 +135,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// SMTsolve - solve the SMT expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from
 		/// the model
-		bool SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
+		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
 		/// XToSmt - transform an apron object of type X into an SMT
 		/// expression

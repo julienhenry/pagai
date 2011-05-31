@@ -212,7 +212,7 @@ void z3_manager::SMT_print(SMT_expr a){
 				(Z3_ast)a);
 }
 
-bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
+int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
 	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
@@ -222,12 +222,12 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			DEBUG(
 				*Out << "unsat\n";
 			);
-			return false;
+			return 0;
 		case Z3_L_UNDEF:
-			DEBUG(
+			//DEBUG(
 			*Out << "unknown\n";
-			);
-			return false;
+			//);
+			return -1;
 		case Z3_L_TRUE:
 			DEBUG(
 			*Out << "sat\n";
@@ -296,7 +296,7 @@ bool z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			}
 			break;
 	}
-	return true;
+	return 1;
 }
 
 void z3_manager::push_context() {

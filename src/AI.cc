@@ -64,13 +64,13 @@ bool AI::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
+			if (LSMT->getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
 				n->Y->print(true);
 			}
-			delete Nodes[b];
+			//delete Nodes[b];
 		}
 	}
 
@@ -81,12 +81,24 @@ bool AI::runOnModule(Module &M) {
 
 void AI::initFunction(Function * F) {
 	Node * n;
+	bool already_seen = false;
+
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			n = new Node(man,i);
-			Nodes[i] = n;
+			if (Nodes.count(i) == 0) {
+				n = new Node(man,i);
+				Nodes[i] = n;
+			} else {
+				already_seen = true;
+				n = Nodes[i];
+				n->intVar.clear();
+				n->realVar.clear();
+				n->phi_vars.clear();
+				n->tcons.clear();
+				n->env = NULL;
+			}
 	}
-	if (F->size() > 0) {
+	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
@@ -124,10 +136,13 @@ void AI::printPath(std::list<BasicBlock*> path) {
 	Out->resetColor();
 }
 
+bool unknown;
+
 void AI::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
 	Node * current;
+	unknown = false;
 
 	// A = {first basicblock}
 	b = F->begin();
@@ -140,17 +155,15 @@ void AI::computeFunction(Function * F) {
 	LI = &(getAnalysis<LoopInfo>(*F));
 
 	DEBUG(
-		*Out << "Computing Pr...";
+		*Out << "Computing Pr...\n";
 	);
 	LSMT->getPr(*F);
-	DEBUG(
-		*Out << "OK\nComputing Rho...";
-	);
+	*Out << "Computing Rho...";
 	LSMT->getRho(*F);
-	DEBUG(
-		*Out << "OK\n";
+	*Out << "OK\n";
+	
 		LSMT->man->SMT_print(LSMT->getRho(*F));
-	);
+
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -174,6 +187,11 @@ void AI::computeFunction(Function * F) {
 		current = A.top();
 		A.pop();
 		computeNode(current);
+		if (unknown) {
+			ignoreFunction.insert(F);
+			while (!A.empty()) A.pop();
+			return;
+		}
 	}
 	
 	is_computed.clear();
@@ -225,7 +243,6 @@ void AI::computeEnv(Node * n) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
 		if (pred->X->main != NULL) {
-			//*Out << "Hello\n";
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
@@ -365,8 +382,11 @@ void AI::computeNode(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
+		int res;
+		res = LSMT->SMTsolve(smtexpr,&path);
+		if (res != 1 || path.size() == 1) {
 			LSMT->pop_context();
+			if (res == -1) unknown = true;
 			return;
 		}
 	

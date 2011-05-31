@@ -45,7 +45,7 @@ class SMT_manager {
 		virtual void pop_context() = 0;
 
 		virtual void SMT_print(SMT_expr a) = 0;
-		virtual bool SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
+		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
 };
 

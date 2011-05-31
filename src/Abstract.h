@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "ap_global1.h"
+#include "AbstractGopan.h"
 
 class Node;
+class AbstractGopan;
 
 class Abstract {
 
@@ -38,6 +40,9 @@ class Abstract {
 
 		/// is_leq - return true iff this <= d
 		bool is_leq(Abstract * d);
+
+		bool is_leq(AbstractGopan * d);
+		bool is_eq(AbstractGopan * d);
 
 		/// is_bottom - return true iff the abstract value is at bottom
 		bool is_bottom();

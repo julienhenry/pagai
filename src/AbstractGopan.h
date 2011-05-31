@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "ap_global1.h"
+#include "Abstract.h"
 
 class Node;
+class Abstract;
 
 class AbstractGopan {
 
@@ -41,6 +43,8 @@ class AbstractGopan {
 
 		/// is_leq - return true iff this <= d
 		bool is_leq(AbstractGopan * d);
+
+		bool is_leq(Abstract * d);
 
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.

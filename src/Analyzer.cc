@@ -11,6 +11,7 @@
 
 SMT_Solver manager;
 bool gopan;
+bool compare;
 llvm::raw_ostream *Out;
 
 void show_help() {
@@ -20,6 +21,7 @@ void show_help() {
 -i : input file\n \
 -o : output file\n \
 -g : use Lookahead Widening technique\n \
+-c : compare the two techniques\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
 
@@ -31,6 +33,11 @@ bool useLookaheadWidening() {
 	return gopan;
 }
 
+bool compareTechniques() {
+	return compare;
+}
+
+std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
 
@@ -44,17 +51,21 @@ int main(int argc, char* argv[]) {
 
 	manager = Z3_MANAGER;
 	gopan = false;
+	compare = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	n_iterations = 0;
 
-	 while ((o = getopt(argc, argv, "hdi:o:yg")) != -1) {
+	 while ((o = getopt(argc, argv, "hdi:o:ycg")) != -1) {
         switch (o) {
         case 'h':
             help = true;
             break;
         case 'd':
             debug = true;
+            break;
+        case 'c':
+            compare = true;
             break;
         case 'g':
             gopan = true;

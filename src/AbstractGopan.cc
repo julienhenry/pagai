@@ -76,6 +76,10 @@ bool AbstractGopan::is_leq (AbstractGopan *d) {
 	return false;
 }
 
+bool AbstractGopan::is_leq (Abstract *d) {
+		return ap_abstract1_is_leq(man,main,d->main);
+}
+
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
 void AbstractGopan::widening(Node * n) {

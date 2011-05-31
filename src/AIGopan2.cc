@@ -70,7 +70,7 @@ bool AIGopan2::runOnModule(Module &M) {
 				Out->resetColor();
 				n->Xgopan->print(true);
 			}
-			delete Nodes[b];
+			//delete Nodes[b];
 		}
 	}
 
@@ -81,12 +81,25 @@ bool AIGopan2::runOnModule(Module &M) {
 
 void AIGopan2::initFunction(Function * F) {
 	Node * n;
+	bool already_seen = false;
+
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			n = new Node(man,i);
-			Nodes[i] = n;
+			if (Nodes.count(i) == 0) {
+				n = new Node(man,i);
+				Nodes[i] = n;
+			} else {
+				already_seen = true;
+				n = Nodes[i];
+				n->intVar.clear();
+				n->realVar.clear();
+				n->phi_vars.clear();
+				n->tcons.clear();
+				n->env = NULL;
+				n->widening = 0;
+			}
 	}
-	if (F->size() > 0) {
+	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();

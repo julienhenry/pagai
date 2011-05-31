@@ -23,6 +23,7 @@
 #include "Execute.h"
 #include "Live.h"
 #include "SMT.h"
+#include "Compare.h"
 #include "Analyzer.h"
 
 using namespace llvm;
@@ -93,10 +94,17 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	PassManager Passes;
 
 	ModulePass *AIPass;
+	ModulePass *AIPass2;
 	if (useLookaheadWidening())
 		AIPass = new AIGopan2();
 	else
 		AIPass = new AI();
+
+	if (compareTechniques()) {
+		AIPass = new AI();
+		AIPass2 = new AIGopan2();
+	}
+
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
 	Passes.add(TD);
@@ -114,6 +122,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(new Live());
 	Passes.add(new SMT());
 	Passes.add(AIPass);
+	if (compareTechniques()) {
+		Passes.add(AIPass2);
+		Passes.add(new Compare());
+	}
 
 	Passes.run(*M.get());
 
