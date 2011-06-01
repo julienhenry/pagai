@@ -27,11 +27,18 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 }
 
 int Compare::compareAbstract(Abstract * A, AbstractGopan * B) {
-	ap_environment_t * lcenv = common_environment(
+	ap_environment_t * cenv = intersect_environment(
 			A->main->env,
 			B->main->env);
-	A->change_environment(lcenv);
-	B->change_environment(lcenv);
+	
+	*Out << "ABSTRACT VALUES:\n";
+	A->print();
+	B->print(true);
+	A->change_environment(cenv);
+	B->change_environment(cenv);
+	*Out << "NEW ABSTRACT VALUES:\n";
+	A->print();
+	B->print(true);
 
 	if (A->is_eq(B)) {
 		return 0;
@@ -76,6 +83,9 @@ bool Compare::runOnModule(Module &M) {
 						PF++;
 						break;
 					case -1:
+						*Out << "LW is better in " << *b << "\n";
+						n->Y->print();
+						n->Xgopan->print(true);
 						LW++;
 						break;
 					default:

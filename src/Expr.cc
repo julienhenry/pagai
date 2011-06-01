@@ -103,6 +103,32 @@ ap_environment_t * common_environment(
 }
 
 
+ap_environment_t * intersect_environment(
+	ap_environment_t * env1, 
+	ap_environment_t * env2) {
+	ap_environment_t * lcenv = common_environment(env1,env2);
+	ap_environment_t * intersect = ap_environment_copy(lcenv);	
+
+	for (size_t i = 0; i < lcenv->intdim + lcenv->realdim; i++) {
+		*Out << "Hello\n";
+		ap_var_t var = ap_environment_var_of_dim(lcenv,(ap_dim_t)i);
+		*Out << "Hello2\n";
+		if (!ap_environment_mem_var(env1,var) || !ap_environment_mem_var(env2,var)) {
+		*Out << "Hello3 " << ap_var_to_string(var) << "\n";
+			size_t size = intersect->intdim + intersect->realdim;
+			*Out << "Removing variable " << ap_var_to_string(var) << " from the environment\n";
+			intersect = ap_environment_remove(intersect,&var,1);
+			*Out << "Removing variable " << ap_var_to_string(var) << " ok : intersect=" << intersect << "\n";
+		}	
+	}	
+
+	*Out << "RESULT OF THE INTERSECTION\n";
+	environment_print(intersect);	
+	return intersect;
+}
+
+
+
 /// common_environment = modifies exp1 and exp2 such that 
 /// they have the same common environment
 ///

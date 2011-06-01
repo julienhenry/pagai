@@ -912,8 +912,10 @@ void AI::visitPHINode (PHINode &I){
 					*Out << "\n";
 				);
 				set_ap_expr(&I,expr);
-				ap_environment_t * env = expr->env;
-				insert_env_vars_into_node_vars(env,n,(Value*)&I);
+				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+					ap_environment_t * env = expr->env;
+					insert_env_vars_into_node_vars(env,n,(Value*)&I);
+				}
 			}
 		}
 	}

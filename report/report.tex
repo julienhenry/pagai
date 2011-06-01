@@ -2993,7 +2993,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 
 	\subsection{Benchmarks}
 
-\emph{Path Focusing} appears to always perform similarly or better than 
+\emph{Path Focusing} appears to perform similarly or better than 
 \emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
 containing control-flow merges inside of loops, thanks to the distinction
 between all the paths of the loop. In simpler programs, it performs as well as
@@ -3041,29 +3041,29 @@ both SMT-solvers.
 
 \begin{table}[!h]
 \centering \scriptsize
-\begin{tabular}{|c|c|c|l||c|l|} \hline
+\begin{tabular}{|c|c|c|l||c||c|l|} \hline
 
-			& \multicolumn{3}{c||}{Path Focusing} & \multicolumn{2}{c|}{Lookahead
-			Widening} \\ \cline{2-6}
-Benchmark	& \multicolumn{2}{c|}{time} & result	& time	& result	\\
-\cline{2-3}	& Z3 & Yices				& & & \\
+ & \multicolumn{3}{c||}{Path Focusing} & & \multicolumn{2}{c|}{Lookahead
+			Widening}   \\ \cline{2-4} \cline{6-7}
+Benchmark	& \multicolumn{2}{c|}{time} & result & cmp.	& time	& result	\\
+\cline{2-3}	& Z3 & Yices				& & & & \\
 \hline \hline
 
 Gopan.c & 0.076s & 0.076s & \begin{tabular}{l}
 -x.0 - y.0 + 102 >= 0 \\
 y.0 >= 0              \\
 x.0 - y.0 >= 0        
-\end{tabular} & 0.032 & \begin{tabular}{l}
+\end{tabular} & $=$ & 0.032 & \begin{tabular}{l}
 -x.0 - y.0 + 102 >= 0 \\
 y.0 >= 0              \\
 x.0 - y.0 >= 0        
-\end{tabular} \\ \hline
+\end{tabular}  \\ \hline
 
 Beyer.c & 0.084s & 0.076s & \begin{tabular}{l}
  -x.0  + 100 >= 0 \\
  y.0 - 50 >= 0    \\
  -x.0 + y.0 >= 0  
-\end{tabular} & 0.032 & \begin{tabular}{l}
+\end{tabular}& $=$ & 0.032 & \begin{tabular}{l}
 -x.0  + 100 >= 0 \\
  y.0 - 50 >= 0 \\
 -x.0 + y.0 >= 0
@@ -3073,7 +3073,7 @@ Boustr.c & 0.100s & 0.088s & \begin{tabular}{l}
  -2x.0 + d.0 + 1999 >= 0 \\
  -2x.0 + 3d.0 + 2001 >= 0 \\
  -d.0 + 1 >= 0
-\end{tabular} & 0.064 & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 0.064 & \begin{tabular}{l}
  -1996x.0 + 4991d.0 + 1998995 >= 0\\
  -2x.0 + d.0 + 1999 >= 0 \\
  -d.0 + 1 >= 0 \\
@@ -3083,7 +3083,7 @@ ex9.cpp & 0.084s & 0.082s & \begin{tabular}{l}
  r.0 = 0 \\
 -i.0 + 100 >= 0 \\
 i.0 >= 0
-\end{tabular} & 0.052 & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 0.052 & \begin{tabular}{l}
 -i.0 + 100 >= 0\\
 r.0 >= 0 \\
 i.0 - r.0 >= 0 \\
@@ -3094,7 +3094,7 @@ test1.c & 0.064s & 0.064s & \begin{tabular}{l}
 2j.0 + i.0 - 21 = 0 \\
 -j.0 + 10 >= 0 \\
 j.0 - 6 >= 0
-\end{tabular} & 0.016 & \begin{tabular}{l}
+\end{tabular}& $=$ & 0.016 & \begin{tabular}{l}
 2j.0 + i.0 - 21 = 0 \\
 -j.0 + 10 >= 0 \\
 j.0 - 6 >= 0
@@ -3105,7 +3105,7 @@ ex6.c & 0.104s & $\infty$ & \begin{tabular}{l}
 y.0 >= 0 \\
 x.0 - 51y.0 + 2550 >= 0 \\
 x.0 >= 0
-\end{tabular} & 0.032 & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 0.032 & \begin{tabular}{l}
 y.0 >= 0
 \end{tabular} \\ \hline
 
@@ -3114,7 +3114,7 @@ ex8.c & 0.516s & 0.408s & \begin{tabular}{l}
  -y.0 + x.0 + 1 >= 0\\
  y.0 - x.0 + 1 >= 0\\
  y.0 + x.0 + 1 >= 0
-\end{tabular} & 0.208 & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 0.208 & \begin{tabular}{l}
 -x.0 + 1 >= 0 \\
 x.0 + 1 >= 0 
 \end{tabular} \\ \hline
@@ -3126,7 +3126,7 @@ b.0 + d.0 = 0\\
 -b.0 + c.0 + 1 >= 0\\
 b.0 - c.0 + 1 >= 0\\
 b.0 + c.0 + 1 >= 0\\
-\end{tabular} & 0.916s & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 0.916s & \begin{tabular}{l}
 -b.0 + 1 >= 0\\
 -b.0 + a.0 + 1 >= 0\\
 -c.0 + 1 >= 0\\
@@ -3149,7 +3149,7 @@ b.0 + x.0 = 0\\
 -b.0 + c.0 + 1 >= 0\\
 b.0 - c.0 + 1 >= 0\\
 b.0 + c.0 + 1 >= 0\\
-\end{tabular} & 36.300s & \begin{tabular}{l}
+\end{tabular}& $\subset$ & 36.30s & \begin{tabular}{l}
 -b.0 + 1 >= 0 \\
 -b.0 + a.0 + 1 >= 0\\
 -c.0 + 1 >= 0\\
@@ -3166,7 +3166,7 @@ c.0 - d.0 + 1 >= 0\\
 c.0 + d.0 + 1 >= 0\\
 b.0 - a.0 + 1 >= 0\\
 b.0 + 1 >= 0\\
-\end{tabular} \\ \hline
+\end{tabular}\\ \hline
 
 
 \end{tabular}
@@ -3183,7 +3183,62 @@ the head of the loop.}
 	that \emph{Lookahead widening} on some code taken from real open-source
 	programs.
 
-	To Be Completed\dots
+	\subsubsection{Analysis of cBench programs}
+	Collective Benchmark (cBench) \cite{cbench} 
+	is a collection of open-source sequential
+	programs assembled by the community to enable realistic
+	benchmarking and research on program.
+
+	We compare \emph{Lookahead Widening} and \emph{Path Focusing} techniques on
+	these benchmarks, and we respectively count the number of BasicBlocks where
+	the invariant is more precise with the first technique, or with the second
+	one, or if it the invariant is the same (see Table \ref{cbench}).
+
+	\emph{Path Focusing} technique finds more precise invariants in some cases,
+	whereas \emph{Lookahead Widening} performs better in other cases.
+	This is partly due to the widening operator: even if the analysis is more
+	subtle, the result at the end may be worse.
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c||c|c|c|c|} \hline 
+Benchmark & Path Focusing & Lookahead Widening & Same invariant & Total \\
+\hline \hline
+automotive\_bitcount & 1 & 0 & 39 & 40 \\ \hline
+automotive\_qsort1 & 7 & 3 & 6 & 16 \\ \hline
+automotive\_susan\_c & 0 & 0 & 3 & 3 \\ \hline
+automotive\_susan\_e & 0 & 0 & 3 & 3 \\ \hline
+automotive\_susan\_s & 0 & 0 & 3 & 3 \\ \hline
+bzip2d & 8 & 0 & 22 & 30 \\ \hline
+bzip2e & 8 & 0 & 22 & 30 \\ \hline
+consumer\_jpeg\_c & 25 & 9 & 694 & 728 \\ \hline
+consumer\_jpeg\_d & 22 & 9 & 661 & 692 \\ \hline
+consumer\_lame & 24 & 30 & 361  & 415 \\ \hline
+consumer\_mad & 9 & 20 & 567 & 596 \\ \hline
+consumer\_tiff2bw & 10 & 24 & 561 & 595 \\ \hline
+consumer\_tiff2rgba & 8 & 25 & 457 & 490\\ \hline
+consumer\_tiffdither & 9 & 23 & 560 & 592 \\ \hline
+consumer\_tiffmedian & 10 & 24 & 609 & 643 \\ \hline
+network\_patricia & 2 & 0 & 21 & 23 \\ \hline
+office\_rsynth & 8 & 1 & 157 & 166\\ \hline
+office\_stringsearch1 & 2 & 2 & 46 & 50\\ \hline
+security\_blowfish\_d & 0 & 1 & 26 & 27\\ \hline
+security\_blowfish\_e & 0 & 1 & 26 & 27\\ \hline
+security\_rijndael\_d & 2 & 0 & 30 & 32\\ \hline
+security\_rijndael\_e & 2 & 0 & 30 & 32\\ \hline
+security\_sha  & 1 & 0 & 26 & 27\\ \hline
+telecom\_adpcm\_c & 0 & 0 & 10 & 10\\ \hline
+telecom\_adpcm\_d & 0 & 0 & 10 & 10\\ \hline
+telecom\_CRC32 & 0 & 0 & 13 & 13\\ \hline
+telecom\_gsm & 4 & 1 & 88 & 93\\ \hline
+\end{tabular}
+\caption{Number of basicblocks where the computed invariant is more precise with
+\emph{Path Focusing}, \emph{Lookahead Widening}, or the same with both
+techniques.}
+\label{cbench}
+\end{table}
+
+	\subsubsection{Analysis of Open Source projects}
 
 \chapter{Future Work}
 \label{future}

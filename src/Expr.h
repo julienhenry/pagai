@@ -29,6 +29,11 @@ ap_environment_t * common_environment(
 		ap_environment_t * env1,
 		ap_environment_t * env2);
 
+/// intersect_environment - compute the intersection of the two environments.
+ap_environment_t * intersect_environment(
+		ap_environment_t * env1,
+		ap_environment_t * env2);
+
 /// common_environment - modifies the two expression by giving them the same
 /// least common environment.
 void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
