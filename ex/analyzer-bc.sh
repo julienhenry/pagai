@@ -11,6 +11,7 @@ OPTIONS :
 	-o [FILE ]: name of the IR generated file
 	-p        : print the optimized llvm bytecode
 	-u        : unroll loops once
+	-c        : compare both techniques
 	-G        : generate the .dot CFG
 	-g        : use Lookahead Widening instead of Path Focusing
 	-y        : use Yices instead of Microsoft Z3
@@ -22,10 +23,10 @@ GRAPH=0
 GOPAN=0
 YICES=0
 UNROLL=0
-COMPILE_OPTIONS=
+COMPARE=0
 RESULT=
 
-while getopts “hpygruGi:o:c:” opt ; do
+while getopts “hpygruGi:o:c” opt ; do
 	case $opt in
 		h)
 			usage
@@ -39,6 +40,9 @@ while getopts “hpygruGi:o:c:” opt ; do
 			;;
 		u)
 			UNROLL=1
+			;;
+		c)
+			COMPARE=1
 			;;
 		G)
 			GRAPH=1
@@ -93,14 +97,16 @@ fi
 NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
-
-if [ $GOPAN -eq 1 ] ; then
-	/home/jhenry/m2r/src/analyzer -g -i $OUTPUT
+if [ $COMPARE -eq 1 ] ; then
+	/home/jhenry/m2r/src/analyzer -c -i $OUTPUT
 else
-	if [ $YICES -eq 1 ] ; then
-		/home/jhenry/m2r/src/analyzer -y -i $OUTPUT
+	if [ $GOPAN -eq 1 ] ; then
+		/home/jhenry/m2r/src/analyzer -g -i $OUTPUT
 	else
-		/home/jhenry/m2r/src/analyzer -i $OUTPUT
+		if [ $YICES -eq 1 ] ; then
+			/home/jhenry/m2r/src/analyzer -y -i $OUTPUT
+		else
+			/home/jhenry/m2r/src/analyzer -i $OUTPUT
+		fi
 	fi
 fi
-

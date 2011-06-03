@@ -31,14 +31,8 @@ int Compare::compareAbstract(Abstract * A, AbstractGopan * B) {
 			A->main->env,
 			B->main->env);
 	
-	*Out << "ABSTRACT VALUES:\n";
-	A->print();
-	B->print(true);
 	A->change_environment(cenv);
 	B->change_environment(cenv);
-	*Out << "NEW ABSTRACT VALUES:\n";
-	A->print();
-	B->print(true);
 
 	if (A->is_eq(B)) {
 		return 0;

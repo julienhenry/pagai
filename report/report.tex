@@ -3194,6 +3194,27 @@ the head of the loop.}
 	the invariant is more precise with the first technique, or with the second
 	one, or if it the invariant is the same (see Table \ref{cbench}).
 
+	These benchmarks often contain non-linear arithmetic, especially
+	multiplications. This is not a problem to the Apron library since it uses
+	linearization to handle them, but this sometimes implies an execution time
+	blowup for the SMT-solver:
+\begin{itemize}
+\item \emph{Yices} does not work at all when the formula contains non-linear
+arithmetic, so we could not use it. Indeed, Linear Real Arithmetic or Linear
+Integer Arithmetic theories do not treat multiplications.
+\item \emph{Z3} implements some linearization techniques 
+in order to deal with non-linear
+arithmetic, even if the used theory is LRA or LIA. In lots of cases, it is
+sufficient for deciding the satisfiability of our formulae, but it seems
+sometimes to have a huge execution time blowup. 
+When running our benchmarks, we fixed a time limit (5 minutes) for the analysis,
+and ignore in our results the functions that make the SMT-solver blow.
+\end{itemize}
+	This drawback could be solved in the future, by linearizing parts of the
+	SMT-formula that make the computation too costly, or make it fail (in some
+	cases, the SMT-solver is unable to decide the satisfiability of the formula,
+	and answers ``unknown'').
+
 	\emph{Path Focusing} technique finds more precise invariants in some cases,
 	whereas \emph{Lookahead Widening} performs better in other cases.
 	This is partly due to the widening operator: even if the analysis is more
@@ -3204,41 +3225,64 @@ the head of the loop.}
 \begin{tabular}{|c||c|c|c|c|} \hline 
 Benchmark & Path Focusing & Lookahead Widening & Same invariant & Total \\
 \hline \hline
-automotive\_bitcount & 1 & 0 & 39 & 40 \\ \hline
-automotive\_qsort1 & 7 & 3 & 6 & 16 \\ \hline
-automotive\_susan\_c & 0 & 0 & 3 & 3 \\ \hline
-automotive\_susan\_e & 0 & 0 & 3 & 3 \\ \hline
-automotive\_susan\_s & 0 & 0 & 3 & 3 \\ \hline
-bzip2d & 8 & 0 & 22 & 30 \\ \hline
-bzip2e & 8 & 0 & 22 & 30 \\ \hline
-consumer\_jpeg\_c & 25 & 9 & 694 & 728 \\ \hline
-consumer\_jpeg\_d & 22 & 9 & 661 & 692 \\ \hline
-consumer\_lame & 24 & 30 & 361  & 415 \\ \hline
-consumer\_mad & 9 & 20 & 567 & 596 \\ \hline
-consumer\_tiff2bw & 10 & 24 & 561 & 595 \\ \hline
-consumer\_tiff2rgba & 8 & 25 & 457 & 490\\ \hline
-consumer\_tiffdither & 9 & 23 & 560 & 592 \\ \hline
-consumer\_tiffmedian & 10 & 24 & 609 & 643 \\ \hline
-network\_patricia & 2 & 0 & 21 & 23 \\ \hline
-office\_rsynth & 8 & 1 & 157 & 166\\ \hline
-office\_stringsearch1 & 2 & 2 & 46 & 50\\ \hline
-security\_blowfish\_d & 0 & 1 & 26 & 27\\ \hline
-security\_blowfish\_e & 0 & 1 & 26 & 27\\ \hline
-security\_rijndael\_d & 2 & 0 & 30 & 32\\ \hline
-security\_rijndael\_e & 2 & 0 & 30 & 32\\ \hline
-security\_sha  & 1 & 0 & 26 & 27\\ \hline
-telecom\_adpcm\_c & 0 & 0 & 10 & 10\\ \hline
-telecom\_adpcm\_d & 0 & 0 & 10 & 10\\ \hline
-telecom\_CRC32 & 0 & 0 & 13 & 13\\ \hline
-telecom\_gsm & 4 & 1 & 88 & 93\\ \hline
+automotive\_bitcount	& 1 & 0 & 39 & 40 \\ \hline
+automotive\_qsort1		& 7 & 0 & 9 & 16 \\ \hline
+automotive\_susan\_c	& 0 & 0 & 3 & 3 \\ \hline
+automotive\_susan\_e	& 0 & 0 & 3 & 3 \\ \hline
+automotive\_susan\_s	& 0 & 0 & 3 & 3 \\ \hline
+bzip2d					& 8 & 0 & 22 & 30 \\ \hline
+bzip2e					& 8 & 0 & 22 & 30 \\ \hline
+consumer\_jpeg\_c		& 35 & 0 & 693 & 728 \\ \hline
+consumer\_jpeg\_d		& 30 & 0 & 662 & 692 \\ \hline
+consumer\_lame			& 31 & 12 & 372  & 415 \\ \hline
+consumer\_mad			& 9 & 8 & 579 & 596 \\ \hline
+consumer\_tiff2bw		& 18 & 1 & 576 & 595 \\ \hline
+consumer\_tiff2rgba		& 19 & 1 & 574 & 594\\ \hline
+consumer\_tiffdither	& 17 & 1 & 574 & 592 \\ \hline
+consumer\_tiffmedian	& 21 & 2 & 620 & 643 \\ \hline
+network\_patricia		& 2 & 0 & 21 & 23 \\ \hline
+office\_rsynth			& 8 & 0 & 158 & 166\\ \hline
+office\_stringsearch1	& 5 & 1 & 44 & 50\\ \hline
+security\_blowfish\_d	& 4 & 0 & 23 & 27\\ \hline
+security\_blowfish\_e	& 4 & 0 & 23 & 27\\ \hline
+security\_rijndael\_d	& 2 & 0 & 30 & 32\\ \hline
+security\_rijndael\_e	& 2 & 0 & 30 & 32\\ \hline
+security\_sha			& 1 & 0 & 26 & 27\\ \hline
+telecom\_adpcm\_c		& 0 & 0 & 10 & 10\\ \hline
+telecom\_adpcm\_d		& 0 & 0 & 10 & 10\\ \hline
+telecom\_CRC32			& 0 & 0 & 13 & 13\\ \hline
+telecom\_gsm			& 4 & 0 & 89 & 93\\ \hline
 \end{tabular}
-\caption{Number of basicblocks where the computed invariant is more precise with
+\caption{Number of basicblocks where the computed invariant is more precise by
 \emph{Path Focusing}, \emph{Lookahead Widening}, or the same with both
 techniques.}
 \label{cbench}
 \end{table}
 
 	\subsubsection{Analysis of Open Source projects}
+
+We compare \emph{Lookahead Widening} and \emph{Path Focusing} on various
+GNU projects ( see Table \ref{opensource}), so that we can see their precision
+on really used code.
+
+\begin{table}
+\centering
+\begin{tabular}{|c||c|c|c|c|} \hline 
+Benchmark & Path Focusing & Lookahead Widening & Same invariant & Total \\
+\hline \hline
+Bc			& 0 & 0 & 177 & 177 \\ \hline
+Gawk		& 4 & 0 & 287 & 291 \\ \hline
+Gnuchess	& 16 & 16 & 1447 & 1479 \\ \hline
+Gnugo		& 120 & 10 & 1286 & 1416 \\ \hline
+Grep		& 4 & 1 & 326 & 331 \\ \hline
+Gzip		& 16 & 8 & 207 & 231 \\ \hline
+Make		&  5 & 5 & 304 & 314 \\ \hline
+Tar			& 13 & 2 & 437 & 452 \\ \hline
+Wget		& 20 & 3 & 751 & 774 \\ \hline
+\end{tabular}
+\caption{Result of the analysis of various open-source projects.}
+\label{opensource}
+\end{table}
 
 \chapter{Future Work}
 \label{future}

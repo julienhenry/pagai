@@ -110,20 +110,12 @@ ap_environment_t * intersect_environment(
 	ap_environment_t * intersect = ap_environment_copy(lcenv);	
 
 	for (size_t i = 0; i < lcenv->intdim + lcenv->realdim; i++) {
-		*Out << "Hello\n";
 		ap_var_t var = ap_environment_var_of_dim(lcenv,(ap_dim_t)i);
-		*Out << "Hello2\n";
 		if (!ap_environment_mem_var(env1,var) || !ap_environment_mem_var(env2,var)) {
-		*Out << "Hello3 " << ap_var_to_string(var) << "\n";
 			size_t size = intersect->intdim + intersect->realdim;
-			*Out << "Removing variable " << ap_var_to_string(var) << " from the environment\n";
 			intersect = ap_environment_remove(intersect,&var,1);
-			*Out << "Removing variable " << ap_var_to_string(var) << " ok : intersect=" << intersect << "\n";
 		}	
 	}	
-
-	*Out << "RESULT OF THE INTERSECTION\n";
-	environment_print(intersect);	
 	return intersect;
 }
 
