@@ -447,9 +447,9 @@ void AI::computeNode(Node * n) {
 
 		if (LI->isLoopHeader(Succ->bb) && (Succ != n) && !only_join) {
 				//if (Succ->widening == 1) {
+				*Out << "WIDENING !\n";
 				Xtemp->widening(Succ);
 				lastpath[Succ->bb].clear();
-				lastpath[n->bb].clear();
 				//Xtemp->widening_threshold(Succ, &linconstraints);
 				//Succ->widening = 0;
 			//	} else {
