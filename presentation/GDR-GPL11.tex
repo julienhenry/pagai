@@ -88,8 +88,8 @@ while (x < 100) \{\\
 \visible<2->{
 \begin{eqnarray*}
 X_1 =& \{x\ |\ x=0 \vee \exists x' \in X_2, x=x'+1 \} 
-& \visible<3->{= \{ \only<3->{0}\only<5->{,1} \only<7->{,2,\dots}
-\only<9->{100} \}}\\
+& \visible<3->{= \{ \only<1-2>{\}}\visible<3->{0} \only<3-4>{\}}\visible<5->{,1} \only<5-6>{\}} \visible<7->{,2,\dots}
+ \only<7-8>{\}}\visible<9->{100} \only<9->{\}} }\\
 X_2 =& \{x\ |\ x \in X_1 \wedge x < 100 \} 
 & \visible<3->{= \only<3>{\emptyset} \only<4->{ \{0\only<6->{,1}
 \only<8->{,2,\dots,99} \}}}
@@ -524,14 +524,100 @@ D. Monniaux \& L. Gonnord
 \item Take a set $P_R$ of nodes
 \item Distinguish all the paths between 2 nodes of $P_R$
 \end{itemize}
-\bigskip
-\visible<2>{
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Principle}
+\begin{columns}
+\begin{column}{5cm}
+\centering
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p$};
+	\node[state] (n1) [below left of=n0] {};
+	\node[state] (n2) [below right of=n0] {};
+	\node[state] (n3) [below right of=n1] {};
+	\node[state] (n4) [below left of=n3] {};
+	\node[state] (n5) [below right of=n3] {};
+	\node[state] (n6) [below right of=n4] {};
+	\node[state] (n7) [below left of=n6] {};
+	\node[state] (n8) [below right of=n6] {};
+	\node[PRstate] (n9) [below right of=n7] {$q$};
+
+  \path [transition] 
+		(n0) edge              node {} (n1);
+  \path [transition] 
+		(n0) edge              node {} (n2);
+  \path [transition] 
+		(n1) edge              node {} (n3);
+  \path [transition] 
+		(n2) edge              node {} (n3);
+  \path [transition] 
+		(n3) edge              node {} (n4);
+  \path [transition] 
+		(n3) edge              node {} (n5);
+  \path [transition] 
+		(n4) edge              node {} (n6);
+  \path [transition] 
+		(n5) edge              node {} (n6);
+  \path [transition] 
+		(n6) edge              node {} (n7);
+  \path [transition] 
+		(n6) edge              node {} (n8);
+  \path [transition] 
+		(n7) edge              node {} (n9);
+  \path [transition] 
+		(n8) edge              node {} (n9);
+\end{tikzpicture}
+\end{column} 
+\begin{column}{5cm}
+\visible<2->{
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p$};
+	\node (n1) [below left of=n0] {};
+	\node (n2) [below right of=n0] {};
+	\node (n3) [below right of=n1] {};
+	\node (n4) [below left of=n3] {};
+	\node (n5) [below right of=n3] {};
+	\node (n6) [below right of=n4] {};
+	\node (n7) [below left of=n6] {};
+	\node (n8) [below right of=n6] {};
+	\node[PRstate] (n9) [below right of=n7] {$q$};
+
+  \path [transition] 
+		(n0) edge  [out=0, in=0]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=180, in=180]        node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=205, in=155]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=230, in=130]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=255, in=105]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-25, in=25]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-50, in=50]            node {} (n9);
+  \path [transition] 
+		(n0) edge  [out=-75, in=75]            node {} (n9);
+\end{tikzpicture}
+}
+\end{column}
+\end{columns}
+
+\visible<3>{
+	\centering
 Exponential number of paths:
 \begin{itemize}
 \item We don't construct this graph explicitly
 \item We use SMT-solving to find interesting paths
 \end{itemize}
 }
+
 \end{frame}
 
 \begin{frame}
