@@ -185,6 +185,19 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 	}
 }
 
+
+SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
+	return Z3_mk_div(ctx,(Z3_ast)a1,(Z3_ast)a2);
+}
+
+SMT_expr z3_manager::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
+	return Z3_mk_rem(ctx,(Z3_ast)a1,(Z3_ast)a2);
+}
+
+SMT_expr z3_manager::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
+	return Z3_mk_xor(ctx,(Z3_ast)a1,(Z3_ast)a2);
+}
+
 SMT_expr z3_manager::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
 	return Z3_mk_lt(ctx,(Z3_ast)a1,(Z3_ast)a2);
 }
@@ -202,14 +215,14 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 void z3_manager::SMT_print(SMT_expr a){
-//	*Out << Z3_benchmark_to_smtlib_string(ctx,
-//				"name",
-//				"logic",
-//				"unknown",
-//				"",
-//				0,
-//				NULL,
-//				(Z3_ast)a);
+	*Out << Z3_benchmark_to_smtlib_string(ctx,
+				"name",
+				"logic",
+				"unknown",
+				"",
+				0,
+				NULL,
+				(Z3_ast)a);
 }
 
 int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
@@ -239,58 +252,58 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 				Z3_eval_func_decl (ctx,m,decl,&v);
 				Z3_symbol symbol = Z3_get_decl_name(ctx,decl);
 				std::string name (Z3_get_symbol_string (ctx,symbol));
-				//DEBUG(
-				//*Out << name << " = ";
-				//);
+				DEBUG(
+				*Out << name << " = ";
+				);
 				Z3_sort_kind sort = Z3_get_sort_kind(ctx,Z3_get_sort(ctx,v));
 
 				switch (sort) {
 					case Z3_BOOL_SORT: 
 						switch (Z3_get_bool_value(ctx,v)) {
 							case Z3_L_FALSE:
-								//DEBUG(
-								//	*Out << "false\n";
-								//);
+								DEBUG(
+									*Out << "false\n";
+								);
 								break;
 							case Z3_L_UNDEF:
-								//DEBUG(
-								//*Out << "undef\n";
-								//);
+								DEBUG(
+								*Out << "undef\n";
+								);
 								break;
 							case Z3_L_TRUE:
-								//DEBUG(
-								//*Out << "true\n";
-								//);
+								DEBUG(
+								*Out << "true\n";
+								);
 								true_booleans->insert(name);
 								break;
 						}
 						break;
 					case Z3_INT_SORT:
-						//DEBUG(
-						//int i;
-						//Z3_get_numeral_int (ctx,v,&i);
-						//*Out << i << "\n";
-						//);
+						DEBUG(
+						int i;
+						Z3_get_numeral_int (ctx,v,&i);
+						*Out << i << "\n";
+						);
 						break;
 					case Z3_REAL_SORT:
-						//DEBUG(
-						//*Out << "real value\n";
-						//);
+						DEBUG(
+						*Out << "real value\n";
+						);
 						break;
 					case Z3_BV_SORT:
-						//DEBUG(
-						//*Out << "bv value\n";
-						//);
+						DEBUG(
+						*Out << "bv value\n";
+						);
 						break;
 					case Z3_UNINTERPRETED_SORT:
-						//DEBUG(
-						//*Out << "uninterpreted value\n";
-						//);
+						DEBUG(
+						*Out << "uninterpreted value\n";
+						);
 						break;
 					default:
-						//DEBUG(
-						//*Out << "unknown sort\n";
-						//);
+						DEBUG(
+						*Out << "unknown sort\n";
+						);
 						break;
 				}
 			}

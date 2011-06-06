@@ -41,6 +41,10 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2) = 0;
 
+		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_xor (SMT_expr a1, SMT_expr a2) = 0;
+
 		virtual void push_context() = 0;
 		virtual void pop_context() = 0;
 

@@ -161,6 +161,18 @@ SMT_expr yices::SMT_mk_mul (std::vector<SMT_expr> args) {
 	}
 }
 
+SMT_expr yices::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
+	return NULL;
+}
+
+SMT_expr yices::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
+	return NULL;
+}
+
+SMT_expr yices::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
+	return NULL;
+}
+
 SMT_expr yices::SMT_mk_lt (SMT_expr a1, SMT_expr a2) {
 	return yices_mk_lt(ctx,(yices_expr)a1,(yices_expr)a2);
 } 

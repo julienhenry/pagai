@@ -399,14 +399,13 @@ void AI::computeNode(Node * n) {
 
 		n_iterations++;
 		//if (!isequal(path,lastpath[n->bb])) {
-		if (!pathtree->exist(path)) {
+		if (!pathtree->exist(path) || !isequal(path,lastpath[n->bb])) {
+		//if (!pathtree->exist(path)) {
 			n_paths++;
 			only_join = true;
 		} else {
 			only_join = false;
 		}
-		//lastpath[n->bb].clear();
-		//lastpath[n->bb].assign(path.begin(),path.end());
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
@@ -422,7 +421,8 @@ void AI::computeNode(Node * n) {
 		Succ->X->change_environment(Xtemp->main->env);
 
 		// if we have a self loop, we apply loopiter
-		if (Succ == n && !only_join) {
+		if (Succ == n) {
+			if (isequal(path,lastpath[n->bb])) {
 			// backup the previous abstract value
 			Abstract * Xpred = new Abstract(Succ->X);
 
@@ -432,13 +432,20 @@ void AI::computeNode(Node * n) {
 			Xtemp->join_array(Xtemp->main->env,Join);
 
 			Xtemp->widening(Succ);
-			
+			DEBUG(
+				*Out << "MINIWIDENING\n";	
+			);
 			Succ->X = Xtemp;
 
 			Xtemp = new Abstract(n->X);
 			computeTransform(n,path,*Xtemp);
 			
 			Succ->X = Xpred;
+			pathtree->insert(path);
+			only_join = true;
+			} else {
+				
+			}
 		} 
 		
 		Join.clear();
@@ -446,19 +453,23 @@ void AI::computeNode(Node * n) {
 		Join.push_back(new Abstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		if (LI->isLoopHeader(Succ->bb) && (Succ != n) && !only_join) {
+		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
+		//if (LI->isLoopHeader(Succ->bb) && (!only_join)) {
 				//if (Succ->widening == 1) {
-				*Out << "WIDENING !\n";
 				Xtemp->widening(Succ);
+				DEBUG(
+					*Out << "WIDENING! \n";
+				);
 				lastpath[Succ->bb].clear();
 				//Xtemp->widening_threshold(Succ, &linconstraints);
 				//Succ->widening = 0;
 			//	} else {
 			//		Succ->widening++;
 			//	}
-		} 
-		if (only_join) {
-			pathtree->insert(path);
+		} else {
+		//if (only_join) {
+		//if (!pathtree->exist(path)) {
+			//pathtree->insert(path);
 			DEBUG(
 				*Out << "PATH NEVER SEEN BEFORE !!\n";
 			);
@@ -475,6 +486,9 @@ void AI::computeNode(Node * n) {
 			*Out << "RESULT:\n";
 			Succ->X->print();
 		);
+
+		lastpath[n->bb].clear();
+		lastpath[n->bb].assign(path.begin(),path.end());
 
 		A.push(Succ);
 		is_computed[Succ] = false;

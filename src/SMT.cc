@@ -425,15 +425,15 @@ void SMT::computeRhoRec(Function &F,
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
-			//computeRhoRec(F,pred,dest,false,visited);
 			if (!Pr[&F]->count(pred)) {
-				//if (!visited->count(pred)) 
+				if (!visited->count(pred)) {
 					computeRhoRec(F,pred,dest,false,visited);
-				//primed[b].insert(primed[pred].begin(),primed[pred].end());
+				}
+				Pr_pred[b].insert(Pr_pred[pred].begin(),Pr_pred[pred].end());
 			} else {
-				Pr_succ[pred].insert(dest);
-				Pr_pred[dest].insert(pred);
+				Pr_pred[b].insert(pred);
 			}
+			//Pr_succ[pred].insert(dest);
 		}
 	}
 
@@ -495,6 +495,18 @@ void SMT::computeRho(Function &F) {
 		computeRhoRec(F,b,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
+
+	// Pr_pred has already been computed, but not Pr_succ
+	// Now, we can easily compute Pr_succ
+	i = Pr[&F]->begin();
+	e = Pr[&F]->end();
+	for (;i!= e; ++i) {
+		b = *i;
+		std::set<BasicBlock*>::iterator it = Pr_pred[b].begin(), et = Pr_pred[b].end();
+		for (;it != et; it++) {
+			Pr_succ[*it].insert(b);
+		}
+	}
 }
 
 
@@ -884,18 +896,25 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 			if (!t) return;
 			assign = man->SMT_mk_or(operands);
 			break;
-			// the others are not implemented
 		case Instruction::Xor :
+			if (!t) return;
+			assign = man->SMT_mk_xor(operands[0],operands[1]);
+			break;
+		case Instruction::UDiv: 
+		case Instruction::SDiv: 
+		case Instruction::FDiv: 
+			assign = man->SMT_mk_div(operands[0],operands[1]);
+			break;
+		case Instruction::URem: 
+		case Instruction::SRem: 
+		case Instruction::FRem: 
+			assign = man->SMT_mk_rem(operands[0],operands[1]);
+			break;
+			// the others are not implemented
 		case Instruction::Shl : // Shift left  (logical)
 		case Instruction::LShr: // Shift right (logical)
 		case Instruction::AShr: // Shift right (arithmetic)
 		case Instruction::BinaryOpsEnd:
-		case Instruction::UDiv: 
-		case Instruction::SDiv: 
-		case Instruction::FDiv: 
-		case Instruction::URem: 
-		case Instruction::SRem: 
-		case Instruction::FRem: 
 			// NOT IMPLEMENTED
 			return;
 	}
