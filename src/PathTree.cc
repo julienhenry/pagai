@@ -38,6 +38,13 @@ void PathTree::insert(std::list<BasicBlock*> path) {
 	}
 }
 
+void PathTree::clear() {
+	while (!start.name.empty()) 
+		start.name.pop_back();
+	while (!start.next.empty()) 
+		start.next.pop_back();
+}
+
 bool PathTree::exist(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*> workingpath;
 	pathnode * v;

@@ -365,7 +365,8 @@ void AI::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-
+		//if (!isequal(path,lastpath[n->bb])) {
+	pathtree->clear();
 
 	while (true) {
 		is_computed[n] = true;
@@ -397,15 +398,15 @@ void AI::computeNode(Node * n) {
 		Succ = Nodes[path.back()];
 
 		n_iterations++;
-		if (!pathtree->exist(path)) n_paths++;
-
-		if (!isequal(path,lastpath[n->bb])) {
+		//if (!isequal(path,lastpath[n->bb])) {
+		if (!pathtree->exist(path)) {
+			n_paths++;
 			only_join = true;
 		} else {
 			only_join = false;
 		}
-		lastpath[n->bb].clear();
-		lastpath[n->bb].assign(path.begin(),path.end());
+		//lastpath[n->bb].clear();
+		//lastpath[n->bb].assign(path.begin(),path.end());
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
