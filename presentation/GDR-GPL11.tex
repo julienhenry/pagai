@@ -13,7 +13,7 @@
 % - Use the \inst{?} command only if the authors have different
 %   affiliation.
 
-\institute[Verimag]{Verimag}
+\institute[Verimag]{Verimag, CNRS \\ \texttt{Julien.Henry@imag.fr}}
 
 \tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
 
@@ -99,6 +99,10 @@ X_2 =& \{x\ |\ x \in X_1 \wedge x < 100 \}
 \begin{frame}
 \frametitle{Abstract Interpretation}
 
+Cousot \& Cousot 1977
+
+\bigskip
+
 Abstract domain to represent the set of possible states:
 \begin{itemize}
 \item Intervals
@@ -115,7 +119,7 @@ Abstract domain to represent the set of possible states:
 \begin{frame}
 \frametitle{Sources of imprecision}
 \begin{itemize}
-\item<1-> transformation that can't be expressed in the abstract value
+\item<1-> exact set that can't be expressed in the abstract domain
 \item<2-> \alert<4>{widening operator}
 \begin{itemize}
 \item ensure fast convergence
@@ -131,7 +135,7 @@ Abstract domain to represent the set of possible states:
 \tableofcontents
 \end{frame}
 
-\section[Introduction]{Introduction: Weakness of the standard approach}
+\section[Introduction]{Weakness of the standard approach}
 
 
 \begin{frame}[containsverbatim]
@@ -337,7 +341,7 @@ while (true) {
 	\end{center}
 \end{frame}
 
-\section[Lookahead Widening]{Lookahead Widening method}
+\section[Lookahead Widening]{Lookahead Widening technique}
 
 \begin{frame}
   \frametitle{Principle}

@@ -158,12 +158,18 @@
 \newcommand*{\resume}[1]{
   \def\theresume{#1}
 }
-\let\thetutor\relax
+\let\theresume\relax
 
 \newcommand*{\tutor}[1]{
   \def\thetutor{#1}
 }
 \let\thetutor\relax
+
+
+\newcommand*{\acknowledgement}[1]{
+  \def\theacknowledgement{#1}
+}
+\let\theacknowledgement\relax
 
 \newcommand*{\notes}[1]{
   \def\thenotes{#1}
@@ -300,14 +306,32 @@
      \ifx\thenotes\empty 
      \else
      \bigskip
-     \noindent {\bf Notes}: \thenotes
+     %\noindent {\bf Notes}: \thenotes
      \fi
 
      \bigskip\bigskip
-
      \setcounter{page}{0}
      \newpage
 
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % The third  page.
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  \addtolength{\topmargin}{-\topsave}
+
+  \thispagestyle{empty}
+   % ici un maketitle a la LNCS, avec institute et email address y tout
+   \begin{center}
+     {\Large \bf \scshape  Acknowledgment}
+     \bigskip
+	 \bigskip
+   \end{center}
+
+   \bigskip \bigskip
+   \begin{quote}\theacknowledgement\end{quote}
+
+     \newpage
 } %end maketitlepage
 
 
