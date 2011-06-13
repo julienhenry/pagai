@@ -36,7 +36,7 @@
 \tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
 
 \usetikzlibrary{snakes,arrows,shapes,backgrounds,shadows,automata,patterns}
-\usepgflibrary{snakes}
+%\usepgflibrary{snakes}
 
 \tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
 \tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
@@ -672,7 +672,7 @@ There have been some work to find efficient iteration strategies
 connected components of the graph.
 
 \subsubsection{Sources of imprecision}
- \label{multigraph}
+ \label{imprecision}
 Linear Relation Analysis is sound but incomplete: there is loss of precision
 during the computation, due to various reasons:
 \begin{enumerate}
@@ -1388,7 +1388,7 @@ the right.}
 	\rightarrow p_{i+1}$.
 	\end{itemize}
 
-	As explained in \ref{multigraph}, separating the different
+	As explained in \ref{imprecision}, separating the different
 	possible paths between $p$ and $q$ reduce the number of points with a join
 	operation, and results in a better precision.
 	This can result in an exponential blowup in the size of the graph. To avoid
