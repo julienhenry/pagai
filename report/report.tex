@@ -84,11 +84,11 @@ color=blue]
 \shorttitle{Static Analysis by Path Focusing}
 \institute{Grenoble-INP}
 \abstract{
-	Program verification is aimed at statically discovering properties on programs,
+	Program verification aims at statically discovering properties on programs,
 	such as the values that can take the different variables during execution.
-	Abstract Interpretation is a technique that allows to compute an
-	approximation of the set of these values, since it is impossible to compute
-	the real set in general.
+	Abstract Interpretation is a technique that  computes an
+	over-approximation of the set of these values, since it is impossible to
+	compute the real set in general.
 	This report takes place in the many attempts to improve the precision of
 	static Analysis by Abstract Interpretation. It proposes a technique that
 	takes benefit of SMT-solving to obtain more precise results at reasonable
@@ -163,7 +163,8 @@ as precise as possible, so that we can prove properties about the program.
 Linear Relation Analysis over-approximates the set of possible states as a
 convex polyhedron where the dimensions are the numerical variables of the
 program.
-Instead of convex polyhedra, one could choose intervals, octagons, etc.
+Instead of convex polyhedra, one could choose intervals, octagons, etc, that are
+subclasses of the class of convex polyhedra.
 The fixpoint equation is computed iteratively; that is, successive
 approximations of the set of reachable states are computed until they converge
 to a fixpoint. 
@@ -637,7 +638,7 @@ I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\# (X_{p'}) \\
 \end{array} \right]$$
 
 The fixpoint computation algorithm consists in replacing iteratively each $X_p$ by its value
-on the right hand side, until the convergence.
+on the right hand side, until convergence.
 
 In the case of an abstract domain with infinite ascending sequence, we use the
 previously defined widening operator:
@@ -662,7 +663,7 @@ different numerical variables of the program at the control point $p$.
 In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
 apply it on a subset of $P$, called $P_w$, such that removing the nodes of $P_w$
-disconnects every cycles. For instance, $P_w$ can be chosen as the set of the
+disconnects every cycles. For instance, in structured programs, $P_w$ can be chosen as the set of the
 loop headers.
 
 \subsubsection{Iteration strategies}
@@ -753,14 +754,14 @@ $$\begin{array}{llll}
 \end{array}$$
 \end{minipage}
 
-Acceleration is possible when the loop is simple enough, and comes to compute
+Acceleration is possible when the loop is simple enough, and comes to computing
 the transitive closure $\tau_e^+$ of $\tau_e$, the transition function
 associated to the loop.
 
 \section{Example}
 
 We apply the linear relation analysis technique over the program in figure
-\ref{runningexample}. The set of state where we apply widening is $\{p_1\}$: it
+\ref{runningexample}. The set of control state where we apply widening is $\{p_1\}$: it
 is sufficient, since removing $p_1$ cuts all cycles in the graph.
 
 To each point of the control flow graph $\{p_0, p_1,\dots, p_7\}$, we attach a
@@ -1162,7 +1163,7 @@ for a while, until the convergence. In our example:
 \item Step 2:
 	Now, we add the new paths into our graph if they have become possible. In
 	our case, the second path of the loop is now possible, because $x$ can be
-	equal to $51$, so we add the path in
+	equal to $51$, so we add the path to
 	the graph and compute new iterations until convergence\dots. After
 	convergence, at point $p_1$, $x + y - 102 \leq 0 \wedge x
 	\leq y$. We then apply a narrowing step and at $p_1$, 
@@ -1266,6 +1267,9 @@ path computation. This allows to recover precision before analysing new paths,
 and then to be more precise. 
 
  \section{Path Focusing}
+	
+	In this section, we present a refinement of Abstract Interpretation, refered
+	as \emph{Path Focusing} technique \cite{MG11}.
 
 	\subsection{Multigraph}
 
@@ -1384,10 +1388,10 @@ the right.}
 	\item for each path $p_1 \rightarrow p_2 \rightarrow \dots \rightarrow p_k$
 	in the control flow graph, such that $p_1 \in P_R, p_k \in P_R$,
 	there is a transition in the multigraph from $p_1$ to $p_k$ with the
-	semantic $$\tau_{p_1 \rightarrow \dots \rightarrow p_k} = \tau_{p_{k-1}
+	semantics $$\tau_{p_1 \rightarrow \dots \rightarrow p_k} = \tau_{p_{k-1}
 	\rightarrow p_k} \circ
 	\dots \circ \tau_{p_1 \rightarrow p_2}$$ where $\tau_{p_i \rightarrow
-	p_{i+1}}$ is the transformation associated to the semantic of $p_i
+	p_{i+1}}$ is the transformation associated to the semantics of $p_i
 	\rightarrow p_{i+1}$.
 	\end{itemize}
 
@@ -1495,7 +1499,7 @@ $\Longrightarrow$
 \caption{Example of classical control flow graph, and its associated expanded
 multigraph, where $P_R = \{p_0, p_1, p_7\}$. The path dashed from $p_1$ to $p_1$
 in the control flow graph corresponds to a simple dashed transition in the multigraph,
-having the same semantic.}
+having the same semantics.}
 \label{multigraphtransformGopan}
 \end{figure}
 \FloatBarrier
@@ -1687,7 +1691,7 @@ path.
 
 	\subsubsection{Construction of the formula}
 	The first point of the Path Focusing technique is to compute the SMT formula
-	$\rho$ expressing the semantic of the program. For doing so, all the
+	$\rho$ expressing the semantics of the program. For doing so, all the
 	operations in the program have to be expressible within the theory we
 	choose. Otherwise, the SMT-solver would not be able to decide if the formula
 	is \emph{sat} or not.
@@ -1702,9 +1706,9 @@ path.
 \begin{enumerate}
 \item Each numerical SSA variable of the control flow graph has its definition
 in the $\rho$ formula.
-\item For each operation in the program, we encode its semantic, expressed in
+\item For each operation in the program, we encode its semantics, expressed in
 terms of the Boolean and numerical SSA variables. For instance, if the CFG
-contains the assignment $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ in
+contains the assignment $x.2 = x.1 + 1$, then we simply add $x.2 = x.1 + 1$ to
 the formula. This equality expression is noted $assign(x.2)$. 
 $assign(x)$ is defined for each numerical SSA-variable of the program.
 \item For each transition $(p_i,p_j) \in E$, we set $t_{i,j} = B_i\ \wedge \
@@ -1943,16 +1947,16 @@ point, and $\Phi$-variables associated to points in $P_R$ have been primed.
 	\subsection {Precision of the analysis}
 
 	One can refine the \emph{Path-focusing} algorithm by treating specially the
-	self loops of the multigraph. Indeed, instead of simply apply the widening
+	self loops of the multigraph. Indeed, instead of simply applying the widening
 	operator,  some narrowing steps could be performed to regain precision
 	before focusing on another path. This relates to the ideas in
         \emph{Lookahead widening} \cite{GopanR06}.
 
 	So, the algorithm has a special case if the path we focus on goes from $p_i$
 	to itself: instead of computing $\tau_e^\#(X_{p_i})$, one compute
-	$SelfLoop(\tau_e^\#,X_{p_i})$, defined in algorithm \ref{loopiteralgo}.
+	\textit{SelfLoop}$(\tau_e^\#,X_{p_i})$, defined in algorithm \ref{loopiteralgo}.
 
-	The $SelfLoop$ procedure actually computes a widening operation, and
+	The \textit{SelfLoop} procedure actually computes a widening operation, and
 	computes a narrowing step in order to recover precision. In some cases,
 	instead of performing widening/narrowing iterations, 
 	acceleration techniques could be used 
@@ -2095,16 +2099,16 @@ path, so the analysis terminates.
 	analysis.
 
 	\cite{GulwaniZ10} proposes a technique to compute transitive closure of a
-	loop, i.e compute the invariants for a loop having its semantic
+	loop, i.e compute the invariants for a loop having its semantics
 	expressed by a transition system. The definition of a transition system is
 	the following:
 
 	\begin{definition}
 	A transition system for a control point $p$ is a DNF formula (i.e a
 	disjunction of conjunctions), where each
-	disjunct is the semantic of a path from $p$ to itself. It is of the form
+	disjunct is the semantics of a path from $p$ to itself. It is of the form
 	$$\bigvee_{1 \leq i \leq n} \tau_{p,i}$$ where $n$ is the number of
-	paths, and $\tau_{p,i}$ is the semantic of the $i$-th path from $p$ to
+	paths, and $\tau_{p,i}$ is the semantics of the $i$-th path from $p$ to
 	itself.
 	\end{definition}
 
@@ -2182,6 +2186,10 @@ A difference is that here, we do not know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 easily compute this number of paths when computing the $\rho$ formula.
 
+Computing disjunctive invariants is a field we have to work on. The work
+described here is only preliminary, and shows it is possible to improve existing
+techniques with our ideas, so that we avoid explicit enumeration of
+exponential-sized sets of paths.
 
 	\subsection{Removing identity transitions}
 
@@ -2592,16 +2600,16 @@ parts of it. These passes are mostly used for optimisation purpose. In our
 analyser, we apply some already existing passes before running our 
 abstract interpretation pass. Among the passes we run, we could cite:
 \begin{itemize}
-\item the \emph{PromoteMemoryToRegister} Pass, that transforms the internal
+\item the \emph{PromoteMemoryToRegister} Pass (-mem2reg), that transforms the internal
 representation by promoting the memory variables to Static Single Assignment
 (SSA) registers. This pass transform the control flow graph such that all the
 variables are in SSA form, and removes most of the \emph{Load/Store} operations
 into memory. It is useful since our analyser does not have a memory model, and
 then loses lots of precision in the case of \emph{Load/Store} instructions.
-\item the \emph{LoopSimplify} and \emph{LoopInfo} Passes, that transform all loops into a canonical
+\item the \emph{LoopSimplify} (-loopsimplify) and \emph{LoopInfo} (-loopinfo) Passes, that transform all loops into a canonical
 format, and compute some information related to loops (for instance, the set of
 BasicBlocks that are parts of the loop, etc.).
-\item the \emph{LowerSwitch} Pass, that transform a switch instruction into its
+\item the \emph{LowerSwitch} Pass (-lowerswitch), that transform a switch instruction into its
 corresponding \emph{if-then-else} instructions. After running this pass, there
 is no more \emph{Switch} instruction in the control flow graph, so the
 implementation of the static analysis is easier.
@@ -2652,6 +2660,8 @@ computing these live variables after the transformation in SSA form.
 	$\Phi$-variables of the associated BasicBlock will be part of the dimensions
 	of the polyhedron.
 
+	Morally, this means the $\Phi$-variables are on incoming transitions,
+	whereas the other instructions are on outgoing transitions.
 
 \begin{figure}[!h]
 \centering
@@ -2778,7 +2788,7 @@ computing these live variables after the transformation in SSA form.
 
 The set of elements $x$ satisfying $x \neq N$ is not convex: it is the union of
 two intervals: $]-\infty, N[\  \cup\  ]N,+\infty[$. Since we use convex polyhedra to
-represent the set of possible states of our program, we loose information when
+represent the set of possible states of our program, we lose information when
 the analysis comes across a \emph{diseq} operation.
 One classical approach would be to compute a disjunctive invariant, by attaching
 two different polyhedron to the BasicBlock. However, we preferred the following
@@ -3044,7 +3054,7 @@ between all the paths of the loop. In simpler programs, it performs as well as
 
 \emph{ex6.c} is a program containing non-linear arithmetic: there is an integer
 multiplication inside the loop. The Apron library handles multiplication using
-a linearization technique. However, multiplications is not allowed in LIA
+a linearization technique. However, multiplication is not allowed in LIA
 (Linear Integer Arithmetic) or LRA (Linear Real Arithmetic). Then, Yices
 SMT-solver errs with a message ``not implemented'' (which is the reason of the
 $\infty$ symbol in the table), when Z3 still works correctly.
@@ -3261,7 +3271,9 @@ and ignore in our results the functions that make the SMT-solver blow.
 	\emph{Path Focusing} technique finds more precise invariants in some cases,
 	whereas \emph{Lookahead Widening} performs better in other cases.
 	This is partly due to the widening operator: even if the analysis is more
-	subtle, the result at the end may be worse.
+	subtle, the result at the end may be worse. This is a well-known result in
+	abstract interpretation: when using widening operations, the final result is
+	not monotonic with the quality of the abstraction.
 
 \begin{table}[!h]
 \centering
@@ -3358,7 +3370,7 @@ where \emph{Lookahead Widening} performs better than \emph{Path Focusing} are
 due to this drawback. An example of such loss of precision is depicted in
 appendix \ref{lostprecision}.
 An idea that could solve this problem is to try to combine
-the two methods (see \ref{combining}).
+the two methods, and get the best of both worlds (see \ref{combining}).
 \end{itemize}
 
 Although these project are not safety-critical and do not necessarily need
@@ -3490,7 +3502,7 @@ the number of paths, but these are treated implicitly.
 	can endanger the safety of people, or induce huge costs to fix. These
 	domains constitute a privileged application field for formal verification
 	techniques.
-	Abstract Interpretation is a common used technique to do static analysis of
+	Abstract Interpretation is a commonly used technique to do static analysis of
 	programs. It is aimed at computing iteratively an over-approximation of the set of
 	possible states of the program, and allows to prove properties such as
 	``In this program, $x$ is always between 1 and 10'', ``The program never
@@ -3523,7 +3535,7 @@ the number of paths, but these are treated implicitly.
 	perform better in the case of loops containing control-flow merges. 
 
 	Our analyser is able to deal with small- and middle-sized test-cases, as
-	well as real-life programs. It looses
+	well as real-life programs. It loses
 	precision in the case of programs with pointers or several functions.
 	It has been tested with program having loops containing several hundreds
 	lines of code, and gave results after a time in the order of the second.
