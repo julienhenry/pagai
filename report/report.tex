@@ -97,7 +97,7 @@ color=blue]
 	prendre les variables durant l'exécution. L'Interprétation Abstraite est une
 	technique permettant de calculer une approximation de cet ensemble, le
 	véritable ensemble étant impossible à calculer en général.
-	Ce report s'inscrit dans la lignée des travaux visant à améliorer la
+	Ce rapport s'inscrit dans la lignée des travaux visant à améliorer la
 	précision de l'analyse par interprétation abstraite, et propose une
 	technique tirant parti du SMT-solving pour obtenir de meilleurs résultats
 	à un coût raisonnable.
@@ -185,7 +185,9 @@ of static analysis by abstract interpretation. We also present an adaptation of
 this technique to compute disjunctive invariants.
 \item We present an implementation of this technique into a small analyser, as
 well as the implementation of another technique proposed in \cite{GopanR06},
-such that we can compare precision and cost of these two methods.
+such that we can compare precision and cost of these two methods. This
+implementation has been tested on a wide range of programs, including small
+test-cases as well as real-life programs.
 \end{itemize}
 
 The report is organised as follows:
@@ -223,13 +225,13 @@ while (x < 100) {
 	\node[state] (n3) [left of=n1] {$p_3$};
 
   \path [transition] 
-		(n0) edge              node {$x = 0$} (n1);
+		(n0) edge              node {$x \gets 0$} (n1);
   \path [transition] 
-        (n1) edge			   node [above] {$x \geq 100?$} (n3);
+        (n1) edge			   node [above] {$x \geq 100$} (n3);
   \path [transition] 
-        (n1) edge			   node [left] {$x < 100?$} (n2);
+        (n1) edge			   node [left] {$x < 100$} (n2);
   \path [transition] 
-        (n2) edge [out=0, in=0, distance=2cm] node [right] {$x = x+1$} (n1);
+        (n2) edge [out=0, in=0, distance=2cm] node [right] {$x \gets x+1$} (n1);
 
 \end{tikzpicture}
    \end{minipage}
@@ -3033,7 +3035,7 @@ here define the polyhedra seen in Figure \ref{result}.b.
 
 \emph{Path Focusing} appears to perform similarly or better than 
 \emph{Lookahead Widening}. Indeed, it is more precise in the case of programs
-containing control-flow merges inside of loops, thanks to the distinction
+containing control-flow merges inside  loops, thanks to the distinction
 between all the paths of the loop. In simpler programs, it performs as well as
 \emph{Lookahead Widening}
 
@@ -3111,7 +3113,7 @@ Boustr.c & 0.100s & 0.088s & \begin{tabular}{l}
  -2x.0 + d.0 + 1999 >= 0 \\
  -2x.0 + 3d.0 + 2001 >= 0 \\
  -d.0 + 1 >= 0
-\end{tabular}& $\subset$ & 0.064 & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 0.064 & \begin{tabular}{l}
  -1996x.0 + 4991d.0 + 1998995 >= 0\\
  -2x.0 + d.0 + 1999 >= 0 \\
  -d.0 + 1 >= 0 \\
@@ -3121,7 +3123,7 @@ ex9.cpp & 0.084s & 0.082s & \begin{tabular}{l}
  r.0 = 0 \\
 -i.0 + 100 >= 0 \\
 i.0 >= 0
-\end{tabular}& $\subset$ & 0.052 & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 0.052 & \begin{tabular}{l}
 -i.0 + 100 >= 0\\
 r.0 >= 0 \\
 i.0 - r.0 >= 0 \\
@@ -3143,7 +3145,7 @@ ex6.c & 0.104s & $\infty$ & \begin{tabular}{l}
 y.0 >= 0 \\
 x.0 - 51y.0 + 2550 >= 0 \\
 x.0 >= 0
-\end{tabular}& $\subset$ & 0.032 & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 0.032 & \begin{tabular}{l}
 y.0 >= 0
 \end{tabular} \\ \hline
 
@@ -3152,7 +3154,7 @@ ex8.c & 0.516s & 0.408s & \begin{tabular}{l}
  -y.0 + x.0 + 1 >= 0\\
  y.0 - x.0 + 1 >= 0\\
  y.0 + x.0 + 1 >= 0
-\end{tabular}& $\subset$ & 0.208 & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 0.208 & \begin{tabular}{l}
 -x.0 + 1 >= 0 \\
 x.0 + 1 >= 0 
 \end{tabular} \\ \hline
@@ -3164,7 +3166,7 @@ b.0 + d.0 = 0\\
 -b.0 + c.0 + 1 >= 0\\
 b.0 - c.0 + 1 >= 0\\
 b.0 + c.0 + 1 >= 0\\
-\end{tabular}& $\subset$ & 0.916s & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 0.916s & \begin{tabular}{l}
 -b.0 + 1 >= 0\\
 -b.0 + a.0 + 1 >= 0\\
 -c.0 + 1 >= 0\\
@@ -3187,7 +3189,7 @@ b.0 + x.0 = 0\\
 -b.0 + c.0 + 1 >= 0\\
 b.0 - c.0 + 1 >= 0\\
 b.0 + c.0 + 1 >= 0\\
-\end{tabular}& $\subset$ & 36.30s & \begin{tabular}{l}
+\end{tabular}& $\varsubsetneq$ & 36.30s & \begin{tabular}{l}
 -b.0 + 1 >= 0 \\
 -b.0 + a.0 + 1 >= 0\\
 -c.0 + 1 >= 0\\
@@ -3347,13 +3349,13 @@ sometimes discover invariants that are less precise than a more simplified
 technique.
 \item Our technique performs well in the case of self loops in the multigraph,
 thanks to the widening/narrowing phases (or acceleration). Yet, in the case of
-paths that do not constitute a self loop in the multigraph, one perform a
+paths that do not constitute a self loop in the multigraph, one performs a
 widening operation, but no narrowing iteration. Apparently, lots of the cases
 where \emph{Lookahead Widening} performs better than \emph{Path Focusing} are
 due to this drawback. An example of such loss of precision is depicted in
 appendix \ref{lostprecision}.
-An good idea that could solve this problem is to try to combine
-the two methods.
+An idea that could solve this problem is to try to combine
+the two methods (see \ref{combining}).
 \end{itemize}
 
 Although these project are not safety-critical and do not necessarily need
@@ -3463,7 +3465,7 @@ the number of paths, but these are treated implicitly.
 \end{figure}
 
 	\section{Combining Lookahead Widening and Path Focusing}
-
+	\label{combining}
 	Path Focusing technique works on the expanded multigraph.
 	Its limitation is that it does narrowing
 	sequences during the iterations only for self-loops of this multigraph.
@@ -3517,8 +3519,8 @@ the number of paths, but these are treated implicitly.
 	We compared it with \emph{Lookahead Widening}, and our technique seems to
 	perform better in the case of loops containing control-flow merges. 
 
-	Our analyser is able to deal with small- and middle-sized programs, but
-	looses
+	Our analyser is able to deal with small- and middle-sized test-cases, as
+	well as real-life programs. It looses
 	precision in the case of programs with pointers or several functions.
 	It has been tested with program having loops containing several hundreds
 	lines of code, and gave results after a time in the order of the second.
