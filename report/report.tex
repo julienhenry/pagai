@@ -138,7 +138,7 @@ Static analysis aims at automatically computing properties on programs, such as
 the possible values of their variables during execution. This allows to show for
 instance that a program will not overflow, will not divide by zero, and to compute
 loop invariants\dots
-The main applications of static analysis are compilation-time optimisation, and
+The main applications of static analysis are compile-time optimisations, and
 the proof of safety properties in critical systems, such as avionics.
 
 Abstract Interpretation is a general framework used for static analysis.
@@ -179,7 +179,7 @@ obtain more precise results at reasonable cost.
 
 In this report we make the following contributions:
 \begin{itemize}
-\item We present a new technique, referred as \emph{Path Focusing}, that takes
+\item We present a new technique, refered as \emph{Path Focusing}, that takes
 benefits of the recent advances in the field of SMT-solving to improve precision
 of static analysis by abstract interpretation. We also present an adaptation of
 this technique to compute disjunctive invariants.
@@ -237,8 +237,7 @@ while (x < 100) {
 \FloatBarrier
 
 Static analysis is aimed at discovering some properties about programs. In this
-example, one would compute the set of possible values for the variable $x$
-during execution.
+example, we would like to compute the set of possible values for the variable $x$ during execution.
 The graph at the right side represents the program. The nodes of the graph are
 called \emph{program points}. We can compute for instance the set $Y_1$ of
 values for $x$ at point $p_1$. This set depends on the sets $Y_0$ and $Y_2$,
@@ -282,7 +281,7 @@ recursive procedures.
 However, most of the time, the solution of this fixpoint equation must be
 computed in a complex domain: in program analysis, this could be the state space
 of the program, i.e the set of all possible states of the program. This
-computation quickly becomes too costly or doesn't terminate.
+computation quickly becomes too costly or does not terminate.
 
 \subsection{Abstraction of the domain}
 
@@ -375,14 +374,15 @@ Termination of the fixpoint computation has to be guaranteed. This termination
 depends on the properties of the abstract domain:
 this one should be finite, of finite height,
 or more generally satisfy the \emph{ascending chain condition},
-meaning that there doesn't exist
+meaning that there does not exist
 any sequence $(x_i)_{i \geq 0}$ of elements of the abstract domain $A$ such that
 $\forall i \geq 0,\ x_i <_A x_{i+1}$. Indeed, otherwise, the least fixpoint
 computation could run indefinitely, since the ascending sequence of elements of
 $A$ is infinite, and the fixpoint in never reached.
 
 
-Many of the domains that are used for program analysis, including those of intervals and convex polyhedra, don't satisfy this ascending chain condition. To ensure convergence in this case, another approximation
+Many of the domains that are used for program analysis, including those of
+intervals and convex polyhedra, do not satisfy this ascending chain condition. To ensure convergence in this case, another approximation
 is performed: a new operator is defined, called \emph{widening operator}, that
 extrapolates the limit of a sequence of abstract values
 \cite{CC77,CousotCousot92-4}. This \emph{widening
@@ -454,7 +454,7 @@ variables that are not possible in the real program.
 \subsection{Convex polyhedra}
 
 Let $x_1, x_2, \dots ,x_n$ be the numerical variables of a program (assume they
-all are in $\Q$). A state of
+ are all in $\Q$). A state of
 the program is then a point $\overrightarrow{x} \in \Q^n$.
 
 In $\Q^n$, the set of polyhedra ordered by inclusion is a lattice. The least element is $\perp$
@@ -486,7 +486,7 @@ iteration of the analysis, one apply it after a number $n$ of iterations. During
 the $n-1$ first iterations, only a convex hull is computed. In some cases,
 delaying the widening operation is more precise. The algorithm still terminates,
 since widening is applied within a finite time after $n$ iterations. In most of
-the cases, $n$ can be chosen equals to $2$.
+the cases, $n$ can be chosen equal to $2$.
 \item \emph{Widening with threshold (or ``up to'')}: In some cases, instead of
 brutally applying the widening operator, a fixed set of linear inequalities $T$
 can be chosen, and the widening operator $\widening_T$ is defined as follows:
@@ -585,7 +585,7 @@ while (true) {
 
 To each state $p \in P$ of the control flow graph, we associate an abstract
 value $X_p \in D$, $D$ being in our case the domain of convex polyhedra over
-$\Q^n$. Since the exact operation $\tau$ may not be expressed in the abstract
+$\Q^n$. Since the exact operation $\tau$ may not be expressible in the abstract
 domain, we abstract it into $\tau^\#$ such that $\forall X \in D, \tau(X)
 \subseteq \tau^\#(X)$. 
 
@@ -650,7 +650,7 @@ X_p \widening \left( I_p \sqcup \displaystyle \bigsqcup_{(p',p) \in E} \tau^\#
 
 
 After a finite number of steps, the computation has reached the fixpoint and the
-value $X_p$ at the end give the different linear relations between the
+value $X_p$ at the end gives various linear relations between the
 different numerical variables of the program at the control point $p$.
 
 \subsection{Precision of the analysis}
@@ -658,13 +658,13 @@ In order to guarantee the termination of the computation, there is no need to
 apply the widening operator at each control point $p \in P$. It is sufficient to
 apply it on a subset of $P$, called $P_w$, such that removing the nodes of $P_w$
 disconnects every cycles. For instance, $P_w$ can be chosen as the set of the
-heads of loops.
+loop headers.
 
 \subsubsection{Iteration strategies}
 There exist several iteration strategies for computing the fixpoint: whatever
 order we choose for updating the different $X_p, p\in P$, the result at the
 end of the analysis is correct. Yet, the precision of the result and the time
-before convergence could be very different. 
+before convergence can be very different. 
 There have been some work to find efficient iteration strategies
 \cite{Bou92}, such as first stabilising innermost loops, or stabilising strongly
 connected components of the graph.
@@ -1673,7 +1673,7 @@ path.
 	\begin{itemize}
 	\item if the model has set to \emph{true} the Boolean variable $b_e$ associated
 	to the transition $e$, then the focus path goes through this transition.
-	\item in the other case, the focus path doesn't go through this transition.
+	\item in the other case, the focus path does not go through this transition.
 	\end{itemize}
 	
 	Some others are associated to the points of the control flow graph. These
@@ -2072,7 +2072,7 @@ for $(x,y)$ (see Figure \ref{result}.b).
 $p_1 \rightarrow p_3 \rightarrow p_4 \rightarrow p_7$. The image of the
 polyhedra $X_1$ after this path transformation is the single point $y=-1 \wedge
 x = 102$. We can update $X_7 = {(102,-1)}$. Path focusing technique gives us the
-precise result of this program. After that, the SMT-solver can't find any new
+precise result of this program. After that, the SMT-solver cannot find any new
 path, so the analysis terminates.
 \end{itemize}
 
@@ -2173,7 +2173,7 @@ to find the paths $\tau_{p,i}$.
 \end{algorithm}
 
 The new algorithm we propose is described in Algorithm \ref{gulwani2}.
-A difference is that here, we don't know the number of paths. Then, the mapping
+A difference is that here, we do not know the number of paths. Then, the mapping
 function $\sigma$ has to be defined on $\{1,..,m\} \times \N$. We could also
 easily compute this number of paths when computing the $\rho$ formula.
 
@@ -2329,7 +2329,7 @@ $ 0 \leq i \leq 100 \wedge r=0 \wedge x=0$. Analysis terminates since the
 SMT-solver gives $unsat$ answers. Here, We never focused on paths going through
 point $p_6$, so our analysis gives us the invariant $x=0$ at the end of the
 program. Indeed, there is no feasible paths going through $p_6$, but
-\emph{Lookahead Widening} don't know it because of the convex hull at point
+\emph{Lookahead Widening} do not know it because of the convex hull at point
 $p_5$.
 
 
@@ -2591,7 +2591,7 @@ abstract interpretation pass. Among the passes we run, we could cite:
 representation by promoting the memory variables to Static Single Assignment
 (SSA) registers. This pass transform the control flow graph such that all the
 variables are in SSA form, and removes most of the \emph{Load/Store} operations
-into memory. It is useful since our analyser doesn't have a memory model, and
+into memory. It is useful since our analyser does not have a memory model, and
 then loses lots of precision in the case of \emph{Load/Store} instructions.
 \item the \emph{LoopSimplify} and \emph{LoopInfo} Passes, that transform all loops into a canonical
 format, and compute some information related to loops (for instance, the set of
@@ -2611,7 +2611,8 @@ analysis, but for code generation. Then, some informations we need for a precise
 static analysis are lacking.
 
 This is the case for the distinction between \emph{signed} and \emph{unsigned}
-integers, which is nonexistent in the representation, since the compiler doesn't
+integers, which is nonexistent in the representation, since the compiler does
+not
 need this information to generate code. Yet, for static analysis, 
 this distinction is required to improve precision:
 for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
@@ -2623,7 +2624,7 @@ for instance, if $n$ is unsigned, the constraint $n \geq 0$ could be added in
 
 Another example of information that was missing is the set of live variables.
 Indeed, in LLVM, live variables computation is processed during the register
-allocation. Then, the data structure we work on doesn't have live variables
+allocation. Then, the data structure we work on does not have live variables
 informations yet. To solve this problem, we coded our own pass, that is aimed at
 computing these live variables after the transformation in SSA form.
 
@@ -2967,7 +2968,7 @@ passes such as \emph{loop-unroll}, \emph{loop-rotate} or \emph{loop-simplify}.
 \item \emph{Store} instructions, that store a value in the memory, has no effect
 in the analysis.
 \item \emph{Load} instructions, that get a value $v$ in the memory and assign it
-to a variable $x$, doesn't provide properties about the value $v$. Then, our
+to a variable $x$, does not provide properties about the value $v$. Then, our
 analyser considers $x$ can take all values of its type.
 \end{itemize}
 In the case of local variables, the transformation of the internal
@@ -3047,7 +3048,7 @@ We tried our technique on example with a huge number of paths: ex8, ex8b and
 ex8c (see Table \ref{npaths}). These benchmarks are constructed such that the
 loop contains only a few
 possible paths, but a lot of unfeasible paths. The idea is to show that our
-technique doesn't blow up, even with a huge expanded multigraph. Results show
+technique does not blow up, even with a huge expanded multigraph. Results show
 that in such benchmarks, our technique finds a much better invariant and is even
 faster than \emph{Lookahead Widening}.
 
