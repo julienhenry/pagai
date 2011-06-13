@@ -89,6 +89,17 @@
 \fancyfoot[LO, RE]{\color{grey} \thereporttype}
 \fancyfoot[RO, LE]{\color{grey} \thepage /\pageref{LastPage}}
 
+\fancypagestyle{plain}{ %
+\fancyhf{} % remove everything
+%\renewcommand{\headrulewidth}{0pt} % remove lines as well
+%\renewcommand{\footrulewidth}{0pt}
+\fancyhead[LO, RE]{\color{grey} \theshorttitle}
+\fancyhead[RO, LE]{\color{grey} \it \@author}
+
+\fancyfoot[LO, RE]{\color{grey} \thereporttype}
+\fancyfoot[RO, LE]{\color{grey} \thepage /\pageref{LastPage}}
+}
+
 \pagestyle{fancy}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -318,7 +329,6 @@
   % The third  page.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  \addtolength{\topmargin}{-\topsave}
 
   \thispagestyle{empty}
    % ici un maketitle a la LNCS, avec institute et email address y tout
@@ -365,8 +375,8 @@
   % Required because our pdflatex builds on letter papersize
   % May not be needed elsewhere.
 
-%  \@ifundefined{pdfoutput}{}{
-%  \pdfpageheight=29.7cm
-%  \pdfpagewidth=21cm
-%  }
+  \@ifundefined{pdfoutput}{}{
+  \pdfpageheight=29.7cm
+  \pdfpagewidth=21cm
+  }
 }
