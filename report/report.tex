@@ -13,8 +13,6 @@
 \usepackage{algpseudocode}
 \usepackage{multirow}
 \usepackage[toc,page]{appendix} 
-% DM: verimagstudent charge hyperref, et hyperref doit habituellement
-% DM: passer en dernier
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
@@ -83,7 +81,7 @@ color=blue]
 \shorttitle{Static Analysis by Path Focusing}
 \institute{Grenoble-INP}
 \abstract{
-	Program verification is aims at statically discovering properties on programs,
+	Program verification is aimed at statically discovering properties on programs,
 	such as the values that can take the different variables during execution.
 	Abstract Interpretation is a technique that allows to compute an
 	approximation of the set of these values, since it is impossible to compute
@@ -152,9 +150,9 @@ The set of possible states is expressed as a least fixpoint of a set of
 equations defining the semantics of the program. 
 
 A fundamental fact in static analysis is that it cannot be perfectly precise:
-either the set of possible states we compute is unsound (it doesn't contain all
-the possible states during execution), or it is incomplete (it contains
-states that can never be reached during execution). 
+either the analysis is unsound (the set of possible states we compute does not contain all
+the possible states during execution), or is incomplete (the computed set
+contains states that can never be reached during execution). 
 Abstract Interpretation is sound but incomplete, since it always computes an
 upper-approximation of the set of possible states. The challenge is then to be
 as precise as possible, so that we can prove properties about the program.
@@ -202,7 +200,7 @@ Finally, Part \ref{future} introduces some directions to explore.
 \chapter{Abstract Interpretation: state of the art}
 \label{stateoftheartpart}
 
-\section{Introductory example}
+\section{Introductive example}
 
 We consider the following program:
 
@@ -252,8 +250,6 @@ There is a relation between $Y_1$ and $Y_2$ :
 Y_1 &=& \{x\ |\ x=0 \vee \exists x' \in Y_2, x=x'+1 \} \\
 Y_2 &=& \{x\ |\ x \in Y_1 \wedge x < 100 \}
 \end{eqnarray*}
-% DM: d'habitude on met des ' sur les variables de l'etat d'arrivee
-% DM: et pas de depart
 We see that $Y_1$ and $Y_2$ can be computed step by step:
 we start with $Y_1 = Y_2 = \emptyset$.
 Then, we add iteratively new elements in the sets.
@@ -301,7 +297,23 @@ A concretization function $\gamma$ maps the elements of $A$ to elements of $C$:
 		& x &\longmapsto \gamma(x)
 \end{eqnarray*}
 
-The concrete semantics is a monotonic function $\Phi: C \rightarrow C$.
+The concrete semantics is a function $\Phi: C \rightarrow C$.
+In the introductive example, this function $\Phi$ is the following:
+
+
+$$\Phi\left[ \begin{array}{c}
+Y_1 \\
+Y_2 \\
+Y_3 \\
+Y_4
+\end{array} \right] = \left[ \begin{array}{cc} 
+x\ |& x \in \R \\
+x\ |& x = 0 \vee \exists\  x'\in Y_2, x = x'+1 \\
+x\ |& x \in Y_1 \wedge x < 100 \\
+x\ |& x \in Y_1 \wedge x \geq 100 
+\end{array} \right]$$
+
+
 One can choose an abstract semantics $\Phi^\#: A \rightarrow A$ satisfying this
 condition:
 
@@ -310,25 +322,29 @@ $$\forall x \in A, \Phi \circ \gamma (x) \subseteq_C \gamma \circ \Phi^\#(x)$$
 $\Phi^\#$ is then an abstraction of $\Phi$, that gives an upper
 approximation of $\gamma(x)$ when composed with $\gamma$. 
 
+
+
 \begin{proposition}
 Suppose $C$ is a complete lattice, and $\Phi$ is increasing from $C$ to $C$.
-Each $x \in A$, satisfying the condition $\Phi^\#(x) = x$, is an abstraction of
+Each $x \in A$, satisfying the condition $\Phi^\#(x) \subseteq x$, is an abstraction of
 the least fixpoint of $\Phi$.
 \end{proposition}
 
-Indeed, if $\Phi^\#(x) = x$, then $\Phi \circ \gamma (x) \subseteq \gamma(x)
-= \gamma \circ \Phi^\#(x)$. Abstract interpretation aims at computing
+Indeed, if $\Phi^\#(x) \subseteq x$, then $\Phi \circ \gamma (x) 
+\subseteq \gamma \circ \Phi^\#(x) \subseteq \gamma(x)$.
+Abstract interpretation aims at computing
 such an~$x$. It computes the stationary limit of an ascending sequence
 $(x_i)_{i \geq 0}$ defined by the induction:
 
 $$\left[
 \begin{array}{lll}
 x_0 &=& \perp \\
-x_{n+1} &=& \Phi^\#(x_n)
+x_{n+1} &=& x_n \sqcup \Phi^\#(x_n)
 \end{array}
 \right.
 $$
-where $\perp$ is the least element of $A$.
+where $\perp$ is the least element of $A$, and $\sqcup$ is an operator verifying
+$x_1 \cup x_2 \subseteq x_1 \sqcup x_2$ and $x_1 \sqcup x_2 \in A$.
 %The relation between these two
 %domains is characterized by two functions, usually called 
 %$\alpha\ :\ C \mapsto A$, $\gamma \ : \ A \mapsto C$, such as:
@@ -375,9 +391,9 @@ the following properties:
 
 \begin{itemize}
 \item $\forall x_1, x_2 \in A,\ x_1 \leq_A x_1 \widening x_2$ and $x_2 \leq_A x_1
-\widening x_2$. This guarantees the correctness of the result.
-% DM: souvent n'est defini que pour x1<=x2 ce qui oblige a utiliser
-% DM: une union abstraite juste avant
+\widening x_2$. This guarantees the correctness of the result. Most of the time,
+this operator is only defined for $x_1 \leq x_2$. In this case, we use $x_1
+\widening (x_1 \sqcup x_2)$ instead.
 \item For any increasing sequence $x_0 \leq_A x_1 \leq_A \dots$, the sequence
 defined by 
 $$\system{
@@ -390,7 +406,6 @@ in finite time.
 \end{itemize}
 
 \cite{Monniaux_HOSC09} gives a more general definition of the widening operator.
-% DM: c'est gentil de me citer!
 
 The least fixpoint of a function $\Phi^\#$ is noted $\overline{x}$.
 Instead of computing this least fixpoint,
@@ -399,7 +414,7 @@ sequence:
 
 $$\system{
 x'_0 &=& \perp \\
-x'_{i+1} &=& x'_i\ \widening\ \Phi^\#(x'_i),\ \ \forall i \geq 0
+x'_{i+1} &=& x'_i\ \widening\ ( x'_i \sqcup \Phi^\#(x'_i)),\ \ \forall i \geq 0
 }$$
 
 which converges towards $\tilde{x}$, where $\tilde{x} \geq_A \overline{x}$.
@@ -486,7 +501,8 @@ while (x <= 50) {
 }
 \end{C}
 If $P = \{(x,y)\ |\ 0 \leq x \leq y \leq 1 \}$, after one iteration of the loop,
-we have $Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$. Instead of a classic
+we have 
+\\$Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 2 \}$. Instead of a classic
 widening (which gives the result $P \widening Q = \{(x,y)\ |\ 0 \leq x \leq y \}$),
 a widening with the threshold $x \leq 50$ gives 
 $P \widening_T Q = \{(x,y)\ |\ 0 \leq x \leq y \leq 50\}$. In such cases, widening
@@ -2202,6 +2218,8 @@ easily compute this number of paths when computing the $\rho$ formula.
 	\subset X$. In the case of an expansive function, where $X \subseteq
 	\Phi(X)$, we never have $\Phi(X) \subset X$, so narrowing iterations are
 	useless.
+
+	
 
 	\section{Efficiency comparison: example}
 
