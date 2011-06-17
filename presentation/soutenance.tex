@@ -59,18 +59,27 @@ color=blue]
 
 \begin{frame}
 \frametitle{Static Analysis}
+\begin{columns}
+\begin{column}{7cm}
 \begin{itemize}
-\item discover properties on programs
-\item find program invariants, bugs\ldots
-\item allow compile-time optimizations
+\item Discover properties on programs
+\item Find program invariants, bugs\ldots
+\item Allow compile-time optimizations
 \end{itemize}
+\includegraphics[width=7cm]{a380cockpit}
+\end{column}
+
+\begin{column}{4cm}
+\includegraphics[width=4cm]{ariane}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Introduction}
-Abstract interpretation.
+  \frametitle{Abstract Interpretation}
 \begin{itemize}
-\item compute an increasing sequence of the set of possible states of the program
+\item Compute an increasing sequence of the set of possible states of the program
+\item Upper-approximation
 \end{itemize}
 \bigskip
 
@@ -131,21 +140,21 @@ Abstract domain to represent the set of possible states:
 
 \bigskip
 
-\visible<2->{$\Rightarrow$ upper approximation of the set of states}
+\visible<2->{$\Rightarrow$ Upper-approximation of the set of states}
 \end{frame}
 
 
 \begin{frame}
 \frametitle{Sources of imprecision}
 \begin{itemize}
-\item<1-> exact set that can't be expressed in the abstract domain
-\item<2-> \alert<4>{widening operator}
+\item<1-> Exact set that can't be expressed in the abstract domain
+\item<2-> \alert<4>{Widening operator}
 \begin{itemize}
-\item ensure fast convergence
+\item Ensure termination
 \item BUT: may induce huge imprecisions
 \item Narrowing tends to recover some precision\ldots
 \end{itemize}
-\item<3-> \alert<4>{consider paths that are unfeasible in reality}
+\item<3-> \alert<4>{Consider paths that are unfeasible in reality}
 \end{itemize}
 \end{frame}
 
@@ -354,13 +363,6 @@ while (true) {
 \end{columns}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Weakness of this approach}
-	\begin{center}
-		yields imprecision when a loop has several phases.
-	\end{center}
-\end{frame}
-
 
 \section[Lookahead Widening]{Lookahead Widening technique}
 
@@ -370,9 +372,9 @@ while (true) {
 D. Gopan \& T. Reps, CAV 2006
 \bigskip
 \begin{itemize}
-\item separate loops into distinct phases.
-\item obtaining a solution for each loop phase before proceeding to the next.
-\item widening \& narrowing at each loop phase.
+\item Separate loops into distinct phases.
+\item Obtaining a solution for each loop phase before proceeding to the next.
+\item Widening \& narrowing at each loop phase.
 \begin{itemize}
 \item Better precision
 \end{itemize}
@@ -647,16 +649,18 @@ Exponential number of paths:
 \begin{frame}
   \frametitle{using SMT-solving to find new paths}
 \begin{itemize}
-\item SMT formula $\rho$ expressing the semantic of the program
+\item SMT formula $\rho$ expressing the semantics of the program
 \begin{itemize}
-\item SMT: boolean + linear arithmetic
+\item Satisfiability Modulo Theory
+\item boolean + linear arithmetic
 \end{itemize}
+\item SMT-solver: decides the satisfiability and gives a model
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-``Does it exist a path starting in the invariant candidate, that arrives in a
-state outside of the invariant {?}`` 
-\bigskip
+``Is there a path starting in the invariant candidate, that arrives in a
+state outside the invariant?'' 
+\bigskip 
 %To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
 $$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
  (b_{p_2} \wedge x_2 \notin X_{p_2})$$
@@ -755,18 +759,18 @@ $X_{p_i}$: abstract domain of node $p_i$
         (n6) edge              node {} (n9);
   \path<2-> [transition2] 
         (n9) edge [out=0, in=0, distance=4.3cm] node [left] {$x \leftarrow x+d$} (n1);
-  \path<4-8> [transition2] 
+  \path<4-> [transition2] 
         (n1) edge			   node {$>$} (n3);
-  \path<4-8> [transition2] 
+  \path<4-> [transition2] 
         (n3) edge			   node {} (n5);
 	
   \path<6-7> [transition2] 
         (n5) edge			   node [right] {$=$} (n8);
   \path<6-7> [transition2] 
         (n8) edge              node [right] {$d \leftarrow -1$} (n9);
-  \path<8> [transition2] 
+  \path<8-> [transition2] 
         (n5) edge			   node [left] {$x,1000?$ ~ ~ ~$<$} (n6);
-  \path<8> [transition2] 
+  \path<8-> [transition2] 
         (n6) edge              node {} (n9);
 \end{tikzpicture}
 \end{column}
@@ -774,9 +778,9 @@ $X_{p_i}$: abstract domain of node $p_i$
 \begin{tikzpicture}[y=.2cm, x=.2cm,font=\footnotesize]
 
 	\fill<-1>[line] (0,4) circle (0.4);
-	\fill<6-8>[line] (13,-4) circle (0.4);
+	\fill<6->[line] (13,-4) circle (0.4);
 	\fill<7>[polyhedra] (13,-4) -- (0,4) -- (15,4) -- cycle;
-	\fill<8>[polyhedra] (13,-4) -- (0,-4) -- (0,4) -- (15,4) -- cycle;
+	\fill<8->[polyhedra] (13,-4) -- (0,-4) -- (0,4) -- (15,4) -- cycle;
 	\draw<3>[line] (0,4) -- (2,4) -- cycle;
 	\draw<2>[line] (0,4) -- (16,4) -- cycle;
 	\draw<4>[line] (0,4) -- (16,4) -- cycle;
@@ -805,6 +809,13 @@ $X_{p_i}$: abstract domain of node $p_i$
 
 	\node[right=3cm] at (y axis mid) {$n_1$};
 \end{tikzpicture} 
+
+\visible<9>{
+\begin{itemize}
+\item 9 paths from $n_1$ to $n_1$
+\item Only 3 are computed
+\end{itemize}
+}
 \end{column}
 \end{columns}
 \end{frame}
@@ -813,17 +824,38 @@ $X_{p_i}$: abstract domain of node $p_i$
 \section[Results]{Results}
 
 \begin{frame}
-  \frametitle{What is done}
+  \frametitle{What is done (1)}
+
+Implementation of an analyzer
 \begin{itemize}
-\item a small analyzer, using LLVM and Apron
-\item implementation of the Lookahead widening technique
-\item implementation of the Path Focusing technique
+\item 
+Using:
+\begin{itemize}
+\item LLVM compiler infrastructure
+\item Apron numerical abstract domain library
+\item SMT-solvers Yices and Microsoft Z3
+\end{itemize}
+
+\item  Both techniques implemented
+\begin{itemize}
+\item Lookahead widening
+\item Path Focusing
+\end{itemize}
+
 \item Evaluation and comparison
 \end{itemize}
 \end{frame}
 
+
+
 \begin{frame}
 \frametitle{Benchmark Results}
+
+\begin{itemize}
+\item $\approx$ 50 test-cases
+\item $\approx$ 30 benchmarks (cbench)
+\item $\approx$ 10 GNU projects:
+\end{itemize}
 
 \begin{table}
 \centering \small
@@ -845,36 +877,32 @@ Wget		& 8 & 12 & 715  \\ \hline
 \end{frame}
 
 \begin{frame}
-  \frametitle{Future work}
+\frametitle{What is done (2)}
+
 \begin{itemize}
-\item Choice of $P_R$ (red points)
-\item Analysis with pointers
-\item Overflows analysis
-\item Programs with non-linear arithmetic
-\item Disjunctive invariants
+\item Correction of some mistakes in Path Focusing technique
+\item Ideas to refine the algorithm
+\begin{itemize}
+\item Combine both techniques
+\item Compute disjunctive invariants (Gulwani \& Zuleger, PLDI 2010)
+\end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{pointer analysis}
-Pointer $p$ can point to $x$, $y$, or $z$: 
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
-                    semithick,font=\footnotesize]
-	\node[state] (n0) {};
-	\node[state] (n1) [below of=n0] {};
-
-	\path [transition] 
-		(n0) edge   node [xshift=-0.2mm] {$p=\&x$} (n1)
-		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$p=\&y$} (n1)
-		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$p=\&z$} (n1);
-\end{tikzpicture}
-\end{center}
+  \frametitle{Future work}
+\begin{itemize}
+\item Choice of $P_R$ (red points)
+\item Programs with non-linear arithmetic
+\item Analysis with pointers
+\item Overflows analysis
+\end{itemize}
 \end{frame}
 
+
 \begin{frame}
-\frametitle{overflows analysis}
-semantic of the addition $x+y$:
+\frametitle{Overflows analysis}
+Semantics of the addition $x+y$:
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
                     semithick,font=\footnotesize]
@@ -892,11 +920,82 @@ semantic of the addition $x+y$:
 \begin{frame}
 \begin{center}
 Thank you!
+
+\begin{columns}
+\begin{column}{5cm}
+\includegraphics[width=4cm]{ariane}
+\end{column}
+\begin{column}{4cm}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+                    semithick,font=\tiny]
+	\node[PRstate] (n0) {$n_0$};
+	\node[PRstate] (n1) [below of=n0] {$n_1$};
+	\node[state] (n3) [below of=n1] {$n_3$};
+	\node[state] (n2) [left of=n3] {$n_2$};
+	\node[state] (n4) [right of=n3] {$n_4$};
+	\node[state] (n5) [below of=n3] {$n_5$};
+	\node[state] (n7) [below of=n5] {$n_7$};
+	\node[state] (n6) [left of=n7] {$n_6$};
+	\node[state] (n8) [right of=n7] {$n_8$};
+	\node[state] (n9) [below of=n7] {$n_9$};
+
+  \path [transition] 
+		(n0) edge              node  {$\begin{array}{l}
+		x \leftarrow 0 \\
+		d \leftarrow 1 
+		\end{array}$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$x,0?$~ ~ ~ $<$} (n2);
+  \path [transition] 
+        (n1)  edge              node {$>$} (n3);
+  \path [transition2] 
+        (n1)  edge              node [right] {$=$} (n4);
+  \path [transition] 
+        (n3) edge              node  {} (n5);
+  \path [transition] 
+        (n2) edge			   node {} (n5);
+  \path [transition2] 
+        (n4) edge			   node [right] {$d \leftarrow 1$} (n5);
+  \path [transition2] 
+        (n5) edge			   node [left] {$x,1000?$ ~ ~ ~$<$} (n6);
+  \path [transition] 
+        (n5) edge			   node {$>$} (n7);
+  \path [transition] 
+        (n5) edge			   node [right] {$=$} (n8);
+  \path [transition2] 
+        (n6) edge              node {} (n9);
+  \path [transition] 
+        (n7) edge              node {} (n9);
+  \path [transition] 
+        (n8) edge              node [right] {$d \leftarrow -1$} (n9);
+  \path [transition2] 
+        (n9) edge [out=0, in=0, distance=3cm] node [left] {$x \leftarrow x+d$} (n1);
+\end{tikzpicture}
+\end{column}
+\end{columns}
+
 \end{center}
 \end{frame}
 
 
 \backupbegin
+
+\begin{frame}
+\frametitle{Pointer analysis}
+Pointer $p$ can point to $x$, $y$, or $z$: 
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge   node [xshift=-0.2mm] {$p=\&x$} (n1)
+		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$p=\&y$} (n1)
+		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$p=\&z$} (n1);
+\end{tikzpicture}
+\end{center}
+\end{frame}
 
 \begin{frame}[containsverbatim]
 \frametitle{Example of $\rho$ formula}

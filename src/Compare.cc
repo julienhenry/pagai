@@ -41,7 +41,7 @@ int Compare::compareAbstract(Abstract * A, AbstractGopan * B) {
 	} else if (B->is_leq(A)) {
 		return -1;
 	} else {
-		return 0;
+		return -2;
 	}
 }
 
@@ -54,6 +54,7 @@ bool Compare::runOnModule(Module &M) {
 	int equal = 0;
 	int LW = 0;
 	int PF = 0;
+	int UN = 0;
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -76,6 +77,9 @@ bool Compare::runOnModule(Module &M) {
 					case 1:
 						PF++;
 						break;
+					case -2:
+						UN++;
+						break;
 					case -1:
 						*Out << "LW is better in " << *b << "\n";
 						n->Y->print();
@@ -93,6 +97,7 @@ bool Compare::runOnModule(Module &M) {
 	*Out << PF << " : Path focusing is better\n";
 	*Out << LW << " : Lookahead Widening is better\n";
 	*Out << equal << " : Same result\n";
+	*Out << UN << " : uncomparable\n";
 	return true;
 }
 

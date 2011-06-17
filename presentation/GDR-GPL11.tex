@@ -41,17 +41,17 @@ color=blue]
 \begin{frame}
 \frametitle{Static Analysis \& Compilation}
 \begin{itemize}
-\item discover properties on programs
-\item find program invariants, dead code\ldots
-\item allow compile-time optimizations
+\item Discover properties on programs
+\item Find program invariants, dead code\ldots
+\item Allow compile-time optimizations
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Introduction}
-Abstract interpretation.
+  \frametitle{Abstract Interpretation}
 \begin{itemize}
-\item compute an increasing sequence of the set of possible states of the program
+\item Compute an increasing sequence of the set of possible states of the program
+\item Upper-approximation
 \end{itemize}
 \bigskip
 
@@ -119,14 +119,14 @@ Abstract domain to represent the set of possible states:
 \begin{frame}
 \frametitle{Sources of imprecision}
 \begin{itemize}
-\item<1-> exact set that can't be expressed in the abstract domain
-\item<2-> \alert<4>{widening operator}
+\item<1-> Exact set that can't be expressed in the abstract domain
+\item<2-> \alert<4>{Widening operator}
 \begin{itemize}
-\item ensure fast convergence
+\item Ensure fast convergence
 \item BUT: may induce huge imprecisions
 \item Narrowing tends to recover some precision\ldots
 \end{itemize}
-\item<3-> \alert<4>{consider paths that are unfeasible in reality}
+\item<3-> \alert<4>{Consider paths that are unfeasible in reality}
 \end{itemize}
 \end{frame}
 
@@ -337,7 +337,7 @@ while (true) {
 \begin{frame}
   \frametitle{Weakness of this approach}
 	\begin{center}
-		yields imprecision when a loop has several phases.
+		Yields imprecision when a loop has several phases.
 	\end{center}
 \end{frame}
 
@@ -349,9 +349,9 @@ while (true) {
 D. Gopan \& T. Reps, CAV 2006
 \bigskip
 \begin{itemize}
-\item separate loops into distinct phases.
-\item obtaining a solution for each loop phase before proceeding to the next.
-\item widening \& narrowing at each loop phase.
+\item Separate loops into distinct phases.
+\item Obtaining a solution for each loop phase before proceeding to the next.
+\item Widening \& narrowing at each loop phase.
 \begin{itemize}
 \item Better precision
 \end{itemize}
@@ -784,15 +784,15 @@ Exponential number of paths:
 \begin{frame}
   \frametitle{using SMT-solving to find new paths}
 \begin{itemize}
-\item SMT formula $\rho$ expressing the semantic of the program
+\item SMT formula $\rho$ expressing the semantics of the program
 \begin{itemize}
-\item SMT: boolean + linear arithmetic
+\item SMT: Boolean + linear arithmetic
 \end{itemize}
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-``Does it exist a path starting in the invariant candidate, that arrives in a
-state outside of the invariant {?}`` 
+``Is there a path starting in the invariant candidate, that arrives in a
+state outside the invariant?`` 
 \bigskip
 %To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
 $$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
@@ -952,9 +952,9 @@ $X_{p_i}$: abstract domain of node $p_i$
 \begin{frame}
   \frametitle{What is done}
 \begin{itemize}
-\item a small analyzer, using LLVM and Apron
-\item implementation of the Lookahead widening technique
-\item implementation of the Path Focusing technique
+\item A small analyzer, using LLVM and Apron
+\item Implementation of the Lookahead widening technique
+\item Implementation of the Path Focusing technique
 \item Evaluation and comparison
 \end{itemize}
 \end{frame}
@@ -1010,7 +1010,7 @@ Pointer $p$ can point to $x$, $y$, or $z$:
 
 \begin{frame}
 \frametitle{overflows analysis}
-semantic of the addition $x+y$:
+Semantics of the addition $x+y$:
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
                     semithick,font=\footnotesize]
