@@ -145,7 +145,7 @@ Abstract domain to represent the set of possible states:
 
 
 \begin{frame}
-\frametitle{Sources of imprecision}
+\frametitle{Sources of Imprecision}
 \begin{itemize}
 \item<1-> Exact set that can't be expressed in the abstract domain
 \item<2-> \alert<4>{Widening operator}
@@ -168,7 +168,7 @@ Abstract domain to represent the set of possible states:
 
 
 \begin{frame}[containsverbatim]
-  \frametitle{Example of standard Abstract Interpretation}
+  \frametitle{Example of Standard Abstract Interpretation}
 \begin{columns}
 \begin{column}{5cm}
 \begin{lstlisting}
@@ -218,7 +218,7 @@ while (true) {
 \end{frame}
 
 \begin{frame}
-  \frametitle{Example of standard Abstract Interpretation}
+  \frametitle{Example of Standard Abstract Interpretation}
 
 \begin{columns}
   \begin{column}{6cm}
@@ -490,7 +490,7 @@ Exponential number of paths:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Reducing the graph}
+  \frametitle{Reducing the Graph}
 
 \begin{columns}
 \begin{column}{5.5cm}
@@ -647,7 +647,7 @@ Exponential number of paths:
 \end{frame}
 
 \begin{frame}
-  \frametitle{using SMT-solving to find new paths}
+  \frametitle{Using SMT-Solving to Find new Paths}
 \begin{itemize}
 \item SMT formula $\rho$ expressing the semantics of the program
 \begin{itemize}
@@ -658,8 +658,10 @@ Exponential number of paths:
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-``Is there a path starting in the invariant candidate, that arrives in a
-state outside the invariant?'' 
+\begin{center}
+Is there a path starting in the invariant candidate, that arrives in a
+state outside the invariant?
+\end{center}
 \bigskip 
 %To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
 $$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
@@ -824,7 +826,7 @@ $X_{p_i}$: abstract domain of node $p_i$
 \section[Results]{Results}
 
 \begin{frame}
-  \frametitle{What is done (1)}
+  \frametitle{What is Done (1)}
 
 Implementation of an analyzer
 \begin{itemize}
@@ -877,7 +879,7 @@ Wget		& 8 & 12 & 715  \\ \hline
 \end{frame}
 
 \begin{frame}
-\frametitle{What is done (2)}
+\frametitle{What is Done (2)}
 
 \begin{itemize}
 \item Correction of some mistakes in Path Focusing technique
@@ -890,7 +892,7 @@ Wget		& 8 & 12 & 715  \\ \hline
 \end{frame}
 
 \begin{frame}
-  \frametitle{Future work}
+  \frametitle{Future Work}
 \begin{itemize}
 \item Choice of $P_R$ (red points)
 \item Programs with non-linear arithmetic
@@ -901,7 +903,7 @@ Wget		& 8 & 12 & 715  \\ \hline
 
 
 \begin{frame}
-\frametitle{Overflows analysis}
+\frametitle{Overflows Analysis}
 Semantics of the addition $x+y$:
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
@@ -981,7 +983,7 @@ Thank you!
 \backupbegin
 
 \begin{frame}
-\frametitle{Pointer analysis}
+\frametitle{Pointer Analysis}
 Pointer $p$ can point to $x$, $y$, or $z$: 
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
@@ -998,7 +1000,7 @@ Pointer $p$ can point to $x$, $y$, or $z$:
 \end{frame}
 
 \begin{frame}[containsverbatim]
-\frametitle{Example of $\rho$ formula}
+\frametitle{Example of $\rho$ Formula}
 {\footnotesize
 \begin{columns}
 \begin{column}{6.2cm}
@@ -1054,7 +1056,7 @@ Pointer $p$ can point to $x$, $y$, or $z$:
 \end{frame}
 
 \begin{frame}
-\frametitle{Example of bad results with Path Focusing}
+\frametitle{Example of bad Results With Path Focusing}
 \begin{figure}[!h]
 \centering
 \tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
