@@ -79,7 +79,7 @@ color=blue]
   \frametitle{Abstract Interpretation}
 \begin{itemize}
 \item Compute an increasing sequence of the set of possible states of the program
-\item Upper-approximation
+\item Over-approximation
 \end{itemize}
 \bigskip
 
@@ -129,18 +129,81 @@ X_2 =& \{x\ |\ x \in X_1 \wedge x < 100 \}
 
 Cousot \& Cousot 1977
 
+%\begin{tabular}{@{\textbullet~}p{0.8\textwidth}c@{}}
+%Premier truc  & 2007-2010 \\
+%Deuxième truc & 2000-2007 \\
+%Troisième truc & 1997-2000 \\
+%Quatrième truc & 1994-1997 \\
+%Encore un truc bla bla & 1992-1994 \\
+%\end{tabular}
 \bigskip
 
 Abstract domain to represent the set of possible states:
 \begin{itemize}
-\item Intervals
-\item Octogons
-\item Polyhedra
+\item Intervals \hfill
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+
+	%\draw[line] (0,0) -- (8,8) -- (16,0) -- cycle;
+
+	\draw[fill=black] (4,7) circle (1pt);	
+	\draw[fill=black] (6,12) circle (1pt);	
+	\draw[fill=black] (8,2) circle (1pt);	
+	\draw[fill=black] (10,7) circle (1pt);	
+	\draw[fill=black] (14,10) circle (1pt);	
+	\draw[fill=black] (17,4) circle (1pt);	
+
+	\fill[polyhedra] (4,2) -- (4,12) -- (17,12) -- (17,2) -- cycle;
+ 	
+	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,14);
+\end{tikzpicture} \hspace{3cm}~ 
+\item Octagons
+\hfill
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+
+	%\draw[line] (0,0) -- (8,8) -- (16,0) -- cycle;
+
+	\draw[fill=black] (4,7) circle (1pt);	
+	\draw[fill=black] (6,12) circle (1pt);	
+	\draw[fill=black] (8,2) circle (1pt);	
+	\draw[fill=black] (10,7) circle (1pt);	
+	\draw[fill=black] (14,10) circle (1pt);	
+	\draw[fill=black] (17,4) circle (1pt);	
+
+	\fill[polyhedra] (4,6) -- (4,10) -- (6,12) -- (12,12) 
+	-- (17,7) -- (17,4) -- (15,2) -- (8,2) -- cycle;
+ 	
+	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,14);
+\end{tikzpicture}   \hspace{3cm}~
+\item Convex Polyhedra
+\hfill
+\begin{tikzpicture}[y=.1cm, x=.1cm,font=\footnotesize]
+
+	%\draw[line] (0,0) -- (8,8) -- (16,0) -- cycle;
+
+	\draw[fill=black] (4,7) circle (1pt);	
+	\draw[fill=black] (6,12) circle (1pt);	
+	\draw[fill=black] (8,2) circle (1pt);	
+	\draw[fill=black] (10,7) circle (1pt);	
+	\draw[fill=black] (14,10) circle (1pt);	
+	\draw[fill=black] (17,4) circle (1pt);	
+
+	\fill[polyhedra] (4,7) -- (6,12) -- (6,12) -- (14,10) 
+	-- (17,4) -- (8,2) -- cycle;
+ 	
+	%axis
+	\draw (0,0) -- coordinate (x axis mid) (20,0);
+    \draw (0,0) -- coordinate (y axis mid) (0,14);
+\end{tikzpicture} \hspace{3cm}~
+
 \end{itemize}
 
 \bigskip
 
-\visible<2->{$\Rightarrow$ Upper-approximation of the set of states}
+\visible<2->{$\Rightarrow$ Over-approximation of the set of states}
 \end{frame}
 
 
@@ -164,7 +227,7 @@ Abstract domain to represent the set of possible states:
 \end{frame}
 
 
-\section[Standard Approach]{Weakness of the standard approach}
+\section[Standard Approach]{Weakness of the Standard Approach}
 
 
 \begin{frame}[containsverbatim]
@@ -364,7 +427,7 @@ while (true) {
 \end{frame}
 
 
-\section[Lookahead Widening]{Lookahead Widening technique}
+\section[Lookahead Widening]{Lookahead Widening Technique}
 
 \begin{frame}
   \frametitle{Principle}
@@ -381,7 +444,7 @@ D. Gopan \& T. Reps, CAV 2006
 \end{itemize}
 \end{frame}
 
-\section[Path focusing]{Using SMT-solving to focus new paths}
+\section[Path focusing]{Using SMT-Solving to Focus New Paths}
 
 \begin{frame}
   \frametitle{Principle}
@@ -390,7 +453,7 @@ D. Monniaux \& L. Gonnord, SAS 2011
 \bigskip
 \begin{itemize}
 \item Compute the fixpoint iterations on a multigraph
-\item Take a set $P_R$ of nodes (in red)
+\item Take a set $P_R$ of nodes (in \alert{red}) cutting every loops
 \item Distinguish all the paths between 2 nodes of $P_R$
 \end{itemize}
 \end{frame}
@@ -647,12 +710,12 @@ Exponential number of paths:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Using SMT-Solving to Find new Paths}
+  \frametitle{Using SMT-Solving to Find New Paths}
 \begin{itemize}
 \item SMT formula $\rho$ expressing the semantics of the program
 \begin{itemize}
 \item Satisfiability Modulo Theory
-\item boolean + linear arithmetic
+\item Boolean + linear arithmetic
 \end{itemize}
 \item SMT-solver: decides the satisfiability and gives a model
 \item $\rho$ contains reachability predicates
@@ -861,17 +924,18 @@ Using:
 
 \begin{table}
 \centering \small
-\begin{tabular}{|c||c|c|c|} \hline 
-Benchmark & Path Focusing & Lookahead Widening & Same invariant \\
+\begin{tabular}{|c||r|r|r|} \hline 
+Benchmark  & Lookahead Widening & Path Focusing & None better \\
 \hline \hline
-Gawk		& 4 & 3 & 284  \\ \hline
-Gnuchess	& 22 & 33 & 1506  \\ \hline
-Gnugo		& 105 & 35 & 1303  \\ \hline
-Grep		& 4 & 3 & 323  \\ \hline
-Gzip		& 9 & 3 & 189  \\ \hline
-Make		&  7 & 11 & 457  \\ \hline
-Tar			& 16 & 5 & 555  \\ \hline
-Wget		& 8 & 12 & 715  \\ \hline
+Gawk		& 3		& 4		& 284  \\ \hline
+Gnuchess	& 33	& 22	& 1506  \\ \hline
+Gnugo		& 35	& 105	& 1303  \\ \hline
+Grep		& 3		& 4		& 323  \\ \hline
+Gzip		& 3		& 9		& 189  \\ \hline
+Make		& 11	&  7	& 457  \\ \hline
+Tar			& 5		& 16	& 555  \\ \hline
+Wget		& 12	& 8		& 715  \\ \hline \hline
+TOTAL		& 105	& 175	& 5332	\\ \hline
 \end{tabular}
 \caption{Result of the analysis of various open-source projects.}
 \label{opensource}
@@ -882,7 +946,7 @@ Wget		& 8 & 12 & 715  \\ \hline
 \frametitle{What is Done (2)}
 
 \begin{itemize}
-\item Correction of some mistakes in Path Focusing technique
+\item Correction of some oversights in Path Focusing technique
 \item Ideas to refine the algorithm
 \begin{itemize}
 \item Combine both techniques
@@ -902,22 +966,6 @@ Wget		& 8 & 12 & 715  \\ \hline
 \end{frame}
 
 
-\begin{frame}
-\frametitle{Overflows Analysis}
-Semantics of the addition $x+y$:
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
-                    semithick,font=\footnotesize]
-	\node[state] (n0) {};
-	\node[state] (n1) [below of=n0] {};
-
-	\path [transition] 
-		(n0) edge   node [xshift=-0.2mm] {$x+y$} (n1)
-		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$x+y-N$} (n1)
-		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$x+y+N$} (n1);
-\end{tikzpicture}
-\end{center}
-\end{frame}
 
 \begin{frame}
 \begin{center}
@@ -983,6 +1031,23 @@ Thank you!
 \backupbegin
 
 \begin{frame}
+\frametitle{Overflows Analysis}
+Semantics of the addition $x+y$:
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+	\node[state] (n0) {};
+	\node[state] (n1) [below of=n0] {};
+
+	\path [transition] 
+		(n0) edge   node [xshift=-0.2mm] {$x+y$} (n1)
+		(n0) edge [in=170,out=190,distance=2cm]  node [left] {$x+y-N$} (n1)
+		(n0) edge [in=10,out=-10,distance=2cm]  node [right] {$x+y+N$} (n1);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+\begin{frame}
+
 \frametitle{Pointer Analysis}
 Pointer $p$ can point to $x$, $y$, or $z$: 
 \begin{center}
