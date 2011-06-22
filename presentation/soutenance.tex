@@ -30,6 +30,7 @@ Moy}
 \tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
 color=blue]
 \tikzstyle{line}=[black,thick]
+\tikzstyle{line2}=[blue,ultra thick]
 
 \date{June 24$^{th}$ 2011}
 
@@ -296,15 +297,15 @@ while (true) {
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
   \path<-2> [transition] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<-8> [transition] 
+  \path<-11> [transition] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
   \path<-3> [transition] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<-9> [transition] 
+  \path<-12> [transition] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<-4> [transition] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<-11> [transition] 
+  \path<-14> [transition] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<-5> [transition] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
@@ -315,15 +316,15 @@ while (true) {
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
   \path<3-> [transition2] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<9-> [transition2] 
+  \path<12-> [transition2] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
   \path<4-> [transition2] 
         (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<10-> [transition2] 
+  \path<13-> [transition2] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
   \path<5-> [transition2] 
         (n4) edge			   node {$y \geq 0$} (n5);
-  \path<12-> [transition2] 
+  \path<15-> [transition2] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<6-> [transition2] 
         (n5) edge              node {$x \leftarrow x+1$} (n6);
@@ -338,11 +339,24 @@ while (true) {
 	\node (t2) at (13,11) {};
 	\fill<2-7>[line] (0,0) circle (0.4);
 	\fill<7>[line] (2,2) circle (0.4);
-	\draw<8-10>[line] (0,0) -- (10,10) -- cycle;
-	\draw<11-12>[line] (-1,-1) -- (10,10) -- cycle;
-	\fill<11-12>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
-	\fill<13-14>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
-	\draw<13-14>[line] (0,0) -- (10,10) -- cycle;
+	
+	\draw<8>[line] (0,0) -- (2,2) -- cycle;
+
+	\draw<9-13>[line] (0,0) -- (10,10) -- cycle;
+
+
+	\draw<10>[line2] (0,0) -- (8,8) -- cycle;
+
+     		\draw<10> [dotted](8,8) -- (-3pt,8) 
+     			node[anchor=east] {$51$}; 
+     		\draw<10> [dotted] (8,8) -- (8,-3pt) 
+     			node[anchor=north] {$51$}; 
+
+
+	\draw<14-15>[line] (-1,-1) -- (10,10) -- cycle;
+	\fill<14-15>[polyhedra] (-1,-1) -- (10,10) -- (13,10) -- (13,-1) -- (0,-1) -- cycle;
+	\fill<16-17>[polyhedra] (0,0) -- (10,10) -- (13,10) -- (13,0) -- cycle;
+	\draw<16-17>[line] (0,0) -- (10,10) -- cycle;
 
  	%axis
 	\draw (0,0) -- coordinate (x axis mid) (10,0);
@@ -354,9 +368,9 @@ while (true) {
 
 	\node[right=3cm] at (y axis mid) {$n_1$};
 
-    \draw<7> (1pt,2) -- (-3pt,2) 
+    \draw<7-8> (1pt,2) -- (-3pt,2) 
      	node[anchor=east] {1}; 
-    \draw<7> (2,1pt) -- (2,-3pt) 
+    \draw<7-8> (2,1pt) -- (2,-3pt) 
      	node[anchor=north] {1}; 
 
 \end{tikzpicture} 
@@ -364,21 +378,21 @@ while (true) {
 
 	\node (t1) at (-5,-4) {};
 	\node (t2) at (13,11) {};
-	\fill<4-9>[line] (0,2) circle (0.4);
-	\fill<10-11>[polyhedra] (0,2) -- (8,10) -- (12,10) -- (8,6) --cycle;
-	\draw<10-11>[line] (0,2) -- (6,8);
-	\draw<10-11>[line] (8,6) -- (12,10);
+	\fill<4-12>[line] (0,2) circle (0.4);
+	\fill<13-14>[polyhedra] (0,2) -- (8,10) -- (12,10) -- (8,6) --cycle;
+	\draw<13-14>[line] (0,2) -- (6,8);
+	\draw<13-14>[line] (8,6) -- (12,10);
 
-	\draw<12-13>[line] (-2,0) -- (8,10);
-	\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
+	\draw<15-16>[line] (-2,0) -- (8,10);
+	\fill<15-16>[polyhedra] (-2,-2) -- (-2,0) -- (8,10) -- (13,10) -- (13,-2) --
 	 cycle;
 	%\fill<12-13>[polyhedra] (-2,-2) -- (-2,0) -- (6,8) -- (6,-2) -- cycle;
 	%\fill<12-14>[polyhedra] (8,6) -- (12,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 
-	\draw<14>[line] (0,2) -- (8,10);
-	\draw<14>[line] (0,2) -- (8,-2);
-	\draw<14>[line] (13,-2) -- (8,-2);
-	\fill<14>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
+	\draw<17>[line] (0,2) -- (8,10);
+	\draw<17>[line] (0,2) -- (8,-2);
+	\draw<17>[line] (13,-2) -- (8,-2);
+	\fill<17>[polyhedra] (0,2) -- (8,10) -- (13,10) -- (13,-2) -- (8,-2) -- cycle;
 	%\fill<14>[polyhedra] (0,2) -- (6,8) -- (6,2) --  cycle;
 
  	%axis
@@ -393,18 +407,18 @@ while (true) {
 	%ticks
      		\draw<4-> (1pt,2) -- (-3pt,2) 
      			node[anchor=east] {1}; 
-     		\draw<14-> [dotted](8,-2) -- (-3pt,-2) 
+     		\draw<17-> [dotted](8,-2) -- (-3pt,-2) 
      			node[anchor=east] {-1}; 
 	
-     		\draw<10-11> [dotted](6,8) -- (-3pt,8) 
+     		\draw<13-14> [dotted](6,8) -- (-3pt,8) 
      			node[anchor=east] {$51$}; 
-     		\draw<10-11> [dotted] (8,6) -- (-3pt,6) 
+     		\draw<13-14> [dotted] (8,6) -- (-3pt,6) 
      			node[anchor=east] {$50$}; 
-     		\draw<10-11> [dotted](8,6) -- (8,-3pt) 
+     		\draw<13-14> [dotted](8,6) -- (8,-3pt) 
      			node[anchor=north] {$51$}; 
-     		\draw<10-11> [dotted] (6,8) -- (6,-3pt) 
+     		\draw<13-14> [dotted] (6,8) -- (6,-3pt) 
      			node[anchor=north] {$50$}; 
-     		\draw<14-> [dotted](8,6) -- (8,-2.3) 
+     		\draw<17-> [dotted](8,6) -- (8,-2.3) 
      			node[anchor=north] {$51$}; 
      		%\draw<14-> [dotted] (6,8) -- (6,-2.3) 
      		%	node[anchor=north] {$50$}; 
@@ -412,8 +426,8 @@ while (true) {
      		%	node[anchor=north] {1}; 
 
 \end{tikzpicture} 
-\only<1-12>{Ascending iterations}
-\only<13->{Descending iterations}
+\only<1-15>{Ascending iterations}
+\only<16->{Descending iterations}
 \end{column}
 \end{columns}
 \end{frame}
