@@ -21,15 +21,15 @@ Moy}
 \usetikzlibrary{snakes,arrows,shapes,backgrounds,shadows,automata,patterns}
 \usepgflibrary{snakes}
 
-\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
-\tikzstyle{transition}=[rectangle,thick,draw=black!75,
+\tikzstyle{state}=[circle,draw=black,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,draw=black!75,
   			  fill=black!20,minimum size=4mm]
 \tikzstyle{transition2}=[rectangle,thick,draw=blue!75,
   			  fill=blue,minimum size=4mm,blue]
 \tikzstyle{PRstate}=[circle,fill=red!65,minimum size=13pt,inner sep=0pt]
 \tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
 color=blue]
-\tikzstyle{line}=[black,thick]
+\tikzstyle{line}=[black]
 \tikzstyle{line2}=[blue,ultra thick]
 
 \date{June 24$^{th}$ 2011}
@@ -576,50 +576,73 @@ Exponential number of paths:
 	\node[PRstate] (n7) [left of=n6] {$n_7$};
 
 
-  \path [transition] 
+  \path<-2> [transition] 
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
-  \path [transition] 
-        (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path [transition] 
-        (n1)  edge              node [right] {$x \geq 51$} (n3);
-  \path [transition] 
-        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path [transition] 
-        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
-  \path [transition] 
-        (n4) edge			   node {$y \geq 0$} (n5);
-  \path [transition] 
-		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
-  \path [transition] 
-        (n5) edge              node {$x \leftarrow x+1$} (n6);
-  \path [transition] 
-        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
-
   \path<3> [transition2] 
 		(n0) edge              node {$x,y \leftarrow 0$} (n1);
+  \path<4-> [transition] 
+		(n0) edge              node {$x,y \leftarrow 0$} (n1);
 
-  \path<4> [transition2] 
+  \path<-3> [transition] 
         (n1) edge			   node [left] {$x \leq 50$} (n2);
   \path<4> [transition2] 
-        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
-  \path<4-5> [transition2] 
-        (n4) edge			   node {$y \geq 0$} (n5);
-  \path<4-5> [transition2] 
-        (n5) edge              node {$x \leftarrow x+1$} (n6);
-  \path<4-5> [transition2] 
-        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<5-6> [transition] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
+  \path<7> [transition2] 
+        (n1) edge			   node [left] {$x \leq 50$} (n2);
 
-  \path<5-6> [transition2] 
+
+  \path<-4> [transition] 
         (n1)  edge              node [right] {$x \geq 51$} (n3);
   \path<5-6> [transition2] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+  \path<7-> [transition] 
+        (n1)  edge              node [right] {$x \geq 51$} (n3);
+
+
+  \path<1-3> [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<4> [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<5-6> [transition] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+  \path<7> [transition2] 
+        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+
+  \path<1-4> [transition] 
         (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<5-6> [transition2] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+  \path<7-> [transition] 
+        (n3) edge			   node [right] {$y \leftarrow y-1$} (n4);
+
+  \path<1-3> [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path<4-5> [transition2] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+  \path<6-> [transition] 
+        (n4) edge			   node {$y \geq 0$} (n5);
+
+  \path<1-5> [transition] 
+		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
   \path<6-> [transition2] 
 		(n4) edge  [out = 180, in=90] node [left] {$y \leq -1$} (n7);
 
-  \path<7> [transition2] 
-        (n1) edge			   node [left] {$x \leq 50$} (n2);
-  \path<7> [transition2] 
-        (n2) edge              node [left] {$y \leftarrow y+1$} (n4);
+
+  \path<1-3> [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<4-5> [transition2] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+  \path<6-> [transition] 
+        (n5) edge              node {$x \leftarrow x+1$} (n6);
+
+  \path<1-3> [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+  \path<4-5> [transition2] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
+  \path<6-> [transition] 
+        (n6) edge [out=0, in=0, distance=3.5cm] node {} (n1);
 
 \end{tikzpicture}
 \end{column}
