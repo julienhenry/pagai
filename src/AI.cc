@@ -47,6 +47,7 @@ bool AI::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
+	int N_Pr = 0;
 	LSMT = &(getAnalysis<SMT>());
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
@@ -69,6 +70,7 @@ bool AI::runOnModule(Module &M) {
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
 				n->Y->print(true);
+				N_Pr++;
 			}
 			//delete Nodes[b];
 		}
@@ -76,6 +78,11 @@ bool AI::runOnModule(Module &M) {
 
 	*Out << "Number of iterations: " << n_iterations << "\n";
 	*Out << "Number of paths computed: " << n_paths << "\n";
+
+	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	Total_time = sub(Now(),Total_time);
+	*Out << Total_time.tv_sec << " " << Total_time.tv_usec << " TOTAL_TIME\n";
+	*Out << N_Pr << " PR_SIZE\n";
 	return 0;
 }
 
@@ -384,7 +391,12 @@ void AI::computeNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
+	
+		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path);
+		
+		SMT_time = add(SMT_time,sub(Now(),beginTime));
+
 		if (res != 1 || path.size() == 1) {
 			LSMT->pop_context();
 			if (res == -1) unknown = true;
@@ -398,14 +410,6 @@ void AI::computeNode(Node * n) {
 		Succ = Nodes[path.back()];
 
 		n_iterations++;
-		//if (!isequal(path,lastpath[n->bb])) {
-		if (!pathtree->exist(path) || !isequal(path,lastpath[n->bb])) {
-		//if (!pathtree->exist(path)) {
-			n_paths++;
-			only_join = true;
-		} else {
-			only_join = false;
-		}
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = new Abstract(n->X);
@@ -420,9 +424,20 @@ void AI::computeNode(Node * n) {
 
 		Succ->X->change_environment(Xtemp->main->env);
 
+		//if (!isequal(path,lastpath[n->bb])) {
+		//if (!pathtree->exist(path) || !isequal(path,lastpath[n->bb])) {
+		if (!pathtree->exist(path)) {
+			n_paths++;
+			only_join = true;
+		} else {
+			*Out << "PATH EXISTS IN PATHTREE\n";
+			only_join = false;
+		}
+
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			if (isequal(path,lastpath[n->bb])) {
+			//if (isequal(path,lastpath[n->bb])) {
+			if (pathtree->exist(path)) {
 			// backup the previous abstract value
 			Abstract * Xpred = new Abstract(Succ->X);
 
@@ -441,10 +456,13 @@ void AI::computeNode(Node * n) {
 			computeTransform(n,path,*Xtemp);
 			
 			Succ->X = Xpred;
-			pathtree->insert(path);
 			only_join = true;
+			pathtree->remove(path);
+			if (pathtree->exist(path)) {
+				*Out << "ERROR STILL EXIST\n";
+			}
 			} else {
-				
+				pathtree->insert(path);
 			}
 		} 
 		

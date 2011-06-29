@@ -25,6 +25,8 @@ class PathTree {
 
 		void insert(std::list<BasicBlock*> path);
 
+		void remove(std::list<BasicBlock*> path);
+
 		void clear();
 
 		bool exist(std::list<BasicBlock*> path);

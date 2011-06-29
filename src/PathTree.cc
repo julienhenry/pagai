@@ -38,6 +38,28 @@ void PathTree::insert(std::list<BasicBlock*> path) {
 	}
 }
 
+void PathTree::remove(std::list<BasicBlock*> path) {
+	std::list<BasicBlock*> workingpath;
+	pathnode * v;
+	BasicBlock * current;
+	int i;
+
+	workingpath.assign(path.begin(), path.end());
+	v = &start;
+	while (workingpath.size() > 0) {
+		current = workingpath.front();
+		workingpath.pop_front();
+	
+		i = rank_vector(v->name,current);
+		v = v->next[i];
+		if (v->name.size() <= 1) {
+			v->name.pop_back();
+			v->next.pop_back();
+			return;
+		}
+	}
+}
+
 void PathTree::clear() {
 	while (!start.name.empty()) 
 		start.name.pop_back();
