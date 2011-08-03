@@ -53,7 +53,7 @@ Apron_Manager_Type getApronManager() {
 }
 
 
-void setApronManager(char * domain) {
+bool setApronManager(char * domain) {
 	std::string d;
 	d.assign(domain);
 	
@@ -73,7 +73,9 @@ void setApronManager(char * domain) {
 		ap_manager = PKGRID;
 	} else {
 		std::cout << "Wrong parameter defining the abstract domain\n";
+		return 1;
 	}
+	return 0;
 }
 
 std::set<llvm::Function*> ignoreFunction;
@@ -116,7 +118,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'd':
             domain = optarg;
-			setApronManager(domain);
+			if (setApronManager(domain)) {
+				bad_use = true;
+			}
             break;
         case 'i':
             filename = optarg;
