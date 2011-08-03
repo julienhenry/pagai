@@ -157,7 +157,12 @@ SMT_expr SMT::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 		case AP_CONS_SUP: 
 			return man->SMT_mk_gt(linexpr_smt,scalar_smt);
 		case AP_CONS_EQMOD:
-			return man->SMT_mk_eq(linexpr_smt,scalar_smt);
+			{
+				bool isZero;
+		   		SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,isZero);
+		   		assert(!isZero);
+		   		return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+            }
 		case AP_CONS_DISEQ:
 			return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
 	}

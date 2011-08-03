@@ -12,12 +12,23 @@
 SMT_Solver manager;
 bool gopan;
 bool compare;
+Apron_Manager_Type ap_manager;
 llvm::raw_ostream *Out;
 
 void show_help() {
         std::cout << "Usage :\n \
-\tanalyzer -h OR analyzer [-g] [-y]  -i <filename> \n \
+\tanalyzer -h OR analyzer [options]  -i <filename> \n \
 -h : help\n \
+-d : abstract domain\n \
+         possible abstract domains:\n \
+		   * box (Apron boxes)\n \
+		   * oct (Octagons)\n \
+		   * pk (NewPolka strict polyhedra)\n \
+		   * pkeq (NewPolka linear equalities)\n \
+		   * ppl_poly (PPL strict polyhedra)\n \
+		   * ppl_grid (PPL grids)\n \
+		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
+		example of option: -d box\n \
 -i : input file\n \
 -o : output file\n \
 -g : use Lookahead Widening technique\n \
@@ -37,6 +48,34 @@ bool compareTechniques() {
 	return compare;
 }
 
+Apron_Manager_Type getApronManager() {
+	return ap_manager;
+}
+
+
+void setApronManager(char * domain) {
+	std::string d;
+	d.assign(domain);
+	
+	if (!d.compare("box")) {
+		ap_manager = BOX;
+	} else if (!d.compare("oct")) {
+		ap_manager = OCT;
+	} else if (!d.compare("pk")) {
+		ap_manager = PK;
+	} else if (!d.compare("pkeq")) {
+		ap_manager = PKEQ;
+	} else if (!d.compare("ppl_poly")) {
+		ap_manager = PPL_POLY;
+	} else if (!d.compare("ppl_grid")) {
+		ap_manager = PPL_GRID;
+	} else if (!d.compare("pkgrid")) {
+		ap_manager = PKGRID;
+	} else {
+		std::cout << "Wrong parameter defining the abstract domain\n";
+	}
+}
+
 std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
@@ -47,9 +86,11 @@ int main(int argc, char* argv[]) {
     bool bad_use = false;
     char* filename=NULL;
     char* outputname="";
+	char* domain;
 	bool debug = false;
 
 	manager = Z3_MANAGER;
+	ap_manager = PK;
 	gopan = false;
 	compare = false;
 	n_totalpaths = 0;
@@ -59,12 +100,12 @@ int main(int argc, char* argv[]) {
 	SMT_time.tv_usec = 0;
 	Total_time = Now();
 
-	 while ((o = getopt(argc, argv, "hdi:o:ycg")) != -1) {
+	 while ((o = getopt(argc, argv, "hDd:i:o:ycg")) != -1) {
         switch (o) {
         case 'h':
             help = true;
             break;
-        case 'd':
+        case 'D':
             debug = true;
             break;
         case 'c':
@@ -72,6 +113,10 @@ int main(int argc, char* argv[]) {
             break;
         case 'g':
             gopan = true;
+            break;
+        case 'd':
+            domain = optarg;
+			setApronManager(domain);
             break;
         case 'i':
             filename = optarg;

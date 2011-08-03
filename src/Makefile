@@ -39,8 +39,17 @@ LCFLAGS += \
 			-L$(YICES_PATH)/lib \
 			-L$(Z3_PATH)/lib
 
-LDFLAGS  += -lapron -lppl -lgmpxx \
-			-lmpfr -lgmp  -lpolkaMPQ -loctD -lboxMPFR -lyices -lz3
+#LDFLAGS += -static
+
+LDFLAGS += -lpolkaMPQ -loctD -lboxMPFR -lap_ppl -lap_pkgrid -lapron 
+
+LDFLAGS += -lppl
+
+LDFLAGS += -lyices -lz3
+
+LDFLAGS += -lmpfr -lgmpxx -lgmp
+
+LDFLAGS += -ldl -lpthread
 
 all: $(EXEC)
 

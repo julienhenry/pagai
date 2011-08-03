@@ -5,6 +5,12 @@
 #include "llvm/Support/FormattedStream.h"
 
 #include "ap_global1.h"
+#include "box.h"
+#include "oct.h"
+#include "ap_ppl.h"
+#include "ap_pkgrid.h"
+#include "pk.h"
+#include "pkeq.h"
 
 #include "apron.h"
 #include "Expr.h"
@@ -74,5 +80,26 @@ void init_apron() {
 	var_op_manager.to_string = &ap_var_to_string;
 
 	ap_var_operations = &var_op_manager;
+}
+
+ap_manager_t * create_manager(Apron_Manager_Type man) {
+	switch (man) {
+	case BOX:
+		return box_manager_alloc(); // Apron boxes
+	case OCT: 
+		return oct_manager_alloc(); // Octagons
+	case PK: 
+		return pk_manager_alloc(true); // NewPolka strict polyhedra
+	case PKEQ: 
+		return pkeq_manager_alloc(); // NewPolka linear equalities
+	case PPL_POLY: 
+		return ap_ppl_poly_manager_alloc(true); // PPL strict polyhedra
+	case PPL_GRID: 
+		return ap_ppl_grid_manager_alloc(); // PPL grids
+	case PKGRID: 
+		// Polka strict polyhedra + PPL grids
+		return ap_pkgrid_manager_alloc(	pk_manager_alloc(true),
+										ap_ppl_grid_manager_alloc()); 
+	}
 }
 

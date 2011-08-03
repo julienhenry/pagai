@@ -11,11 +11,23 @@ enum SMT_Solver {
 	YICES_MANAGER
 };
 
+enum Apron_Manager_Type {
+	BOX,
+	OCT,
+	PK,
+	PKEQ,
+	PPL_POLY,
+	PPL_GRID,
+	PKGRID
+};
+
 SMT_Solver getSMTSolver();
 
 bool useLookaheadWidening();
 
 bool compareTechniques();
+
+Apron_Manager_Type getApronManager();
 
 extern llvm::raw_ostream *Out;
 

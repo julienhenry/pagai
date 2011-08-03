@@ -16,6 +16,7 @@
 //#include "apron_ppl.h"
 #include "pk.h"
 
+#include "Analyzer.h"
 #include "apron.h"
 #include "Node.h"
 #include "Live.h"
@@ -53,12 +54,14 @@ class AI : public ModulePass, public InstVisitor<AI> {
 	
 	public:
 
-		AI () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
-				man = pk_manager_alloc(true);
-				//man = ap_ppl_grid_manager_alloc();
+		AI () : 
+			ModulePass(ID), 
+			LV(NULL),
+			LI(NULL),
+			LSMT(NULL) {
+				man = create_manager(getApronManager());
 				pathtree = new PathTree();
 				init_apron();
-				//linconstraints = ap_lincons1_array_make(ap_environment_alloc_empty(),0);
 			}
 
 		~AI () {
