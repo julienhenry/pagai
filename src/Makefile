@@ -1,6 +1,7 @@
 YICES_PATH	= /net/cezanne/local/jhenry/yices
 Z3_PATH		= /net/cezanne/local/jhenry/z3
 LLVM_PATH	= /net/cezanne/local/jhenry/llvm-2.9
+CUDD_PATH	= /net/cezanne/local/jhenry/cudd-2.4.2
 
 SRC		= $(wildcard ../src/*.cc)
 BIN_REP		= ../bin/
@@ -28,6 +29,7 @@ CPPFLAGS += \
 			-I$(GMP_PREFIX)/include \
 			-I$(MPFR_PREFIX)/include \
 			-I$(APRON_PREFIX)/include \
+			-I$(CUDD_PATH)/include \
 
 
 LCFLAGS += \
@@ -37,7 +39,13 @@ LCFLAGS += \
 			-L$(PPL_PREFIX)/lib \
 			-L$(CAMLIDL_PREFIX)/lib/ocaml/apron \
 			-L$(YICES_PATH)/lib \
-			-L$(Z3_PATH)/lib
+			-L$(Z3_PATH)/lib \
+			-L$(CUDD_PATH)/obj \
+			-L$(CUDD_PATH)/mtr \
+			-L$(CUDD_PATH)/st \
+			-L$(CUDD_PATH)/epd \
+			-L$(CUDD_PATH)/util \
+			-L$(CUDD_PATH)/cudd
 
 #LDFLAGS += -static
 
@@ -51,10 +59,19 @@ LDFLAGS += -lmpfr -lgmpxx -lgmp
 
 LDFLAGS += -ldl -lpthread
 
+CUDD_LIBS = \
+	$(CUDD_PATH)/obj/libobj.a \
+	$(CUDD_PATH)/cudd/libcudd.a \
+	$(CUDD_PATH)/mtr/libmtr.a \
+	$(CUDD_PATH)/st/libst.a \
+	$(CUDD_PATH)/util/libutil.a \
+	$(CUDD_PATH)/epd/libepd.a
+
+
 all: $(EXEC)
 
 $(EXEC) : $(OBJS)
-	$(CC) $(LCFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(LCFLAGS) -o $@ $^ $(CUDD_LIBS) $(LDFLAGS)
 
 ${BIN_REP}%.o : %.cc *.h
 	$(CC) $(ICFLAGS) -o $@ -c $< $(CPPFLAGS)
