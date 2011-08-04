@@ -686,7 +686,7 @@ void SMT::visitBranchInst (BranchInst &I) {
 	SMT_expr eexpr = man->SMT_mk_expr_from_bool_var(evar);
 	SMT_expr components_and;
 
-	if (I.isUnconditional()) {
+	if (I.isUnconditional() || s == I.getSuccessor(1)) {
 		rho_components.push_back(man->SMT_mk_eq(eexpr,bexpr));
 	} else {
 		std::vector<SMT_expr> components;
