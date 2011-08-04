@@ -25,6 +25,7 @@
 #include "SMT.h"
 #include "Compare.h"
 #include "Analyzer.h"
+#include "GenerateSMT.h"
 
 using namespace llvm;
 
@@ -95,10 +96,13 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	ModulePass *AIPass;
 	ModulePass *AIPass2;
-	if (useLookaheadWidening())
+	if (onlyOutputsRho()) {
+		AIPass = new GenerateSMT();
+	} else if (useLookaheadWidening()) {
 		AIPass = new AIGopan2();
-	else
+	} else {
 		AIPass = new AI();
+	}
 
 	if (compareTechniques()) {
 		AIPass = new AI();

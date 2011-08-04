@@ -27,6 +27,10 @@ bool useLookaheadWidening();
 
 bool compareTechniques();
 
+bool onlyOutputsRho();
+
+char* getFilename();
+
 Apron_Manager_Type getApronManager();
 
 extern llvm::raw_ostream *Out;

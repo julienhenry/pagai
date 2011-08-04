@@ -12,8 +12,10 @@
 SMT_Solver manager;
 bool gopan;
 bool compare;
+bool onlyrho;
 Apron_Manager_Type ap_manager;
 llvm::raw_ostream *Out;
+char* filename;
 
 void show_help() {
         std::cout << "Usage :\n \
@@ -33,6 +35,7 @@ void show_help() {
 -o : output file\n \
 -g : use Lookahead Widening technique\n \
 -c : compare the two techniques\n \
+-f : only outputs the SMT formula\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
 
@@ -46,6 +49,14 @@ bool useLookaheadWidening() {
 
 bool compareTechniques() {
 	return compare;
+}
+
+bool onlyOutputsRho() {
+	return onlyrho;
+}
+
+char* getFilename() {
+	return filename;
 }
 
 Apron_Manager_Type getApronManager() {
@@ -86,15 +97,16 @@ int main(int argc, char* argv[]) {
     int o;
     bool help = false;
     bool bad_use = false;
-    char* filename=NULL;
     char* outputname="";
 	char* domain;
 	bool debug = false;
 
+	filename=NULL;
 	manager = Z3_MANAGER;
 	ap_manager = PK;
 	gopan = false;
 	compare = false;
+	onlyrho = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	n_iterations = 0;
@@ -102,7 +114,7 @@ int main(int argc, char* argv[]) {
 	SMT_time.tv_usec = 0;
 	Total_time = Now();
 
-	 while ((o = getopt(argc, argv, "hDd:i:o:ycg")) != -1) {
+	 while ((o = getopt(argc, argv, "hDd:i:o:ycgf")) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -130,6 +142,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'y':
             manager = YICES_MANAGER;
+            break;
+        case 'f':
+            onlyrho = true;
             break;
         case '?':
             std::cout << "Error : Unknown option" << optopt << "\n";

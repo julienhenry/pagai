@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <string.h>
 #include <sstream>
+#include <iostream>
 
 #include "llvm/Support/FormattedStream.h"
 
@@ -215,14 +216,18 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 void z3_manager::SMT_print(SMT_expr a){
-	//*Out << Z3_benchmark_to_smtlib_string(ctx,
-	//			"name",
-	//			"logic",
-	//			"unknown",
-	//			"",
-	//			0,
-	//			NULL,
-	//			(Z3_ast)a);
+
+	std::ostringstream oss;
+	oss << "\"" << getFilename() << "\"";
+
+	*Out << Z3_benchmark_to_smtlib_string(ctx,
+				oss.str().c_str(),
+				"logic",
+				"unknown",
+				"",
+				0,
+				NULL,
+				(Z3_ast)a);
 }
 
 int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
