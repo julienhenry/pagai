@@ -148,7 +148,10 @@ ap_lincons1_array_t Abstract::to_lincons_array() {
 void Abstract::print(bool only_main) {
 
 	FILE* tmp = tmpfile();
-	if (tmp == NULL) return;
+	if (tmp == NULL) {
+		*Out << "ERROR WHEN PRINTING ABSTRACT VALUE\n";
+		return;
+	}
 
 	ap_environment_fdump(tmp,main->env);
 	ap_abstract1_fprint(tmp,man,main);

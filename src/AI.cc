@@ -430,7 +430,6 @@ void AI::computeNode(Node * n) {
 			n_paths++;
 			only_join = true;
 		} else {
-			*Out << "PATH EXISTS IN PATHTREE\n";
 			only_join = false;
 		}
 

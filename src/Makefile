@@ -57,7 +57,7 @@ LDFLAGS += -lyices -lz3
 
 LDFLAGS += -lmpfr -lgmpxx -lgmp
 
-LDFLAGS += -ldl -lpthread
+LDFLAGS += -ldl -lpthread -lutil
 
 CUDD_LIBS = \
 	$(CUDD_PATH)/obj/libobj.a \

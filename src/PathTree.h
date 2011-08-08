@@ -2,14 +2,24 @@
 #define _PATHTREE_H
 
 #include <list>
+#include <map>
 #include <vector>
+#include <string>
 #include "llvm/BasicBlock.h"
+
+#include "cuddObj.hh"
 
 using namespace llvm;
 
 class PathTree {
 
 	private:
+		
+		Cudd * mgr;
+		std::map<BasicBlock*,int> BddVar;
+		std::map<BasicBlock*,int> BddVarStart;
+		BDD Bdd;
+		int i;
 
 		struct pathnode {
 			std::vector<BasicBlock*> name;
@@ -17,6 +27,11 @@ class PathTree {
 		};
 
 		pathnode start;
+
+		BDD getBDDfromBasicBlockStart(BasicBlock * b);
+		BDD getBDDfromBasicBlock(BasicBlock * b);
+		std::string getNodeName(BasicBlock* b, bool start);
+
 	public:
 		
 		PathTree();
@@ -30,6 +45,8 @@ class PathTree {
 		void clear();
 
 		bool exist(std::list<BasicBlock*> path);
+
+		void DumpDotBDD(std::string filename);
 };
 
 #endif
