@@ -28,8 +28,7 @@ class PathTree {
 
 		pathnode start;
 
-		BDD getBDDfromBasicBlockStart(BasicBlock * b);
-		BDD getBDDfromBasicBlock(BasicBlock * b);
+		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 		std::string getNodeName(BasicBlock* b, bool start);
 
 	public:
@@ -46,7 +45,7 @@ class PathTree {
 
 		bool exist(std::list<BasicBlock*> path);
 
-		void DumpDotBDD(std::string filename);
+		void DumpDotBDD(BDD graph, std::string filename);
 };
 
 #endif

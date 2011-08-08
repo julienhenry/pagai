@@ -19,28 +19,17 @@ PathTree::~PathTree() {
 	//delete mgr;	
 }
 
-BDD PathTree::getBDDfromBasicBlockStart(BasicBlock * b) {
-	int n;
-	if (!BddVarStart.count(b)) {
-		i++;
-		n = i;
-		BddVarStart[b] = n;
-	} else {
-		n = BddVarStart[b];	
-	}
-	return mgr->bddVar(i);
-}
 
-BDD PathTree::getBDDfromBasicBlock(BasicBlock * b) {
+BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) {
 	int n;
-	if (!BddVar.count(b)) {
+	if (!map.count(b)) {
 		i++;
 		n = i;
-		BddVar[b] = n;
+		map[b] = n;
 	} else {
-		n = BddVar[b];	
+		n = map[b];	
 	}
-	return mgr->bddVar(i);
+	return mgr->bddVar(n);
 }
 
 std::string PathTree::getNodeName(BasicBlock* b, bool start) {
@@ -52,7 +41,7 @@ std::string PathTree::getNodeName(BasicBlock* b, bool start) {
 	return name.str();
 }
 
-void PathTree::DumpDotBDD(std::string filename) {
+void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 	std::ostringstream name;
 	k++;
 	name << filename << k << ".dot";
@@ -68,7 +57,7 @@ void PathTree::DumpDotBDD(std::string filename) {
 	}
 
     char const* onames[] = {"B"};
-    DdNode *Dds[] =         {Bdd.getNode()};
+    DdNode *Dds[] = {graph.getNode()};
     int NumNodes = sizeof(onames)/sizeof(onames[0]);
     FILE* fp = fopen(name.str().c_str(), "w");
     int result = Cudd_DumpDot(mgr->getManager(), NumNodes, Dds, 
@@ -76,58 +65,42 @@ void PathTree::DumpDotBDD(std::string filename) {
 	fclose(fp);
 }
 
-int rank_vector(std::vector<BasicBlock*> v, BasicBlock* b) {
-	int i = 0;
-	while (i < v.size() && v[i] != b) {
-		i++;
-	}
-	if (i == v.size()) 
-		return -1;
-	else
-		return i;
-}
-
 void PathTree::insert(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*> workingpath;
-	pathnode * v;
 	BasicBlock * current;
-	int i;
 
 	workingpath.assign(path.begin(), path.end());
-	v = &start;
 	
 	current = workingpath.front();
 	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlockStart(current));
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
 
 	while (workingpath.size() > 0) {
 		current = workingpath.front();
 		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlockStart(current));
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
 		f = f * block;
 	}
 	//DumpDotBDD("before_insert");
 	Bdd = Bdd + f;
-	//DumpDotBDD("after_insert");
+	DumpDotBDD(f,"f");
+	DumpDotBDD(f,"Bdd");
 }
 
 void PathTree::remove(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*> workingpath;
-	pathnode * v;
 	BasicBlock * current;
-	int i;
 
 	workingpath.assign(path.begin(), path.end());
-	v = &start;
 
 	current = workingpath.front();
 	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlockStart(current));
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
 
 	while (workingpath.size() > 0) {
 		current = workingpath.front();
 		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current));
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
 		f = f * block;
 	}
 	Bdd = Bdd * !f;
@@ -139,21 +112,18 @@ void PathTree::clear() {
 
 bool PathTree::exist(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*> workingpath;
-	pathnode * v;
 	BasicBlock * current;
-	int i;
 	
 	workingpath.assign(path.begin(), path.end());
-	v = &start;
 
 	current = workingpath.front();
 	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlockStart(current));
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
 
 	while (workingpath.size() > 0) {
 		current = workingpath.front();
 		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current));
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
 		f = f * block;
 	}
 	if (f <= Bdd) {
