@@ -6,25 +6,22 @@
 #include "PathTree.h"
 #include "Analyzer.h"
 
-int k;
 PathTree::PathTree() {
 	mgr = new Cudd(0,0);
 	//mgr->makeVerbose();
 	Bdd = mgr->bddZero();
-	i=0;
-	k=0;
+	BddIndex=0;
 }
 
 PathTree::~PathTree() {
 	//delete mgr;	
 }
 
-
 BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) {
 	int n;
 	if (!map.count(b)) {
-		i++;
-		n = i;
+		BddIndex++;
+		n = BddIndex;
 		map[b] = n;
 	} else {
 		n = map[b];	
@@ -43,8 +40,7 @@ std::string PathTree::getNodeName(BasicBlock* b, bool start) {
 
 void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 	std::ostringstream name;
-	k++;
-	name << filename << k << ".dot";
+	name << filename << ".dot";
 
 	int n = BddVar.size() + BddVarStart.size();
 
@@ -81,10 +77,8 @@ void PathTree::insert(std::list<BasicBlock*> path) {
 		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
 		f = f * block;
 	}
-	//DumpDotBDD("before_insert");
 	Bdd = Bdd + f;
-	DumpDotBDD(f,"f");
-	DumpDotBDD(f,"Bdd");
+	//DumpDotBDD(Bdd,"Bdd");
 }
 
 void PathTree::remove(std::list<BasicBlock*> path) {
