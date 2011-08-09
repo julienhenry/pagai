@@ -13,8 +13,6 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "ap_global1.h"
-//#include "apron_ppl.h"
-#include "pk.h"
 
 #include "Analyzer.h"
 #include "apron.h"
@@ -46,8 +44,6 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		/// paths - remembers all the paths that have already been
 		/// visited
 		PathTree* pathtree;
-
-		std::map<BasicBlock*,std::list<BasicBlock*> > lastpath;
 
 	public:
 		static char ID;	
@@ -96,7 +92,6 @@ class AI : public ModulePass, public InstVisitor<AI> {
 		
 
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
-		ap_lincons1_array_t linconstraints;
 		phivar PHIvars;
 		
 		/// computeTransform - computes in Xtemp the polyhedra resulting from

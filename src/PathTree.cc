@@ -126,13 +126,7 @@ void PathTree::generateSMTformulaAux(
 				default:
 					break;
 			}
-			if (v == 0) {
-				*Out << " ~"<< bb << " ";
-			} else if (v == 1) {
-				*Out << " "<< bb << " ";
-			} 
 	    }
-		*Out << "\n";
 		disjunct.push_back(smt->man->SMT_mk_and(cunj));
 	}
     } else {
@@ -150,7 +144,6 @@ void PathTree::generateSMTformulaAux(
 	list[index] = 2;
     }
     return;
-
 } 
 
 
@@ -171,41 +164,6 @@ void PathTree::insert(std::list<BasicBlock*> path) {
 		f = f * block;
 	}
 	Bdd = Bdd + f;
-	DumpDotBDD(Bdd,"Bdd");
-	//Bdd.PrintMinterm();
-	//
-	*Out << "new BDD!\n";
-	//
-	{
-		BDD nnode;
-		DdGen *gen;
-		for(gen = Bdd.FirstNode(&nnode);
-		!Cudd_IsGenEmpty(gen);
-		(void) mgr->NextNode(gen, &nnode)) {
-			//nnode, 
-			DdNode * node = nnode.getNode();
-			if (Cudd_IsConstant(node)) {
-				*Out << node->index << " " << Cudd_V(node) << "\n";
-			} else {
-				//if (Cudd_IsComplement(Cudd_E(node))) {
-				//*Out << "Complement node "
-				//<< (Cudd_E(node)) << " "
-				//<< Cudd_V(Cudd_Regular(Cudd_E(node)))
-				//<< "\n";
-				//} else {
-				*Out << node->index << " "
-				<< Cudd_T(node)->index << " "
-				<< Cudd_E(node) << " ";
-				if (Cudd_IsComplement(Cudd_E(node))) {
-					*Out << "complemented";
-				}
-				*Out << "\n";
-				//}
-			}
-		}
-		Cudd_GenFree(gen);
-	}
-
 }
 
 void PathTree::remove(std::list<BasicBlock*> path) {

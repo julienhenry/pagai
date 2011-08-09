@@ -372,7 +372,6 @@ void AI::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-		//if (!isequal(path,lastpath[n->bb])) {
 	pathtree->clear();
 
 	while (true) {
@@ -424,8 +423,6 @@ void AI::computeNode(Node * n) {
 
 		Succ->X->change_environment(Xtemp->main->env);
 
-		//if (!isequal(path,lastpath[n->bb])) {
-		//if (!pathtree->exist(path) || !isequal(path,lastpath[n->bb])) {
 		if (!pathtree->exist(path)) {
 			n_paths++;
 			only_join = true;
@@ -435,7 +432,6 @@ void AI::computeNode(Node * n) {
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			//if (isequal(path,lastpath[n->bb])) {
 			if (pathtree->exist(path)) {
 			// backup the previous abstract value
 			Abstract * Xpred = new Abstract(Succ->X);
@@ -471,27 +467,15 @@ void AI::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-		//if (LI->isLoopHeader(Succ->bb) && (!only_join)) {
-				//if (Succ->widening == 1) {
 				Xtemp->widening(Succ);
 				DEBUG(
 					*Out << "WIDENING! \n";
 				);
-				lastpath[Succ->bb].clear();
-				//Xtemp->widening_threshold(Succ, &linconstraints);
-				//Succ->widening = 0;
-			//	} else {
-			//		Succ->widening++;
-			//	}
 		} else {
-		//if (only_join) {
-		//if (!pathtree->exist(path)) {
-			//pathtree->insert(path);
 			DEBUG(
 				*Out << "PATH NEVER SEEN BEFORE !!\n";
 			);
 		}
-		//ap_lincons1_array_clear(&linconstraints);
 		
 		DEBUG(
 			*Out << "BEFORE:\n";
@@ -504,8 +488,6 @@ void AI::computeNode(Node * n) {
 			Succ->X->print();
 		);
 
-		lastpath[n->bb].clear();
-		lastpath[n->bb].assign(path.begin(),path.end());
 
 		A.push(Succ);
 		is_computed[Succ] = false;

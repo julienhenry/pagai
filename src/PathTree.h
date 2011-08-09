@@ -36,16 +36,23 @@ class PathTree {
 		/// BddVarStart, else it is BddVar
 		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 
-
+		/// getNodeName - returns a string that names the basicblock. 
+		/// If smt != NULL, this name is exactly the same as the one 
+		/// used in the SMT pass
 		std::string getNodeName(
 			BasicBlock* b, 
 			bool src,
 			SMT * smt = NULL);
 
+		/// getStringFromLevel - returns the name of the basicBlock associated
+		/// to the level i of the Bdd.
+		/// If smt != NULL, this name is exactly the same as the one 
+		/// used in the SMT pass
 		std::string getStringFromLevel(
 			int i,
 			SMT * smt = NULL);
 
+		/// generateSMTformulaAux - method used by generateSMTformula
 		void generateSMTformulaAux(
 			SMT * smt,
 			DdNode * node /* current node */,
@@ -76,7 +83,5 @@ class PathTree {
 		/// generateSMTformula - generate the SMT formula associated to the Bdd
 		SMT_expr generateSMTformula(
 			SMT * smt);
-		
-
 };
 #endif
