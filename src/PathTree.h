@@ -9,6 +9,8 @@
 
 #include "cuddObj.hh"
 
+#include "SMT.h"
+
 using namespace llvm;
 
 class PathTree {
@@ -22,6 +24,8 @@ class PathTree {
 		/// BddVarStart - stores the index of the source basicBlock in the BDD
 		std::map<BasicBlock*,int> BddVarStart;
 
+		std::map<int, BasicBlock*> levels;
+
 		/// Bdd - Bdd that stores the various seen paths
 		BDD Bdd;
 		/// BddIndex - number of levels in the BDD
@@ -32,9 +36,21 @@ class PathTree {
 		/// BddVarStart, else it is BddVar
 		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 
-		/// GetNodeName - return the name of the BasicBlock, such as it is
-		/// displayed when dumping in a .dot file
-		std::string getNodeName(BasicBlock* b, bool start);
+
+		std::string getNodeName(
+			BasicBlock* b, 
+			bool src,
+			SMT * smt = NULL);
+
+		std::string getStringFromLevel(
+			int i,
+			SMT * smt = NULL);
+
+		void generateSMTformulaAux(
+			SMT * smt,
+			DdNode * node /* current node */,
+			std::vector<int> list /* current recursion path */,
+			std::vector<SMT_expr> &disjunct);
 
 	public:
 		PathTree();
@@ -56,6 +72,11 @@ class PathTree {
 		/// DumpDotBDD - dump the BDD "graph" in a .dot file. Name of the .dot
 		/// file is given by the filename argument.
 		void DumpDotBDD(BDD graph, std::string filename);
-};
 
+		/// generateSMTformula - generate the SMT formula associated to the Bdd
+		SMT_expr generateSMTformula(
+			SMT * smt);
+		
+
+};
 #endif

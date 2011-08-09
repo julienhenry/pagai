@@ -45,7 +45,6 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// these following methods are used to create a variable name for
 		//edges, nodes, values, undeterministic choices, ...
 		std::string getUndeterministicChoiceName(Value * v);
-		std::string getNodeName(BasicBlock* b, bool src);
 		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		std::string getValueName(Value * v, bool primed);
 
@@ -136,6 +135,9 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// satisfiable. In this case, path containts the path extracted from
 		/// the model
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
+
+		/// gets the name of the node associated to a specific basicblock
+		std::string getNodeName(BasicBlock* b, bool src);
 
 		/// XToSmt - transform an apron object of type X into an SMT
 		/// expression
