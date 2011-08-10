@@ -15,7 +15,7 @@
 #include "ap_global1.h"
 #include "pk.h"
 
-#include "AIGopan2.h"
+#include "AIpass.h"
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
@@ -25,61 +25,24 @@
 #include "Analyzer.h"
 #include "PathTree.h"
 
+
 using namespace llvm;
 
-char AIGopan2::ID = 0;
+char AIPass::ID = 0;
 
 
-static RegisterPass<AIGopan2> X("AIGopan2", "AbstractGopan Interpretation Pass", false, true);
+//static RegisterPass<AIPass> X("AIPass", "Abstract Interpretation Pass", false, true);
 
-const char * AIGopan2::getPassName() const {
-	return "AIGopan2";
-}
 
-void AIGopan2::getAnalysisUsage(AnalysisUsage &AU) const {
+void AIPass::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
 }
 
-bool AIGopan2::runOnModule(Module &M) {
-	Function * F;
-	BasicBlock * b;
-	Node * n;
-	LSMT = &(getAnalysis<SMT>());
 
-	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		F = mIt;
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
-		LSMT->reset_SMTcontext();
-		initFunction(F);
-		computeFunction(F);
-
-		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			b = i;
-			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
-				Out->changeColor(raw_ostream::MAGENTA,true);
-				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-				Out->resetColor();
-				n->Xgopan->print(true);
-			}
-			//delete Nodes[b];
-		}
-	}
-
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
-	return 0;
-}
-
-void AIGopan2::initFunction(Function * F) {
+void AIPass::initFunction(Function * F) {
 	Node * n;
 	bool already_seen = false;
 
@@ -96,7 +59,6 @@ void AIGopan2::initFunction(Function * F) {
 				n->phi_vars.clear();
 				n->tcons.clear();
 				n->env = NULL;
-				n->widening = 0;
 			}
 	}
 	if (F->size() > 0 && !already_seen) {
@@ -109,7 +71,7 @@ void AIGopan2::initFunction(Function * F) {
 	*Out << *F;
 }
 
-void AIGopan2::printBasicBlock(BasicBlock* b) {
+void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
 	if (LI.isLoopHeader(b)) {
@@ -124,7 +86,7 @@ void AIGopan2::printBasicBlock(BasicBlock* b) {
 
 }
 
-void AIGopan2::printPath(std::list<BasicBlock*> path) {
+void AIPass::printPath(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
 	Out->changeColor(raw_ostream::MAGENTA,true);
 	*Out << "PATH: ";
@@ -137,49 +99,7 @@ void AIGopan2::printPath(std::list<BasicBlock*> path) {
 	Out->resetColor();
 }
 
-void AIGopan2::computeFunction(Function * F) {
-	BasicBlock * b;
-	Node * n;
-	Node * current;
-
-	// A = {first basicblock}
-	b = F->begin();
-	if (b == F->end()) return;
-	n = Nodes[b];
-
-
-	// get the information about live variables from the LiveValues pass
-	LV = &(getAnalysis<Live>(*F));
-	LI = &(getAnalysis<LoopInfo>(*F));
-
-	LSMT->getPr(*F);
-	// add all function's arguments into the environment of the first bb
-	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
-		Argument * arg = a;
-		if (!(arg->use_empty()))
-			n->add_var(arg);
-		else 
-			*Out << "argument " << *a << " never used !\n";
-	}
-	// first abstract value is top
-	ap_environment_t * env = NULL;
-	computeEnv(n);
-	n->create_env(&env,LV);
-	n->Xgopan->set_top(env);
-	n->Ygopan = new AbstractGopan(man,env);
-	n->Ygopan->set_top(env);
-	A.push(n);
-
-	is_computed.clear();
-	// Simple Abstract Interpretation algorithm
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		computeNode(current);
-	}
-}
-
-void AIGopan2::computeEnv(Node * n) {
+void AIPass::computeEnv(Node * n) {
 	BasicBlock * b = n->bb;
 	Node * pred = NULL;
 	std::map<Value*,std::set<ap_var_t> >::iterator i, e;
@@ -189,7 +109,8 @@ void AIGopan2::computeEnv(Node * n) {
 	std::map<Value*,std::set<ap_var_t> > realVars;
 
 
-	pred_iterator p = pred_begin(b), E = pred_end(b);
+	std::set<BasicBlock*> preds = getPredecessors(b);
+	std::set<BasicBlock*>::iterator p = preds.begin(), E = preds.end();
 
 	if (p == E) {
 		// we are in the first basicblock of the function
@@ -227,7 +148,7 @@ void AIGopan2::computeEnv(Node * n) {
 	n->realVar.insert(realVars.begin(), realVars.end());
 }
 
-void AIGopan2::computeTransform (Node * n, std::list<BasicBlock*> path, AbstractGopan &Xtemp) {
+void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
 	
 	// setting the focus path, such that the instructions can be correctly
 	// handled
@@ -263,7 +184,6 @@ void AIGopan2::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract
 	ap_environment_t * env = NULL;
 	succ->create_env(&env,LV);
 
-
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
@@ -272,158 +192,46 @@ void AIGopan2::computeTransform (Node * n, std::list<BasicBlock*> path, Abstract
 				);
 				Xtemp.meet_tcons_array((*i)->front());
 		} else {
-			std::vector<AbstractGopan*> A;
+			std::vector<Abstract*> A;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
-			AbstractGopan * X2;
+			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
-				X2 = new AbstractGopan(&Xtemp);
+				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
 			}
 			Xtemp.join_array(env,A);
 		}
 	}
-	//Xtemp.set_top(env);
-	Xtemp.change_environment(env);
-	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 
+	Xtemp.change_environment(env);
+	
+	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 	// the environment may have changed because of the constraints and the Phi
 	// assignations
 	//Xtemp.change_environment(env);
 }
 
-void AIGopan2::computeNode(Node * n) {
-	BasicBlock * b = n->bb;
-	AbstractGopan * Xtemp;
-	Node * Succ;
-	std::vector<AbstractGopan*> Join;
-	std::list<BasicBlock*> path;
-	bool update;
 
-	if (is_computed.count(n) && is_computed[n]) {
-		return;
+bool isequal(std::list<BasicBlock*> p, std::list<BasicBlock*> q) {
+
+	if (p.size() != q.size()) return false;
+	std::list<BasicBlock*> P,Q;
+	P.assign(p.begin(),p.end());
+	Q.assign(q.begin(),q.end());
+
+	while (P.size() > 0) {
+		if (P.front() != Q.front()) return false;
+		P.pop_front();
+		Q.pop_front();
 	}
-
-	is_computed[n] = true;
-	if (n->Xgopan->is_bottom()) {
-		return;
-	}
-
-	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
-	);
-
-
-	for (succ_iterator s = succ_begin(b), E = succ_end(b); s != E; ++s) {
-		path.clear();
-		path.push_back(b);
-		path.push_back(*s);
-		Succ = Nodes[*s];
-		update = false;
-
-		// computing the image of the abstract value by the path's tranformation
-		Xtemp = new AbstractGopan(n->Xgopan);
-		computeTransform(n,path,*Xtemp);
-
-		DEBUG(
-			*Out << "POLYHEDRA AT THE STARTING NODE\n";
-			n->Xgopan->print();
-			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
-			Xtemp->print();
-		);
-
-		Succ->Xgopan->change_environment(Xtemp->main->env);
-
-		if (LI->isLoopHeader(Succ->bb)) {
-			Xtemp->widening(Succ);
-		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->Xgopan);
-		}
-
-		if ( !Xtemp->is_leq(Succ->Xgopan)) {
-			delete Succ->Xgopan;
-			Succ->Xgopan = new AbstractGopan(Xtemp);
-			update = true;
-		}
-		delete Xtemp;
-		
-		if (update) {
-			A.push(Succ);
-			is_computed[Succ] = false;
-		}
-		DEBUG(
-			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
-			Succ->Xgopan->print();
-		);
-	}
-}
-
-void AIGopan2::narrowNode(Node * n) {
-	AbstractGopan * Xtemp;
-	Node * Succ;
-
-	if (is_computed.count(n) && is_computed[n]) {
-		return;
-	}
-
-	while (true) {
-		is_computed[n] = true;
-
-		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
-		);
-		LSMT->push_context();
-		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true);
-		std::list<BasicBlock*> path;
-		DEBUG(
-			LSMT->man->SMT_print(smtexpr);
-		);
-		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
-			LSMT->pop_context();
-			return;
-		}
-		DEBUG(
-			printPath(path);
-		);
-		
-		Succ = Nodes[path.back()];
-
-		// computing the image of the abstract value by the path's tranformation
-		Xtemp = new AbstractGopan(n->Xgopan);
-		computeTransform(n,path,*Xtemp);
-
-		DEBUG(
-			*Out << "POLYHEDRA TO JOIN\n";
-			Xtemp->print();
-		);
-
-		if (Succ->Ygopan->is_bottom()) {
-			delete Succ->Ygopan;
-			Succ->Ygopan = new AbstractGopan(Xtemp);
-		} else {
-			std::vector<AbstractGopan*> Join;
-			Join.push_back(new AbstractGopan(Succ->Ygopan));
-			Join.push_back(new AbstractGopan(Xtemp));
-			Succ->Ygopan->join_array(Xtemp->main->env,Join);
-		}
-		A.push(Succ);
-		is_computed[Succ] = false;
-		LSMT->pop_context();
-	}
+	return true;
 }
 
 /// insert_env_vars_into_node_vars - this function takes all apron variables of
 /// an environment, and adds them into the Node's variables, with a Value V as
 /// a use.
-void AIGopan2::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V) {
+void AIPass::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V) {
 	ap_var_t var;
 	for (size_t i = 0; i < env->intdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
@@ -435,13 +243,9 @@ void AIGopan2::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, 
 	}
 }
 
-void AIGopan2::visitReturnInst (ReturnInst &I){
-	//*Out << "returnInst\n" << I << "\n";
-}
-
 // create_constraints - this function is called by computeCondition
 // it creates the constraint from its arguments and insert it into t_cons
-void AIGopan2::create_constraints(
+void AIPass::create_constraints(
 	ap_constyp_t constyp,
 	ap_texpr1_t * expr,
 	ap_texpr1_t * nexpr,
@@ -484,7 +288,7 @@ void AIGopan2::create_constraints(
 }
 
 
-bool AIGopan2::computeCondition(	CmpInst * inst, 
+bool AIPass::computeCondition(	CmpInst * inst, 
 		bool result,
 		std::vector<ap_tcons1_array_t *> * cons) {
 
@@ -589,7 +393,7 @@ bool AIGopan2::computeCondition(	CmpInst * inst,
 	return true;
 }
 
-bool AIGopan2::computeConstantCondition(	ConstantInt * inst, 
+bool AIPass::computeConstantCondition(	ConstantInt * inst, 
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
@@ -620,7 +424,7 @@ bool AIGopan2::computeConstantCondition(	ConstantInt * inst,
 	//	}
 }
 
-bool AIGopan2::computePHINodeCondition(PHINode * inst, 
+bool AIPass::computePHINodeCondition(PHINode * inst, 
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
@@ -652,7 +456,17 @@ bool AIGopan2::computePHINodeCondition(PHINode * inst,
 	return res;
 }
 
-void AIGopan2::visitBranchInst (BranchInst &I){
+
+
+
+
+
+void AIPass::visitReturnInst (ReturnInst &I){
+	//*Out << "returnInst\n" << I << "\n";
+}
+
+
+void AIPass::visitBranchInst (BranchInst &I){
 	//*Out << "BranchInst\n" << I << "\n";	
 	bool test;
 	bool res;
@@ -700,61 +514,61 @@ void AIGopan2::visitBranchInst (BranchInst &I){
 /// switch. The other branches lose information...
 /// This code is dead since we use the LowerSwitch pass before doing abstract
 /// interpretation.
-void AIGopan2::visitSwitchInst (SwitchInst &I){
+void AIPass::visitSwitchInst (SwitchInst &I){
 	//*Out << "SwitchInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitIndirectBrInst (IndirectBrInst &I){
+void AIPass::visitIndirectBrInst (IndirectBrInst &I){
 	//*Out << "IndirectBrInst\n" << I << "\n";	
 }
 
-void AIGopan2::visitInvokeInst (InvokeInst &I){
+void AIPass::visitInvokeInst (InvokeInst &I){
 	//*Out << "InvokeInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitUnwindInst (UnwindInst &I){
+void AIPass::visitUnwindInst (UnwindInst &I){
 	//*Out << "UnwindInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitUnreachableInst (UnreachableInst &I){
+void AIPass::visitUnreachableInst (UnreachableInst &I){
 	//*Out << "UnreachableInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitICmpInst (ICmpInst &I){
+void AIPass::visitICmpInst (ICmpInst &I){
 	//*Out << "ICmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitFCmpInst (FCmpInst &I){
+void AIPass::visitFCmpInst (FCmpInst &I){
 	//*Out << "FCmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitAllocaInst (AllocaInst &I){
+void AIPass::visitAllocaInst (AllocaInst &I){
 	//*Out << "AllocaInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitLoadInst (LoadInst &I){
+void AIPass::visitLoadInst (LoadInst &I){
 	//*Out << "LoadInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitStoreInst (StoreInst &I){
+void AIPass::visitStoreInst (StoreInst &I){
 	//*Out << "StoreInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitGetElementPtrInst (GetElementPtrInst &I){
+void AIPass::visitGetElementPtrInst (GetElementPtrInst &I){
 	//*Out << "GetElementPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitPHINode (PHINode &I){
+void AIPass::visitPHINode (PHINode &I){
 	Node * n = Nodes[focuspath.back()];
 	//*Out << "PHINode\n" << I << "\n";
 	// we only consider one single predecessor: the predecessor from the path
@@ -795,74 +609,76 @@ void AIGopan2::visitPHINode (PHINode &I){
 					*Out << "\n";
 				);
 				set_ap_expr(&I,expr);
-				ap_environment_t * env = expr->env;
-				insert_env_vars_into_node_vars(env,n,(Value*)&I);
+				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+					ap_environment_t * env = expr->env;
+					insert_env_vars_into_node_vars(env,n,(Value*)&I);
+				}
 			}
 		}
 	}
 }
 
-void AIGopan2::visitTruncInst (TruncInst &I){
+void AIPass::visitTruncInst (TruncInst &I){
 	//*Out << "TruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitZExtInst (ZExtInst &I){
+void AIPass::visitZExtInst (ZExtInst &I){
 	//*Out << "ZExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitSExtInst (SExtInst &I){
+void AIPass::visitSExtInst (SExtInst &I){
 	//*Out << "SExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitFPTruncInst (FPTruncInst &I){
+void AIPass::visitFPTruncInst (FPTruncInst &I){
 	//*Out << "FPTruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitFPExtInst (FPExtInst &I){
+void AIPass::visitFPExtInst (FPExtInst &I){
 	//*Out << "FPExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitFPToUIInst (FPToUIInst &I){
+void AIPass::visitFPToUIInst (FPToUIInst &I){
 	//*Out << "FPToUIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitFPToSIInst (FPToSIInst &I){
+void AIPass::visitFPToSIInst (FPToSIInst &I){
 	//*Out << "FPToSIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitUIToFPInst (UIToFPInst &I){
+void AIPass::visitUIToFPInst (UIToFPInst &I){
 	//*Out << "UIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitSIToFPInst (SIToFPInst &I){
+void AIPass::visitSIToFPInst (SIToFPInst &I){
 	//*Out << "SIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitPtrToIntInst (PtrToIntInst &I){
+void AIPass::visitPtrToIntInst (PtrToIntInst &I){
 	//*Out << "PtrToIntInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitIntToPtrInst (IntToPtrInst &I){
+void AIPass::visitIntToPtrInst (IntToPtrInst &I){
 	//*Out << "IntToPtrInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitBitCastInst (BitCastInst &I){
+void AIPass::visitBitCastInst (BitCastInst &I){
 	//*Out << "BitCastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitSelectInst (SelectInst &I){
+void AIPass::visitSelectInst (SelectInst &I){
 	//*Out << "SelectInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
@@ -871,49 +687,50 @@ void AIGopan2::visitSelectInst (SelectInst &I){
 // we consider that the function call doesn't modify the value of the different
 // variable, and we the result returned by the function is a new variable of
 // type int or float, depending on the return type
-void AIGopan2::visitCallInst(CallInst &I){
+void AIPass::visitCallInst(CallInst &I){
 	//*Out << "CallInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitVAArgInst (VAArgInst &I){
+void AIPass::visitVAArgInst (VAArgInst &I){
 	//*Out << "VAArgInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitExtractElementInst (ExtractElementInst &I){
+void AIPass::visitExtractElementInst (ExtractElementInst &I){
 	//*Out << "ExtractElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitInsertElementInst (InsertElementInst &I){
+void AIPass::visitInsertElementInst (InsertElementInst &I){
 	//*Out << "InsertElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitShuffleVectorInst (ShuffleVectorInst &I){
+void AIPass::visitShuffleVectorInst (ShuffleVectorInst &I){
 	//*Out << "ShuffleVectorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitExtractValueInst (ExtractValueInst &I){
+void AIPass::visitExtractValueInst (ExtractValueInst &I){
 	//*Out << "ExtractValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitInsertValueInst (InsertValueInst &I){
+void AIPass::visitInsertValueInst (InsertValueInst &I){
 	//*Out << "InsertValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitTerminatorInst (TerminatorInst &I){
+void AIPass::visitTerminatorInst (TerminatorInst &I){
 	//*Out << "TerminatorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitBinaryOperator (BinaryOperator &I){
+void AIPass::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[focuspath.back()];
 
+	//*Out << "BinaryOperator\n" << I << "\n";	
 	ap_texpr_op_t op;
 	switch(I.getOpcode()) {
 		// Standard binary operators...
@@ -974,18 +791,18 @@ void AIGopan2::visitBinaryOperator (BinaryOperator &I){
 	insert_env_vars_into_node_vars(env,n,(Value*)&I);
 }
 
-void AIGopan2::visitCmpInst (CmpInst &I){
+void AIPass::visitCmpInst (CmpInst &I){
 	//*Out << "CmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
-void AIGopan2::visitCastInst (CastInst &I){
+void AIPass::visitCastInst (CastInst &I){
 	//*Out << "CastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 
-void AIGopan2::visitInstAndAddVarIfNecessary(Instruction &I) {
+void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	Node * n = Nodes[focuspath.back()];
 	ap_environment_t* env = NULL;
 	ap_var_t var = (Value *) &I; 
@@ -1008,3 +825,5 @@ void AIGopan2::visitInstAndAddVarIfNecessary(Instruction &I) {
 	//print_texpr(exp);
 	n->add_var((Value*)var);
 }
+
+

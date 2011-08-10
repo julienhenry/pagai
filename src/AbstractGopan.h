@@ -9,13 +9,7 @@
 class Node;
 class Abstract;
 
-class AbstractGopan {
-
-	private:
-		ap_manager_t * man;
-	public:
-		ap_abstract1_t * main;
-		ap_abstract1_t * pilot;
+class AbstractGopan : public Abstract {
 
 	private:
 		void clear_all();
@@ -25,7 +19,7 @@ class AbstractGopan {
 		AbstractGopan(ap_manager_t* _man, ap_environment_t * env);
 
 		/// copy constructor : duplicates the abstract domain
-		AbstractGopan(AbstractGopan* A);
+		AbstractGopan(Abstract* A);
 
 		~AbstractGopan();
 
@@ -42,13 +36,15 @@ class AbstractGopan {
 		bool is_bottom();
 
 		/// is_leq - return true iff this <= d
-		bool is_leq(AbstractGopan * d);
-
 		bool is_leq(Abstract * d);
+
+		bool is_eq(Abstract * d);
 
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		void widening(Node * n);
+
+		void widening_threshold(Node * n, ap_lincons1_array_t* cons);
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints
@@ -67,8 +63,16 @@ class AbstractGopan {
 		
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
-		void join_array(ap_environment_t * env, std::vector<AbstractGopan*> X_pred);
-		void join_array_dpUcm(ap_environment_t *env, AbstractGopan* n);
+		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
+		void join_array_dpUcm(ap_environment_t *env, Abstract* n);
+
+		/// to_tcons_array - convert the abstract value to a conjunction of
+		// tree constraints
+		ap_tcons1_array_t to_tcons_array();
+
+		/// to_lincons_array - convert the abstract value to a conjunction of
+		// linear constraints
+		ap_lincons1_array_t to_lincons_array();
 
 		/// print - print the abstract domain on standard output
 		void print(bool only_main = false);

@@ -16,10 +16,10 @@ AbstractGopan::AbstractGopan(ap_manager_t* _man, ap_environment_t * env) {
 }
 
 
-AbstractGopan::AbstractGopan(AbstractGopan* A) {
+AbstractGopan::AbstractGopan(Abstract* A) {
 	man = A->man;
 	main = new ap_abstract1_t(ap_abstract1_copy(man,A->main));
-	if (A->pilot == A->main)
+	if (A->pilot == NULL || A->pilot == A->main)
 		pilot = main;
 	else
 		pilot = new ap_abstract1_t(ap_abstract1_copy(man,A->pilot));
@@ -64,7 +64,7 @@ bool AbstractGopan::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);
 }
 
-bool AbstractGopan::is_leq (AbstractGopan *d) {
+bool AbstractGopan::is_leq (Abstract *d) {
 	if (ap_abstract1_is_eq(man,main,d->main)) {
 		if (ap_abstract1_is_leq(man,pilot,d->pilot)) 
 			return true; 
@@ -76,8 +76,11 @@ bool AbstractGopan::is_leq (AbstractGopan *d) {
 	return false;
 }
 
-bool AbstractGopan::is_leq (Abstract *d) {
-		return ap_abstract1_is_leq(man,main,d->main);
+bool AbstractGopan::is_eq (Abstract *d) {
+	if (ap_abstract1_is_eq(man,main,d->main))
+		return true; 
+	else 
+		return false;
 }
 
 /// widening - Compute the widening operation according to the Gopan & Reps
@@ -115,6 +118,20 @@ void AbstractGopan::widening(Node * n) {
 			delete pilot;
 		pilot = new ap_abstract1_t(Xpilot_widening);
 	}
+}
+
+/// widening with threshold is not implemented. We do a classical widening
+/// instead
+void AbstractGopan::widening_threshold(Node * n, ap_lincons1_array_t* cons) {
+	widening(n);
+}
+
+ap_tcons1_array_t AbstractGopan::to_tcons_array() {
+	return ap_abstract1_to_tcons_array(man,main);
+}
+
+ap_lincons1_array_t AbstractGopan::to_lincons_array() {
+	return ap_abstract1_to_lincons_array(man,main);
 }
 
 void AbstractGopan::meet_tcons_array(ap_tcons1_array_t* tcons) {
@@ -159,7 +176,7 @@ void AbstractGopan::assign_texpr_array(
 			dest);
 }
 
-void AbstractGopan::join_array(ap_environment_t * env, std::vector<AbstractGopan*> X_pred) {
+void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
 	size_t size = X_pred.size();
 
 	ap_abstract1_t  Xmain[size];
@@ -193,7 +210,7 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<AbstractGopan
 	}
 }
 
-void AbstractGopan::join_array_dpUcm(ap_environment_t *env, AbstractGopan* n) {
+void AbstractGopan::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 
 	ap_abstract1_t Xmain;
 	ap_abstract1_t Xpilot;

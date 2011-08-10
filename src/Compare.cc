@@ -2,7 +2,7 @@
 #include "Compare.h"
 #include "Expr.h"
 #include "AI.h"
-#include "AIGopan2.h"
+#include "AIGopan.h"
 #include "Node.h"
 #include "Debug.h"
 #include "Analyzer.h"
@@ -22,7 +22,7 @@ Compare::Compare() : ModulePass(ID) {}
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<SMT>();
 	AU.addRequired<AI>();
-	AU.addRequired<AIGopan2>();
+	AU.addRequired<AIGopan>();
 	AU.setPreservesAll();
 }
 
@@ -69,27 +69,27 @@ bool Compare::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
-				switch (compareAbstract(n->Y,n->Xgopan)) {
-					case 0:
-						equal++;
-						break;
-					case 1:
-						PF++;
-						break;
-					case -2:
-						UN++;
-						break;
-					case -1:
-						*Out << "LW is better in " << *b << "\n";
-						n->Y->print();
-						n->Xgopan->print(true);
-						LW++;
-						break;
-					default:
-						break;
-				}
-			}
+			//if (LSMT->getPr(*b->getParent())->count(b)) {
+			//	switch (compareAbstract(n->Y,n->Xgopan)) {
+			//		case 0:
+			//			equal++;
+			//			break;
+			//		case 1:
+			//			PF++;
+			//			break;
+			//		case -2:
+			//			UN++;
+			//			break;
+			//		case -1:
+			//			*Out << "LW is better in " << *b << "\n";
+			//			n->Y->print();
+			//			n->Xgopan->print(true);
+			//			LW++;
+			//			break;
+			//		default:
+			//			break;
+			//	}
+			//}
 			delete Nodes[b];
 		}
 	}

@@ -13,6 +13,8 @@
 #include "Abstract.h"
 #include "Debug.h"
 #include "Analyzer.h"
+#include "AbstractClassic.h"
+#include "AbstractGopan.h"
 
 using namespace llvm;
 
@@ -29,10 +31,12 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	id = i++;
 	man = _man;
 	env = ap_environment_alloc_empty();
-	X = new Abstract(_man,env);
-	Y = new Abstract(_man,env);
+	X = new AbstractClassic(_man,env);
+	Y = new AbstractClassic(_man,env);
 	Xgopan = new AbstractGopan(_man,env);
 	Ygopan = new AbstractGopan(_man,env);
+	//Xgopan = new Abstract(_man,env);
+	//Ygopan = new Abstract(_man,env);
 	widening = 0;
 }
 

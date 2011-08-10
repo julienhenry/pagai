@@ -1,5 +1,5 @@
-#ifndef _AIGOPAN2_H
-#define _AIGOPAN2_H
+#ifndef _AIPASS_H
+#define _AIPASS_H
 
 #include <queue>
 #include <vector>
@@ -13,19 +13,20 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "ap_global1.h"
-#include "pk.h"
 
+#include "Analyzer.h"
 #include "apron.h"
 #include "Node.h"
 #include "Live.h"
 #include "SMT.h"
 #include "PathTree.h"
+#include "AbstractMan.h"
 
 using namespace llvm;
 
-class AIGopan2 : public ModulePass, public InstVisitor<AIGopan2> {
+class AIPass : public ModulePass, public InstVisitor<AIPass> {
 
-	private:
+	protected:
 		/// LV - result of the Live pass
 		Live * LV;
 		/// LI - result of the LoopInfo pass
@@ -41,34 +42,34 @@ class AIGopan2 : public ModulePass, public InstVisitor<AIGopan2> {
 		/// man - apron manager we use along the pass
 		ap_manager_t* man;
 
-		/// paths - remembers all the paths that have already been
-		/// visited
-		PathTree* pathtree;
-
-		std::map<BasicBlock*,std::list<BasicBlock*> > lastpath;
+		/// aman - manager that creates abstract values
+		AbstractMan* aman;
 
 	public:
 		static char ID;	
 	
 	public:
 
-		AIGopan2 () : ModulePass(ID), LV(NULL), LI(NULL), LSMT(NULL) {
-				man = pk_manager_alloc(true);
-				pathtree = new PathTree();
+		AIPass () : 
+			ModulePass(ID), 
+			LV(NULL),
+			LI(NULL),
+			LSMT(NULL) {
+				man = create_manager(getApronManager());
 				init_apron();
-				//linconstraints = ap_lincons1_array_make(ap_environment_alloc_empty(),0);
 			}
 
-		~AIGopan2 () {
+		~AIPass () {
 				ap_manager_free(man);
-				delete pathtree;
 			}
 
-		const char *getPassName() const;
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-		bool runOnModule(Module &M);
+		virtual const char *getPassName() const = 0;
 
-		void computeFunction(Function * F);
+		void getAnalysisUsage(AnalysisUsage &AU) const;
+
+		virtual bool runOnModule(Module &M) = 0;
+
+		virtual void computeFunction(Function * F) = 0;
 
 		/// initFunction - initialize the function by creating the Node
 		/// objects, and computing the strongly connected components.
@@ -91,20 +92,22 @@ class AIGopan2 : public ModulePass, public InstVisitor<AIGopan2> {
 		
 
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
-		ap_lincons1_array_t linconstraints;
 		phivar PHIvars;
-		
+	
+		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) = 0;
 		/// computeTransform - computes in Xtemp the polyhedra resulting from
 		/// the transformation  of n->X through the path
-		void computeTransform (	Node * n, 
-								std::list<BasicBlock*> path, 
-								AbstractGopan &Xtemp);
+		void computeTransform (	
+			AbstractMan * aman,
+			Node * n, 
+			std::list<BasicBlock*> path, 
+			Abstract &Xtemp);
 
 		/// computeNode - compute and update the Abstract value of the Node n
-		void computeNode(Node * n);
+		virtual void computeNode(Node * n) = 0;
 		
 		/// narrowNode - apply narrowing at node n
-		void narrowNode(Node * n);
+		virtual void narrowNode(Node * n) = 0;
 
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.

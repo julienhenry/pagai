@@ -18,7 +18,6 @@
 
 #include "AI.h"
 #include "AIGopan.h"
-#include "AIGopan2.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -99,14 +98,14 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	if (onlyOutputsRho()) {
 		AIPass = new GenerateSMT();
 	} else if (useLookaheadWidening()) {
-		AIPass = new AIGopan2();
+		AIPass = new AIGopan();
 	} else {
 		AIPass = new AI();
 	}
 
 	if (compareTechniques()) {
 		AIPass = new AI();
-		AIPass2 = new AIGopan2();
+		AIPass2 = new AIGopan();
 	}
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
