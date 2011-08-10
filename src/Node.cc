@@ -35,9 +35,6 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	Y = new AbstractClassic(_man,env);
 	Xgopan = new AbstractGopan(_man,env);
 	Ygopan = new AbstractGopan(_man,env);
-	//Xgopan = new Abstract(_man,env);
-	//Ygopan = new Abstract(_man,env);
-	widening = 0;
 }
 
 Node::~Node() {

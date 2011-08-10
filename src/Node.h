@@ -44,9 +44,6 @@ class Node {
 		Abstract * Ygopan;
 		ap_environment_t * env;
 
-		/// count the number of computation of X since the last widening
-		int widening;
-
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a
 		/// list of Values, that directly use this variable : if one of these
@@ -56,13 +53,6 @@ class Node {
 		
 		/// realVar - same as intVar, but for real variables
 		std::map<Value*,std::set<ap_var_t> > realVar;
-
-		/// tcons - contains the constraints for the outgoing transitions 
-		std::map<Node*, std::vector<ap_tcons1_array_t*> > tcons;
-
-		/// phi_vars - associates the right expression to each PHI-variable,
-		/// depending on the incoming block
-		std::map<Node*,phivar> phi_vars;
 
 	public:
 		Node(ap_manager_t * man, BasicBlock * _bb);

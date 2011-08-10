@@ -25,21 +25,14 @@ using namespace llvm;
 
 class AIGopan : public AIPass {
 
-	private:
-		/// paths - remembers all the paths that have already been
-		/// visited
-		PathTree* pathtree;
-
 	public:
 
 		AIGopan ()
 			{
 				aman = new AbstractManGopan();
-				pathtree = new PathTree();
 			}
 
 		~AIGopan () {
-				delete pathtree;
 			}
 
 		const char *getPassName() const;

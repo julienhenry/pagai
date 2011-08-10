@@ -13,7 +13,6 @@
 #include "llvm/Analysis/Passes.h"
 
 #include "ap_global1.h"
-#include "pk.h"
 
 #include "AIpass.h"
 #include "Expr.h"
@@ -56,8 +55,6 @@ void AIPass::initFunction(Function * F) {
 				n = Nodes[i];
 				n->intVar.clear();
 				n->realVar.clear();
-				n->phi_vars.clear();
-				n->tcons.clear();
 				n->env = NULL;
 			}
 	}
