@@ -219,9 +219,9 @@ void AI::computeNode(Node * n) {
 		computeTransform(aman,n,path,*Xtemp);
 		
 		DEBUG(
-			*Out << "POLYHEDRA AT THE STARTING NODE\n";
+			*Out << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X->print();
-			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
+			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -245,7 +245,7 @@ void AI::computeNode(Node * n) {
 			Join.push_back(aman->NewAbstract(Xtemp));
 			Xtemp->join_array(Xtemp->main->env,Join);
 
-			Xtemp->widening(Succ);
+			Xtemp->widening(Succ->X);
 			DEBUG(
 				*Out << "MINIWIDENING\n";	
 			);
@@ -269,9 +269,14 @@ void AI::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Succ->X));
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
+		*Out << "STEP 1\n";
+		*Out << "Xtemp = \n";
+		Xtemp->print();
+		*Out << "Succ = \n";
+		Succ->X->print();
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-				Xtemp->widening(Succ);
+				Xtemp->widening(Succ->X);
 				DEBUG(
 					*Out << "WIDENING! \n";
 				);
@@ -338,7 +343,7 @@ void AI::narrowNode(Node * n) {
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRA TO JOIN\n";
+			*Out << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 

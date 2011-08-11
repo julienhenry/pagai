@@ -42,9 +42,9 @@ class AbstractGopan : public Abstract {
 
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
-		void widening(Node * n);
+		void widening(Abstract * X);
 
-		void widening_threshold(Node * n, ap_lincons1_array_t* cons);
+		void widening_threshold(Abstract * X, ap_lincons1_array_t* cons);
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints

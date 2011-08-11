@@ -18,6 +18,9 @@ class PathTree {
 	private:
 		/// mgr - manager of the CUDD library 
 		Cudd * mgr;
+		
+		/// variables needed by some methods
+		DdNode * background, * zero;
 
 		/// BddVar - stores the index of the basicBlock in the BDD
 		std::map<BasicBlock*,int> BddVar;

@@ -37,6 +37,7 @@ class AI : public AIPass {
 
 		AI ()  
 			{
+				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
 				pathtree = new PathTree();
 			}

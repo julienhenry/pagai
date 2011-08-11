@@ -67,13 +67,10 @@ void PathTree::DumpDotBDD(BDD graph, std::string filename) {
     DdNode *Dds[] = {graph.getNode()};
     int NumNodes = sizeof(onames)/sizeof(onames[0]);
     FILE* fp = fopen(name.str().c_str(), "w");
-    int result = Cudd_DumpDot(mgr->getManager(), NumNodes, Dds, 
+	Cudd_DumpDot(mgr->getManager(), NumNodes, Dds, 
             (char**) inames, (char**) onames, fp);
 	fclose(fp);
 }
-
-
-DdNode * background, * zero;
 
 SMT_expr PathTree::generateSMTformula(
 	SMT * smt)

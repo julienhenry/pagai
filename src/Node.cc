@@ -33,6 +33,8 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	env = ap_environment_alloc_empty();
 	X = new AbstractClassic(_man,env);
 	Y = new AbstractClassic(_man,env);
+	//X = new AbstractGopan(_man,env);
+	//Y = new AbstractGopan(_man,env);
 	Xgopan = new AbstractGopan(_man,env);
 	Ygopan = new AbstractGopan(_man,env);
 }

@@ -38,8 +38,8 @@ class Abstract {
 
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
-		virtual void widening(Node * n) = 0;
-		virtual void widening_threshold(Node * n, ap_lincons1_array_t* cons) = 0;
+		virtual void widening(Abstract * X) = 0;
+		virtual void widening_threshold(Abstract * X, ap_lincons1_array_t* cons) = 0;
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints

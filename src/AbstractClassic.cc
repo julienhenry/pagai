@@ -63,24 +63,24 @@ bool AbstractClassic::is_bottom() {
 
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
-void AbstractClassic::widening(Node * n) {
+void AbstractClassic::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xmain;
 
-	Xmain = ap_abstract1_join(man,false,n->X->main,main);
-	Xmain_widening = ap_abstract1_widening(man,n->X->main,&Xmain);
+	Xmain = ap_abstract1_join(man,false,X->main,main);
+	Xmain_widening = ap_abstract1_widening(man,X->main,&Xmain);
 	ap_abstract1_clear(man,&Xmain);
 	
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
 
-void AbstractClassic::widening_threshold(Node * n, ap_lincons1_array_t* cons) {
+void AbstractClassic::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xmain;
 
-	Xmain = ap_abstract1_join(man,false,n->X->main,main);
-	Xmain_widening = ap_abstract1_widening_threshold(man,n->X->main,&Xmain, cons);
+	Xmain = ap_abstract1_join(man,false,X->main,main);
+	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons);
 	ap_abstract1_clear(man,&Xmain);
 	
 	*main = Xmain_widening;

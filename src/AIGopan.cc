@@ -169,7 +169,7 @@ void AIGopan::computeNode(Node * n) {
 		Succ->Xgopan->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			Xtemp->widening(Succ);
+			Xtemp->widening(Succ->Xgopan);
 		} else {
 			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->Xgopan);
 		}

@@ -85,21 +85,21 @@ bool AbstractGopan::is_eq (Abstract *d) {
 
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
-void AbstractGopan::widening(Node * n) {
+void AbstractGopan::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;
 
-	if (is_leq(n->Xgopan)) {
-		Xmain_widening = ap_abstract1_copy(man,n->Xgopan->main);
-		Xpilot_widening = ap_abstract1_copy(man,n->Xgopan->pilot);
+	if (is_leq(X)) {
+		Xmain_widening = ap_abstract1_copy(man,X->main);
+		Xpilot_widening = ap_abstract1_copy(man,X->pilot);
 	} else {
-		ap_abstract1_t dpUcm = ap_abstract1_join(man,false,pilot,n->Xgopan->main);
-		if (ap_abstract1_is_leq(man,&dpUcm,n->Xgopan->pilot)) {
+		ap_abstract1_t dpUcm = ap_abstract1_join(man,false,pilot,X->main);
+		if (ap_abstract1_is_leq(man,&dpUcm,X->pilot)) {
 			Xmain_widening = ap_abstract1_copy(man,&dpUcm);
 			Xpilot_widening = ap_abstract1_copy(man,&dpUcm);
 		} else {
-			Xmain_widening = ap_abstract1_join(man,false,main,n->Xgopan->main);
-			Xpilot_widening = ap_abstract1_widening(man,n->Xgopan->pilot,&dpUcm);
+			Xmain_widening = ap_abstract1_join(man,false,main,X->main);
+			Xpilot_widening = ap_abstract1_widening(man,X->pilot,&dpUcm);
 		}
 		ap_abstract1_clear(man,&dpUcm);
 	}	
@@ -122,8 +122,8 @@ void AbstractGopan::widening(Node * n) {
 
 /// widening with threshold is not implemented. We do a classical widening
 /// instead
-void AbstractGopan::widening_threshold(Node * n, ap_lincons1_array_t* cons) {
-	widening(n);
+void AbstractGopan::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
+	widening(X);
 }
 
 ap_tcons1_array_t AbstractGopan::to_tcons_array() {

@@ -60,7 +60,6 @@ bool GenerateSMT::runOnFunction(Function &F) {
 }
 
 void GenerateSMT::printBasicBlock(BasicBlock* b) {
-	Node * n = Nodes[b];
 	int N = 0;
 	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 		N++;

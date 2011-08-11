@@ -112,7 +112,7 @@ ap_environment_t * intersect_environment(
 	for (size_t i = 0; i < lcenv->intdim + lcenv->realdim; i++) {
 		ap_var_t var = ap_environment_var_of_dim(lcenv,(ap_dim_t)i);
 		if (!ap_environment_mem_var(env1,var) || !ap_environment_mem_var(env2,var)) {
-			size_t size = intersect->intdim + intersect->realdim;
+			//size_t size = intersect->intdim + intersect->realdim;
 			intersect = ap_environment_remove(intersect,&var,1);
 		}	
 	}	
