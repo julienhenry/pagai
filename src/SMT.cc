@@ -525,7 +525,7 @@ void SMT::pop_context() {
 
 /// createSMTformula - create the smt formula that is described in the paper
 ///
-SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow) {
+SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow, SMT_expr constraint) {
 	Function &F = *source->getParent();
 	std::vector<SMT_expr> formula;
 	formula.push_back(getRho(F));
@@ -565,6 +565,10 @@ SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow) {
 		formula.push_back(man->SMT_mk_or(Or));
 	else
 		formula.push_back(man->SMT_mk_false());
+
+	// if constraint argument is specified, we insert it into our formula
+	if (constraint != NULL)
+		formula.push_back(constraint);
 
 	return man->SMT_mk_and(formula);
 }

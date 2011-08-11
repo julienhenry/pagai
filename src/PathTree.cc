@@ -86,8 +86,11 @@ SMT_expr PathTree::generateSMTformula(
 		list.push_back(2);
 	}
     generateSMTformulaAux(smt,node,list,disjunct);
-    return smt->man->SMT_mk_or(disjunct);
-
+	if (disjunct.size() == 0) {
+		return smt->man->SMT_mk_false();
+	} else {
+		return smt->man->SMT_mk_or(disjunct);
+	}
 } 
 
 void PathTree::generateSMTformulaAux(

@@ -14,7 +14,7 @@
 
 #include "ap_global1.h"
 
-#include "AI.h"
+#include "AIopt.h"
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
@@ -26,14 +26,14 @@
 
 using namespace llvm;
 
-static RegisterPass<AI> X("AIPass", "Abstract Interpretation Pass", false, true);
+static RegisterPass<AIopt> X("AIOptPass", "Abstract Interpretation Pass", false, true);
 
-const char * AI::getPassName() const {
-	return "AI";
+const char * AIopt::getPassName() const {
+	return "AIopt";
 }
 
 
-bool AI::runOnModule(Module &M) {
+bool AIopt::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
@@ -78,7 +78,7 @@ bool AI::runOnModule(Module &M) {
 
 
 
-void AI::computeFunction(Function * F) {
+void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
 	Node * current;
@@ -153,20 +153,23 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-std::set<BasicBlock*> AI::getPredecessors(BasicBlock * b) {
+std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) {
 	return LSMT->getPrPredecessors(b);
 }
 
-void AI::computeNode(Node * n) {
+void AIopt::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
 	Node * Succ;
 	std::vector<Abstract*> Join;
 	bool only_join = false;
 
+
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
+
+	PathTree * U = new PathTree();
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -175,7 +178,6 @@ void AI::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	pathtree->clear();
 
 	while (true) {
 		is_computed[n] = true;
@@ -186,7 +188,7 @@ void AI::computeNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,pathtree->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG(
 			LSMT->man->SMT_print(smtexpr);
@@ -199,10 +201,10 @@ void AI::computeNode(Node * n) {
 		
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
 
+		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
-			LSMT->pop_context();
 			if (res == -1) unknown = true;
-			return;
+			break;
 		}
 	
 		DEBUG(
@@ -226,7 +228,7 @@ void AI::computeNode(Node * n) {
 
 		Succ->X->change_environment(Xtemp->main->env);
 
-		if (!pathtree->exist(path)) {
+		if (!U->exist(path)) {
 			n_paths++;
 			only_join = true;
 		} else {
@@ -235,7 +237,7 @@ void AI::computeNode(Node * n) {
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			if (pathtree->exist(path)) {
+			if (U->exist(path)) {
 			// backup the previous abstract value
 			Abstract * Xpred = aman->NewAbstract(Succ->X);
 
@@ -255,12 +257,12 @@ void AI::computeNode(Node * n) {
 			
 			Succ->X = Xpred;
 			only_join = true;
-			pathtree->remove(path);
-			if (pathtree->exist(path)) {
+			U->remove(path);
+			if (U->exist(path)) {
 				*Out << "ERROR STILL EXIST\n";
 			}
 			} else {
-				pathtree->insert(path);
+				U->insert(path);
 			}
 		} 
 		
@@ -268,11 +270,6 @@ void AI::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Succ->X));
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		*Out << "STEP 1\n";
-		*Out << "Xtemp = \n";
-		Xtemp->print();
-		*Out << "Succ = \n";
-		Succ->X->print();
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
 				Xtemp->widening(Succ->X);
@@ -299,11 +296,37 @@ void AI::computeNode(Node * n) {
 
 		A.push(Succ);
 		is_computed[Succ] = false;
-		LSMT->pop_context();
 	}
+
+	// now, we check if there exist a new feasible path that has never been
+	// computed
+	
+	// creating the SMT formula we want to check
+	LSMT->push_context();
+	SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false);
+	std::list<BasicBlock*> path;
+	DEBUG(
+		LSMT->man->SMT_print(smtexpr);
+	);
+	int res;
+	struct timeval beginTime = Now();
+	res = LSMT->SMTsolve(smtexpr,&path);
+	SMT_time = add(SMT_time,sub(Now(),beginTime));
+	LSMT->pop_context();
+
+	// if the result is unsat, then the computation of this node is finished
+	if (res != 1 || path.size() == 1) {
+		if (res == -1) unknown = true;
+	} else {
+		pathtree->insert(path);
+		is_computed[n] = false;
+		A.push(n);
+	}
+
+	delete U;
 }
 
-void AI::narrowNode(Node * n) {
+void AIopt::narrowNode(Node * n) {
 	Abstract * Xtemp;
 	Node * Succ;
 

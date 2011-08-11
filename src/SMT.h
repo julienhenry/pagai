@@ -85,7 +85,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// primed - remember which value needs to be primed in each basicblock
 		std::map<BasicBlock*, std::set<Value*> > primed;
 
-		/// computeRhoRec - recursive function called by computeRhoRec
+		/// computeRhoRec - recursive function called by computeRho
 		void computeRhoRec(	Function &F, 
 							BasicBlock * b,
 							BasicBlock * dest,
@@ -129,7 +129,12 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// createSMTformula - compute and return the SMT formula associated to
 		/// the BasicBlock source, as described in the paper
 		/// if we are in narrowing phase, narrow has to be true, else false
-		SMT_expr createSMTformula(BasicBlock * source, bool narrow);
+		/// We can cunjunct this formula with an SMT_expr formula given as
+		/// parameter of the function: constraint
+		SMT_expr createSMTformula(
+			BasicBlock * source, 
+			bool narrow, 
+			SMT_expr constraint = NULL);
 
 		/// SMTsolve - solve the SMT expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from

@@ -17,6 +17,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "AI.h"
+#include "AIopt.h"
 #include "AIGopan.h"
 #include "Node.h"
 #include "Execute.h"
@@ -100,7 +101,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	} else if (useLookaheadWidening()) {
 		AIPass = new AIGopan();
 	} else {
-		AIPass = new AI();
+		AIPass = new AIopt();
 	}
 
 	if (compareTechniques()) {
