@@ -10,6 +10,7 @@ PathTree::PathTree() {
 	mgr = new Cudd(0,0);
 	//mgr->makeVerbose();
 	Bdd = mgr->bddZero();
+	Bdd_prime = mgr->bddZero();
 	BddIndex=0;
 }
 
@@ -147,7 +148,7 @@ void PathTree::generateSMTformulaAux(
 } 
 
 
-void PathTree::insert(std::list<BasicBlock*> path) {
+void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
 	std::list<BasicBlock*> workingpath;
 	BasicBlock * current;
 
@@ -163,51 +164,79 @@ void PathTree::insert(std::list<BasicBlock*> path) {
 		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
 		f = f * block;
 	}
-	Bdd = Bdd + f;
-}
-
-void PathTree::remove(std::list<BasicBlock*> path) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
-		f = f * block;
-	}
-	Bdd = Bdd * !f;
-}
-
-void PathTree::clear() {
-	Bdd = mgr->bddZero();
-}
-
-bool PathTree::exist(std::list<BasicBlock*> path) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-	
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
-		f = f * block;
-	}
-	if (f <= Bdd) {
-		return true;
+	if (primed) {
+		Bdd_prime = Bdd_prime + f;
 	} else {
-		return false;
+		Bdd = Bdd + f;
+	}
+}
+
+void PathTree::remove(std::list<BasicBlock*> path, bool primed) {
+	std::list<BasicBlock*> workingpath;
+	BasicBlock * current;
+
+	workingpath.assign(path.begin(), path.end());
+
+	current = workingpath.front();
+	workingpath.pop_front();
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
+
+	while (workingpath.size() > 0) {
+		current = workingpath.front();
+		workingpath.pop_front();
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
+		f = f * block;
+	}
+
+	if (primed) {
+		Bdd_prime = Bdd_prime * !f;
+	} else {
+		Bdd = Bdd * !f;
+	}
+}
+
+void PathTree::clear(bool primed) {
+	if (primed) {
+		Bdd_prime = mgr->bddZero();
+	} else {
+		Bdd = mgr->bddZero();
+	}
+}
+
+bool PathTree::exist(std::list<BasicBlock*> path, bool primed) {
+	std::list<BasicBlock*> workingpath;
+	BasicBlock * current;
+	
+	workingpath.assign(path.begin(), path.end());
+
+	current = workingpath.front();
+	workingpath.pop_front();
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
+
+	while (workingpath.size() > 0) {
+		current = workingpath.front();
+		workingpath.pop_front();
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
+		f = f * block;
+	}
+	bool res;
+	if (primed) {
+		res = f <= Bdd_prime;
+	} else {
+		res = f <= Bdd;
+	}
+	return res;
+}
+
+void PathTree::mergeBDD() {
+	Bdd = Bdd + Bdd_prime;
+	Bdd_prime = mgr->bddZero();
+}
+
+bool PathTree::isZero(bool primed) {
+	if (primed) {
+		return !(Bdd_prime > mgr->bddZero());
+	} else {
+		return !(Bdd > mgr->bddZero());
 	}
 }

@@ -31,6 +31,9 @@ class AIopt : public AIPass {
 		/// visited
 		PathTree* pathtree;
 
+		std::set<Node*> A_prime;
+		
+
 		bool unknown;
 
 	public:

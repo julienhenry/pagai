@@ -31,6 +31,11 @@ class PathTree {
 
 		/// Bdd - Bdd that stores the various seen paths
 		BDD Bdd;
+
+		/// Bdd_prime - Bdd that stores the paths that need to be added in Bdd
+		/// in the next step
+		BDD Bdd_prime;
+
 		/// BddIndex - number of levels in the BDD
 		int BddIndex;
 
@@ -68,16 +73,21 @@ class PathTree {
 		~PathTree();
 
 		/// insert - insert a path in the Bdd
-		void insert(std::list<BasicBlock*> path);
+		void insert(std::list<BasicBlock*> path, bool primed = false);
 
 		/// remove - remove a path from the Bdd
-		void remove(std::list<BasicBlock*> path);
+		void remove(std::list<BasicBlock*> path, bool primed = false);
 
 		/// clear - clear the Bdd. The result will be an empty Bdd
-		void clear();
+		void clear(bool primed = false);
 
 		/// exist - check if the Bdd contains the path given as argument
-		bool exist(std::list<BasicBlock*> path);
+		bool exist(std::list<BasicBlock*> path, bool primed = false);
+
+		/// merge - merge the two Bdds into Bdd. Bdd_prime is cleared
+		void mergeBDD();
+
+		bool isZero(bool primed = false);
 
 		/// DumpDotBDD - dump the BDD "graph" in a .dot file. Name of the .dot
 		/// file is given by the filename argument.

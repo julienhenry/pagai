@@ -59,10 +59,10 @@ bool AIopt::runOnModule(Module &M) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
-				n->Y->print(true);
+				n->X->print(true);
 				N_Pr++;
 			}
-			//delete Nodes[b];
+			delete Nodes[b];
 		}
 	}
 
@@ -122,35 +122,50 @@ void AIopt::computeFunction(Function * F) {
 	A.push(n);
 
 	is_computed.clear();
-	// Simple Abstract Interpretation algorithm
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		computeNode(current);
-		if (unknown) {
-			ignoreFunction.insert(F);
-			while (!A.empty()) A.pop();
-			return;
-		}
-	}
+	// Abstract Interpretation algorithm
 	
+	while (true) {
+		A_prime.clear();	
+		pathtree->clear(true);
+		while (!A.empty()) {
+			current = A.top();
+			A.pop();
+			computeNode(current);
+			if (unknown) {
+				ignoreFunction.insert(F);
+				while (!A.empty()) A.pop();
+				return;
+			}
+		}
+		
+		// narrowing 
+		// to be implemented...
+
+		if (pathtree->isZero(true)) {
+			break;
+		}
+		// we add the new feasible paths to the graph
+		pathtree->mergeBDD();
+		// we insert the new elements in A
+		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
+			n = *it;
+			is_computed[n] = false;
+			A.push(n);
+		}
+		A_prime.clear();
+
+	}
+
+
 	is_computed.clear();
 	A.push(n);
 
-	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "NARROWING ITERATIONS\n";
-		*Out << "#######################################################\n";
-		Out->resetColor();
-	);
-
 	// narrowing phase
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		narrowNode(current);
-	}
+	//while (!A.empty()) {
+	//	current = A.top();
+	//	A.pop();
+	//	narrowNode(current);
+	//}
 }
 
 std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) {
@@ -318,9 +333,9 @@ void AIopt::computeNode(Node * n) {
 	if (res != 1 || path.size() == 1) {
 		if (res == -1) unknown = true;
 	} else {
-		pathtree->insert(path);
-		is_computed[n] = false;
-		A.push(n);
+		// there is a new path that has to be explored
+		pathtree->insert(path,true);
+		A_prime.insert(n);
 	}
 
 	delete U;
