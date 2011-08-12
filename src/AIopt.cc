@@ -359,7 +359,7 @@ void AIopt::narrowNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,pathtree->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG(
 			LSMT->man->SMT_print(smtexpr);
