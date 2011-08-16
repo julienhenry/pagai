@@ -31,7 +31,7 @@ BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &ma
 	return mgr->bddVar(n);
 }
 
-std::string PathTree::getNodeName(BasicBlock* b, bool src, SMT * smt) {
+const std::string PathTree::getNodeName(BasicBlock* b, bool src, SMT * smt) const {
 	if (smt != NULL) return smt->getNodeName(b,src);
 	std::ostringstream name;
 	if (src)
@@ -42,7 +42,7 @@ std::string PathTree::getNodeName(BasicBlock* b, bool src, SMT * smt) {
 	return name.str();
 }
 
-std::string PathTree::getStringFromLevel(int i, SMT * smt) {
+const std::string PathTree::getStringFromLevel(int const i, SMT * smt) {
 	BasicBlock * bb = levels[i]; 
 	if (BddVarStart.count(bb) && BddVarStart[bb]==i)
 		return getNodeName(bb,true,smt);

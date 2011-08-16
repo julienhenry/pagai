@@ -153,7 +153,7 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-std::set<BasicBlock*> AI::getPredecessors(BasicBlock * b) {
+std::set<BasicBlock*> AI::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
 
@@ -268,11 +268,6 @@ void AI::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Succ->X));
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		*Out << "STEP 1\n";
-		*Out << "Xtemp = \n";
-		Xtemp->print();
-		*Out << "Succ = \n";
-		Succ->X->print();
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
 				Xtemp->widening(Succ->X);

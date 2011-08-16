@@ -112,7 +112,7 @@ void AIGopan::computeFunction(Function * F) {
 	}
 }
 
-std::set<BasicBlock*> AIGopan::getPredecessors(BasicBlock * b) {
+std::set<BasicBlock*> AIGopan::getPredecessors(BasicBlock * b) const {
 	std::set<BasicBlock*> preds;
 	pred_iterator p = pred_begin(b), E = pred_end(b);
 	while (p != E) {

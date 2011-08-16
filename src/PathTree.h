@@ -47,16 +47,16 @@ class PathTree {
 		/// getNodeName - returns a string that names the basicblock. 
 		/// If smt != NULL, this name is exactly the same as the one 
 		/// used in the SMT pass
-		std::string getNodeName(
+		const std::string getNodeName(
 			BasicBlock* b, 
 			bool src,
-			SMT * smt = NULL);
+			SMT * smt = NULL) const;
 
 		/// getStringFromLevel - returns the name of the basicBlock associated
 		/// to the level i of the Bdd.
 		/// If smt != NULL, this name is exactly the same as the one 
 		/// used in the SMT pass
-		std::string getStringFromLevel(
+		const std::string getStringFromLevel(
 			int i,
 			SMT * smt = NULL);
 

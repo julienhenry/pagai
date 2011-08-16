@@ -44,9 +44,9 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 
 		/// these following methods are used to create a variable name for
 		//edges, nodes, values, undeterministic choices, ...
-		std::string getUndeterministicChoiceName(Value * v);
-		std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
-		std::string getValueName(Value * v, bool primed);
+		const std::string getUndeterministicChoiceName(Value * v);
+		const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
+		const std::string getValueName(Value * v, bool primed);
 
 		/// getValueExpr - get the expression associated to a value
 		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
@@ -142,7 +142,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
 		/// gets the name of the node associated to a specific basicblock
-		std::string getNodeName(BasicBlock* b, bool src);
+		const std::string getNodeName(BasicBlock* b, bool src);
 
 		/// XToSmt - transform an apron object of type X into an SMT
 		/// expression

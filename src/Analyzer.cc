@@ -10,7 +10,7 @@
 #include "Debug.h" 
 
 SMT_Solver manager;
-bool gopan;
+Techniques technique;
 bool compare;
 bool onlyrho;
 Apron_Manager_Type ap_manager;
@@ -33,7 +33,12 @@ void show_help() {
 		example of option: -d box\n \
 -i : input file\n \
 -o : output file\n \
--g : use Lookahead Widening technique\n \
+-t : use a specific technique\n \
+		possible techniques:\n \
+		  * lw (Lookahead Widening)\n \
+		  * pf (Path Focusing)\n \
+		  * lw+pf (combination of Lookahead Widening and Path Focusing)\n \
+		  * s (simple abstract interpretation)\n \
 -c : compare the two techniques\n \
 -f : only outputs the SMT formula\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
@@ -43,8 +48,8 @@ SMT_Solver getSMTSolver() {
 	return manager;
 }
 
-bool useLookaheadWidening() {
-	return gopan;
+Techniques getTechnique() {
+	return technique;
 }
 
 bool compareTechniques() {
@@ -89,6 +94,25 @@ bool setApronManager(char * domain) {
 	return 0;
 }
 
+bool setTechnique(char * t) {
+	std::string d;
+	d.assign(t);
+	
+	if (!d.compare("lw")) {
+		technique = LOOKAHEAD_WIDENING;
+	} else if (!d.compare("pf")) {
+		technique = PATH_FOCUSING;
+	} else if (!d.compare("lw+pf")) {
+		technique = LW_WITH_PF;
+	} else if (!d.compare("s")) {
+		technique = SIMPLE;
+	} else {
+		std::cout << "Wrong parameter defining the technique you want to use\n";
+		return 1;
+	}
+	return 0;
+}
+
 std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
@@ -98,13 +122,13 @@ int main(int argc, char* argv[]) {
     bool help = false;
     bool bad_use = false;
     char* outputname="";
-	char* domain;
+	char* arg;
 	bool debug = false;
 
 	filename=NULL;
 	manager = Z3_MANAGER;
 	ap_manager = PK;
-	gopan = false;
+	technique = LW_WITH_PF;
 	compare = false;
 	onlyrho = false;
 	n_totalpaths = 0;
@@ -114,7 +138,7 @@ int main(int argc, char* argv[]) {
 	SMT_time.tv_usec = 0;
 	Total_time = Now();
 
-	 while ((o = getopt(argc, argv, "hDd:i:o:ycgf")) != -1) {
+	 while ((o = getopt(argc, argv, "hDd:i:o:ycft:")) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -125,12 +149,15 @@ int main(int argc, char* argv[]) {
         case 'c':
             compare = true;
             break;
-        case 'g':
-            gopan = true;
+        case 't':
+            arg = optarg;
+			if (setTechnique(arg)) {
+				bad_use = true;
+			}
             break;
         case 'd':
-            domain = optarg;
-			if (setApronManager(domain)) {
+            arg = optarg;
+			if (setApronManager(arg)) {
 				bad_use = true;
 			}
             break;

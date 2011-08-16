@@ -32,7 +32,6 @@ const char * AIopt::getPassName() const {
 	return "AIopt";
 }
 
-
 bool AIopt::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
@@ -80,14 +79,13 @@ bool AIopt::runOnModule(Module &M) {
 
 void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
-	Node * n;
+	Node * const n = Nodes[F->begin()];
 	Node * current;
 	unknown = false;
 
 	// A = {first basicblock}
 	b = F->begin();
 	if (b == F->end()) return;
-	n = Nodes[b];
 
 
 	// get the information about live variables from the LiveValues pass
@@ -137,7 +135,7 @@ void AIopt::computeFunction(Function * F) {
 				return;
 			}
 		}
-		
+	
 		// narrowing 
 		is_computed.clear();
 		A.push(n);
@@ -157,8 +155,6 @@ void AIopt::computeFunction(Function * F) {
 			}
 		}
 
-		
-
 		if (pathtree->isZero(true)) {
 			break;
 		}
@@ -171,13 +167,10 @@ void AIopt::computeFunction(Function * F) {
 			A.push(current);
 		}
 		A_prime.clear();
-
 	}
-
-
 }
 
-std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) {
+std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
 
@@ -193,7 +186,7 @@ void AIopt::computeNode(Node * n) {
 		return;
 	}
 
-	PathTree * U = new PathTree();
+	PathTree * const U = new PathTree();
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -316,7 +309,6 @@ void AIopt::computeNode(Node * n) {
 			*Out << "RESULT:\n";
 			Succ->X->print();
 		);
-
 
 		A.push(Succ);
 		is_computed[Succ] = false;

@@ -214,13 +214,13 @@ SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 		return man->SMT_mk_and(constraints);
 }
 
-std::string SMT::getUndeterministicChoiceName(Value * v) {
+const std::string SMT::getUndeterministicChoiceName(Value * v) {
 	std::ostringstream name;
 	name << "c_" << v;
 	return name.str();
 }
 
-std::string SMT::getNodeName(BasicBlock* b, bool src) {
+const std::string SMT::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
 	std::set<BasicBlock*> * FPr = getPr(*(b->getParent()));
 	if (FPr->count(b)) {
@@ -235,13 +235,13 @@ std::string SMT::getNodeName(BasicBlock* b, bool src) {
 	return name.str();
 }
 
-std::string SMT::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
+const std::string SMT::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 	std::ostringstream name;
 	name << "t_" << b1 << "_" << b2;
 	return name.str();
 }
 
-std::string SMT::getValueName(Value * v, bool primed) {
+const std::string SMT::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
 	if (primed)
 		name << "x'_" << ap_var_to_string((ap_var_t)v) << "_";

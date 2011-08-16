@@ -98,10 +98,21 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	ModulePass *AIPass2;
 	if (onlyOutputsRho()) {
 		AIPass = new GenerateSMT();
-	} else if (useLookaheadWidening()) {
-		AIPass = new AIGopan();
-	} else {
-		AIPass = new AIopt();
+	} else { 
+		switch (getTechnique()) {
+			case LOOKAHEAD_WIDENING:
+				AIPass = new AIGopan();
+				break;
+			case PATH_FOCUSING:
+				AIPass = new AI();
+				break;
+			case LW_WITH_PF:
+				AIPass = new AIopt();
+				break;
+			case SIMPLE:
+				AIPass = new AIGopan();
+				break;
+		}
 	}
 
 	if (compareTechniques()) {

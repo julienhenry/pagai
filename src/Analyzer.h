@@ -21,9 +21,16 @@ enum Apron_Manager_Type {
 	PKGRID
 };
 
+enum Techniques {
+	LOOKAHEAD_WIDENING,
+	PATH_FOCUSING,
+	LW_WITH_PF,
+	SIMPLE
+};
+
 SMT_Solver getSMTSolver();
 
-bool useLookaheadWidening();
+Techniques getTechnique();
 
 bool compareTechniques();
 

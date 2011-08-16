@@ -94,7 +94,7 @@ class AIPass : public ModulePass, public InstVisitor<AIPass> {
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
 		phivar PHIvars;
 	
-		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) = 0;
+		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
 		/// computeTransform - computes in Xtemp the polyhedra resulting from
 		/// the transformation  of n->X through the path
 		void computeTransform (	

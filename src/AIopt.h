@@ -33,9 +33,7 @@ class AIopt : public AIPass {
 
 		std::set<Node*> A_prime;
 		
-
 		bool unknown;
-
 	public:
 
 		AIopt ()  
@@ -50,11 +48,12 @@ class AIopt : public AIPass {
 			}
 
 		const char *getPassName() const;
+
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);
 
-		std::set<BasicBlock*> getPredecessors(BasicBlock * b);
+		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);
