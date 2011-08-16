@@ -139,7 +139,25 @@ void AIopt::computeFunction(Function * F) {
 		}
 		
 		// narrowing 
-		// to be implemented...
+		is_computed.clear();
+		A.push(n);
+		while (!A.empty()) {
+			current = A.top();
+			A.pop();
+			narrowNode(current);
+		}
+		// then we move Y abstract values to X abstract values
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			delete Nodes[b]->X;
+			Nodes[b]->X = aman->NewAbstract(Nodes[b]->Y);
+			if (Nodes[b] != n) {
+				delete Nodes[b]->Y;
+				Nodes[b]->Y = aman->NewAbstract(man,env);
+			}
+		}
+
+		
 
 		if (pathtree->isZero(true)) {
 			break;
@@ -148,24 +166,15 @@ void AIopt::computeFunction(Function * F) {
 		pathtree->mergeBDD();
 		// we insert the new elements in A
 		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
-			n = *it;
-			is_computed[n] = false;
-			A.push(n);
+			current = *it;
+			is_computed[current] = false;
+			A.push(current);
 		}
 		A_prime.clear();
 
 	}
 
 
-	is_computed.clear();
-	A.push(n);
-
-	// narrowing phase
-	//while (!A.empty()) {
-	//	current = A.top();
-	//	A.pop();
-	//	narrowNode(current);
-	//}
 }
 
 std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) {
@@ -198,7 +207,7 @@ void AIopt::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
@@ -354,7 +363,7 @@ void AIopt::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
