@@ -45,7 +45,8 @@ LCFLAGS += \
 			-L$(CUDD_PATH)/st \
 			-L$(CUDD_PATH)/epd \
 			-L$(CUDD_PATH)/util \
-			-L$(CUDD_PATH)/cudd
+			-L$(CUDD_PATH)/cudd \
+			-Wl,-rpath $(Z3_PATH)/lib
 
 #LDFLAGS += -static
 
