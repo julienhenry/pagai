@@ -4,9 +4,9 @@ LLVM_PATH	= /net/cezanne/local/jhenry/llvm-2.9
 CUDD_PATH	= /net/cezanne/local/jhenry/cudd-2.4.2
 
 SRC		= $(wildcard ../src/*.cc)
-BIN_REP		= ../bin/
+OBJ_REP		= ../obj/
 SRC_REP		= ../src/
-OBJS		= $(subst $(SRC_REP),$(BIN_REP),$(SRC:.cc=.o))
+OBJS		= $(subst $(SRC_REP),$(OBJ_REP),$(SRC:.cc=.o))
 CC			= clang++
 #CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
 CPPFLAGS	= -O2 
@@ -74,13 +74,13 @@ all: $(EXEC)
 $(EXEC) : $(OBJS)
 	$(CC) $(LCFLAGS) -o $@ $^ $(CUDD_LIBS) $(LDFLAGS)
 
-${BIN_REP}%.o : %.cc *.h
+${OBJ_REP}%.o : %.cc *.h
 	$(CC) $(ICFLAGS) -o $@ -c $< $(CPPFLAGS)
 
 .PHONY: clean realclean
 
 clean:
-	rm -rf $(BIN_REP)*.o
+	rm -rf $(OBJ_REP)*.o
 
 realclean: clean
 	rm -rf $(EXEC)

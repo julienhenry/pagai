@@ -29,17 +29,12 @@ using namespace llvm;
 
 char AIPass::ID = 0;
 
-
-//static RegisterPass<AIPass> X("AIPass", "Abstract Interpretation Pass", false, true);
-
-
 void AIPass::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
 }
-
 
 void AIPass::initFunction(Function * F) {
 	Node * n;
