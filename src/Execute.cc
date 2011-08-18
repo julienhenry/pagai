@@ -115,10 +115,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		}
 	}
 
-	if (compareTechniques()) {
-		AIPass = new AI();
-		AIPass2 = new AIGopan();
-	}
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
@@ -138,6 +134,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(new SMT());
 	Passes.add(AIPass);
 	if (compareTechniques()) {
+		AIPass2 = new AIGopan();
 		Passes.add(AIPass2);
 		Passes.add(new Compare());
 	}

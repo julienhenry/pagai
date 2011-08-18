@@ -30,11 +30,11 @@ class PathTree {
 		std::map<int, BasicBlock*> levels;
 
 		/// Bdd - Bdd that stores the various seen paths
-		BDD Bdd;
+		BDD * Bdd;
 
 		/// Bdd_prime - Bdd that stores the paths that need to be added in Bdd
 		/// in the next step
-		BDD Bdd_prime;
+		BDD * Bdd_prime;
 
 		/// BddIndex - number of levels in the BDD
 		int BddIndex;

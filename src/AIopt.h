@@ -36,15 +36,15 @@ class AIopt : public AIPass {
 		bool unknown;
 	public:
 
-		AIopt ()  
+		AIopt() : pathtree(NULL), unknown(false) 
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
-				pathtree = new PathTree();
 			}
 
 		~AIopt () {
-				delete pathtree;
+				if (pathtree != NULL)
+					delete pathtree;
 			}
 
 		const char *getPassName() const;

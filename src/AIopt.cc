@@ -34,8 +34,8 @@ const char * AIopt::getPassName() const {
 
 bool AIopt::runOnModule(Module &M) {
 	Function * F;
-	BasicBlock * b;
-	Node * n;
+	BasicBlock * b = NULL;
+	Node * n = NULL;
 	int N_Pr = 0;
 	LSMT = &(getAnalysis<SMT>());
 
@@ -48,6 +48,13 @@ bool AIopt::runOnModule(Module &M) {
 				<< "------------------------------------------\n";
 		Out->resetColor();
 		LSMT->reset_SMTcontext();
+
+		// we delete the previous pathtree, since we entered a new function
+		if (pathtree != NULL) {
+			delete pathtree;
+		}
+		pathtree = new PathTree();
+		
 		initFunction(F);
 		computeFunction(F);
 
@@ -115,6 +122,7 @@ void AIopt::computeFunction(Function * F) {
 	computeEnv(n);
 	n->create_env(&env,LV);
 	n->X->set_top(env);
+	delete n->Y;
 	n->Y = aman->NewAbstract(man,env);
 	n->Y->set_top(env);
 	A.push(n);
@@ -176,8 +184,8 @@ std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
 
 void AIopt::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
-	Abstract * Xtemp;
-	Node * Succ;
+	Abstract * Xtemp = NULL;
+	Node * Succ = NULL;
 	std::vector<Abstract*> Join;
 	bool only_join = false;
 
@@ -233,6 +241,7 @@ void AIopt::computeNode(Node * n) {
 		n_iterations++;
 
 		// computing the image of the abstract value by the path's tranformation
+		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X);
 		computeTransform(aman,n,path,*Xtemp);
 		
@@ -272,6 +281,7 @@ void AIopt::computeNode(Node * n) {
 			Xtemp = aman->NewAbstract(n->X);
 			computeTransform(aman,n,path,*Xtemp);
 			
+			delete Succ->X;
 			Succ->X = Xpred;
 			only_join = true;
 			U->remove(path);
@@ -304,6 +314,7 @@ void AIopt::computeNode(Node * n) {
 			Succ->X->print();
 		);
 		Succ->X = Xtemp;
+		Xtemp = NULL;
 
 		DEBUG(
 			*Out << "RESULT:\n";
@@ -343,7 +354,7 @@ void AIopt::computeNode(Node * n) {
 }
 
 void AIopt::narrowNode(Node * n) {
-	Abstract * Xtemp;
+	Abstract * Xtemp = NULL;
 	Node * Succ;
 
 	if (is_computed.count(n) && is_computed[n]) {
@@ -377,6 +388,7 @@ void AIopt::narrowNode(Node * n) {
 		Succ = Nodes[path.back()];
 
 		// computing the image of the abstract value by the path's tranformation
+		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X);
 		computeTransform(aman,n,path,*Xtemp);
 

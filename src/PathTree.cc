@@ -9,13 +9,13 @@
 PathTree::PathTree() {
 	mgr = new Cudd(0,0);
 	//mgr->makeVerbose();
-	Bdd = mgr->bddZero();
-	Bdd_prime = mgr->bddZero();
+	Bdd = new BDD(mgr->bddZero());
+	Bdd_prime = new BDD(mgr->bddZero());
 	BddIndex=0;
 }
 
 PathTree::~PathTree() {
-	//delete mgr;	
+	delete mgr;	
 }
 
 BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) {
@@ -76,7 +76,7 @@ void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 SMT_expr PathTree::generateSMTformula(
 	SMT * smt)
 {
-	DdNode * node = Bdd.getNode();
+	DdNode * node = Bdd->getNode();
     int	i;
 	std::vector<int> list;
 	std::vector<SMT_expr> disjunct;
@@ -165,9 +165,9 @@ void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
 		f = f * block;
 	}
 	if (primed) {
-		Bdd_prime = Bdd_prime + f;
+		*Bdd_prime = *Bdd_prime + f;
 	} else {
-		Bdd = Bdd + f;
+		*Bdd = *Bdd + f;
 	}
 }
 
@@ -189,17 +189,17 @@ void PathTree::remove(std::list<BasicBlock*> path, bool primed) {
 	}
 
 	if (primed) {
-		Bdd_prime = Bdd_prime * !f;
+		*Bdd_prime = *Bdd_prime * !f;
 	} else {
-		Bdd = Bdd * !f;
+		*Bdd = *Bdd * !f;
 	}
 }
 
 void PathTree::clear(bool primed) {
 	if (primed) {
-		Bdd_prime = mgr->bddZero();
+		*Bdd_prime = mgr->bddZero();
 	} else {
-		Bdd = mgr->bddZero();
+		*Bdd = mgr->bddZero();
 	}
 }
 
@@ -221,22 +221,22 @@ bool PathTree::exist(std::list<BasicBlock*> path, bool primed) {
 	}
 	bool res;
 	if (primed) {
-		res = f <= Bdd_prime;
+		res = f <= *Bdd_prime;
 	} else {
-		res = f <= Bdd;
+		res = f <= *Bdd;
 	}
 	return res;
 }
 
 void PathTree::mergeBDD() {
-	Bdd = Bdd + Bdd_prime;
-	Bdd_prime = mgr->bddZero();
+	*Bdd = *Bdd + *Bdd_prime;
+	*Bdd_prime = mgr->bddZero();
 }
 
 bool PathTree::isZero(bool primed) {
 	if (primed) {
-		return !(Bdd_prime > mgr->bddZero());
+		return !(*Bdd_prime > mgr->bddZero());
 	} else {
-		return !(Bdd > mgr->bddZero());
+		return !(*Bdd > mgr->bddZero());
 	}
 }
