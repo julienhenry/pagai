@@ -31,19 +31,22 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 	id = i++;
 	man = _man;
 	env = ap_environment_alloc_empty();
-	X = new AbstractClassic(_man,env);
-	Y = new AbstractClassic(_man,env);
-	//X = new AbstractGopan(_man,env);
-	//Y = new AbstractGopan(_man,env);
-	Xgopan = new AbstractGopan(_man,env);
-	Ygopan = new AbstractGopan(_man,env);
 }
 
 Node::~Node() {
-	delete X;
-	delete Y;
-	delete Xgopan;
-	delete Ygopan;
+	// deleting all the abstract values attached to this node
+	for (std::vector<Abstract*>::iterator it = X.begin(), 
+			et = X.end();
+			it != et;
+			it++) {
+		delete *it;
+	}
+	for (std::vector<Abstract*>::iterator it = Y.begin(),
+			et = Y.end();
+			it != et;
+			it++) {
+		delete *it;
+	}
 }
 
 /// computeSCC - compute the strongly connected components and the loop 

@@ -134,6 +134,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr createSMTformula(
 			BasicBlock * source, 
 			bool narrow, 
+			int passID,
 			SMT_expr constraint = NULL);
 
 		/// SMTsolve - solve the SMT expression expr and return true iff expr is

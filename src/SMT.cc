@@ -525,7 +525,11 @@ void SMT::pop_context() {
 
 /// createSMTformula - create the smt formula that is described in the paper
 ///
-SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow, SMT_expr constraint) {
+SMT_expr SMT::createSMTformula(
+	BasicBlock * source, 
+	bool narrow, 
+	int passID,
+	SMT_expr constraint) {
 	Function &F = *source->getParent();
 	std::vector<SMT_expr> formula;
 	formula.push_back(getRho(F));
@@ -541,7 +545,7 @@ SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow, SMT_expr constr
 		}
 	}
 	
-	Abstract * A = Nodes[source]->X;
+	Abstract * A = Nodes[source]->X[passID];
 	formula.push_back(AbstractToSmt(NULL,A));
 
 	std::vector<SMT_expr> Or;
@@ -553,9 +557,9 @@ SMT_expr SMT::createSMTformula(BasicBlock * source, bool narrow, SMT_expr constr
 		SuccExp.push_back(man->SMT_mk_expr_from_bool_var(succvar));
 		
 		if (narrow)
-			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->Y)));
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->Y[passID])));
 		else
-			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X)));
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X[passID])));
 		
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}

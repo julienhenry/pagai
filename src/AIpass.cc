@@ -46,12 +46,16 @@ void AIPass::initFunction(Function * F) {
 				n = new Node(man,i);
 				Nodes[i] = n;
 			} else {
+				//resetting parameters
 				already_seen = true;
 				n = Nodes[i];
 				n->intVar.clear();
 				n->realVar.clear();
-				n->env = NULL;
+				n->env = ap_environment_alloc_empty();
 			}
+			// creating an X and an Y abstract value for this node
+			n->X.push_back(aman->NewAbstract(n->man,n->env));
+			n->Y.push_back(aman->NewAbstract(n->man,n->env));
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
@@ -120,7 +124,7 @@ void AIPass::computeEnv(Node * n) {
 	for (; p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
-		if (pred->X->main != NULL) {
+		if (pred->X[passID]->main != NULL) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());

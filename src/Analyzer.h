@@ -44,4 +44,6 @@ extern llvm::raw_ostream *Out;
 
 extern std::set<llvm::Function*> ignoreFunction;
 
+extern int npass;
+
 #endif

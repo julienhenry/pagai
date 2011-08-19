@@ -27,9 +27,11 @@ class Node {
 		int index;
 		int lowlink;
 		bool isInStack;
-		ap_manager_t * man;
 		void computeSCC_rec(int & n,std::stack<Node*> * S);
 	public:
+		/// man - apron manager
+		ap_manager_t * man;
+
 		/// bb - Basicblock associated to the node
 		BasicBlock * bb;
 		/// sccId identifies the strongly connected component the node is in
@@ -37,11 +39,10 @@ class Node {
 		int id;
 
 		/// X - Abstract domain 
-		Abstract * X;
-		Abstract * Xgopan;
+		std::vector<Abstract*> X;
 		/// Y - Abstract domain after narrowing operations
-		Abstract * Y;
-		Abstract * Ygopan;
+		std::vector<Abstract*> Y;
+
 		ap_environment_t * env;
 
 		/// intVar - contains all the int variables that have to be used as

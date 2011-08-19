@@ -16,6 +16,7 @@ bool onlyrho;
 Apron_Manager_Type ap_manager;
 llvm::raw_ostream *Out;
 char* filename;
+int npass;
 
 void show_help() {
         std::cout << "Usage :\n \
@@ -137,6 +138,7 @@ int main(int argc, char* argv[]) {
 	SMT_time.tv_sec = 0;
 	SMT_time.tv_usec = 0;
 	Total_time = Now();
+	npass = 0;
 
 	 while ((o = getopt(argc, argv, "hDd:i:o:ycft:")) != -1) {
         switch (o) {
