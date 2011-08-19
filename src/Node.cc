@@ -121,8 +121,12 @@ void Node::create_env(ap_environment_t ** env, Live * LV) {
 			e = intVar.end(); i != e; ++i) {
 		if (LV->isLiveThroughBlock((*i).first,bb)
 			|| LV->isUsedInBlock((*i).first,bb)
-			|| isa<UndefValue>((*i).first))
+			|| isa<UndefValue>((*i).first)) {
+			*Out << "Adding " << *((*i).first) << " in the new environment\n";
 			Sintvars.insert((*i).second.begin(), (*i).second.end());
+		} else {
+			*Out << *((*i).first) << " is not in the new environment\n";
+		}
 	}
 	for (std::map<Value*,std::set<ap_var_t> >::iterator i = realVar.begin(),
 			e = realVar.end(); i != e; ++i) {

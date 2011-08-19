@@ -5,7 +5,7 @@ cd /home/jhenry/m2r/ex
 
 for FILENAME in `ls *.{c,cpp}` ; do
 	echo "Running $FILENAME..."
-	analyzer.sh -i $FILENAME -u -g > results/$FILENAME.result
+	analyzer.sh -i $FILENAME -u  > results/$FILENAME.result
 done
 
 

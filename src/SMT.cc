@@ -806,7 +806,17 @@ void SMT::visitPHINode (PHINode &I) {
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
-	rho_components.push_back(man->SMT_mk_eq(expr,assign));
+	if (!primed[I.getParent()].count(&I)) {
+		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(I.getParent(),false));
+		SMT_expr bexpr = man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar));
+		std::vector<SMT_expr> disj;
+		disj.push_back(bexpr);
+		disj.push_back(man->SMT_mk_eq(expr,assign));
+		expr = man->SMT_mk_or(disj);	
+	} else {
+		expr = man->SMT_mk_eq(expr,assign);
+	}
+	rho_components.push_back(expr);
 }
 
 void SMT::visitTruncInst (TruncInst &I) {

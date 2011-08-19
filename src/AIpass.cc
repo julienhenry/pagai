@@ -124,6 +124,9 @@ void AIPass::computeEnv(Node * n) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
+					*Out << *((*i).first) << " is live !\n";
+				} else {
+					*Out << *((*i).first) << " is not live !\n";
 				}
 			}
 
@@ -593,6 +596,7 @@ void AIPass::visitPHINode (PHINode &I){
 						*Out << "\n";
 					);
 				}
+
 			} else {
 				if (expr == NULL) continue;
 				DEBUG(
@@ -600,11 +604,15 @@ void AIPass::visitPHINode (PHINode &I){
 					texpr1_print(expr);
 					*Out << "\n";
 				);
-				set_ap_expr(&I,expr);
 				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
-					ap_environment_t * env = expr->env;
-					insert_env_vars_into_node_vars(env,n,(Value*)&I);
+					n->add_var(&I);
+					PHIvars.name.push_back((ap_var_t)&I);
+					PHIvars.expr.push_back(*expr);
+				} else {
+					set_ap_expr(&I,expr);
 				}
+				ap_environment_t * env = expr->env;
+				insert_env_vars_into_node_vars(env,n,(Value*)&I);
 			}
 		}
 	}

@@ -22,6 +22,7 @@ class Live : public FunctionPass {
 		/// Used - The set of blocks which contain a use of the value.
 		///
 		SmallPtrSet< BasicBlock *, 4> Used;
+		SmallPtrSet< BasicBlock *, 4> UsedPHI;
 
 		/// LiveThrough - A conservative approximation of the set of blocks in
 		/// which the value is live-through, meaning blocks dominated
@@ -62,6 +63,7 @@ class Live : public FunctionPass {
 	/// isUsedInBlock - Test if the given value is used in the given block.
 	///
 	bool isUsedInBlock( Value *V,  BasicBlock *BB);
+	bool isUsedInPHIBlock( Value *V,  BasicBlock *BB);
 
 	/// isLiveThroughBlock - Test if the given value is known to be
 	/// live-through the given block, meaning that the block is properly

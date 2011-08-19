@@ -42,6 +42,11 @@ bool Live::isUsedInBlock(Value *V, BasicBlock *BB) {
 	return M.Used.count(BB);
 }
 
+bool Live::isUsedInPHIBlock(Value *V, BasicBlock *BB) {
+	Memo &M = getMemo(V);
+	return M.UsedPHI.count(BB);
+}
+
 /// isLiveThroughBlock - Test if the given value is known to be
 /// live-through the given block, meaning that the block is
 /// dominated by the value's definition, and there exists a block
@@ -109,7 +114,11 @@ Live::Memo &Live::compute( Value *V) {
 		BasicBlock *UseBB = cast<Instruction>(U)->getParent();
 
 		// Note the block in which this use occurs.
-		M.Used.insert(UseBB);
+		if (isa<PHINode>(U)) {
+			M.UsedPHI.insert(UseBB);
+		} else {
+			M.Used.insert(UseBB);
+		}
 
 		// Observe whether the value is used outside of the loop in which
 		// it is defined. Switch to an enclosing loop if necessary.
@@ -125,7 +134,8 @@ Live::Memo &Live::compute( Value *V) {
 
 			// we should add to LiveThrough Block the predecessors of the block,
 			// which comes to the right path (phi-variable)
-			M.LiveThrough.insert(UseBB);
+			
+			//M.LiveThrough.insert(UseBB);
 			
 			BasicBlock * Pred = phi->getIncomingBlock(I);
 			S.push(Pred);
