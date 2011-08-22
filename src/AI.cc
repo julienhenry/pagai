@@ -40,6 +40,8 @@ bool AI::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = &(getAnalysis<SMT>());
 
+	*Out << "Starting analysis: PF\n";
+
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 		Out->changeColor(raw_ostream::BLUE,true);

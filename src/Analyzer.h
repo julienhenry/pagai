@@ -2,6 +2,7 @@
 #define ANALYZER_H
 
 #include <set>
+#include <map>
 
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/CFG.h"
@@ -44,6 +45,7 @@ extern llvm::raw_ostream *Out;
 
 extern std::set<llvm::Function*> ignoreFunction;
 
-extern int npass;
+
+extern std::map<Techniques,int> Passes;
 
 #endif

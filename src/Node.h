@@ -10,6 +10,7 @@
 
 #include "ap_global1.h"
 
+#include "Analyzer.h"
 #include "Abstract.h"
 #include "Live.h"
 #include "AbstractGopan.h"
@@ -39,9 +40,9 @@ class Node {
 		int id;
 
 		/// X - Abstract domain 
-		std::vector<Abstract*> X;
+		std::map<Techniques,Abstract*> X;
 		/// Y - Abstract domain after narrowing operations
-		std::vector<Abstract*> Y;
+		std::map<Techniques,Abstract*> Y;
 
 		ap_environment_t * env;
 

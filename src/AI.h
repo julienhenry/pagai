@@ -40,6 +40,8 @@ class AI : public AIPass {
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
 				pathtree = new PathTree();
+				passID = PATH_FOCUSING;
+				Passes[PATH_FOCUSING] = passID;	
 			}
 
 		~AI () {

@@ -35,17 +35,17 @@ Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
 
 Node::~Node() {
 	// deleting all the abstract values attached to this node
-	for (std::vector<Abstract*>::iterator it = X.begin(), 
+	for (std::map<Techniques,Abstract*>::iterator it = X.begin(), 
 			et = X.end();
 			it != et;
 			it++) {
-		delete *it;
+		delete (*it).second;
 	}
-	for (std::vector<Abstract*>::iterator it = Y.begin(),
+	for (std::map<Techniques,Abstract*>::iterator it = Y.begin(),
 			et = Y.end();
 			it != et;
 			it++) {
-		delete *it;
+		delete (*it).second;
 	}
 }
 

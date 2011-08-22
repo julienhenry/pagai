@@ -14,6 +14,7 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Analysis/LoopInfo.h"
 
+#include "Analyzer.h"
 #include "Abstract.h"
 #include "SMT_manager.h"
 
@@ -134,7 +135,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr createSMTformula(
 			BasicBlock * source, 
 			bool narrow, 
-			int passID,
+			Techniques t,
 			SMT_expr constraint = NULL);
 
 		/// SMTsolve - solve the SMT expression expr and return true iff expr is

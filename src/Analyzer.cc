@@ -17,6 +17,7 @@ Apron_Manager_Type ap_manager;
 llvm::raw_ostream *Out;
 char* filename;
 int npass;
+std::map<Techniques,int> Passes;
 
 void show_help() {
         std::cout << "Usage :\n \

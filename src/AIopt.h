@@ -40,6 +40,8 @@ class AIopt : public AIPass {
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
+				passID = LW_WITH_PF;
+				Passes[LW_WITH_PF] = passID;	
 			}
 
 		~AIopt () {

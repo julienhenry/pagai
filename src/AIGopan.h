@@ -30,6 +30,8 @@ class AIGopan : public AIPass {
 		AIGopan ()
 			{
 				aman = new AbstractManGopan();
+				passID = LOOKAHEAD_WIDENING;
+				Passes[LOOKAHEAD_WIDENING] = passID;	
 			}
 
 		~AIGopan () {

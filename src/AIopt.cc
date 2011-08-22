@@ -39,6 +39,8 @@ bool AIopt::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = &(getAnalysis<SMT>());
 
+	*Out << "Starting analysis: PF+LW\n";
+
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 		Out->changeColor(raw_ostream::BLUE,true);
@@ -68,7 +70,7 @@ bool AIopt::runOnModule(Module &M) {
 				n->X[passID]->print(true);
 				N_Pr++;
 			}
-			delete Nodes[b];
+			//delete Nodes[b];
 		}
 	}
 
@@ -118,18 +120,13 @@ void AIopt::computeFunction(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	*Out << "OK!!\n";
 	ap_environment_t * env = NULL;
 	computeEnv(n);
 	n->create_env(&env,LV);
 	n->X[passID]->set_top(env);
-	*Out << "STEP 1\n";
 	delete n->Y[passID];
-	*Out << "STEP 2\n";
 	n->Y[passID] = aman->NewAbstract(man,env);
-	*Out << "STEP 3\n";
 	n->Y[passID]->set_top(env);
-	*Out << "STEP 4\n";
 	A.push(n);
 
 	is_computed.clear();

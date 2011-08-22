@@ -38,6 +38,7 @@ bool AIGopan::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	LSMT = &(getAnalysis<SMT>());
+	*Out << "Starting analysis: LW\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;

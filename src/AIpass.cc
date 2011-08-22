@@ -54,8 +54,8 @@ void AIPass::initFunction(Function * F) {
 				n->env = ap_environment_alloc_empty();
 			}
 			// creating an X and an Y abstract value for this node
-			n->X.push_back(aman->NewAbstract(n->man,n->env));
-			n->Y.push_back(aman->NewAbstract(n->man,n->env));
+			n->X[passID] = aman->NewAbstract(n->man,n->env);
+			n->Y[passID] = aman->NewAbstract(n->man,n->env);
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components

@@ -35,7 +35,7 @@ class AIPass : public ModulePass, public InstVisitor<AIPass> {
 		SMT * LSMT;
 
 		/// id of the pass
-		int passID;
+		Techniques passID;
 
 		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
@@ -61,8 +61,6 @@ class AIPass : public ModulePass, public InstVisitor<AIPass> {
 			LSMT(NULL) {
 				man = create_manager(getApronManager());
 				init_apron();
-				passID = npass;
-				npass++;
 			}
 
 		~AIPass () {

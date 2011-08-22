@@ -95,7 +95,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	PassManager Passes;
 
 	ModulePass *AIPass;
-	ModulePass *AIPass2;
 	if (onlyOutputsRho()) {
 		AIPass = new GenerateSMT();
 	} else { 
@@ -132,10 +131,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.add(new Live());
 	Passes.add(new SMT());
+		Passes.add(new AIGopan());
+		Passes.add(new AI());
 	Passes.add(AIPass);
 	if (compareTechniques()) {
-		AIPass2 = new AIGopan();
-		Passes.add(AIPass2);
 		Passes.add(new Compare());
 	}
 
