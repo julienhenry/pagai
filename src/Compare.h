@@ -41,6 +41,8 @@ class Compare : public ModulePass {
 			Node * n, 
 			Techniques t1, 
 			Techniques t2);
+
+		void printResults(Techniques t1, Techniques t2);
 	public:
 		static char ID;
 

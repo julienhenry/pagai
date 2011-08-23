@@ -29,6 +29,8 @@ enum Techniques {
 	SIMPLE
 };
 
+std::string TechniquesToString(Techniques t);
+
 SMT_Solver getSMTSolver();
 
 Techniques getTechnique();

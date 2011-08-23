@@ -28,7 +28,6 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 }
 
 int Compare::compareAbstract(Abstract * A, Abstract * B) {
-	*Out << "A=" << A << " B=" << B << "\n";
 	ap_environment_t * cenv = intersect_environment(
 			A->main->env,
 			B->main->env);
@@ -72,17 +71,22 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	}
 }
 
+void Compare::printResults(Techniques t1, Techniques t2) {
+
+	Out->changeColor(raw_ostream::MAGENTA,true);
+	*Out << TechniquesToString(t1) << " - " << TechniquesToString(t2) << "\n";
+	Out->resetColor();
+	*Out << "EQ " << results[t1][t2].eq << "\n";
+	*Out << "LT " << results[t1][t2].lt << "\n";
+	*Out << "GT " << results[t1][t2].gt << "\n";
+	*Out << "UN " << results[t1][t2].un << "\n";
+}
+
 bool Compare::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
 	LSMT = &(getAnalysis<SMT>());
-
-
-	int equal = 0;
-	int LW = 0;
-	int PF = 0;
-	int UN = 0;
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -104,11 +108,8 @@ bool Compare::runOnModule(Module &M) {
 			delete Nodes[b];
 		}
 	}
-	*Out << "\n";
-	*Out << PF << " : Path focusing is better\n";
-	*Out << LW << " : Lookahead Widening is better\n";
-	*Out << equal << " : Same result\n";
-	*Out << UN << " : uncomparable\n";
+	printResults(LW_WITH_PF,PATH_FOCUSING);
+	printResults(LW_WITH_PF,LOOKAHEAD_WIDENING);
 	return true;
 }
 

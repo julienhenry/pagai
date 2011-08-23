@@ -70,6 +70,18 @@ Apron_Manager_Type getApronManager() {
 	return ap_manager;
 }
 
+std::string TechniquesToString(Techniques t) {
+	switch (t) {
+		case LOOKAHEAD_WIDENING:
+			return "LOOKAHEAD WIDENING";
+		case PATH_FOCUSING: 
+			return "PATH FOCUSING";
+		case LW_WITH_PF:
+			return "COMBINED TECHNIQUE";
+		case SIMPLE:
+			return "CLASSIC";
+	}
+}
 
 bool setApronManager(char * domain) {
 	std::string d;

@@ -40,7 +40,7 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt() : pathtree(NULL), unknown(false), ModulePass(ID)
+		AIopt() : ModulePass(ID), pathtree(NULL), unknown(false)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
