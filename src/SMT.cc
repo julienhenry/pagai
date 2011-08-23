@@ -52,29 +52,24 @@ void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 }
 
-//bool SMT::runOnFunction(Function &F) {
-//	LI = &(getAnalysis<LoopInfo>());
-//	return 0;
-//}
-
 bool SMT::runOnModule(Module &M) {
-	//LI = &(getAnalysis<LoopInfo>());
 	return 0;
 }
 
-	std::set<BasicBlock*>* SMT::getPr(Function &F) {
-		if (!Pr.count(&F))
-			computePr(F);
-		return Pr[&F];
-	}
+std::set<BasicBlock*>* SMT::getPr(Function &F) {
+	if (!Pr.count(&F))
+		computePr(F);
+	return Pr[&F];
+}
 
-	SMT_expr SMT::getRho(Function &F) {
-		if (!rho.count(&F))
-			computeRho(F);
-		return rho[&F];
-	}
+SMT_expr SMT::getRho(Function &F) {
+	if (!rho.count(&F))
+		computeRho(F);
+	return rho[&F];
+}
 
 void SMT::reset_SMTcontext() {
+	rho.clear();
 	delete man;
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:

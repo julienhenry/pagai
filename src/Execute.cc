@@ -131,10 +131,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.add(new Live());
 	Passes.add(new SMT());
-		Passes.add(new AIGopan());
-		Passes.add(new AI());
 	Passes.add(AIPass);
 	if (compareTechniques()) {
+		Passes.add(new AI());
+		Passes.add(new AIGopan());
 		Passes.add(new Compare());
 	}
 

@@ -24,7 +24,7 @@
 
 using namespace llvm;
 
-class AIPass : public ModulePass, public InstVisitor<AIPass> {
+class AIPass : public InstVisitor<AIPass> {
 
 	protected:
 		/// LV - result of the Live pass
@@ -49,13 +49,10 @@ class AIPass : public ModulePass, public InstVisitor<AIPass> {
 		/// aman - manager that creates abstract values
 		AbstractMan* aman;
 
-	public:
-		static char ID;	
 	
 	public:
 
 		AIPass () : 
-			ModulePass(ID), 
 			LV(NULL),
 			LI(NULL),
 			LSMT(NULL) {
@@ -66,12 +63,6 @@ class AIPass : public ModulePass, public InstVisitor<AIPass> {
 		~AIPass () {
 				ap_manager_free(man);
 			}
-
-		virtual const char *getPassName() const = 0;
-
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-
-		virtual bool runOnModule(Module &M) = 0;
 
 		virtual void computeFunction(Function * F) = 0;
 

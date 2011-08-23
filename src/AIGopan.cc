@@ -29,8 +29,17 @@ using namespace llvm;
 
 static RegisterPass<AIGopan> X("AIGopanPass", "Abstract Interpretation Pass", false, true);
 
+char AIGopan::ID = 0;
+
 const char * AIGopan::getPassName() const {
 	return "AIGopan";
+}
+
+void AIGopan::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LoopInfo>();
+	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
 }
 
 bool AIGopan::runOnModule(Module &M) {

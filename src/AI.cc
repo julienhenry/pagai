@@ -28,10 +28,18 @@ using namespace llvm;
 
 static RegisterPass<AI> X("AIPass", "Abstract Interpretation Pass", false, true);
 
+char AI::ID = 0;
+
 const char * AI::getPassName() const {
 	return "AI";
 }
 
+void AI::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LoopInfo>();
+	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
+}
 
 bool AI::runOnModule(Module &M) {
 	Function * F;
@@ -75,7 +83,7 @@ bool AI::runOnModule(Module &M) {
 	Total_time = sub(Now(),Total_time);
 	*Out << Total_time.tv_sec << " " << Total_time.tv_usec << " TOTAL_TIME\n";
 	*Out << N_Pr << " PR_SIZE\n";
-	return 0;
+	return false;
 }
 
 
@@ -104,7 +112,7 @@ void AI::computeFunction(Function * F) {
 	LSMT->getRho(*F);
 	*Out << "OK\n";
 	
-		LSMT->man->SMT_print(LSMT->getRho(*F));
+	LSMT->man->SMT_print(LSMT->getRho(*F));
 
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {

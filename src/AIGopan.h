@@ -23,11 +23,15 @@
 
 using namespace llvm;
 
-class AIGopan : public AIPass {
+class AIGopan : public ModulePass, public AIPass {
+
+	public:
+		static char ID;	
 
 	public:
 
-		AIGopan ()
+		AIGopan ():
+			ModulePass(ID)
 			{
 				aman = new AbstractManGopan();
 				passID = LOOKAHEAD_WIDENING;
@@ -38,6 +42,9 @@ class AIGopan : public AIPass {
 			}
 
 		const char *getPassName() const;
+
+		void getAnalysisUsage(AnalysisUsage &AU) const;
+
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);

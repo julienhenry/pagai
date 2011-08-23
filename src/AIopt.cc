@@ -24,12 +24,24 @@
 #include "Analyzer.h"
 #include "PathTree.h"
 
+#include "AI.h"
+#include "AIGopan.h"
+
 using namespace llvm;
 
 static RegisterPass<AIopt> X("AIOptPass", "Abstract Interpretation Pass", false, true);
 
+char AIopt::ID = 0;
+
 const char * AIopt::getPassName() const {
 	return "AIopt";
+}
+
+void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LoopInfo>();
+	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
 }
 
 bool AIopt::runOnModule(Module &M) {

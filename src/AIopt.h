@@ -24,7 +24,7 @@
 
 using namespace llvm;
 
-class AIopt : public AIPass {
+class AIopt : public ModulePass, public AIPass {
 
 	private:
 		/// paths - remembers all the paths that have already been
@@ -34,9 +34,13 @@ class AIopt : public AIPass {
 		std::set<Node*> A_prime;
 		
 		bool unknown;
+
+	public:
+		static char ID;	
+
 	public:
 
-		AIopt() : pathtree(NULL), unknown(false) 
+		AIopt() : pathtree(NULL), unknown(false), ModulePass(ID)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
@@ -50,6 +54,8 @@ class AIopt : public AIPass {
 			}
 
 		const char *getPassName() const;
+
+		void getAnalysisUsage(AnalysisUsage &AU) const;
 
 		bool runOnModule(Module &M);
 

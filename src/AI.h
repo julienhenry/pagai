@@ -24,7 +24,7 @@
 
 using namespace llvm;
 
-class AI : public AIPass {
+class AI : public ModulePass, public AIPass {
 
 	private:
 		/// paths - remembers all the paths that have already been
@@ -34,8 +34,11 @@ class AI : public AIPass {
 		bool unknown;
 
 	public:
+		static char ID;	
 
-		AI ()  
+	public:
+
+		AI (): ModulePass(ID)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
@@ -49,6 +52,9 @@ class AI : public AIPass {
 			}
 
 		const char *getPassName() const;
+
+		void getAnalysisUsage(AnalysisUsage &AU) const;
+
 		bool runOnModule(Module &M);
 
 		void computeFunction(Function * F);

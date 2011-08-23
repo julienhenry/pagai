@@ -27,14 +27,6 @@
 
 using namespace llvm;
 
-char AIPass::ID = 0;
-
-void AIPass::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.setPreservesAll();
-	AU.addRequired<LoopInfo>();
-	AU.addRequired<Live>();
-	AU.addRequired<SMT>();
-}
 
 void AIPass::initFunction(Function * F) {
 	Node * n;
@@ -69,12 +61,12 @@ void AIPass::initFunction(Function * F) {
 
 void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
-	LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
-	if (LI.isLoopHeader(b)) {
-		*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
-	} else {
+	//LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
+	//if (LI.isLoopHeader(b)) {
+	//	*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
+	//} else {
 		*Out << b << ": SCC=" << n->sccId << ":\n" << *b;
-	}
+	//}
 	//for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 	//	Instruction * I = i;
 	//	*Out << "\t\t" << I << "\t" << *I << "\n";
