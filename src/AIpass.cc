@@ -571,6 +571,9 @@ void AIPass::visitPHINode (PHINode &I){
 		*Out << I << "\n";
 	);
 
+	// if the PHINode has actually one single incoming edge, we just say the
+	// value is equal to its associated expression
+	// There is no need to introduce PHIvars...
 	if (I.getNumIncomingValues() == 1) {
 			pv = I.getIncomingValue(0);
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
