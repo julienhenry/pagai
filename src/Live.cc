@@ -47,6 +47,33 @@ bool Live::isUsedInPHIBlock(Value *V, BasicBlock *BB) {
 	return M.UsedPHI.count(BB);
 }
 
+
+bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
+
+	if (isLiveThroughBlock(V,BB) || isUsedInBlock(V,BB)) {
+		return true;
+	} else {
+		for (Value::use_iterator I = V->use_begin(), E = V->use_end();
+				I != E; ++I) {
+			User *U = *I;
+			if (BinaryOperator * binop = dyn_cast<BinaryOperator>(U)) {
+				switch (binop->getOpcode()) {
+					case Instruction::Add : 
+					case Instruction::FAdd: 
+					case Instruction::Sub : 
+					case Instruction::FSub: 
+						if (isLiveByLinearityInBlock(binop,BB)) 
+							return true;
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 /// isLiveThroughBlock - Test if the given value is known to be
 /// live-through the given block, meaning that the block is
 /// dominated by the value's definition, and there exists a block

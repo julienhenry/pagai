@@ -65,6 +65,8 @@ class Live : public FunctionPass {
 	bool isUsedInBlock( Value *V,  BasicBlock *BB);
 	bool isUsedInPHIBlock( Value *V,  BasicBlock *BB);
 
+	bool isLiveByLinearityInBlock(Value *V, BasicBlock *BB);
+
 	/// isLiveThroughBlock - Test if the given value is known to be
 	/// live-through the given block, meaning that the block is properly
 	/// dominated by the value's definition, and there exists a block
