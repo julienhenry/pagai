@@ -211,7 +211,9 @@ void AI::computeNode(Node * n) {
 
 		if (res != 1 || path.size() == 1) {
 			LSMT->pop_context();
-			if (res == -1) unknown = true;
+			if (res == -1) {
+				unknown = true;
+			}
 			return;
 		}
 	
@@ -332,8 +334,12 @@ void AI::narrowNode(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
+		int res = LSMT->SMTsolve(smtexpr,&path);
+		if (res != 1 || path.size() == 1) {
 			LSMT->pop_context();
+			if (res == -1) {
+				unknown = true;
+			}
 			return;
 		}
 		DEBUG(
