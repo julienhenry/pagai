@@ -8,8 +8,8 @@ OBJ_REP		= ../obj/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(OBJ_REP),$(SRC:.cc=.o))
 CC			= clang++
-CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
-#CPPFLAGS	= -O2 
+#CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
+CPPFLAGS	= -O2 
 LDFLAGS		=
 ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include -I$(CUDD_PATH)/include 
 #ICFLAGS		= 

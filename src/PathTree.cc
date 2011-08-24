@@ -15,6 +15,8 @@ PathTree::PathTree() {
 }
 
 PathTree::~PathTree() {
+	delete Bdd;
+	delete Bdd_prime;
 	delete mgr;	
 }
 

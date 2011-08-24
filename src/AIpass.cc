@@ -120,9 +120,6 @@ void AIPass::computeEnv(Node * n) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
-					*Out << *((*i).first) << " is live !\n";
-				} else {
-					*Out << *((*i).first) << " is not live !\n";
 				}
 			}
 
