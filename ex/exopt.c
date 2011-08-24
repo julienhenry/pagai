@@ -19,13 +19,13 @@ int main() {
 			d=1;
 		}
 
-		if (i < 50) {
-		} else if (i > 50) {
+		if (i < 1000) {
+		} else if (i > 1000) {
 		} else {
 			d=-1;
 		}
 
-		while (d == 0 || i > 100) {
+		while (d == 0 || i > 2000) {
 			d = f(i);
 			i = f(d);
 		}

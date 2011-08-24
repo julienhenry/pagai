@@ -64,12 +64,12 @@ bool AIGopan::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
+			//if (LSMT->getPr(*b->getParent())->count(b)) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
 				n->X[passID]->print(true);
-			}
+			//}
 			//delete Nodes[b];
 		}
 	}

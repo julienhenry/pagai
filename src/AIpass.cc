@@ -416,7 +416,7 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
-	bool res;
+	bool res = false;
 
 	// we only consider one single predecessor: the predecessor from the path
 	BasicBlock * pred = focuspath[focusblock-1];
@@ -570,6 +570,16 @@ void AIPass::visitPHINode (PHINode &I){
 	DEBUG(
 		*Out << I << "\n";
 	);
+
+	if (I.getNumIncomingValues() == 1) {
+			pv = I.getIncomingValue(0);
+			ap_texpr1_t * expr = get_ap_expr(n,pv);
+			set_ap_expr(&I,expr);
+			ap_environment_t * env = expr->env;
+			insert_env_vars_into_node_vars(env,n,(Value*)&I);
+			return;
+	}
+
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);

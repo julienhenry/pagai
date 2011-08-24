@@ -805,7 +805,7 @@ void SMT::visitPHINode (PHINode &I) {
 	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
-	if (!primed[I.getParent()].count(&I)) {
+	if (!primed[I.getParent()].count(&I) && I.getNumIncomingValues() != 1) {
 		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(I.getParent(),false));
 		SMT_expr bexpr = man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar));
 		std::vector<SMT_expr> disj;
