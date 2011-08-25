@@ -118,13 +118,13 @@ void AIPass::computeEnv(Node * n) {
 		pred = Nodes[pb];
 		if (pred->X[passID]->main != NULL) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
-				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
+				if (LV->isLiveByLinearityInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
-				if (LV->isLiveThroughBlock((*i).first,b) || LV->isUsedInBlock((*i).first,b)) {
+				if (LV->isLiveByLinearityInBlock((*i).first,b)) {
 					realVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
 			}
@@ -590,7 +590,7 @@ void AIPass::visitPHINode (PHINode &I){
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
 
 			if (focusblock == focuspath.size()-1) {
-				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
@@ -610,7 +610,7 @@ void AIPass::visitPHINode (PHINode &I){
 					texpr1_print(expr);
 					*Out << "\n";
 				);
-				if (LV->isLiveThroughBlock(&I,n->bb) || LV->isUsedInBlock(&I,n->bb)) {
+				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
@@ -817,8 +817,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	if (!LV->isLiveThroughBlock(&I,I.getParent()) 
-		&& !LV->isUsedInBlock(&I,I.getParent()))
+	if (!LV->isLiveByLinearityInBlock(&I,I.getParent())) 
 		return;
 
 	if (ap_type == AP_RTYPE_INT) { 

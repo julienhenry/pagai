@@ -122,16 +122,14 @@ void Node::create_env(ap_environment_t ** env, Live * LV) {
 
 	for (std::map<Value*,std::set<ap_var_t> >::iterator i = intVar.begin(),
 			e = intVar.end(); i != e; ++i) {
-		if (LV->isLiveThroughBlock((*i).first,bb)
-			|| LV->isUsedInBlock((*i).first,bb)
+		if (LV->isLiveByLinearityInBlock((*i).first,bb)
 			|| isa<UndefValue>((*i).first)) {
 			Sintvars.insert((*i).second.begin(), (*i).second.end());
 		}
 	}
 	for (std::map<Value*,std::set<ap_var_t> >::iterator i = realVar.begin(),
 			e = realVar.end(); i != e; ++i) {
-		if (LV->isLiveThroughBlock((*i).first,bb)
-			|| LV->isUsedInBlock((*i).first,bb)
+		if (LV->isLiveByLinearityInBlock((*i).first,bb)
 			|| isa<UndefValue>((*i).first))
 			Srealvars.insert((*i).second.begin(), (*i).second.end());
 	}
