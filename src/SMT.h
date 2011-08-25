@@ -26,6 +26,8 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 	private:
 		LoopInfo * LI;
 
+		int nundef;
+
 		/// rho - stores the rho formula associated to each function
 		std::map<Function*,SMT_expr> rho;
 		/// Pr - associate to each formula its set of Pr nodes

@@ -44,6 +44,9 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 }
 
 ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
+	if (isa<UndefValue>(val)) {
+		return create_ap_expr(n,dyn_cast<Constant>(val));
+	}
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			*Out << "ERROR: NULL pointer in table Exprs !\n";

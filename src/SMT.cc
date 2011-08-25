@@ -32,7 +32,7 @@ const char * SMT::getPassName() const {
 	return "SMT";
 }
 
-SMT::SMT() : ModulePass(ID) {
+SMT::SMT() : ModulePass(ID), nundef(0) {
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -292,24 +292,19 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 		}
 	}
 
-	if (isa<Constant>(v)) {
-		if (isa<ConstantInt>(v)) { 
-			ConstantInt * Int = dyn_cast<ConstantInt>(v);
-			int64_t n = Int->getSExtValue();
-			return man->SMT_mk_num((int)n);
-		} 
-		if (isa<ConstantFP>(v)) {
-			ConstantFP * FP = dyn_cast<ConstantFP>(v);
-			double x = FP->getValueAPF().convertToDouble();
-			return man->SMT_mk_real(x);
-		}
-		if (!isa<ConstantInt>(v) || !isa<ConstantFP>(v) ) {
-			if (ssa_defs.count(v))
-				var = getVar(v,true);
-			else
-				var = getVar(v,false);
-			return man->SMT_mk_expr_from_var(var);
-		}
+	if (isa<ConstantInt>(v)) { 
+		ConstantInt * Int = dyn_cast<ConstantInt>(v);
+		int64_t n = Int->getSExtValue();
+		return man->SMT_mk_num((int)n);
+	} else if (isa<ConstantFP>(v)) {
+		ConstantFP * FP = dyn_cast<ConstantFP>(v);
+		double x = FP->getValueAPF().convertToDouble();
+		return man->SMT_mk_real(x);
+	} else if (isa<UndefValue>(v)) {
+		std::ostringstream name;
+		name << getValueName(v,false) << "_" << nundef;
+		nundef++;
+		return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
 	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
 		if (ssa_defs.count(v))
 			var = getVar(v,true);
