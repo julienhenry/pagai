@@ -57,7 +57,7 @@ bool AIopt::runOnModule(Module &M) {
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
-		if (F->begin() == F->end()) return 0;
+		if (F->begin() == F->end()) continue;
 
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
