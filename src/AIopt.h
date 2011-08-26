@@ -29,7 +29,7 @@ class AIopt : public ModulePass, public AIPass {
 	private:
 		/// paths - remembers all the paths that have already been
 		/// visited
-		PathTree* pathtree;
+		std::map<BasicBlock*,PathTree*> pathtree;
 
 		std::set<Node*> A_prime;
 		
@@ -40,7 +40,7 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt() : ModulePass(ID), pathtree(NULL), unknown(false)
+		AIopt() : ModulePass(ID), unknown(false)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
@@ -49,8 +49,8 @@ class AIopt : public ModulePass, public AIPass {
 			}
 
 		~AIopt () {
-				if (pathtree != NULL)
-					delete pathtree;
+				//if (pathtree != NULL)
+				//	delete pathtree;
 			}
 
 		const char *getPassName() const;

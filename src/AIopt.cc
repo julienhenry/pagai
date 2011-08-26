@@ -64,11 +64,21 @@ bool AIopt::runOnModule(Module &M) {
 		LSMT->reset_SMTcontext();
 
 		// we delete the previous pathtree, since we entered a new function
-		if (pathtree != NULL) {
-			delete pathtree;
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
+			it != et;
+			it++) {
+			delete (*it).second;
 		}
-		pathtree = new PathTree();
-		
+		pathtree.clear();
+
+		// we create the new pathtree
+		std::set<BasicBlock*>* Pr = LSMT->getPr(*F);
+		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
+			it != et;
+			it++) {
+			pathtree[*it] = new PathTree();
+		}
+
 		initFunction(F);
 		computeFunction(F);
 
@@ -146,7 +156,9 @@ void AIopt::computeFunction(Function * F) {
 	
 	while (true) {
 		A_prime.clear();	
-		pathtree->clear(true);
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
+			(*it).second->clear(true);
+		}
 		while (!A.empty()) {
 			current = A.top();
 			A.pop();
@@ -177,13 +189,16 @@ void AIopt::computeFunction(Function * F) {
 			}
 		}
 
-		if (pathtree->isZero(true)) {
-			break;
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
+			if (!(*it).second->isZero(true)) {
+				// we add the new feasible paths to the graph
+				(*it).second->mergeBDD();
+			}
 		}
-		// we add the new feasible paths to the graph
-		pathtree->mergeBDD();
 		// we insert the new elements in A
-		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
+		std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end();
+		if (it == et) break;
+		for (; it != et; it++) {
 			current = *it;
 			is_computed[current] = false;
 			A.push(current);
@@ -197,7 +212,7 @@ std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
 }
 
 void AIopt::computeNode(Node * n) {
-	BasicBlock * b = n->bb;
+	BasicBlock * const b = n->bb;
 	Abstract * Xtemp = NULL;
 	Node * Succ = NULL;
 	std::vector<Abstract*> Join;
@@ -207,7 +222,7 @@ void AIopt::computeNode(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
-
+	
 	PathTree * const U = new PathTree();
 	
 	DEBUG (
@@ -227,7 +242,7 @@ void AIopt::computeNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,pathtree->generateSMTformula(LSMT));
+		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree[b]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG(
 			LSMT->man->SMT_print(smtexpr);
@@ -363,7 +378,7 @@ void AIopt::computeNode(Node * n) {
 		if (res == -1) unknown = true;
 	} else {
 		// there is a new path that has to be explored
-		pathtree->insert(path,true);
+		pathtree[n->bb]->insert(path,true);
 		A_prime.insert(n);
 	}
 
@@ -388,7 +403,7 @@ void AIopt::narrowNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree->generateSMTformula(LSMT));
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree[n->bb]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG(
 			LSMT->man->SMT_print(smtexpr);
