@@ -51,6 +51,10 @@ bool AIGopan::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
+		
+		// if the function is only a declaration, do nothing
+		if (F->begin() == F->end()) return 0;
+
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
 				<< "------------------------------------------\n"

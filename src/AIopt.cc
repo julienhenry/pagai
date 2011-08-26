@@ -55,6 +55,10 @@ bool AIopt::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
+		
+		// if the function is only a declaration, do nothing
+		if (F->begin() == F->end()) return 0;
+
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
 				<< "------------------------------------------\n"
@@ -62,6 +66,8 @@ bool AIopt::runOnModule(Module &M) {
 				<< "------------------------------------------\n";
 		Out->resetColor();
 		LSMT->reset_SMTcontext();
+
+		initFunction(F);
 
 		// we delete the previous pathtree, since we entered a new function
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -79,7 +85,6 @@ bool AIopt::runOnModule(Module &M) {
 			pathtree[*it] = new PathTree();
 		}
 
-		initFunction(F);
 		computeFunction(F);
 
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {

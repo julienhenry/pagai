@@ -49,8 +49,14 @@ class AIopt : public ModulePass, public AIPass {
 			}
 
 		~AIopt () {
-				//if (pathtree != NULL)
-				//	delete pathtree;
+			for (std::map<BasicBlock*,PathTree*>::iterator 
+				it = pathtree.begin(),
+				et = pathtree.end(); 
+				it != et; 
+				it++) {
+				if ((*it).second != NULL)
+					delete (*it).second;
+				}
 			}
 
 		const char *getPassName() const;
