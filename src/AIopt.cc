@@ -336,7 +336,8 @@ void AIopt::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-				Xtemp->widening(Succ->X[passID]);
+				//Xtemp->widening(Succ->X[passID]);
+				Xtemp->widening_threshold(Succ->X[passID],&threshold);
 				DEBUG(
 					*Out << "WIDENING! \n";
 				);

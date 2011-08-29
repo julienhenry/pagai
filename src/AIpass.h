@@ -118,6 +118,11 @@ class AIPass : public InstVisitor<AIPass> {
 				bool result,
 				std::vector<ap_tcons1_array_t*> * cons);
 
+
+		/// threshold - array of lincons we use to do widening with threshold
+		/// this array is computed in computeTransform
+		ap_lincons1_array_t threshold;
+
 		// create_constraints - this function is called by computeCondition
 		// it creates the constraint from its arguments and insert it into t_cons
 		void create_constraints(

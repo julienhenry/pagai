@@ -172,6 +172,10 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	ap_environment_t * env = NULL;
 	succ->create_env(&env,LV);
 
+	// We create an Abstract Value that will represent the set of constraints
+	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
+	ConstraintsAbstract->set_top(Xtemp.main->env);
+
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
@@ -179,20 +183,30 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 					tcons1_array_print((*i)->front());
 				);
 				Xtemp.meet_tcons_array((*i)->front());
+				ConstraintsAbstract->meet_tcons_array((*i)->front());
 		} else {
 			std::vector<Abstract*> A;
+			// A_Constraints is used by ConstraintsAbstract
+			std::vector<Abstract*> A_Constraints;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
 			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
 				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
+				A_Constraints.push_back(aman->NewAbstract(X2));
 			}
 			Xtemp.join_array(env,A);
+			ConstraintsAbstract->join_array(env,A_Constraints);
 		}
 	}
 
 	Xtemp.change_environment(env);
+	ConstraintsAbstract->change_environment(env);
+
+	// we transform the abstract value of constraints into an array of lincons
+	// for a future widening with threshold
+	threshold = ConstraintsAbstract->to_lincons_array();
 	
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 	// the environment may have changed because of the constraints and the Phi
