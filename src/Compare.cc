@@ -40,11 +40,11 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	} else if (A->is_leq(B)) {
 		return 1;
 	} else if (B->is_leq(A)) {
-		*Out << "############################\n";
-		B->print();
-		*Out << "is leq than \n";
-		A->print();
-		*Out << "############################\n";
+		//*Out << "############################\n";
+		//B->print();
+		//*Out << "is leq than \n";
+		//A->print();
+		//*Out << "############################\n";
 		return -1;
 	} else {
 		return -2;

@@ -40,8 +40,7 @@ void show_help() {
 		  * lw (Lookahead Widening)\n \
 		  * pf (Path Focusing)\n \
 		  * lw+pf (combination of Lookahead Widening and Path Focusing)\n \
-		  * s (simple abstract interpretation)\n \
--c : compare the two techniques\n \
+-c : compare the 3 techniques (lw, pf and lw+pf)\n \
 -f : only outputs the SMT formula\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
