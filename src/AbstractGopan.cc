@@ -66,14 +66,12 @@ bool AbstractGopan::is_bottom() {
 
 bool AbstractGopan::is_leq (Abstract *d) {
 	if (ap_abstract1_is_eq(man,main,d->main)) {
-		if (ap_abstract1_is_leq(man,pilot,d->pilot)) 
+		if (ap_abstract1_is_leq(man,pilot,d->pilot) || d->pilot == NULL) 
 			return true; 
 		else 
 			return false;
 	}
-	if (ap_abstract1_is_leq(man,main,d->main))
-		return true;
-	return false;
+	return ap_abstract1_is_leq(man,main,d->main);
 }
 
 bool AbstractGopan::is_eq (Abstract *d) {

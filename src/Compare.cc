@@ -40,6 +40,11 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	} else if (A->is_leq(B)) {
 		return 1;
 	} else if (B->is_leq(A)) {
+		*Out << "############################\n";
+		B->print();
+		*Out << "is leq than \n";
+		A->print();
+		*Out << "############################\n";
 		return -1;
 	} else {
 		return -2;
@@ -59,7 +64,7 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 			break;
 		case -1:
 			results[t1][t2].gt++;
-			results[t1][t2].lt++;
+			results[t2][t1].lt++;
 			break;
 		case -2:
 			results[t1][t2].un++;
