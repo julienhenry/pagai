@@ -1,0 +1,398 @@
+@string{LNCS = {Lecture Notes in Computer Science}}
+@String{Springer = {Springer Verlag}}
+@string{acm = {ACM}}
+
+@inproceedings{DBLP:conf/pldi/GulwaniZ10,
+  author    = {Sumit Gulwani and
+               Florian Zuleger},
+  title     = {The reachability-bound problem},
+  booktitle = {PLDI},
+  year      = {2010},
+  pages     = {292-304},
+  doi       = {10.1145/1806596.1806630},
+  crossref  = {DBLP:conf/pldi/2010},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+@proceedings{DBLP:conf/pldi/2010,
+  editor    = {Benjamin G. Zorn and
+               Alexander Aiken},
+  title     = {Proceedings of the 2010 ACM SIGPLAN Conference on Programming
+               Language Design and Implementation, PLDI 2010, Toronto,
+               Ontario, Canada, June 5-10, 2010},
+  booktitle = {PLDI},
+  publisher = {ACM},
+  year      = {2010},
+  isbn      = {978-1-4503-0019-3},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@article{Rival_Mauborgne_TOPLAS07,
+ author = {Rival, Xavier and Mauborgne, Laurent},
+ title = {The trace partitioning abstract domain},
+ journal = {Transactions on Programming Languages and Systems (TOPLAS)},
+ volume = {29},
+ number = {5},
+ year = {2007},
+ issn = {0164-0925},
+ pages = {26},
+ doi = {10.1145/1275497.1275501},
+ publisher = {ACM},
+ zaddress = {New York, NY, USA},
+ pdf = {http://www.di.ens.fr/~mauborgn/publi/toplas29.pdf}
+ }
+
+@InProceedings{ASTREE_ESOP05,
+  author = 	 {Patrick Cousot and Radhia Cousot and J\'er\^ome Feret and Laurent Mauborgne and Antoine Min\'e and David Monniaux and Xavier Rival},
+  title = 	 {The {ASTR\'EE} Analyzer},
+  pdf =          {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_ESOP05.pdf},
+  ps =           {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_ESOP05.ps.gz},
+  abstract = {Astr\'ee is an abstract interpretation-based static program
+    analyzer aiming at proving automatically the absence of run time
+    errors in programs written in the C programming language.  It has
+    been applied with success to large embedded control-command safety
+    critical real-time software generated automatically from
+    syn\-chro\-nous specifications, producing a correctness proof for
+    complex software without any false alarm in a few hours of
+    computation.},
+  crossref = {ESOP05},
+}
+
+@InProceedings{ASTREE_PLDI03,
+  author =	 {Bruno Blanchet and Patrick Cousot and Radhia Cousot and
+                  J\'er\^ome Feret and Laurent Mauborgne and Antoine Min\'e and
+                  David Monniaux and Xavier Rival},
+  title =	 {A Static Analyzer for Large Safety-Critical
+                  Software},
+  booktitle =	 {Programming Language Design and Implementation (PLDI)},
+  pages =        {196--207},
+  year =	 2003,
+  doi = {10.1145/781131.781153},
+  ISBN = {1-58113-662-5},
+  publisher = ACM,
+  pdf =
+                  {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.pdf},
+  ps =
+                  {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.ps.gz},
+  abstract =	 {We show that abstract interpretation-based static
+                  program analysis can be made efficient and precise
+                  enough to formally verify a class of properties for
+                  a family of large programs with few or no false
+                  alarms. This is achieved by refinement of a general
+                  purpose static analyzer and later adaptation to
+                  particular programs of the family by the end-user
+                  through parametrization. This is applied to the
+                  proof of soundness of data manipulation operations
+                  at the machine level for periodic synchronous safety
+                  critical embedded software. The main novelties are
+                  the design principle of static analyzers by
+                  refinement and adaptation through parametrization,
+                  the symbolic manipulation of expressions to improve
+                  the precision of abstract transfer functions,
+                  ellipsoid, and decision tree abstract domains, all
+                  with sound handling of rounding errors in floating
+                  point computations, widening strategies (with
+                  thresholds, delayed) and the automatic determination
+                  of the parameters (parametrized packing).},
+  category="intc"
+}
+
+@InProceedings{ASTREE_TASE07,
+  author =	 {Cousot, Patrick and Cousot, Radhia and Feret, Jerome
+                  and Min\'e, Antoine and Mauborgne, Laurent and
+                  Monniaux, David and Rival, Xavier},
+  title =	 {Varieties of Static Analyzers: A Comparison with
+                  {ASTR\'EE}},
+  booktitle =	 {Theoretical Aspects of Software Engineering (TASE)},
+  year =	 2007,
+  organization = {IEEE},
+  abstract =	 {We discuss the characteristic properties of ASTR\'EE,
+                  an automatic static analyzer for proving the absence
+                  of runtime errors in safety-critical real-time
+                  synchronous control/command C programs, and compare
+                  it with a variety of other program analysis tools.},
+  ISBN = {0-7695-2856-2}
+}
+
+@InProceedings{Mauborgne_Rival_ESOP05,
+	author = 			 {Laurent Mauborgne and Xavier Rival},
+	title = 			 {Trace Partitioning in Abstract Interpretation Based Static Analyzer},
+	booktitle =		 {ESOP},
+	pages =				 {5--20},
+        crossref = {ESOP05},
+        url = {http://www.di.ens.fr/~mauborgn/publi/esop05.html},
+        pdf = {http://www.di.ens.fr/~mauborgn/publi/esop05.pdf}
+}
+
+
+@proceedings{ESOP05,
+  title =	 {Programming Languages and Systems (ESOP)},
+  booktitle =	 {Programming Languages and Systems (ESOP)},
+  editor = {Shmuel ``Mooly'' Sagiv},
+  pages =	 {21--30},
+  year =	 {2005},
+  number =	 {3444},
+  series =	 LNCS,
+  publisher = springer,
+  isbn = {3-540-25435-8},
+  doi = {10.1007/b107380}
+}
+@InProceedings{Gawlitza_Monniaux_ESOP11,
+  author = 	 {Thomas Gawlitza and David Monniaux},
+  title = 	 {Improving Strategies via {SMT} Solving},
+  booktitle = {ESOP},
+  year = 	 2011,
+  doi = {10.1007/978-3-642-19718-5_13},
+  pages = {236--255},
+  publisher = springer,
+  series = lncs,
+  number = 6602,
+  isbn = {978-3-642-19717-8},
+  editor = {Gilles Barthe},
+  pdf = {Gawlitza_Monniaux_ESOP11.pdf},
+  abstract = {We consider the problem of computing numerical invariants of programs by abstract interpretation. Our method eschews two traditional sources of imprecision: (i) the use of widening operators for enforcing convergence within a finite number of iterations (ii) the use of merge operations (often, convex hulls) at the merge points of the control flow graph. It instead computes the least inductive invariant expressible in the domain at a restricted set of program points, and analyzes the rest of the code en bloc. We emphasize that we compute this inductive invariant precisely. For that we extend the strategy improvement algorithm of [Gawlitza and Seidl, 2007]. If we applied their method directly, we would have to solve an exponentially sized system of abstract semantic equations, resulting in memory exhaustion. Instead, we keep the system implicit and discover strategy improvements using SAT modulo real linear arithmetic (SMT). For evaluating strategies we use linear programming. Our algorithm has low polynomial space complexity and performs for contrived examples in the worst case exponentially many strategy improvement steps; this is unsurprising, since we show that the associated abstract reachability problem is Pi-p-2-complete.}}
+
+
+@InProceedings{Monniaux_Gonnord_SAS11,
+  author = 	 {David Monniaux and Laure Gonnord},
+  editor = {Eran Yahav},
+  title = 	 {Using bounded model checking to focus fixpoint iterations},
+  booktitle = {Static analysis (SAS)},
+  year = 	 2011,
+  pdf = {Monniaux_Gonnord_SAS2011.pdf},
+  pages = {369--385},
+  publisher = springer,
+  series = lncs,
+  volume = 6887,
+  abstract = {Two classical sources of imprecision in static analysis by abstract interpretation are widening and merge operations. Merge operations can be done away by distinguishing paths, as in trace partitioning, at the expense of enumerating an exponential number of paths.
+  
+In this article, we describe how to avoid such systematic exploration by focusing on a single path at a time, designated by SMT-solving. Our method combines well with acceleration techniques, thus doing away with widenings as well in some cases. We illustrate it over the well-known domain of convex polyhedra.}
+}
+
+@inproceedings{DBLP:conf/sas/GopanR07,
+  author    = {Denis Gopan and
+               Thomas W. Reps},
+  title     = {Guided Static Analysis},
+  booktitle = {SAS},
+  year      = {2007},
+  pages     = {349-365},
+  ee        = {http://dx.doi.org/10.1007/978-3-540-74061-2_22},
+  crossref  = {DBLP:conf/sas/2007},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+@proceedings{DBLP:conf/sas/2007,
+  editor    = {Hanne Riis Nielson and
+               Gilberto Fil{\'e}},
+  title     = {Static Analysis, 14th International Symposium, SAS 2007,
+               Kongens Lyngby, Denmark, August 22-24, 2007, Proceedings},
+  booktitle = {SAS},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {4634},
+  year      = {2007},
+  isbn      = {978-3-540-74060-5},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+
+@Article{CousotCousot_JLC92,
+  author = 	 {Patrick Cousot and Radhia Cousot},
+  title = 	 {Abstract interpretation frameworks},
+  journal = 	 {J. of Logic and Computation},
+  year = 	 1992,
+  pages =	 {511--547},
+  month =	 aug,
+  publisher = {Oxford University Press},
+  ps = {http://www.di.ens.fr/~cousot/publications.www/CousotCousot-JLC-n2--3-p103--179-1992.ps.gz},
+  pdf = {http://www.di.ens.fr/~cousot/publications.www/CousotCousot-JLC-n2--3-p103--179-1992.pdf},
+  issn = {0955-792X},
+  doi = {10.1093/logcom/2.4.511}
+}
+
+@InProceedings{CousotHalbwachs78,
+  author = 	 {Patrick Cousot and Nicolas Halbwachs},
+  title = 	 {Automatic Discovery of Linear Restraints among
+		  Variables of a Program},
+  booktitle = 	 {Principles of Programming Languages (POPL)},
+  year =	 1978,
+  doi = {10.1145/512760.512770},
+  publisher =	 {ACM},
+  pages = {84--96}
+}
+
+@Manual{PPL,
+  title = 	 {The Parma Polyhedra Library, version 0.9},
+  author =	 {Roberto Bagnara and Patricia M. Hill and Enea Zaffanella},
+  url =	 {http://www.cs.unipr.it/ppl},
+  key = {ppl}
+}
+
+@Book{Kroening_Strichman_08,
+  author = 	 {Daniel Kroening and Ofer Strichman},
+  title = 	 {Decision procedures},
+  publisher = 	 Springer,
+  year = 	 2008,
+  isbn = {978-3-540-74104-6}
+}
+
+
+@PhdThesis{Halbwachs_PhD,
+  author = 	 {Nicolas Halbwachs},
+  title = 	 {D\'etermination automatique de relations lin\'eaires v\'erifi\'ees par les variables d'un programme},
+  school = 	 {Grenoble University},
+  year = 	 1979,
+  language = {french}
+}
+
+@Article{BagnaraHRZ05SCP,
+  Author = "Roberto Bagnara and Patricia M. Hill and Elisa Ricci and Enea Zaffanella",
+  Title = "Precise Widening Operators for Convex Polyhedra",
+  Journal = "Science of Computer Programming",
+  Volume = 58,
+  Number = {1--2},
+  Publisher = "Elsevier",
+  Year = 2005,
+  month = oct,
+  Pages = "28--56",
+  doi = {10.1016/j.scico.2005.02.003},
+  Abstract = {In the context of static analysis via abstract
+              interpretation, convex polyhedra constitute the most
+              used abstract domain among those capturing numerical
+              relational information.  Since the domain of convex
+              polyhedra admits infinite ascending chains, it has to be
+              used in conjunction with appropriate mechanisms for
+              enforcing and accelerating the convergence of fixpoint
+              computations.  Widening operators provide a simple and
+              general characterization for such mechanisms.  For the
+              domain of convex polyhedra, the original widening
+              operator proposed by Cousot and Halbwachs amply deserves
+              the name of \emph{standard widening} since most analysis
+              and verification tools that employ convex polyhedra also
+              employ that operator.  Nonetheless, there is an
+              unfulfilled demand for more precise widening operators.
+              In this paper, after a formal introduction to the
+              standard widening where we clarify some aspects that are
+              often overlooked, we embark on the challenging task of
+              improving on it.  We present a framework for the
+              systematic definition of new widening operators that are
+              never less precise than a given widening.  The framework
+              is then instantiated on the domain of convex polyhedra
+              so as to obtain a new widening operator that improves on
+              the standard widening by combining several heuristics.
+              A preliminary experimental evaluation has yielded
+              promising results.  We also suggest an improvement to
+              the well-known widening delay technique that allows to
+              gain precision while preserving its overall
+              simplicity.},
+  pdf = "http://www.cs.unipr.it/ppl/Documentation/BagnaraHRZ05SCP.pdf"
+}
+
+
+@article{Polka:FMSD:97,
+author={Nicolas Halbwachs and Yann-Erick Proy and Patrick Roumanoff},
+title={Verification of real-time systems using
+       linear relation analysis},
+journal={Formal Methods in System Design},
+year={1997},
+month={August},
+volume={11},
+number={2},
+pages={157--185},
+publisher={Kluwer}
+}
+
+
+@article{DBLP:journals/sttt/BagnaraHZ07,
+  author    = {Roberto Bagnara and
+               Patricia M. Hill and
+               Enea Zaffanella},
+  title     = {Widening operators for powerset domains},
+  journal   = {International Journal on Software Tools for Technology Transfer (STTT)},
+  volume    = {8},
+  number    = {4-5},
+  year      = {2006},
+  month     = aug,
+  pages     = {449--466},
+  doi       = {10.1007/s10009-005-0215-8},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@Article{BagnaraHZ08SCP,
+  Author = "Roberto Bagnara and Patricia M. Hill and Enea Zaffanella",
+  Title = "The {Parma Polyhedra Library}: Toward a Complete Set of Numerical
+           Abstractions for the Analysis and Verification
+           of Hardware and Software Systems",
+  Journal = "Science of Computer Programming",
+  Volume = 72,
+  Number = "1--2",
+  Pages = "3--21",
+  Year = 2008,
+}
+
+@inproceedings{DBLP:conf/cav/JeannetM09,
+  author    = {Bertrand Jeannet and
+               Antoine Min{\'e}},
+  title     = {Apron: A Library of Numerical Abstract Domains for Static
+               Analysis},
+  booktitle = {CAV},
+  year      = {2009},
+  pages     = {661--667},
+  doi       = {10.1007/978-3-642-02658-4_52},
+  crossref  = {DBLP:conf/cav/2009},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+@proceedings{DBLP:conf/cav/2009,
+  editor    = {Ahmed Bouajjani and
+               Oded Maler},
+  title     = {Computer Aided Verification, 21st International Conference,
+               CAV 2009, Grenoble, France, June 26 - July 2, 2009. Proceedings},
+  booktitle = {CAV},
+  publisher = springer,
+  series    = lncs,
+  volume    = {5643},
+  year      = {2009},
+  isbn      = {978-3-642-02657-7},
+  doi       = {10.1007/978-3-642-02658-4},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@inproceedings{Lattner:2004:LCF:977395.977673,
+ author = {Lattner, Chris and Adve, Vikram},
+ title = {{LLVM}: A Compilation Framework for Lifelong Program Analysis \& Transformation},
+ booktitle = {Proceedings of the international symposium on Code generation and optimization: feedback-directed and runtime optimization},
+ series = {CGO '04},
+ year = {2004},
+ month = aug,
+ isbn = {0-7695-2102-9},
+ location = {Palo Alto, California},
+ pages = {75--86},
+ doi = {10.1109/CGO.2004.1281665},
+ acmid = {977673},
+ publisher = {IEEE Computer Society},
+ address = {Washington, DC, USA},
+ pdf = {http://llvm.org/pubs/2004-01-30-CGO-LLVM.pdf}
+} 
+
+@Manual{LLVM_langref,
+  title = 	 {{LLVM} Language Reference Manual},
+  organization = {LLVM team},
+  note = 	 {\url{http://llvm.org/docs/LangRef.html}},
+  year = 2011}
+
+@PhdThesis{Mine_PhD,
+  author = 	 {Antoine Min\'e},
+  title = 	 {Domaines numériques abstraits faiblement relationnels},
+  school = 	 {\'Ecole polytechnique},
+  year = 	 2004
+}
+
+@article{DBLP:journals/lisp/Mine06,
+  author    = {Antoine Min{\'e}},
+  title     = {The octagon abstract domain},
+  journal   = {Higher-Order and Symbolic Computation},
+  volume    = {19},
+  number    = {1},
+  year      = {2006},
+  pages     = {31--100},
+  doi       = {10.1007/s10990-006-8609-1},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
