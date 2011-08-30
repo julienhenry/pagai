@@ -74,14 +74,14 @@ There are many possible combinations of the above techniques, and it is not evid
 \medskip
 
 This article makes the following contributions:
-\begin{itemize}
-\item We improve the technique for obtaining disjunctive invariants from \citet{DBLP:conf/pldi/GulwaniZ10} by replacing the explicit exhaustive enumeration of paths by a sequence of SMT queries.
-\item We recast the guided static analysis technique from \citet{DBLP:conf/sas/GopanR07} on the expanded multigraph from \citet{Monniaux_Gonnord_SAS11}, considering entire paths instead of individual transitions, using SMT queries and binary decision diagrams.
+\begin{enumerate}
+\item We improve the technique for obtaining disjunctive invariants from \citet{DBLP:conf/pldi/GulwaniZ10} by replacing the explicit exhaustive enumeration of paths by a sequence of SMT queries.\label{contr:disjunctive}
+\item We recast the guided static analysis technique from \citet{DBLP:conf/sas/GopanR07} on the expanded multigraph from \citet{Monniaux_Gonnord_SAS11}, considering entire paths instead of individual transitions, using SMT queries and binary decision diagrams.\label{contr:guided_multigraph}
 \item We implemented these techniques, in addition to ``classical'' iterations and the original guided static analysis, inside a prototype static analyzer.
 This tool uses the LLVM bitcode format \cite{Lattner:2004:LCF:977395.977673,LLVM_langref} as input, which can be produced by compilation from C, C++ and Fortran, enabling it to be run on many real-life programs.
 With respect to abstract domains on numerical variables, it uses the APRON library \cite{DBLP:conf/cav/JeannetM09}, which supports a variety of abstract domains from which we can choose with minimal changes to our analyzer.
 \item We conducted extensive experiments with this tool, on real-life programs, thus obtaining experimental comparisons between the various combinations of techniques.
-\end{itemize}
+\end{enumerate}
 
 \section{A simple, motivating example}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
@@ -99,7 +99,17 @@ The guided static analysis of \citet{DBLP:conf/sas/GopanR07} performs slightly b
 In contrast, let us distinguish all four possible execution paths through the tests at lines 7 and~8. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
 
-Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$. 
+Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$. We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first, even though not all feasible paths are needed to compute the invariant. Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit and working from the first program, yet simulating the analysis of the second program. Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation; contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
+
+\section{Guided widening}
+\label{sec:guided_multigraph}
+
+\section{Disjunctive invariants}
+\label{sec:disjunctive}
+
+\section{Experimental comparisons}
+
+\section{Conclusion}
 
 % Cas a probleme:
 % Initialisation (x,y) à {(1,0), (0,1)}
