@@ -98,15 +98,15 @@ NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
 if [ $COMPARE -eq 1 ] ; then
-	/home/jhenry/m2r/src/analyzer_2 -c -i $OUTPUT
+	/home/jhenry/m2r/src/analyzer_2 -c -b -i $OUTPUT
 else
 	if [ $GOPAN -eq 1 ] ; then
-		/home/jhenry/m2r/src/analyzer_2 -g -i $OUTPUT
+		/home/jhenry/m2r/src/analyzer_2 -g -b -i $OUTPUT
 	else
 		if [ $YICES -eq 1 ] ; then
-			/home/jhenry/m2r/src/analyzer_2 -y -i $OUTPUT
+			/home/jhenry/m2r/src/analyzer_2 -y -b -i $OUTPUT
 		else
-			/home/jhenry/m2r/src/analyzer_2 -i $OUTPUT
+			/home/jhenry/m2r/src/analyzer_2 -b -i $OUTPUT
 		fi
 	fi
 fi

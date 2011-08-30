@@ -13,6 +13,7 @@ SMT_Solver manager;
 Techniques technique;
 bool compare;
 bool onlyrho;
+bool bagnara_widening;
 Apron_Manager_Type ap_manager;
 llvm::raw_ostream *Out;
 char* filename;
@@ -41,6 +42,7 @@ void show_help() {
 		  * pf (Path Focusing)\n \
 		  * lw+pf (combination of Lookahead Widening and Path Focusing)\n \
 -c : compare the 3 techniques (lw, pf and lw+pf)\n \
+-b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMT formula\n \
 -y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
 }
@@ -55,6 +57,10 @@ Techniques getTechnique() {
 
 bool compareTechniques() {
 	return compare;
+}
+
+bool useBagnaraWidening() {
+	return bagnara_widening;
 }
 
 bool onlyOutputsRho() {
@@ -144,6 +150,7 @@ int main(int argc, char* argv[]) {
 	technique = LW_WITH_PF;
 	compare = false;
 	onlyrho = false;
+	bagnara_widening = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	n_iterations = 0;
@@ -152,7 +159,27 @@ int main(int argc, char* argv[]) {
 	Total_time = Now();
 	npass = 0;
 
-	 while ((o = getopt(argc, argv, "hDd:i:o:ycft:")) != -1) {
+	static struct option long_options[] =
+		{
+			/* These options set a flag. */
+			{"help", no_argument,       0, 'h'},
+			{"debug",   no_argument,       0, 'D'},
+			/* These options don't set a flag.
+			   We distinguish them by their indices. */
+			{"compare",     no_argument,       0, 'c'},
+			{"technique",  required_argument,       0, 't'},
+			{"domain",  required_argument, 0, 'd'},
+			{"input",  required_argument, 0, 'i'},
+			{"output",    required_argument, 0, 'o'},
+			{"yices",    no_argument, 0, 'y'},
+			{"printformula",    no_argument, 0, 'f'},
+			{"bagnara",    no_argument, 0, 'b'},
+			{0, 0, 0, 0}
+		};
+	/* getopt_long stores the option index here. */
+	int option_index = 0;
+
+	 while ((o = getopt_long(argc, argv, "hDd:i:o:ycft:b",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -186,6 +213,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'f':
             onlyrho = true;
+            break;
+        case 'b':
+            bagnara_widening = true;
             break;
         case '?':
             std::cout << "Error : Unknown option" << optopt << "\n";

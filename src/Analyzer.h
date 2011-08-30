@@ -39,6 +39,8 @@ bool compareTechniques();
 
 bool onlyOutputsRho();
 
+bool useBagnaraWidening();
+
 char* getFilename();
 
 Apron_Manager_Type getApronManager();

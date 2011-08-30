@@ -260,11 +260,22 @@ void AI::computeNode(Node * n) {
 			Join.push_back(aman->NewAbstract(Xtemp));
 			Xtemp->join_array(Xtemp->main->env,Join);
 
+			DEBUG(
+				*Out << "BEFORE MINIWIDENING\n";	
+				*Out << "Succ->X:\n";
+				Succ->X[passID]->print();
+				*Out << "Xtemp:\n";
+				Xtemp->print();
+			);
 			Xtemp->widening(Succ->X[passID]);
 			DEBUG(
 				*Out << "MINIWIDENING\n";	
 			);
 			Succ->X[passID] = Xtemp;
+			DEBUG(
+				*Out << "AFTER MINIWIDENING\n";	
+				Xtemp->print();
+			);
 
 			Xtemp = aman->NewAbstract(n->X[passID]);
 			computeTransform(aman,n,path,*Xtemp);
