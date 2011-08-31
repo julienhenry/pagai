@@ -10,7 +10,7 @@
 \usepackage{dmnatbib}
 
 \usepackage{listings}
-\lstset{language=C,basicstyle={\rm\fontfamily{ppl}\selectfont},mathescape=true,numbers=left}
+\lstset{language=C,mathescape=true,numbers=left} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
 
 \usepackage{tikz}
 \usetikzlibrary{arrows,automata}
@@ -196,10 +196,49 @@ $\Longrightarrow$
 \caption{Expansion of the transition graph into a multigraph.}
 \end{figure}
 
-Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$. We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first (as in Fig.~\ref{fig:multigraph}), even though not all feasible paths are needed to compute the invariant. Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit and working from the first program, yet simulating the analysis of the second program, that is, on a transition multigraph (Fig.~\ref{fig:multigraph}). Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation; contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
+Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
+We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first (as in Fig.~\ref{fig:multigraph}), even though not all feasible paths are needed to compute the invariant.
+Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit and working from the first program, yet simulating the analysis of the second program, that is, on a transition multigraph (Fig.~\ref{fig:multigraph}).
+Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation;
+contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
 
-\section{Guided widening}
+\section{Guided static analysis}
 \label{sec:guided_multigraph}
+\emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improved over classical upward Kleene iterations with widening.
+Consider the following program:
+\lstinputlisting{gopan_reps.c}
+
+Classical iterations on the domain of convex polyhedra \cite{Halbwachs_PhD,CousotHalbwachs78} or octagons \cite{Mine_PhD,DBLP:journals/lisp/Mine06} start with $x = 0 \land x = 0$, then continue with $x = y \land 0 \leq x \leq 1$.
+The widening operator extrapolates from these two iterations and yields $x = y \land x \geq 0$.
+From there, the ``else'' branch at line 5 may be taken; with further widening, $0 \leq y \leq x$ is obtained as a loop invariant, and thus the postcondition computed at line 9 is $x \geq 0 \land y = 0$.
+Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron, is
+\begin{equation}
+y \leq x \land y \leq 102-x \land y \geq 0.\label{eqn:triangle}
+\end{equation} % TODO fig
+Intuitively, this disappointing result is obtained because widening extrapolates from the first iterations of the loop, but the loop has two different phases ($x \leq 50$ and $x > 50$) with different behaviors, thus the extrapolation from the first phase is not valid for the second.
+
+\citeauthor{DBLP:conf/sas/GopanR07}' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~\ref{eqn:triangle}; each phase is identified by the tests taken or not taken.
+
+The analysis starts by identifying the test taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
+\begin{lstlisting}[numbers=none]
+  while(1) {
+    if(x <= 50) y++;
+    else break; /* not taken in phase 1 */
+    if(y < 0) break;
+    x++;
+  }
+\end{lstlisting}
+
+Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~\ref{eqn:triangle}.
+
+More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body (left side of Fig.~\ref{fig:multigraph});
+for each subset, an inductive invariant is computed for the program restricted to it.
+The starting subset are the transitions reachable in one step from the loop initialization.
+If for a given subset $S$ in the sequence, no transitions outside of $S$ are reachable from the inductive invariant attached to $S$, then iterations stop;
+otherwise, add these transitions to $S$ and iterate more.
+Termination ensues from the finiteness of the control-flow graph.
+
+
 
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
