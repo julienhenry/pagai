@@ -11,6 +11,7 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
 
+#include <gmp.h>
 #include "yices_c.h"
 
 #include "yices.h"
@@ -116,12 +117,14 @@ SMT_expr yices::SMT_mk_num (int n) {
 }
 
 SMT_expr yices::SMT_mk_real (double x) {
-	std::ostringstream oss;
-	oss << x << ".0";
-	char * c = const_cast<char*>(oss.str().c_str());
-	return yices_mk_num_from_string(ctx,c);
-	//SMT_var var = SMT_mk_var(oss.str(),float_type);
-	//return SMT_mk_expr_from_var(var);
+	mpq_t val;
+	mpq_init(val);
+	mpq_set_d(val,x);
+	return yices_mk_num_from_mpq(ctx,val);
+	//std::ostringstream oss;
+	//oss << x ;
+	//char * c = const_cast<char*>(oss.str().c_str());
+	//return yices_mk_num_from_string(ctx,c);
 }
 
 SMT_expr yices::SMT_mk_sum (std::vector<SMT_expr> args) {
