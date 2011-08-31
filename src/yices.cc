@@ -117,9 +117,11 @@ SMT_expr yices::SMT_mk_num (int n) {
 
 SMT_expr yices::SMT_mk_real (double x) {
 	std::ostringstream oss;
-	oss << x;
-	SMT_var var = SMT_mk_var(oss.str(),float_type);
-	return SMT_mk_expr_from_var(var);
+	oss << x << ".0";
+	char * c = const_cast<char*>(oss.str().c_str());
+	return yices_mk_num_from_string(ctx,c);
+	//SMT_var var = SMT_mk_var(oss.str(),float_type);
+	//return SMT_mk_expr_from_var(var);
 }
 
 SMT_expr yices::SMT_mk_sum (std::vector<SMT_expr> args) {

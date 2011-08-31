@@ -122,15 +122,12 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 	return Z3_mk_int(ctx, n, (Z3_sort)int_type);
 }
 
-
 SMT_expr z3_manager::SMT_mk_real (double x) {
 	std::ostringstream oss;
 	oss << x;
 	std::string val = oss.str();
-	Z3_symbol symbol = Z3_mk_string_symbol(ctx,val.c_str());
-	return Z3_mk_const(ctx,symbol,(Z3_sort)float_type);
+	return Z3_mk_numeral(ctx,val.c_str(),(Z3_sort)float_type);
 }
-
 
 SMT_expr z3_manager::SMT_mk_sum (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
