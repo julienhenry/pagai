@@ -39,10 +39,10 @@ class Node {
 		int sccId;
 		int id;
 
-		/// X - Abstract domain 
-		std::map<Techniques,Abstract*> X;
-		/// Y - Abstract domain after narrowing operations
-		std::map<Techniques,Abstract*> Y;
+		/// X_s - Abstract domain of the source state
+		std::map<Techniques,Abstract*> X_s;
+		/// X_d - Abstract domain of the destination state
+		std::map<Techniques,Abstract*> X_d;
 
 		ap_environment_t * env;
 

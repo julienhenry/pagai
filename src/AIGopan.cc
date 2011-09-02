@@ -72,7 +72,7 @@ bool AIGopan::runOnModule(Module &M) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
-				n->X[passID]->print(true);
+				n->X_s[passID]->print(true);
 			}
 			//delete Nodes[b];
 		}
@@ -112,9 +112,9 @@ void AIGopan::computeFunction(Function * F) {
 	ap_environment_t * env = NULL;
 	computeEnv(n);
 	n->create_env(&env,LV);
-	n->X[passID]->set_top(env);
-	n->Y[passID] = aman->NewAbstract(man,env);
-	n->Y[passID]->set_top(env);
+	n->X_s[passID]->set_top(env);
+	n->X_d[passID] = aman->NewAbstract(man,env);
+	n->X_d[passID]->set_top(env);
 	A.push(n);
 
 	is_computed.clear();
@@ -149,7 +149,7 @@ void AIGopan::computeNode(Node * n) {
 	}
 
 	is_computed[n] = true;
-	if (n->X[passID]->is_bottom()) {
+	if (n->X_s[passID]->is_bottom()) {
 		return;
 	}
 
@@ -170,27 +170,27 @@ void AIGopan::computeNode(Node * n) {
 		update = false;
 
 		// computing the image of the abstract value by the path's tranformation
-		Xtemp = aman->NewAbstract(n->X[passID]);
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRA AT THE STARTING NODE\n";
-			n->X[passID]->print();
+			n->X_s[passID]->print();
 			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
-		Succ->X[passID]->change_environment(Xtemp->main->env);
+		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
-			Xtemp->widening(Succ->X[passID]);
+			Xtemp->widening(Succ->X_s[passID]);
 		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->X[passID]);
+			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->X_s[passID]);
 		}
 
-		if ( !Xtemp->is_leq(Succ->X[passID])) {
-			delete Succ->X[passID];
-			Succ->X[passID] = aman->NewAbstract(Xtemp);
+		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
+			delete Succ->X_s[passID];
+			Succ->X_s[passID] = aman->NewAbstract(Xtemp);
 			update = true;
 		}
 		delete Xtemp;
@@ -201,7 +201,7 @@ void AIGopan::computeNode(Node * n) {
 		}
 		DEBUG(
 			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
-			Succ->X[passID]->print();
+			Succ->X_s[passID]->print();
 		);
 	}
 }
@@ -241,7 +241,7 @@ void AIGopan::narrowNode(Node * n) {
 		Succ = Nodes[path.back()];
 
 		// computing the image of the abstract value by the path's tranformation
-		Xtemp = aman->NewAbstract(n->X[passID]);
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
@@ -249,14 +249,14 @@ void AIGopan::narrowNode(Node * n) {
 			Xtemp->print();
 		);
 
-		if (Succ->Y[passID]->is_bottom()) {
-			delete Succ->Y[passID];
-			Succ->Y[passID] = aman->NewAbstract(Xtemp);
+		if (Succ->X_d[passID]->is_bottom()) {
+			delete Succ->X_d[passID];
+			Succ->X_d[passID] = aman->NewAbstract(Xtemp);
 		} else {
 			std::vector<Abstract*> Join;
-			Join.push_back(aman->NewAbstract(Succ->Y[passID]));
+			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(aman->NewAbstract(Xtemp));
-			Succ->Y[passID]->join_array(Xtemp->main->env,Join);
+			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
 		is_computed[Succ] = false;

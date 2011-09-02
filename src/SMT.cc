@@ -517,7 +517,7 @@ void SMT::pop_context() {
 ///
 SMT_expr SMT::createSMTformula(
 	BasicBlock * source, 
-	bool narrow, 
+	bool use_X_d, 
 	Techniques t,
 	SMT_expr constraint) {
 	Function &F = *source->getParent();
@@ -535,7 +535,7 @@ SMT_expr SMT::createSMTformula(
 		}
 	}
 	
-	Abstract * A = Nodes[source]->X[t];
+	Abstract * A = Nodes[source]->X_s[t];
 	formula.push_back(AbstractToSmt(NULL,A));
 
 	std::vector<SMT_expr> Or;
@@ -546,10 +546,10 @@ SMT_expr SMT::createSMTformula(
 		SMT_var succvar = man->SMT_mk_bool_var(getNodeName(*i,false));
 		SuccExp.push_back(man->SMT_mk_expr_from_bool_var(succvar));
 		
-		if (narrow)
-			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->Y[t])));
+		if (use_X_d)
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X_d[t])));
 		else
-			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X[t])));
+			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X_s[t])));
 		
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}

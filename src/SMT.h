@@ -131,12 +131,12 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		
 		/// createSMTformula - compute and return the SMT formula associated to
 		/// the BasicBlock source, as described in the paper
-		/// if we are in narrowing phase, narrow has to be true, else false
+		/// if we are in narrowing phase, use_X_d has to be true.
 		/// We can cunjunct this formula with an SMT_expr formula given as
 		/// parameter of the function: constraint
 		SMT_expr createSMTformula(
 			BasicBlock * source, 
-			bool narrow, 
+			bool use_X_d, 
 			Techniques t,
 			SMT_expr constraint = NULL);
 

@@ -94,7 +94,7 @@ bool AIopt::runOnModule(Module &M) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
-				n->X[passID]->print(true);
+				n->X_s[passID]->print(true);
 				N_Pr++;
 			}
 			//delete Nodes[b];
@@ -150,10 +150,10 @@ void AIopt::computeFunction(Function * F) {
 	ap_environment_t * env = NULL;
 	computeEnv(n);
 	n->create_env(&env,LV);
-	n->X[passID]->set_top(env);
-	delete n->Y[passID];
-	n->Y[passID] = aman->NewAbstract(man,env);
-	n->Y[passID]->set_top(env);
+	n->X_s[passID]->set_top(env);
+	delete n->X_d[passID];
+	n->X_d[passID] = aman->NewAbstract(man,env);
+	n->X_d[passID]->set_top(env);
 	A.push(n);
 
 	is_computed.clear();
@@ -186,11 +186,11 @@ void AIopt::computeFunction(Function * F) {
 		// then we move Y abstract values to X abstract values
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			delete Nodes[b]->X[passID];
-			Nodes[b]->X[passID] = aman->NewAbstract(Nodes[b]->Y[passID]);
+			delete Nodes[b]->X_s[passID];
+			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_d[passID]);
 			if (Nodes[b] != n) {
-				delete Nodes[b]->Y[passID];
-				Nodes[b]->Y[passID] = aman->NewAbstract(man,env);
+				delete Nodes[b]->X_d[passID];
+				Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
 			}
 		}
 
@@ -279,17 +279,17 @@ void AIopt::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		if (Xtemp != NULL) delete Xtemp;
-		Xtemp = aman->NewAbstract(n->X[passID]);
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 		
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
-			n->X[passID]->print();
+			n->X_s[passID]->print();
 			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
-		Succ->X[passID]->change_environment(Xtemp->main->env);
+		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
 		if (!U->exist(path)) {
 			n_paths++;
@@ -302,7 +302,7 @@ void AIopt::computeNode(Node * n) {
 		if (Succ == n) {
 			if (U->exist(path)) {
 			// backup the previous abstract value
-			Abstract * Xpred = aman->NewAbstract(Succ->X[passID]);
+			Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
 
 			Join.clear();
 			Join.push_back(aman->NewAbstract(Xpred));
@@ -312,31 +312,31 @@ void AIopt::computeNode(Node * n) {
 			DEBUG(
 				*Out << "BEFORE MINIWIDENING\n";	
 				*Out << "Succ->X:\n";
-				Succ->X[passID]->print();
+				Succ->X_s[passID]->print();
 				*Out << "Xtemp:\n";
 				Xtemp->print();
 			);
-			Xtemp->widening(Succ->X[passID]);
+			Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
 				*Out << "MINIWIDENING!\n";	
 			);
-			Succ->X[passID] = Xtemp;
+			Succ->X_s[passID] = Xtemp;
 			DEBUG(
 				*Out << "AFTER MINIWIDENING\n";	
 				Xtemp->print();
 			);
 
-			Xtemp = aman->NewAbstract(n->X[passID]);
+			Xtemp = aman->NewAbstract(n->X_s[passID]);
 			computeTransform(aman,n,path,*Xtemp);
 			DEBUG(
 				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-				n->X[passID]->print();
+				n->X_s[passID]->print();
 				*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
 				Xtemp->print();
 			);
 			
-			delete Succ->X[passID];
-			Succ->X[passID] = Xpred;
+			delete Succ->X_s[passID];
+			Succ->X_s[passID] = Xpred;
 			only_join = true;
 			U->remove(path);
 			if (U->exist(path)) {
@@ -348,13 +348,13 @@ void AIopt::computeNode(Node * n) {
 		} 
 		
 		Join.clear();
-		Join.push_back(aman->NewAbstract(Succ->X[passID]));
+		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-				//Xtemp->widening(Succ->X[passID]);
-				Xtemp->widening_threshold(Succ->X[passID],&threshold);
+				//Xtemp->widening(Succ->X_s[passID]);
+				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 				DEBUG(
 					*Out << "WIDENING! \n";
 				);
@@ -366,14 +366,14 @@ void AIopt::computeNode(Node * n) {
 		
 		DEBUG(
 			*Out << "BEFORE:\n";
-			Succ->X[passID]->print();
+			Succ->X_s[passID]->print();
 		);
-		Succ->X[passID] = Xtemp;
+		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
 
 		DEBUG(
 			*Out << "RESULT:\n";
-			Succ->X[passID]->print();
+			Succ->X_s[passID]->print();
 		);
 
 		A.push(Succ);
@@ -447,7 +447,7 @@ void AIopt::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		if (Xtemp != NULL) delete Xtemp;
-		Xtemp = aman->NewAbstract(n->X[passID]);
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
@@ -455,14 +455,14 @@ void AIopt::narrowNode(Node * n) {
 			Xtemp->print();
 		);
 
-		if (Succ->Y[passID]->is_bottom()) {
-			delete Succ->Y[passID];
-			Succ->Y[passID] = aman->NewAbstract(Xtemp);
+		if (Succ->X_d[passID]->is_bottom()) {
+			delete Succ->X_d[passID];
+			Succ->X_d[passID] = aman->NewAbstract(Xtemp);
 		} else {
 			std::vector<Abstract*> Join;
-			Join.push_back(aman->NewAbstract(Succ->Y[passID]));
+			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(aman->NewAbstract(Xtemp));
-			Succ->Y[passID]->join_array(Xtemp->main->env,Join);
+			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
 		is_computed[Succ] = false;

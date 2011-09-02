@@ -46,8 +46,8 @@ void AIPass::initFunction(Function * F) {
 				n->env = ap_environment_alloc_empty();
 			}
 			// creating an X and an Y abstract value for this node
-			n->X[passID] = aman->NewAbstract(n->man,n->env);
-			n->Y[passID] = aman->NewAbstract(n->man,n->env);
+			n->X_s[passID] = aman->NewAbstract(n->man,n->env);
+			n->X_d[passID] = aman->NewAbstract(n->man,n->env);
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
@@ -116,7 +116,7 @@ void AIPass::computeEnv(Node * n) {
 	for (; p != E; ++p) {
 		BasicBlock *pb = *p;
 		pred = Nodes[pb];
-		if (pred->X[passID]->main != NULL) {
+		if (pred->X_s[passID]->main != NULL) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
 				if (LV->isLiveByLinearityInBlock((*i).first,b)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
@@ -383,6 +383,11 @@ bool AIPass::computeCondition(	CmpInst * inst,
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
 			*Out << "ERROR : Unknown predicate\n";
+			break;
+		default:
+			// unreachable
+			constyp = AP_CONS_DISEQ; // disequality constraint
+			nconstyp = AP_CONS_EQ;
 			break;
 	}
 	if (result) {
