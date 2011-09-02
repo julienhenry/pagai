@@ -92,7 +92,7 @@ SMT_expr SMT::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer)
 	SMT_expr coefficient;
 
 	integer = false;
-	bool iszero;
+	double value;
 	size_t i;
 	ap_var_t var;
 	ap_coeff_t* coeff;
@@ -100,36 +100,39 @@ SMT_expr SMT::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer)
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
 		val = getValueExpr((Value*)var, primed[b]);
 		if (((Value*)var)->getType()->isIntegerTy()) {
-			coefficient = scalarToSmt(coeff->val.scalar,true,iszero);
-			if (!iszero) integer = true;
+			coefficient = scalarToSmt(coeff->val.scalar,true,value);
+			if (value != 0) 
+				integer = true;
 		} else {
-			coefficient = scalarToSmt(coeff->val.scalar,false,iszero);
+			coefficient = scalarToSmt(coeff->val.scalar,false,value);
 		}
-
-		if (!iszero) {
-			std::vector<SMT_expr> elt;
-			elt.push_back(val);
-			elt.push_back(coefficient);
-			elts.push_back(man->SMT_mk_mul(elt));
+		
+		if (value != 0) {
+			if (value == 1) {
+				elts.push_back(val);
+			} else {
+				std::vector<SMT_expr> elt;
+				elt.push_back(val);
+				elt.push_back(coefficient);
+				elts.push_back(man->SMT_mk_mul(elt));
+			}
 		}
 	}
 	coeff = ap_linexpr1_cstref(&linexpr);
-	coefficient = scalarToSmt(coeff->val.scalar,integer,iszero);
-	elts.push_back(coefficient);
+	coefficient = scalarToSmt(coeff->val.scalar,integer,value);
+	if (value != 0)
+		elts.push_back(coefficient);
 	return man->SMT_mk_sum(elts);
 }
 
-SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero) {
-	double val;
+SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
 	mp_rnd_t round = GMP_RNDN;
-	ap_double_set_scalar(&val,scalar,round);
+	ap_double_set_scalar(&value,scalar,round);
 
-	if (val == 0) iszero = true;
-	else iszero = false;
 	if (integer)
-		return man->SMT_mk_num((int)val);
+		return man->SMT_mk_num((int)value);
 	else
-		return man->SMT_mk_real(val);
+		return man->SMT_mk_real(value);
 }
 
 SMT_expr SMT::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
@@ -153,9 +156,9 @@ SMT_expr SMT::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			return man->SMT_mk_gt(linexpr_smt,scalar_smt);
 		case AP_CONS_EQMOD:
 			{
-				bool isZero;
-		   		SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,isZero);
-		   		assert(!isZero);
+				double value;
+		   		SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
+		   		assert(!(value == 0));
 		   		return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
             }
 		case AP_CONS_DISEQ:
@@ -170,9 +173,9 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 	ap_texpr1_t texpr = ap_tcons1_texpr1ref(&tcons);
 	ap_scalar_t* scalar = ap_tcons1_scalarref(&tcons);
 	bool integer = true;
-	bool iszero;
+	double value;
 	SMT_expr texpr_smt = texpr1ToSmt(texpr);
-	SMT_expr scalar_smt = scalarToSmt(scalar,integer,iszero);
+	SMT_expr scalar_smt = scalarToSmt(scalar,integer,value);
 
 	switch (*constyp) {
 		case AP_CONS_EQ:
@@ -299,6 +302,17 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 	} else if (isa<ConstantFP>(v)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(v);
 		double x = FP->getValueAPF().convertToDouble();
+		if (FP->isExactlyValue(x)) {
+			DEBUG(
+			*Out << "getValueExpr" << *v << " (exactly " << x << ")\n";
+			);
+		} else {
+			DEBUG(
+			*Out << "getValueExpr" << *v << " (NOT exactly " << x << ")\n";
+			);
+			float f = FP->getValueAPF().convertToFloat(); 
+			x = f;
+		}
 		return man->SMT_mk_real(x);
 	} else if (isa<UndefValue>(v)) {
 		std::ostringstream name;
@@ -414,7 +428,6 @@ void SMT::computeRhoRec(Function &F,
 	bool first = (visited->count(b) > 0);
 	visited->insert(b);
 
-
 	if (!Pr[&F]->count(b) || newPr) {
 		// we recursively construct Rho, starting from the predecessors
 		BasicBlock * pred;
@@ -432,9 +445,7 @@ void SMT::computeRhoRec(Function &F,
 		}
 	}
 
-
 	if (first) return;
-
 
 	// we create a boolean reachability predicate for the basicblock
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
@@ -451,11 +462,9 @@ void SMT::computeRhoRec(Function &F,
 	else
 		bpredicate = man->SMT_mk_false();
 
-	if (bpredicate != NULL) {
-		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
-		bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
-		rho_components.push_back(bvar_exp);
-	}
+	SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
+	bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
+	rho_components.push_back(bvar_exp);
 	// we compute the transformation due to the basicblock's
 	// instructions
 	bvar = man->SMT_mk_bool_var(getNodeName(b,false));
@@ -466,8 +475,8 @@ void SMT::computeRhoRec(Function &F,
 		visit(*i);
 	}
 
-	bpredicate = man->SMT_mk_and(instructions);
-	if (bpredicate != NULL) {
+	if (instructions.size() > 0) {
+		bpredicate = man->SMT_mk_and(instructions);
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
 		bvar_exp = man->SMT_mk_not(bvar_exp);
 		std::vector<SMT_expr> implies;

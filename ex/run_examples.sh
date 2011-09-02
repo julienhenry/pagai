@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OLD_DIR=`pwd`
-cd /home/jhenry/m2r/ex
+cd /home/jhenry/code/ex
 
 for FILENAME in `ls *.{c,cpp}` ; do
 	echo "Running $FILENAME..."

@@ -6,6 +6,7 @@
 
 #include "llvm/Support/FormattedStream.h"
 
+#include <gmp.h>
 #include "z3_manager.h"
 #include "Analyzer.h"
 #include "Debug.h"
@@ -123,10 +124,40 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 }
 
 SMT_expr z3_manager::SMT_mk_real (double x) {
+
+	int n = (int) x;
+	int d = 1;
+	while (n != x && d < 1000) {
+		*Out << n << " != " << x << "\n";
+		x *= 10;
+		d *= 10;
+		n = (int) x;
+	}
+
 	std::ostringstream oss;
-	oss << x;
-	std::string val = oss.str();
-	return Z3_mk_numeral(ctx,val.c_str(),(Z3_sort)float_type);
+	if (d == 1)
+		oss << n;
+	else
+		oss << n << "/" << d;
+
+//	mpq_t val;
+//	mpq_init(val);
+//	mpq_set_d(val,x);
+//	
+//	mpz_t num, den;
+//	mpz_init(num);
+//	mpz_init(den);
+//	mpq_get_num(num,val);
+//	mpq_get_den(den,val);
+//
+//	std::ostringstream oss;
+//	if (mpz_get_si(den) == 1)
+//		oss << mpz_get_si(num);
+//	else
+//		oss << mpz_get_si(num) << "/" << mpz_get_si(den);
+	std::string r = oss.str();
+	//*Out << "Creating real " << x << " : " << r << "\n";
+	return Z3_mk_numeral(ctx,r.c_str(),(Z3_sort)float_type);
 }
 
 SMT_expr z3_manager::SMT_mk_sum (std::vector<SMT_expr> args){

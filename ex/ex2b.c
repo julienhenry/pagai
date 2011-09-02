@@ -1,7 +1,7 @@
 
 
 int main(int argc, char ** argv) {
-	int x;
+	int x = 0;
 	int y = 10;
 	int i;
 	

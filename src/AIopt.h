@@ -42,6 +42,9 @@ class AIopt : public ModulePass, public AIPass {
 			bool &only_join,
 			PathTree * const U);
 
+		void computeNewPaths(
+			Node * n
+			);
 	public:
 		static char ID;	
 

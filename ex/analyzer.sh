@@ -100,12 +100,12 @@ RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
 
 if [ $GOPAN -eq 1 ] ; then
-	/home/jhenry/m2r/src/analyzer -g -i $OUTPUT
+	analyzer -g -i $OUTPUT
 else
 	if [ $YICES -eq 1 ] ; then
-		/home/jhenry/m2r/src/analyzer -y -i $OUTPUT
+		analyzer -y -i $OUTPUT
 	else
-		/home/jhenry/m2r/src/analyzer -i $OUTPUT
+		analyzer -i $OUTPUT
 	fi
 fi
 

@@ -10,10 +10,10 @@ int main(int argc, char ** argv) {
 	int toto;
 	
 	while (argc > 100000 || x >= 42) {
-	//x = 2;
-	//y = x + 50;
-	//y = y + 6;
-	//y = x + y + 5;
+	x = 2;
+	y = x + 50;
+	y = y + 6;
+	y = x + y + 5;
 
 	//toto = x == y || x == 24;
 	//if (toto) {

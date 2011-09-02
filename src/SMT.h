@@ -152,7 +152,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// expression
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
 		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);
-		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, bool &iszero);
+		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, double &value);
 		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
 		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons);
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);

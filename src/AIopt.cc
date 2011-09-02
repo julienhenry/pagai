@@ -175,6 +175,14 @@ void AIopt::computeFunction(Function * F) {
 			}
 		}
 	
+		// we set X_d abstract values to bottom for narrowing
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			if (Nodes[b] != n) {
+				delete Nodes[b]->X_d[passID];
+				Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
+			}
+		}
 		// narrowing 
 		is_computed.clear();
 		A.push(n);
@@ -183,7 +191,7 @@ void AIopt::computeFunction(Function * F) {
 			A.pop();
 			narrowNode(current);
 		}
-		// then we move Y abstract values to X abstract values
+		// then we move X_d abstract values to X_s abstract values
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			delete Nodes[b]->X_s[passID];
@@ -227,49 +235,114 @@ void AIopt::loopiter(
 	std::vector<Abstract*> Join;
 
 	if (U->exist(*path)) {
-	// backup the previous abstract value
-	Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
+		// backup the previous abstract value
+		Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
 
-	Join.clear();
-	Join.push_back(aman->NewAbstract(Xpred));
-	Join.push_back(aman->NewAbstract(Xtemp));
-	Xtemp->join_array(Xtemp->main->env,Join);
+		Join.clear();
+		Join.push_back(aman->NewAbstract(Xpred));
+		Join.push_back(aman->NewAbstract(Xtemp));
+		Xtemp->join_array(Xtemp->main->env,Join);
 
-	DEBUG(
-		*Out << "BEFORE MINIWIDENING\n";	
-		*Out << "Succ->X:\n";
-		Succ->X_s[passID]->print();
-		*Out << "Xtemp:\n";
-		Xtemp->print();
-	);
-	Xtemp->widening(Succ->X_s[passID]);
-	DEBUG(
-		*Out << "MINIWIDENING!\n";	
-	);
-	Succ->X_s[passID] = Xtemp;
-	DEBUG(
-		*Out << "AFTER MINIWIDENING\n";	
-		Xtemp->print();
-	);
+		DEBUG(
+			*Out << "BEFORE MINIWIDENING\n";	
+			*Out << "Succ->X:\n";
+			Succ->X_s[passID]->print();
+			*Out << "Xtemp:\n";
+			Xtemp->print();
+		);
+		Xtemp->widening(Succ->X_s[passID]);
+		DEBUG(
+			*Out << "MINIWIDENING!\n";	
+		);
+		Succ->X_s[passID] = Xtemp;
+		DEBUG(
+			*Out << "AFTER MINIWIDENING\n";	
+			Xtemp->print();
+		);
 
-	Xtemp = aman->NewAbstract(n->X_s[passID]);
-	computeTransform(aman,n,*path,*Xtemp);
-	DEBUG(
-		*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-		n->X_s[passID]->print();
-		*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
-		Xtemp->print();
-	);
-	
-	delete Succ->X_s[passID];
-	Succ->X_s[passID] = Xpred;
-	only_join = true;
-	U->remove(*path);
-	if (U->exist(*path)) {
-		*Out << "ERROR STILL EXIST\n";
-	}
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
+		computeTransform(aman,n,*path,*Xtemp);
+		DEBUG(
+			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+			n->X_s[passID]->print();
+			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+			Xtemp->print();
+		);
+		
+		delete Succ->X_s[passID];
+		Succ->X_s[passID] = Xpred;
+		only_join = true;
+		U->remove(*path);
+		if (U->exist(*path)) {
+			*Out << "ERROR STILL EXIST\n";
+		}
 	} else {
 		U->insert(*path);
+	}
+}
+
+
+void AIopt::computeNewPaths(Node * n) {
+	Node * Succ;
+	Abstract * Xtemp = NULL;
+	std::vector<Abstract*> Join;
+
+	// first, we set X_d abstract values to X_s
+	std::set<BasicBlock*> successors = LSMT->getPrSuccessors(n->bb);
+	for (std::set<BasicBlock*>::iterator it = successors.begin(),
+			et = successors.end();
+			it != et;
+			it++) {
+		Succ = Nodes[*it];
+		delete Succ->X_d[passID];
+		Succ->X_d[passID] = aman->NewAbstract(Succ->X_s[passID]);
+	}
+
+	while (true) {
+		DEBUG(
+			Out->changeColor(raw_ostream::RED,true);
+			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
+			Out->resetColor();
+		);
+		// creating the SMT formula we want to check
+		LSMT->push_context();
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
+		std::list<BasicBlock*> path;
+		DEBUG(
+			LSMT->man->SMT_print(smtexpr);
+		);
+		int res;
+		struct timeval beginTime = Now();
+		res = LSMT->SMTsolve(smtexpr,&path);
+		SMT_time = add(SMT_time,sub(Now(),beginTime));
+		LSMT->pop_context();
+
+		// if the result is unsat, then the computation of this node is finished
+		if (res != 1 || path.size() == 1) {
+			if (res == -1) {
+				unknown = true;
+				return;
+			}
+			break;
+		}
+		Succ = Nodes[path.back()];
+		// computing the image of the abstract value by the path's tranformation
+		if (Xtemp != NULL) delete Xtemp;
+		Xtemp = aman->NewAbstract(n->X_s[passID]);
+		computeTransform(aman,n,path,*Xtemp);
+		Succ->X_d[passID]->change_environment(Xtemp->main->env);
+
+		Join.clear();
+		Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
+		Join.push_back(aman->NewAbstract(Xtemp));
+		Xtemp->join_array(Xtemp->main->env,Join);
+		delete Succ->X_d[passID];
+		Succ->X_d[passID] = Xtemp;
+		Xtemp = NULL;
+
+		// there is a new path that has to be explored
+		pathtree[n->bb]->insert(path,true);
+		A_prime.insert(n);
 	}
 }
 
@@ -279,7 +352,6 @@ void AIopt::computeNode(Node * n) {
 	Node * Succ = NULL;
 	std::vector<Abstract*> Join;
 	bool only_join = false;
-
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
@@ -311,12 +383,9 @@ void AIopt::computeNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
-	
 		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path);
-		
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
-
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
@@ -325,41 +394,32 @@ void AIopt::computeNode(Node * n) {
 			}
 			break;
 		}
-	
 		DEBUG(
 			printPath(path);
 		);
-	
 		Succ = Nodes[path.back()];
-
 		n_iterations++;
-
 		// computing the image of the abstract value by the path's tranformation
 		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
-		
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
 			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
-
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
-
 		if (!U->exist(path)) {
 			n_paths++;
 			only_join = true;
 		} else {
 			only_join = false;
 		}
-
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
 			loopiter(n,Xtemp,&path,only_join,U);
 		} 
-		
 		Join.clear();
 		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
 		Join.push_back(aman->NewAbstract(Xtemp));
@@ -368,57 +428,29 @@ void AIopt::computeNode(Node * n) {
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
 				//Xtemp->widening(Succ->X_s[passID]);
 				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
-				DEBUG(
-					*Out << "WIDENING! \n";
-				);
+				DEBUG(*Out << "WIDENING! \n";);
 		} else {
-			DEBUG(
-				*Out << "PATH NEVER SEEN BEFORE !!\n";
-			);
+			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
 		}
-		
 		DEBUG(
 			*Out << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
+		delete Succ->X_s[passID];
 		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
-
 		DEBUG(
 			*Out << "RESULT:\n";
 			Succ->X_s[passID]->print();
 		);
-
 		A.push(Succ);
 		is_computed[Succ] = false;
 	}
 
-	// now, we check if there exist a new feasible path that has never been
-	// computed
-	
-	// creating the SMT formula we want to check
-	LSMT->push_context();
-	SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID);
-	std::list<BasicBlock*> path;
-	DEBUG(
-		LSMT->man->SMT_print(smtexpr);
-	);
-	int res;
-	struct timeval beginTime = Now();
-	res = LSMT->SMTsolve(smtexpr,&path);
-	SMT_time = add(SMT_time,sub(Now(),beginTime));
-	LSMT->pop_context();
-
-	// if the result is unsat, then the computation of this node is finished
-	if (res != 1 || path.size() == 1) {
-		if (res == -1) unknown = true;
-	} else {
-		// there is a new path that has to be explored
-		pathtree[n->bb]->insert(path,true);
-		A_prime.insert(n);
-	}
-
 	delete U;
+	// now, we check if there exist new feasible paths that has never been
+	// computed, and that make the invariant grow
+	computeNewPaths(n);	
 }
 
 void AIopt::narrowNode(Node * n) {
