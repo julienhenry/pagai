@@ -98,6 +98,7 @@ ap_manager_t * create_manager(Apron_Manager_Type man) {
 		ap_man = ap_ppl_poly_manager_alloc(true); // PPL strict polyhedra
 		if (useBagnaraWidening()) {
 			ap_funopt_t funopt;
+			ap_funopt_init(&funopt);
 			funopt.algorithm = 1;
 			ap_manager_set_funopt(ap_man,AP_FUNID_WIDENING,&funopt);
 		}

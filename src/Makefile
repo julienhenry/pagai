@@ -1,15 +1,16 @@
 YICES_PATH	= /home/jhenry/local/yices
 Z3_PATH		= /home/jhenry/local/z3
-LLVM_PATH	= /home/jhenry/local/llvm-2.9
+#LLVM_PATH	= /home/jhenry/local/llvm-2.9
+LLVM_PATH	= /usr
 CUDD_PATH	= /home/jhenry/local/cudd-2.4.2
 
 SRC		= $(wildcard ../src/*.cc)
 OBJ_REP		= ../obj/
 SRC_REP		= ../src/
 OBJS		= $(subst $(SRC_REP),$(OBJ_REP),$(SRC:.cc=.o))
-CC			= clang++
-CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
-#CPPFLAGS	= -O2 
+CC			= g++
+CPPFLAGS	= -Wall -g -DPRINT_DEBUG #-O2 
+#CPPFLAGS	= -O2  
 LDFLAGS		=
 ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include -I$(CUDD_PATH)/include 
 #ICFLAGS		= 
@@ -22,6 +23,7 @@ PPL_PREFIX=/usr
 CAMLIDL_PREFIX=/usr
 
 CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native) 
+#CPPFLAGS += -I/import/linux/i686/soft/llvm/2.9/include  -DNDEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -O3 -fno-exceptions -fno-rtti -fPIC -Woverloaded-virtual -Wcast-qual
 
 LDFLAGS  += $(shell llvm-config --ldflags --libs core jit bitreader bitwriter native)
 
