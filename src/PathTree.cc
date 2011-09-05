@@ -75,80 +75,81 @@ void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 	fclose(fp);
 }
 
-SMT_expr PathTree::generateSMTformula(
-	SMT * smt)
-{
-	DdNode * node = Bdd->getNode();
-    int	i;
-	std::vector<int> list;
-	std::vector<SMT_expr> disjunct;
-
-    background = mgr->bddZero().getNode();
-    zero = Cudd_Not(mgr->bddOne().getNode());
-    for (i = 0; i < BddIndex; i++) {
-		list.push_back(2);
-	}
-    generateSMTformulaAux(smt,node,list,disjunct);
-	if (disjunct.size() == 0) {
-		return smt->man->SMT_mk_false();
-	} else {
-		return smt->man->SMT_mk_or(disjunct);
-	}
-} 
-
-void PathTree::generateSMTformulaAux(
-	SMT * smt,
-	DdNode * node /* current node */,
-	std::vector<int> list, /* current recursion path */
-	std::vector<SMT_expr> &disjunct)
-{
-    DdNode	*N,*Nv,*Nnv;
-    int		i,v,index;
-
-    N = Cudd_Regular(node);
-
-    if (Cudd_IsConstant(N)) {
-	/* Terminal case: Print one cube based on the current recursion
-	** path, unless we have reached the background value (ADDs) or
-	** the logical zero (BDDs).
-	*/
-	if (node != background && node != zero) {
-		std::vector<SMT_expr> cunj;
-	    for (i = 0; i < BddIndex; i++) {
-			v = list[i];
-			std::string bb = getStringFromLevel(i,smt);
+SMT_expr PathTree::generateSMTformula(SMT * smt) {
+	std::map<DdNode*,SMT_expr> Bdd_expr;
+	DdNode *node;
+	DdNode *N, *Nv, *Nnv;
+	DdGen *gen;
+	DdNode * true_node;
+	std::vector<SMT_expr> formula;
+	
+	for(gen = Cudd_FirstNode (mgr->getManager(), Bdd->getNode(), &node);
+	!Cudd_IsGenEmpty(gen);
+	(void) Cudd_NextNode(gen, &node)) {
+	
+		// remove the extra 1 from the adress if exist
+	    N = Cudd_Regular(node);
+	
+	    if (Cudd_IsConstant(N)) {
+			// Terminal node
+			if (node != background && node != zero) {
+				// this is the 1 node
+				Bdd_expr[node] = smt->man->SMT_mk_true();	
+				// we remember the adress of this node for future simplification of
+				// the formula
+				true_node = N;
+			} else {
+				Bdd_expr[node] = smt->man->SMT_mk_false();	
+			}
+		} else {
+			std::string bb = getStringFromLevel(N->index,smt);
 			SMT_var bbvar = smt->man->SMT_mk_bool_var(bb);
 			SMT_expr bbexpr = smt->man->SMT_mk_expr_from_bool_var(bbvar);
-
-			switch (v) {
-				case 0:
-					bbexpr = smt->man->SMT_mk_not(bbexpr);
-				case 1:
-					cunj.push_back(bbexpr);
-					break;
-				default:
-					break;
+	
+			Nv  = Cudd_T(N);
+			Nnv = Cudd_E(N);
+			bool Nnv_comp = false;
+			if (Cudd_IsComplement(Nnv)) {
+				Nnv = Cudd_Not(Nnv);
+				Nnv_comp = true;
 			}
-	    }
-		disjunct.push_back(smt->man->SMT_mk_and(cunj));
-	}
-    } else {
-	Nv  = Cudd_T(N);
-	Nnv = Cudd_E(N);
-	if (Cudd_IsComplement(node)) {
-	    Nv  = Cudd_Not(Nv);
-	    Nnv = Cudd_Not(Nnv);
-	}
-	index = N->index;
-	list[index] = 0;
-	generateSMTformulaAux(smt,Nnv,list,disjunct);
-	list[index] = 1;
-	generateSMTformulaAux(smt,Nv,list,disjunct);
-	list[index] = 2;
-    }
-    return;
-} 
+			SMT_expr Nv_expr = Bdd_expr[Nv];
+			SMT_expr Nnv_expr = Bdd_expr[Nnv];
+			if (Nnv_comp)
+				Nnv_expr = smt->man->SMT_mk_not(Nnv_expr);
+		
+			if (Nnv == true_node && Nnv_comp) {
+				// we don't need to create an ite formula, because the else condition
+				// is always false
+				std::vector<SMT_expr> cunj;
+				cunj.push_back(bbexpr);
+				cunj.push_back(Nv_expr);
+				Bdd_expr[node] = smt->man->SMT_mk_and(cunj);
+			} else {
+				Bdd_expr[node] = smt->man->SMT_mk_ite(bbexpr,Nv_expr,Nnv_expr);
+			}
 
+			// if the node is used multiple times, we create a variable for this
+			// node
+			if (node->ref > 1) {
+				std::ostringstream name;
+				name << "Bdd_" << node;
+				SMT_var var = smt->man->SMT_mk_bool_var(name.str());
+				SMT_expr vexpr = smt->man->SMT_mk_expr_from_bool_var(var);
+				formula.push_back(smt->man->SMT_mk_eq(vexpr,Bdd_expr[node]));
+				Bdd_expr[node] = vexpr;	
+			}
+		}
+	}
+	Cudd_GenFree(gen);
+	
+	if (Cudd_IsComplement(Bdd->getNode())) 
+		// sometimes, Bdd is complemented, especially when Bdd = false
+		formula.push_back(smt->man->SMT_mk_not(Bdd_expr[Cudd_Regular(Bdd->getNode())]));
+	else
+		formula.push_back(Bdd_expr[Cudd_Regular(Bdd->getNode())]);
+	return smt->man->SMT_mk_and(formula);
+} 
 
 void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
 	std::list<BasicBlock*> workingpath;

@@ -60,13 +60,6 @@ class PathTree {
 			int i,
 			SMT * smt = NULL);
 
-		/// generateSMTformulaAux - method used by generateSMTformula
-		void generateSMTformulaAux(
-			SMT * smt,
-			DdNode * node /* current node */,
-			std::vector<int> list /* current recursion path */,
-			std::vector<SMT_expr> &disjunct);
-
 	public:
 		PathTree();
 
