@@ -192,15 +192,7 @@ void AIopt::computeFunction(Function * F) {
 			narrowNode(current);
 		}
 		// then we move X_d abstract values to X_s abstract values
-		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			b = i;
-			delete Nodes[b]->X_s[passID];
-			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_d[passID]);
-			if (Nodes[b] != n) {
-				delete Nodes[b]->X_d[passID];
-				Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
-			}
-		}
+		copy_Xd_to_Xs(F);
 
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
 			if (!(*it).second->isZero(true)) {
@@ -223,7 +215,6 @@ void AIopt::computeFunction(Function * F) {
 std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
-
 
 void AIopt::loopiter(
 	Node * n, 

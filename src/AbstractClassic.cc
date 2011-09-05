@@ -138,6 +138,7 @@ void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> 
 void AbstractClassic::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 	std::vector<Abstract*> v;
 	v.push_back(n);
+	v.push_back(new AbstractClassic(this));
 	join_array(env,v);
 }
 

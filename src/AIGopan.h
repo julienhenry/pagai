@@ -33,7 +33,8 @@ class AIGopan : public ModulePass, public AIPass {
 		AIGopan ():
 			ModulePass(ID)
 			{
-				aman = new AbstractManGopan();
+				//aman = new AbstractManGopan();
+				aman = new AbstractManClassic();
 				passID = LOOKAHEAD_WIDENING;
 				Passes[LOOKAHEAD_WIDENING] = passID;	
 			}

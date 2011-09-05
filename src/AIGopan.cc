@@ -78,11 +78,10 @@ bool AIGopan::runOnModule(Module &M) {
 		}
 	}
 
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
 	return 0;
 }
-
 
 void AIGopan::computeFunction(Function * F) {
 	BasicBlock * b;
@@ -124,6 +123,18 @@ void AIGopan::computeFunction(Function * F) {
 		A.pop();
 		computeNode(current);
 	}
+
+	// finally, narrow
+	A.push(n);
+	is_computed.clear();
+	while (!A.empty()) {
+		current = A.top();
+		A.pop();
+		narrowNode(current);
+	}
+
+	// then we move X_d abstract values to X_s abstract values
+	copy_Xd_to_Xs(F);
 }
 
 std::set<BasicBlock*> AIGopan::getPredecessors(BasicBlock * b) const {
@@ -142,7 +153,6 @@ void AIGopan::computeNode(Node * n) {
 	Node * Succ;
 	std::vector<Abstract*> Join;
 	std::list<BasicBlock*> path;
-	bool update;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
@@ -167,16 +177,15 @@ void AIGopan::computeNode(Node * n) {
 		path.push_back(b);
 		path.push_back(*s);
 		Succ = Nodes[*s];
-		update = false;
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRA AT THE STARTING NODE\n";
+			*Out << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRA AFTER PATH TRANSFORMATION\n";
+			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -185,20 +194,16 @@ void AIGopan::computeNode(Node * n) {
 		if (LI->isLoopHeader(Succ->bb)) {
 			Xtemp->widening(Succ->X_s[passID]);
 		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,Succ->X_s[passID]);
+			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
 		}
 
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
 			Succ->X_s[passID] = aman->NewAbstract(Xtemp);
-			update = true;
-		}
-		delete Xtemp;
-		
-		if (update) {
 			A.push(Succ);
 			is_computed[Succ] = false;
 		}
+		delete Xtemp;
 		DEBUG(
 			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
 			Succ->X_s[passID]->print();
@@ -209,43 +214,26 @@ void AIGopan::computeNode(Node * n) {
 void AIGopan::narrowNode(Node * n) {
 	Abstract * Xtemp;
 	Node * Succ;
+	std::list<BasicBlock*> path;
 
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
 
-	while (true) {
-		is_computed[n] = true;
+	is_computed[n] = true;
 
-		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
-		);
-		LSMT->push_context();
-		// creating the SMT formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
-		std::list<BasicBlock*> path;
-		DEBUG(
-			LSMT->man->SMT_print(smtexpr);
-		);
-		// if the result is unsat, then the computation of this node is finished
-		if (!LSMT->SMTsolve(smtexpr,&path) || path.size() == 1) {
-			LSMT->pop_context();
-			return;
-		}
-		DEBUG(
-			printPath(path);
-		);
-		
-		Succ = Nodes[path.back()];
+	for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
+		path.clear();
+		path.push_back(n->bb);
+		path.push_back(*s);
+		Succ = Nodes[*s];
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRA TO JOIN\n";
+			*Out << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 
@@ -259,7 +247,5 @@ void AIGopan::narrowNode(Node * n) {
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
-		is_computed[Succ] = false;
-		LSMT->pop_context();
 	}
 }
