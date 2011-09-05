@@ -15,7 +15,6 @@
 #include "ap_global1.h"
 #include "pk.h"
 
-#include "AIGopan.h"
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
@@ -23,26 +22,26 @@
 #include "SMT.h"
 #include "Debug.h"
 #include "Analyzer.h"
-#include "PathTree.h"
+#include "AIClassic.h"
 
 using namespace llvm;
 
-static RegisterPass<AIGopan> X("AIGopanPass", "Abstract Interpretation Pass", false, true);
+static RegisterPass<AIClassic> X("AIClassicPass", "Abstract Interpretation Pass", false, true);
 
-char AIGopan::ID = 0;
+char AIClassic::ID = 0;
 
-const char * AIGopan::getPassName() const {
-	return "AIGopan";
+const char * AIClassic::getPassName() const {
+	return "AIClassic";
 }
 
-void AIGopan::getAnalysisUsage(AnalysisUsage &AU) const {
+void AIClassic::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
 }
 
-bool AIGopan::runOnModule(Module &M) {
+bool AIClassic::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
@@ -83,7 +82,7 @@ bool AIGopan::runOnModule(Module &M) {
 	return 0;
 }
 
-void AIGopan::computeFunction(Function * F) {
+void AIClassic::computeFunction(Function * F) {
 	BasicBlock * b;
 
 	// A = {first basicblock}

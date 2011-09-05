@@ -4,6 +4,7 @@
 #include "AI.h"
 #include "AIopt.h"
 #include "AIGopan.h"
+#include "AIClassic.h"
 #include "Node.h"
 #include "Debug.h"
 
@@ -24,6 +25,7 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<AIopt>();
 	AU.addRequired<SMT>();
 	AU.addRequired<AIGopan>();
+	AU.addRequired<AIClassic>();
 	AU.setPreservesAll();
 }
 
@@ -92,6 +94,16 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 void Compare::printAllResults() {
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
+	*Out	<< results[LOOKAHEAD_WIDENING][SIMPLE].eq << " "
+			<< results[LOOKAHEAD_WIDENING][SIMPLE].lt << " "
+			<< results[LOOKAHEAD_WIDENING][SIMPLE].gt << " "
+			<< results[LOOKAHEAD_WIDENING][SIMPLE].un << " "
+			<< "\n";
+	*Out	<< results[PATH_FOCUSING][SIMPLE].eq << " "
+			<< results[PATH_FOCUSING][SIMPLE].lt << " "
+			<< results[PATH_FOCUSING][SIMPLE].gt << " "
+			<< results[PATH_FOCUSING][SIMPLE].un << " "
+			<< "\n";
 	*Out	<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].eq << " "
 			<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].lt << " "
 			<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].gt << " "
@@ -106,6 +118,11 @@ void Compare::printAllResults() {
 			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].lt << " "
 			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].gt << " "
 			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].un << " "
+			<< "\n";
+	*Out	<< results[LW_WITH_PF][SIMPLE].eq << " "
+			<< results[LW_WITH_PF][SIMPLE].lt << " "
+			<< results[LW_WITH_PF][SIMPLE].gt << " "
+			<< results[LW_WITH_PF][SIMPLE].un << " "
 			<< "\n";
 }
 
@@ -133,16 +150,22 @@ bool Compare::runOnModule(Module &M) {
 			b = i;
 			n = Nodes[b];
 			if (LSMT->getPr(*b->getParent())->count(b)) {
+				compareTechniques(n,LOOKAHEAD_WIDENING,SIMPLE);
+				compareTechniques(n,PATH_FOCUSING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,LOOKAHEAD_WIDENING);
 				compareTechniques(n,LW_WITH_PF,PATH_FOCUSING);
 				compareTechniques(n,LW_WITH_PF,LOOKAHEAD_WIDENING);
+				compareTechniques(n,LW_WITH_PF,SIMPLE);
 			}
 			delete Nodes[b];
 		}
 	}
+	printResults(LOOKAHEAD_WIDENING,SIMPLE);
+	printResults(PATH_FOCUSING,SIMPLE);
 	printResults(PATH_FOCUSING,LOOKAHEAD_WIDENING);
 	printResults(LW_WITH_PF,PATH_FOCUSING);
 	printResults(LW_WITH_PF,LOOKAHEAD_WIDENING);
+	printResults(LW_WITH_PF,SIMPLE);
 
 	printAllResults();
 	return true;

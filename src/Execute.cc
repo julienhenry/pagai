@@ -19,6 +19,7 @@
 #include "AI.h"
 #include "AIopt.h"
 #include "AIGopan.h"
+#include "AIClassic.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -109,7 +110,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				AIPass = new AIopt();
 				break;
 			case SIMPLE:
-				AIPass = new AIGopan();
+				AIPass = new AIClassic();
 				break;
 		}
 	}
@@ -135,6 +136,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	if (compareTechniques()) {
 		Passes.add(new AI());
 		Passes.add(new AIGopan());
+		Passes.add(new AIClassic());
 		Passes.add(new Compare());
 	}
 

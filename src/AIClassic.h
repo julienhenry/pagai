@@ -1,5 +1,5 @@
-#ifndef _AIGOPAN_H
-#define _AIGOPAN_H
+#ifndef _AICLASSIC_H
+#define _AICLASSIC_H
 
 #include <queue>
 #include <vector>
@@ -23,23 +23,22 @@
 
 using namespace llvm;
 
-class AIGopan : public ModulePass, public AISimple {
+class AIClassic : public ModulePass, public AISimple {
 
 	public:
 		static char ID;	
 
 	public:
 
-		AIGopan ():
+		AIClassic ():
 			ModulePass(ID)
 			{
-				aman = new AbstractManGopan();
-				//aman = new AbstractManClassic();
-				passID = LOOKAHEAD_WIDENING;
-				Passes[LOOKAHEAD_WIDENING] = passID;	
+				aman = new AbstractManClassic();
+				passID = SIMPLE;
+				Passes[SIMPLE] = passID;	
 			}
 
-		~AIGopan () {
+		~AIClassic () {
 			}
 
 		const char *getPassName() const;
