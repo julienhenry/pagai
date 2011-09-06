@@ -40,16 +40,24 @@ AbstractGopan::~AbstractGopan() {
 
 /// set_top - sets the abstract to top on the environment env
 void AbstractGopan::set_top(ap_environment_t * env) {
-		clear_all();
-		main = new ap_abstract1_t(ap_abstract1_top(man,env));
-		pilot = main;
+	if (pilot != main) {
+		ap_abstract1_clear(man,pilot);
+		delete pilot;
+	}
+	ap_abstract1_clear(man,main);
+	*main = ap_abstract1_top(man,env);
+	pilot = main;
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
 void AbstractGopan::set_bottom(ap_environment_t * env) {
-		clear_all();
-		main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
-		pilot = main;
+	if (pilot != main) {
+		ap_abstract1_clear(man,pilot);
+		delete pilot;
+	}
+	ap_abstract1_clear(man,main);
+	*main = ap_abstract1_bottom(man,env);
+	pilot = main;
 }
 
 void AbstractGopan::change_environment(ap_environment_t * env) {
@@ -104,18 +112,17 @@ void AbstractGopan::widening(Abstract * X) {
 	
 	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
+		delete pilot;
 	}
 	ap_abstract1_clear(man,main);
 	
 	*main = Xmain_widening;
 	if (ap_abstract1_is_eq(man,&Xmain_widening,&Xpilot_widening)) {
 		pilot = main;
-		ap_abstract1_clear(man,&Xpilot_widening);
 	} else {
-		if (pilot != main)
-			delete pilot;
 		pilot = new ap_abstract1_t(Xpilot_widening);
 	}
+	ap_abstract1_clear(man,&Xpilot_widening);
 }
 
 /// widening with threshold is not implemented. We do a classical widening
@@ -187,8 +194,10 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_
 	}
 	
 	ap_abstract1_clear(man,main);
-	if (pilot != main)
+	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
+		delete pilot;
+	}
 	if (size > 1) {
 		*main = ap_abstract1_join_array(man,Xmain,size);	
 		pilot = new ap_abstract1_t(ap_abstract1_join_array(man,Xpilot,size));	
@@ -199,6 +208,7 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_
 	} else {
 		*main = Xmain[0];
 		pilot = new ap_abstract1_t(Xpilot[0]);
+		ap_abstract1_clear(man,&Xpilot[0]);
 	}
 	
 	if (ap_abstract1_is_eq(man,main,pilot)) {
@@ -212,12 +222,14 @@ void AbstractGopan::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 
 	ap_abstract1_t Xmain;
 	ap_abstract1_t Xpilot;
-	Xmain =ap_abstract1_join(man,false,main,n->main);
-	Xpilot =ap_abstract1_join(man,false,pilot,n->main);
+	Xmain = ap_abstract1_join(man,false,main,n->main);
+	Xpilot = ap_abstract1_join(man,false,pilot,n->main);
+	delete n;
 	
 	if (pilot == main) {
 		pilot = new ap_abstract1_t(Xpilot);
 	} else {
+		ap_abstract1_clear(man,pilot);
 		*pilot = Xpilot;
 	}
 	ap_abstract1_clear(man,main);

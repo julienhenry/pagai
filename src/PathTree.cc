@@ -12,6 +12,8 @@ PathTree::PathTree() {
 	Bdd = new BDD(mgr->bddZero());
 	Bdd_prime = new BDD(mgr->bddZero());
 	BddIndex=0;
+	background = mgr->bddZero().getNode();
+	zero = mgr->bddZero().getNode();
 }
 
 PathTree::~PathTree() {
@@ -82,12 +84,11 @@ SMT_expr PathTree::generateSMTformula(SMT * smt) {
 	DdGen *gen;
 	DdNode * true_node;
 	std::vector<SMT_expr> formula;
-	
 	for(gen = Cudd_FirstNode (mgr->getManager(), Bdd->getNode(), &node);
 	!Cudd_IsGenEmpty(gen);
 	(void) Cudd_NextNode(gen, &node)) {
 	
-		// remove the extra 1 from the adress if exist
+		// remove the extra 1 from the adress if exists
 	    N = Cudd_Regular(node);
 	
 	    if (Cudd_IsConstant(N)) {

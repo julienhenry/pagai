@@ -64,9 +64,12 @@ class AIPass : public InstVisitor<AIPass> {
 			LSMT(NULL) {
 				man = create_manager(getApronManager());
 				init_apron();
+				threshold = ap_lincons1_array_make(
+					ap_environment_alloc_empty(),0
+				);
 			}
 
-		~AIPass () {
+		virtual ~AIPass () {
 				ap_manager_free(man);
 			}
 

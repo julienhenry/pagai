@@ -256,6 +256,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				);
 				Xtemp.meet_tcons_array((*i)->front());
 				ConstraintsAbstract->meet_tcons_array((*i)->front());
+				ap_tcons1_array_clear((*i)->front());
 		} else {
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
@@ -267,10 +268,12 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
 				A_Constraints.push_back(aman->NewAbstract(X2));
+				ap_tcons1_array_clear(*it);
 			}
 			Xtemp.join_array(env,A);
 			ConstraintsAbstract->join_array(env,A_Constraints);
 		}
+		delete *i;
 	}
 
 	Xtemp.change_environment(env);
@@ -278,6 +281,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 	// we transform the abstract value of constraints into an array of lincons
 	// for a future widening with threshold
+	ap_lincons1_array_clear(&threshold);
 	threshold = ConstraintsAbstract->to_lincons_array();
 	
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
@@ -574,7 +578,10 @@ void AIPass::visitBranchInst (BranchInst &I){
 
 	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
 		ap_texpr_rtype_t ap_type;
-		if (get_ap_type(cmp->getOperand(0), ap_type)) return;
+		if (get_ap_type(cmp->getOperand(0), ap_type)) {
+			delete cons;
+			return;
+		}
 		res = computeCondition(cmp,test,cons);
 	} else if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
 		res = computeConstantCondition(c,test,cons);
@@ -584,11 +591,15 @@ void AIPass::visitBranchInst (BranchInst &I){
 		res = computePHINodeCondition(phi,test,cons);
 	} else {
 		// loss of precision...
+		delete cons;
 		return;
 	}
 
 	// we add cons in the set of constraints of the path
-	if (res) constraints.push_back(cons);
+	if (res) 
+		constraints.push_back(cons);
+	else
+		delete cons;
 }
 
 /// for the moment, we only create the constraint for the default branch of the
