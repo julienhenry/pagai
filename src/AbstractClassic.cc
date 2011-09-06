@@ -34,14 +34,14 @@ AbstractClassic::~AbstractClassic() {
 
 /// set_top - sets the abstract to top on the environment env
 void AbstractClassic::set_top(ap_environment_t * env) {
-		clear_all();
-		main = new ap_abstract1_t(ap_abstract1_top(man,env));
+		ap_abstract1_clear(man,main);
+		*main = ap_abstract1_top(man,env);
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
 void AbstractClassic::set_bottom(ap_environment_t * env) {
-		clear_all();
-		main = new ap_abstract1_t(ap_abstract1_bottom(man,env));
+		ap_abstract1_clear(man,main);
+		*main = ap_abstract1_bottom(man,env);
 }
 
 void AbstractClassic::change_environment(ap_environment_t * env) {
@@ -116,6 +116,7 @@ void AbstractClassic::assign_texpr_array(
 
 void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
 	size_t size = X_pred.size();
+	ap_abstract1_clear(man,main);
 
 	ap_abstract1_t  Xmain[size];
 	
@@ -124,7 +125,6 @@ void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> 
 		delete X_pred[i];
 	}
 	
-	ap_abstract1_clear(man,main);
 	if (size > 1) {
 		*main = ap_abstract1_join_array(man,Xmain,size);	
 		for (unsigned i=0; i < size; i++) {

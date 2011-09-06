@@ -151,8 +151,6 @@ void AIopt::computeFunction(Function * F) {
 	computeEnv(n);
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
-	delete n->X_d[passID];
-	n->X_d[passID] = aman->NewAbstract(man,env);
 	n->X_d[passID]->set_top(env);
 	A.push(n);
 
@@ -179,8 +177,7 @@ void AIopt::computeFunction(Function * F) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			if (Nodes[b] != n) {
-				delete Nodes[b]->X_d[passID];
-				Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
+				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
 		// narrowing 
@@ -245,6 +242,7 @@ void AIopt::loopiter(
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
+		delete Succ->X_s[passID];
 		Succ->X_s[passID] = Xtemp;
 		DEBUG(
 			*Out << "AFTER MINIWIDENING\n";	
@@ -318,16 +316,14 @@ void AIopt::computeNewPaths(Node * n) {
 		}
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
-		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 		Succ->X_d[passID]->change_environment(Xtemp->main->env);
 
 		Join.clear();
-		Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
+		Join.push_back(Succ->X_d[passID]);
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		delete Succ->X_d[passID];
 		Succ->X_d[passID] = Xtemp;
 		Xtemp = NULL;
 
@@ -391,7 +387,6 @@ void AIopt::computeNode(Node * n) {
 		Succ = Nodes[path.back()];
 		n_iterations++;
 		// computing the image of the abstract value by the path's tranformation
-		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 		DEBUG(
@@ -470,8 +465,8 @@ void AIopt::narrowNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		res = LSMT->SMTsolve(smtexpr,&path);
+		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
-			LSMT->pop_context();
 			if (res == -1) unknown = true;
 			return;
 		}
@@ -482,7 +477,6 @@ void AIopt::narrowNode(Node * n) {
 		Succ = Nodes[path.back()];
 
 		// computing the image of the abstract value by the path's tranformation
-		if (Xtemp != NULL) delete Xtemp;
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
 
@@ -493,15 +487,15 @@ void AIopt::narrowNode(Node * n) {
 
 		if (Succ->X_d[passID]->is_bottom()) {
 			delete Succ->X_d[passID];
-			Succ->X_d[passID] = aman->NewAbstract(Xtemp);
+			Succ->X_d[passID] = Xtemp;
 		} else {
 			std::vector<Abstract*> Join;
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-			Join.push_back(aman->NewAbstract(Xtemp));
+			Join.push_back(Xtemp);
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
+		Xtemp = NULL;
 		A.push(Succ);
 		is_computed[Succ] = false;
-		LSMT->pop_context();
 	}
 }

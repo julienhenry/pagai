@@ -142,6 +142,12 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	Passes.run(*M.get());
 
+	// we properly delete all the created Nodes
+	std::map<BasicBlock*,Node*>::iterator it = Nodes.begin(), et = Nodes.end();
+	for (;it != et; it++) {
+		delete (*it).second;
+	}
+
 	//Out->flush();
 	//delete FDOut;
 	//delete Out;

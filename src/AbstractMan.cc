@@ -13,7 +13,6 @@ Abstract * AbstractManClassic::NewAbstract(Abstract * A) {
 	return new AbstractClassic(A);
 }
 
-
 Abstract * AbstractManGopan::NewAbstract(ap_manager_t * man, ap_environment_t * env) {
 	return new AbstractGopan(man,env);
 }

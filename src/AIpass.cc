@@ -226,6 +226,8 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// the environment may have changed because of the constraints and the Phi
 	// assignations
 	//Xtemp.change_environment(env);
+	
+	delete ConstraintsAbstract;
 }
 
 

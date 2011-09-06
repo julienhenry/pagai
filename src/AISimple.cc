@@ -51,7 +51,6 @@ void AISimple::computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI) {
 	computeEnv(n);
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
-	n->X_d[passID] = aman->NewAbstract(man,env);
 	n->X_d[passID]->set_top(env);
 	A.push(n);
 
@@ -138,11 +137,13 @@ void AISimple::computeNode(Node * n) {
 
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
-			Succ->X_s[passID] = aman->NewAbstract(Xtemp);
+			Succ->X_s[passID] = Xtemp;
+			Xtemp = NULL;
 			A.push(Succ);
 			is_computed[Succ] = false;
+		} else {
+			delete Xtemp;
 		}
-		delete Xtemp;
 		DEBUG(
 			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
 			Succ->X_s[passID]->print();
@@ -178,13 +179,14 @@ void AISimple::narrowNode(Node * n) {
 
 		if (Succ->X_d[passID]->is_bottom()) {
 			delete Succ->X_d[passID];
-			Succ->X_d[passID] = aman->NewAbstract(Xtemp);
+			Succ->X_d[passID] = Xtemp;
 		} else {
 			std::vector<Abstract*> Join;
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-			Join.push_back(aman->NewAbstract(Xtemp));
+			Join.push_back(Xtemp);
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
+		Xtemp = NULL;
 		A.push(Succ);
 	}
 }

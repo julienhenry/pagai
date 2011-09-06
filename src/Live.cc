@@ -50,7 +50,7 @@ bool Live::isUsedInPHIBlock(Value *V, BasicBlock *BB) {
 
 bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
 
-	if (isLiveThroughBlock(V,BB) || isUsedInBlock(V,BB)) {
+	if (isLiveThroughBlock(V,BB)) {
 		return true;
 	} else {
 		for (Value::use_iterator I = V->use_begin(), E = V->use_end();

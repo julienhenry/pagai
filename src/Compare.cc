@@ -157,7 +157,6 @@ bool Compare::runOnModule(Module &M) {
 				compareTechniques(n,LW_WITH_PF,LOOKAHEAD_WIDENING);
 				compareTechniques(n,LW_WITH_PF,SIMPLE);
 			}
-			delete Nodes[b];
 		}
 	}
 	printResults(LOOKAHEAD_WIDENING,SIMPLE);

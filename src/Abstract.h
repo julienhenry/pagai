@@ -19,6 +19,9 @@ class Abstract {
 		virtual void clear_all() = 0;
 
 	public:
+
+		virtual ~Abstract() {};
+
 		/// set_top - the abstract domain is set to top
 		virtual void set_top(ap_environment_t * env) = 0;
 
