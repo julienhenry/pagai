@@ -35,13 +35,6 @@ class AIopt : public ModulePass, public AIPass {
 		
 		bool unknown;
 
-		void loopiter(
-			Node * n, 
-			Abstract * &Xtemp,
-			std::list<BasicBlock*> * path,
-			bool &only_join,
-			PathTree * const U);
-
 		void computeNewPaths(
 			Node * n
 			);

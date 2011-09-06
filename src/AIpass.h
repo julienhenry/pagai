@@ -49,6 +49,12 @@ class AIPass : public InstVisitor<AIPass> {
 		/// aman - manager that creates abstract values
 		AbstractMan* aman;
 
+		void loopiter(
+			Node * n, 
+			Abstract * &Xtemp,
+			std::list<BasicBlock*> * path,
+			bool &only_join,
+			PathTree * const U);
 	
 	public:
 

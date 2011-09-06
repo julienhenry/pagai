@@ -19,7 +19,6 @@
 #include "Node.h"
 #include "Live.h"
 #include "SMT.h"
-#include "PathTree.h"
 #include "AIpass.h"
 
 using namespace llvm;
@@ -27,10 +26,6 @@ using namespace llvm;
 class AI : public ModulePass, public AIPass {
 
 	private:
-		/// paths - remembers all the paths that have already been
-		/// visited
-		PathTree* pathtree;
-
 		bool unknown;
 
 	public:
@@ -42,14 +37,11 @@ class AI : public ModulePass, public AIPass {
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
-				pathtree = new PathTree();
 				passID = PATH_FOCUSING;
 				Passes[PATH_FOCUSING] = passID;	
 			}
 
-		~AI () {
-				delete pathtree;
-			}
+		~AI () {}
 
 		const char *getPassName() const;
 

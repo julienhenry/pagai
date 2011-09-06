@@ -131,7 +131,6 @@ void AI::computeFunction(Function * F) {
 	computeEnv(n);
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
-	n->X_d[passID] = aman->NewAbstract(man,env);
 	n->X_d[passID]->set_top(env);
 	A.push(n);
 
@@ -189,7 +188,7 @@ void AI::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	pathtree->clear();
+	PathTree * const pathtree = new PathTree();
 
 	while (true) {
 		is_computed[n] = true;
@@ -212,12 +211,13 @@ void AI::computeNode(Node * n) {
 		res = LSMT->SMTsolve(smtexpr,&path);
 		
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
+		LSMT->pop_context();
 
 		if (res != 1 || path.size() == 1) {
-			LSMT->pop_context();
 			if (res == -1) {
 				unknown = true;
 			}
+			delete pathtree;
 			return;
 		}
 	
@@ -251,44 +251,7 @@ void AI::computeNode(Node * n) {
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			if (pathtree->exist(path)) {
-			// backup the previous abstract value
-			Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
-
-			Join.clear();
-			Join.push_back(aman->NewAbstract(Xpred));
-			Join.push_back(aman->NewAbstract(Xtemp));
-			Xtemp->join_array(Xtemp->main->env,Join);
-
-			DEBUG(
-				*Out << "BEFORE MINIWIDENING\n";	
-				*Out << "Succ->X:\n";
-				Succ->X_s[passID]->print();
-				*Out << "Xtemp:\n";
-				Xtemp->print();
-			);
-			Xtemp->widening(Succ->X_s[passID]);
-			DEBUG(
-				*Out << "MINIWIDENING\n";	
-			);
-			Succ->X_s[passID] = Xtemp;
-			DEBUG(
-				*Out << "AFTER MINIWIDENING\n";	
-				Xtemp->print();
-			);
-
-			Xtemp = aman->NewAbstract(n->X_s[passID]);
-			computeTransform(aman,n,path,*Xtemp);
-			
-			Succ->X_s[passID] = Xpred;
-			only_join = true;
-			pathtree->remove(path);
-			if (pathtree->exist(path)) {
-				*Out << "ERROR STILL EXIST\n";
-			}
-			} else {
-				pathtree->insert(path);
-			}
+			loopiter(n,Xtemp,&path,only_join,pathtree);
 		} 
 		
 		Join.clear();
@@ -312,6 +275,7 @@ void AI::computeNode(Node * n) {
 			*Out << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
+		delete Succ->X_s[passID];
 		Succ->X_s[passID] = Xtemp;
 
 		DEBUG(
@@ -319,11 +283,10 @@ void AI::computeNode(Node * n) {
 			Succ->X_s[passID]->print();
 		);
 
-
 		A.push(Succ);
 		is_computed[Succ] = false;
-		LSMT->pop_context();
 	}
+	delete pathtree;
 }
 
 void AI::narrowNode(Node * n) {
@@ -351,8 +314,8 @@ void AI::narrowNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res = LSMT->SMTsolve(smtexpr,&path);
+		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
-			LSMT->pop_context();
 			if (res == -1) {
 				unknown = true;
 			}
@@ -375,15 +338,14 @@ void AI::narrowNode(Node * n) {
 
 		if (Succ->X_d[passID]->is_bottom()) {
 			delete Succ->X_d[passID];
-			Succ->X_d[passID] = aman->NewAbstract(Xtemp);
+			Succ->X_d[passID] = Xtemp;
 		} else {
 			std::vector<Abstract*> Join;
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-			Join.push_back(aman->NewAbstract(Xtemp));
+			Join.push_back(Xtemp);
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
 		A.push(Succ);
 		is_computed[Succ] = false;
-		LSMT->pop_context();
 	}
 }

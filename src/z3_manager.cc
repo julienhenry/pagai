@@ -42,6 +42,7 @@ SMT_var z3_manager::SMT_mk_bool_var(std::string name){
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
 		vars[name] = Z3_mk_string_symbol(ctx,cstr);
+		delete cstr;
 		types[vars[name]] = bool_type;
 	}
 	return vars[name];
@@ -52,6 +53,7 @@ SMT_var z3_manager::SMT_mk_var(std::string name,SMT_type type){
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
 		vars[name] = Z3_mk_string_symbol(ctx,cstr);
+		delete cstr;
 		types[vars[name]] = (Z3_sort)type;
 	} 
 	return vars[name];
@@ -243,6 +245,7 @@ void z3_manager::SMT_print(SMT_expr a){
 
 int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
+	int ret = 0;
 	Z3_assert_cnstr(ctx,(Z3_ast)a);
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
 
@@ -251,16 +254,19 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			DEBUG(
 				*Out << "unsat\n";
 			);
-			return 0;
+			ret = 0;
+			break;
 		case Z3_L_UNDEF:
 			//DEBUG(
 			*Out << "unknown\n";
 			//);
-			return -1;
+			ret = -1;
+			break;
 		case Z3_L_TRUE:
 			DEBUG(
 			*Out << "sat\n";
 			);
+			ret = 1;
 			unsigned n = Z3_get_model_num_constants(ctx,m);
 			for (unsigned i = 0; i < n; i++) {
 				Z3_func_decl decl = Z3_get_model_constant(ctx,m,i);
@@ -325,7 +331,8 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			}
 			break;
 	}
-	return 1;
+	Z3_del_model(ctx,m);
+	return ret;
 }
 
 void z3_manager::push_context() {
