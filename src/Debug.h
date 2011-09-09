@@ -1,10 +1,13 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+// Don't use LLVM's DEBUG statement
+#undef DEBUG
+
 #ifdef PRINT_DEBUG
-#define DEBUG(X) X
+#define DEBUG(X) do {X} while (0)
 #else
-#define DEBUG(X) do { } while (0);
+#define DEBUG(X) do { } while (0)
 #endif
 
 #include <time.h>
