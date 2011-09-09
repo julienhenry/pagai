@@ -27,7 +27,7 @@ YICES=0
 UNROLL=0
 COMPILE_OPTIONS=
 
-while getopts “hpyguGi:o:c:” opt ; do
+while getopts "hpyguGi:o:c:" opt ; do
 	case $opt in
 		h)
 			usage
