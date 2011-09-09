@@ -81,6 +81,8 @@ echo "Compilation using command-line:
 clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
 "
 clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c "$FILENAME" -o "$OUTPUT"
+# MM: Les -mem2reg, -llowerswitch, -loop-simplify sont redondants avec
+# MM: les passes ajoutées dans Execute.cc, non ?
 #opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 if [ $UNROLL -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 "$OUTPUT" -o "$OUTPUT"
