@@ -6,8 +6,9 @@
 % 11pt          To set in 11-point type instead of 9-point.
 % authoryear    To obtain author/year citation style instead of numeric.
 
-\usepackage{amsmath}
+\usepackage{amsmath,amsfonts}
 \usepackage{dmnatbib}
+\usepackage[mathscr]{euscript}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
@@ -27,6 +28,11 @@ color=blue]
 \tikzstyle{line}=[black,thick]
 
 \usepackage{hyperref}
+
+\newcommand{\abstr}[1]{#1^\sharp}
+\newcommand{\parts}[1]{\mathscr{P}(#1)}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
 
 \begin{document}
 
@@ -99,14 +105,28 @@ With respect to abstract domains on numerical variables, it uses the APRON libra
 \item We conducted extensive experiments with this tool, on real-life programs, thus obtaining experimental comparisons between the various combinations of techniques. (\S\ref{sec:experiments})
 \end{enumerate}
 
-\section{A simple, motivating example}
+\section{Bases}
+\subsection{Static analysis by abstract interpretation}
+Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is often referred to as the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.
+The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: (\abstr{X},\sqsubseteq) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
+%
+\footnote{%
+Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
+
+We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcap \abstr{y})$ for all $\abstr{x},\abstr{y}$.
+
+\subsection{SMT-solving}
+TODO
+
+\subsection{A simple, motivating example}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
 \lstinputlisting{rlim_int.c}
-This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and connected to other signals.
+This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
 
 The expected inductive invariant is $\verb|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\verb|x_old| \in (-\infty,+\infty)$. % TODO chercher ref Astree
+Let us briefly see why.
 
-Let us briefly why. Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant. % TODO expliquer widening suivi de narrowing
+Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant. % TODO expliquer widening suivi de narrowing
 The \lstinline|x >= x_old+10| test at line~7, if taken, yields $\lstinline|x_old| \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain $\lstinline|x| \in (-\infty,100000]$, and the same after union with the no-operation ``else'' branch. Line 8 yields $\lstinline|x| \in (-\infty,+\infty)$.
 
 We could use ``guided widening'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
@@ -198,7 +218,8 @@ $\Longrightarrow$
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
 We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first (as in Fig.~\ref{fig:multigraph}), even though not all feasible paths are needed to compute the invariant.
-Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit and working from the first program, yet simulating the analysis of the second program, that is, on a transition multigraph (Fig.~\ref{fig:multigraph}).
+Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph (Fig.~\ref{fig:multigraph}); its compact representation is given by the transition graph of the first program.
+
 Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation;
 contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
 
@@ -263,6 +284,7 @@ Termination ensues from the finiteness of the control-flow graph.
 % Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
+
 \bibliographystyle{dmabbrvnat}
 \bibliography{implicitization}
 \end{document}
