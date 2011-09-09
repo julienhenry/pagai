@@ -24,7 +24,7 @@
 #include "Analyzer.h"
 #include "PathTree.h"
 
-#include "AI.h"
+#include "AIpf.h"
 #include "AIGopan.h"
 
 using namespace llvm;
