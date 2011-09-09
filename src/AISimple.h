@@ -33,6 +33,7 @@ class AISimple : public AIPass {
 
 		void computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI);
 
+	private:
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 
 		/// computeNode - compute and update the Abstract value of the Node n
