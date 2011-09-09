@@ -64,6 +64,10 @@ while getopts “hpyguGi:o:c:” opt ; do
      esac
 done
 
+if [ -z "$FILENAME" ]; then
+	echo "Please provide a filename (C source code) with -i FILE."
+	exit 1
+fi
 
 BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
