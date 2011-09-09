@@ -51,7 +51,7 @@ BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
-if [ -z $OUTPUT ] ; then 
+if [ -z "$OUTPUT" ] ; then 
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 

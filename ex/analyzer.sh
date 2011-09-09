@@ -73,23 +73,23 @@ BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
-if [ -z $OUTPUT ] ; then 
+if [ -z "$OUTPUT" ] ; then 
 	OUTPUT=/tmp/${NAME}.bc
 fi
 
 echo "Compilation using command-line:
 clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
 "
-clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
+clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c "$FILENAME" -o "$OUTPUT"
 #opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 if [ $UNROLL -eq 1 ] ; then
-	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
+	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 "$OUTPUT" -o "$OUTPUT"
 else
-	opt -mem2reg -inline -lowerswitch $OUTPUT -o $OUTPUT
+	opt -mem2reg -inline -lowerswitch "$OUTPUT" -o "$OUTPUT"
 fi
 
 if [ $GRAPH -eq 1 ] ; then
-	opt -dot-cfg $OUTPUT -o $OUTPUT
+	opt -dot-cfg "$OUTPUT" -o "$OUTPUT"
 	mv *.dot $DIR
 	for i in `ls $DIR/*.dot` ; do
 		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
@@ -106,10 +106,10 @@ RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
 
 if [ $GOPAN -eq 1 ] ; then
-    "$BASEDIR"/src/analyzer -g -i $OUTPUT
+    "$BASEDIR"/src/analyzer -g -i "$OUTPUT"
 elif [ $YICES -eq 1 ] ; then
-    "$BASEDIR"/src/analyzer -y -i $OUTPUT
+    "$BASEDIR"/src/analyzer -y -i "$OUTPUT"
 else
-    "$BASEDIR"/src/analyzer -i $OUTPUT
+    "$BASEDIR"/src/analyzer -i "$OUTPUT"
 fi
 
