@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     int o;
     bool help = false;
     bool bad_use = false;
-    char* outputname="";
+    const char* outputname="";
 	char* arg;
 	bool debug = false;
 
