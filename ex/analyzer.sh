@@ -91,7 +91,7 @@ fi
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg "$OUTPUT" -o "$OUTPUT"
 	mv *.dot $DIR
-	for i in `ls $DIR/*.dot` ; do
+	for i in $DIR/*.dot ; do
 		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 		dot -Tsvg -o $i.svg $i
 	done
