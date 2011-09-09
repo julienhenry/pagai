@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BASEDIR=$(dirname "$0")/..
+
 function usage () {
 echo "
 Usage:
@@ -100,12 +102,10 @@ RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
 
 if [ $GOPAN -eq 1 ] ; then
-	analyzer -g -i $OUTPUT
+    "$BASEDIR"/src/analyzer -g -i $OUTPUT
+elif [ $YICES -eq 1 ] ; then
+    "$BASEDIR"/src/analyzer -y -i $OUTPUT
 else
-	if [ $YICES -eq 1 ] ; then
-		analyzer -y -i $OUTPUT
-	else
-		analyzer -i $OUTPUT
-	fi
+    "$BASEDIR"/src/analyzer -i $OUTPUT
 fi
 
