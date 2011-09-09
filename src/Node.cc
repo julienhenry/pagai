@@ -77,6 +77,7 @@ void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 			case 0:
 				nsucc->computeSCC_rec(n,S);
 				lowlink = std::min(lowlink,nsucc->lowlink);
+				break;
 			default:
 				if (nsucc->isInStack) {
 					lowlink = std::min(lowlink,nsucc->index);
