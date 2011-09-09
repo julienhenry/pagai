@@ -23,6 +23,7 @@
 
 using namespace llvm;
 
+/// Base class implementing the basic abstract interpretation algorithm
 class AISimple : public AIPass {
 
 	public:
@@ -30,7 +31,8 @@ class AISimple : public AIPass {
 		AISimple ()	{}
 
 		~AISimple () {}
-
+		/// Apply the simple abstract interpretation algorithm
+		/// (ascending iterations + narrowing) on function F.
 		void computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI);
 
 	private:

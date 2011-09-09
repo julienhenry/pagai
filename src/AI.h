@@ -23,6 +23,7 @@
 
 using namespace llvm;
 
+/// Abstract Interpratation with Path Focusing algorithm (using SMT-solving)
 class AI : public ModulePass, public AIPass {
 
 	private:

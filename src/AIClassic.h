@@ -23,6 +23,7 @@
 
 using namespace llvm;
 
+/// Pass implementing the basic abstract interpretation algorithm
 class AIClassic : public ModulePass, public AISimple {
 
 	public:
@@ -41,12 +42,16 @@ class AIClassic : public ModulePass, public AISimple {
 		~AIClassic () {
 			}
 
+		/// @{
+		/// @name LLVM pass manager stuff
 		const char *getPassName() const;
 
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
 		bool runOnModule(Module &M);
+		/// @}
 
+		/// Simple wrapper around AISimple::computeFunc()
 		void computeFunction(Function * F);
 };
 

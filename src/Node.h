@@ -22,6 +22,9 @@ typedef struct _phivar {
 	std::vector<ap_texpr1_t> expr;
 } phivar;
 
+/// Information associated to a BasicBlock
+/// (abstract values, ...). The BasicBlock <-> Node association is
+/// maintained through Node::bb and the global variable ::Nodes.
 class Node {
 	private:
 		/// used by computeSCC
@@ -77,7 +80,8 @@ class Node {
 extern std::map<BasicBlock *,Node *> Nodes;
 
 /// NodeCompare - This class is used to order the Nodes such that they are
-/// poped in the right order when treated by the AI algorithm. 
+/// poped in the right order (following the SCC order) when treated by
+/// the AI algorithm.
 class NodeCompare {
 	public:
 		bool operator() (Node * n1, Node * n2);
