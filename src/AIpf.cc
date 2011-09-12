@@ -146,9 +146,6 @@ void AIpf::computeFunction(Function * F) {
 			return;
 		}
 	}
-	
-	is_computed.clear();
-	A.push(n);
 
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -157,13 +154,7 @@ void AIpf::computeFunction(Function * F) {
 		*Out << "#######################################################\n";
 		Out->resetColor();
 	);
-
-	// narrowing phase
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		narrowNode(current);
-	}
+	narrowingIter(n);
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {

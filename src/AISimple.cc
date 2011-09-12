@@ -30,7 +30,6 @@ using namespace llvm;
 void AISimple::computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI) {
 	BasicBlock * b;
 	Node * n;
-	Node * current;
 
 	// A = {first basicblock}
 	b = F->begin();
@@ -52,24 +51,10 @@ void AISimple::computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI) {
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	A.push(n);
 
-	is_computed.clear();
-	// Simple Abstract Interpretation algorithm
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		computeNode(current);
-	}
+	ascendingIter(n);
 
-	// finally, narrow
-	A.push(n);
-	is_computed.clear();
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		narrowNode(current);
-	}
+	narrowingIter(n);
 
 	// then we move X_d abstract values to X_s abstract values
 	copy_Xd_to_Xs(F);

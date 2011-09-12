@@ -180,14 +180,9 @@ void AIopt::computeFunction(Function * F) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
-		// narrowing 
-		is_computed.clear();
-		A.push(n);
-		while (!A.empty()) {
-			current = A.top();
-			A.pop();
-			narrowNode(current);
-		}
+
+		narrowingIter(n);
+
 		// then we move X_d abstract values to X_s abstract values
 		copy_Xd_to_Xs(F);
 

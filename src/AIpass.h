@@ -24,6 +24,9 @@
 
 using namespace llvm;
 
+/// Base class factoring helper functions and data-structure to
+/// perform Abstract Interpretation (i.e. graph traversal on the CFG,
+/// Apron Manager, SMT solver, ...).
 class AIPass : public InstVisitor<AIPass> {
 
 	protected:
@@ -112,10 +115,24 @@ class AIPass : public InstVisitor<AIPass> {
 			std::list<BasicBlock*> path, 
 			Abstract &Xtemp);
 
+
+		/// Basic abstract interpretation ascending iterations
+		/// (iterates over the nodes, calling computeNode for each of
+		/// them)
+		virtual void ascendingIter(Node * n);
+
 		/// computeNode - compute and update the Abstract value of the Node n
+		/// This function should update the set A of active nodes to
+		/// reflect changes performed on Node n.
 		virtual void computeNode(Node * n) = 0;
 		
+		/// Narrowing algorithm (iterates over the nodes, calling
+		/// narrowNode() for each of them)
+		virtual void narrowingIter(Node * n);
+
 		/// narrowNode - apply narrowing at node n
+		/// This function should update the set A of active nodes to
+		/// reflect changes performed on Node n.
 		virtual void narrowNode(Node * n) = 0;
 
 		/// computeCondition - creates the constraint arrays resulting from a

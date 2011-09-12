@@ -27,6 +27,25 @@
 
 using namespace llvm;
 
+void AIPass::ascendingIter(Node * n) {
+	A.push(n);
+	is_computed.clear();
+	while (!A.empty()) {
+		Node * current = A.top();
+		A.pop();
+		computeNode(current);
+	}
+}
+
+void AIPass::narrowingIter(Node * n) {
+	A.push(n);
+	is_computed.clear();
+	while (!A.empty()) {
+		Node * current = A.top();
+		A.pop();
+		narrowNode(current);
+	}
+}
 
 void AIPass::initFunction(Function * F) {
 	Node * n;
