@@ -83,11 +83,9 @@ bool AIClassic::runOnModule(Module &M) {
 }
 
 void AIClassic::computeFunction(Function * F) {
-	BasicBlock * b;
-
-	// A = {first basicblock}
-	b = F->begin();
-	if (b == F->end()) return;
+	if (F->empty()) {
+		return;
+	}
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
