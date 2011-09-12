@@ -172,7 +172,7 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		DEBUG(
 		*Out << "Warning: Unknown type for " << *val << "\n";
 		Out->flush();
-		)
+		);
 		ap_type = AP_RTYPE_REAL;
 		return 1;
 	}

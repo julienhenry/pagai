@@ -14,7 +14,7 @@
 
 #include "ap_global1.h"
 
-#include "AI.h"
+#include "AIpf.h"
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
@@ -26,22 +26,22 @@
 
 using namespace llvm;
 
-static RegisterPass<AI> X("AIPass", "Abstract Interpretation Pass", false, true);
+static RegisterPass<AIpf> X("AIPass", "Abstract Interpretation Pass", false, true);
 
-char AI::ID = 0;
+char AIpf::ID = 0;
 
-const char * AI::getPassName() const {
-	return "AI";
+const char * AIpf::getPassName() const {
+	return "AIpf";
 }
 
-void AI::getAnalysisUsage(AnalysisUsage &AU) const {
+void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
 }
 
-bool AI::runOnModule(Module &M) {
+bool AIpf::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
@@ -92,7 +92,7 @@ bool AI::runOnModule(Module &M) {
 
 
 
-void AI::computeFunction(Function * F) {
+void AIpf::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
 	Node * current;
@@ -166,11 +166,11 @@ void AI::computeFunction(Function * F) {
 	}
 }
 
-std::set<BasicBlock*> AI::getPredecessors(BasicBlock * b) const {
+std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
 
-void AI::computeNode(Node * n) {
+void AIpf::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
 	Node * Succ;
@@ -289,7 +289,7 @@ void AI::computeNode(Node * n) {
 	delete pathtree;
 }
 
-void AI::narrowNode(Node * n) {
+void AIpf::narrowNode(Node * n) {
 	Abstract * Xtemp;
 	Node * Succ;
 

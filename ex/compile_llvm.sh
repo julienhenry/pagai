@@ -42,12 +42,16 @@ while getopts “hpgi:o:” opt ; do
      esac
 done
 
+if [ -z "$FILENAME" ]; then
+	echo "Please provide a filename with -i FILE."
+	exit 1
+fi
 
 BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
-if [ -z $OUTPUT ] ; then 
+if [ -z "$OUTPUT" ] ; then 
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 

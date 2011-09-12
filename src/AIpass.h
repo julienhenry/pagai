@@ -148,7 +148,8 @@ class AIPass : public InstVisitor<AIPass> {
 		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
 
 		void visitInstAndAddVarIfNecessary(Instruction &I);
-		// Visit methods
+		/// @{
+		/// @name Visit methods
 		void visitReturnInst (ReturnInst &I);
 		void visitBranchInst (BranchInst &I);
 		void visitSwitchInst (SwitchInst &I);
@@ -193,7 +194,7 @@ class AIPass : public InstVisitor<AIPass> {
 			ferrs() << I.getOpcodeName();
 			assert(0 && "Instruction not interpretable yet!");
 		}
-
+		/// @}
 };
 
 #endif

@@ -26,7 +26,7 @@ z3_manager::~z3_manager() {
 	Z3_del_context(ctx);
 }
 
-SMT_expr z3_manager::z3_manager::SMT_mk_true(){
+SMT_expr z3_manager::SMT_mk_true(){
 	return Z3_mk_true(ctx);
 }
 

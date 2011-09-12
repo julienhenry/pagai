@@ -23,7 +23,8 @@
 
 using namespace llvm;
 
-class AI : public ModulePass, public AIPass {
+/// Abstract Interpratation with Path Focusing algorithm (using SMT-solving)
+class AIpf : public ModulePass, public AIPass {
 
 	private:
 		bool unknown;
@@ -33,7 +34,7 @@ class AI : public ModulePass, public AIPass {
 
 	public:
 
-		AI (): ModulePass(ID)
+		AIpf (): ModulePass(ID)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
@@ -41,7 +42,7 @@ class AI : public ModulePass, public AIPass {
 				Passes[PATH_FOCUSING] = passID;	
 			}
 
-		~AI () {}
+		~AIpf () {}
 
 		const char *getPassName() const;
 

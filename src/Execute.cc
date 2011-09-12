@@ -16,7 +16,7 @@
 #include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/LoopInfo.h"
 
-#include "AI.h"
+#include "AIpf.h"
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
@@ -105,7 +105,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				AIPass = new AIGopan();
 				break;
 			case PATH_FOCUSING:
-				AIPass = new AI();
+				AIPass = new AIpf();
 				break;
 			case LW_WITH_PF:
 				AIPass = new AIopt();
@@ -135,7 +135,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(new SMT());
 	Passes.add(AIPass);
 	if (compareTechniques()) {
-		Passes.add(new AI());
+		Passes.add(new AIpf());
 		Passes.add(new AIGopan());
 		Passes.add(new AIClassic());
 		Passes.add(new Compare());

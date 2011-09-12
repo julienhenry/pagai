@@ -41,6 +41,7 @@ void show_help() {
 		  * lw (Lookahead Widening)\n \
 		  * pf (Path Focusing)\n \
 		  * lw+pf (combination of Lookahead Widening and Path Focusing)\n \
+		  * s (simple abstract interpretation)\n \
 -c : compare the 3 techniques (lw, pf and lw+pf)\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMT formula\n \
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
     int o;
     bool help = false;
     bool bad_use = false;
-    char* outputname="";
+    const char* outputname="";
 	char* arg;
 	bool debug = false;
 

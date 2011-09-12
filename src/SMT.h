@@ -20,7 +20,9 @@
 
 using namespace llvm;
 
-
+/// @brief SMT-formula creation pass
+///
+/// Uses SMT::man as an abstraction layer to access the SMT solver.
 class SMT : public ModulePass, public InstVisitor<SMT> {
 	
 	private:
@@ -148,7 +150,8 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// gets the name of the node associated to a specific basicblock
 		const std::string getNodeName(BasicBlock* b, bool src);
 
-		/// XToSmt - transform an apron object of type X into an SMT
+		/// @{
+		/// @name XToSmt - transform an apron object of type X into an SMT
 		/// expression
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
 		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);
@@ -156,8 +159,10 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
 		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons);
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
+		/// @}
 
-		// Visit methods
+		/// @{
+		/// @name Visit methods
 		void visitReturnInst (ReturnInst &I);
 		void visitBranchInst (BranchInst &I);
 		void visitSwitchInst (SwitchInst &I);
@@ -197,10 +202,10 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		void visitCmpInst (CmpInst &I);
 		void visitCastInst (CastInst &I);
 
-
 		void visitInstruction(Instruction &I) {
 			ferrs() << I.getOpcodeName();
 			assert(0 && "Instruction not interpretable yet!");
 		}
+		/// @}
 };
 #endif

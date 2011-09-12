@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BASEDIR=$(dirname "$0")/..
+
 function usage () {
 echo "
 Usage:
@@ -25,7 +27,7 @@ YICES=0
 UNROLL=0
 COMPILE_OPTIONS=
 
-while getopts “hpyguGi:o:c:” opt ; do
+while getopts "hpyguGi:o:c:" opt ; do
 	case $opt in
 		h)
 			usage
@@ -62,30 +64,36 @@ while getopts “hpyguGi:o:c:” opt ; do
      esac
 done
 
+if [ -z "$FILENAME" ]; then
+	echo "Please provide a filename (C source code) with -i FILE."
+	exit 1
+fi
 
 BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
-if [ -z $OUTPUT ] ; then 
+if [ -z "$OUTPUT" ] ; then 
 	OUTPUT=/tmp/${NAME}.bc
 fi
 
 echo "Compilation using command-line:
 clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
 "
-clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c $FILENAME -o $OUTPUT
+clang -DNDEBUG -fno-exceptions $COMPILE_OPTIONS -emit-llvm -c "$FILENAME" -o "$OUTPUT"
+# MM: Les -mem2reg, -llowerswitch, -loop-simplify sont redondants avec
+# MM: les passes ajoutées dans Execute.cc, non ?
 #opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
 if [ $UNROLL -eq 1 ] ; then
-	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
+	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 "$OUTPUT" -o "$OUTPUT"
 else
-	opt -mem2reg -inline -lowerswitch $OUTPUT -o $OUTPUT
+	opt -mem2reg -inline -lowerswitch "$OUTPUT" -o "$OUTPUT"
 fi
 
 if [ $GRAPH -eq 1 ] ; then
-	opt -dot-cfg $OUTPUT -o $OUTPUT
+	opt -dot-cfg "$OUTPUT" -o "$OUTPUT"
 	mv *.dot $DIR
-	for i in `ls $DIR/*.dot` ; do
+	for i in $DIR/*.dot ; do
 		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 		dot -Tsvg -o $i.svg $i
 	done
@@ -100,12 +108,10 @@ RESULT=/tmp/${NAME%%.*}.result
 echo "running analyzer on $NAME"
 
 if [ $GOPAN -eq 1 ] ; then
-	analyzer -g -i $OUTPUT
+    "$BASEDIR"/src/analyzer -g -i "$OUTPUT"
+elif [ $YICES -eq 1 ] ; then
+    "$BASEDIR"/src/analyzer -y -i "$OUTPUT"
 else
-	if [ $YICES -eq 1 ] ; then
-		analyzer -y -i $OUTPUT
-	else
-		analyzer -i $OUTPUT
-	fi
+    "$BASEDIR"/src/analyzer -i "$OUTPUT"
 fi
 

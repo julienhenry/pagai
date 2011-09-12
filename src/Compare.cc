@@ -1,7 +1,7 @@
 
 #include "Compare.h"
 #include "Expr.h"
-#include "AI.h"
+#include "AIpf.h"
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
@@ -21,7 +21,7 @@ const char * Compare::getPassName() const {
 Compare::Compare() : ModulePass(ID) {}
 
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<AI>();
+	AU.addRequired<AIpf>();
 	AU.addRequired<AIopt>();
 	AU.addRequired<SMT>();
 	AU.addRequired<AIGopan>();

@@ -23,6 +23,7 @@
 
 using namespace llvm;
 
+/// Base class implementing the basic abstract interpretation algorithm
 class AISimple : public AIPass {
 
 	public:
@@ -30,9 +31,11 @@ class AISimple : public AIPass {
 		AISimple ()	{}
 
 		~AISimple () {}
-
+		/// Apply the simple abstract interpretation algorithm
+		/// (ascending iterations + narrowing) on function F.
 		void computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI);
 
+	private:
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 
 		/// computeNode - compute and update the Abstract value of the Node n

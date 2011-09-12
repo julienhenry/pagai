@@ -73,6 +73,7 @@ CUDD_LIBS = \
 	$(CUDD_PATH)/epd/libepd.a
 
 
+.PHONY: all
 all: $(EXEC)
 
 $(EXEC) : $(OBJS)
@@ -80,6 +81,10 @@ $(EXEC) : $(OBJS)
 
 ${OBJ_REP}%.o : %.cc *.h
 	$(CC) $(ICFLAGS) -o $@ -c $< $(CPPFLAGS)
+
+.PHONY: doc
+doc:
+	doxygen DOXYFILE
 
 .PHONY: clean realclean
 
