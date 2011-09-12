@@ -56,7 +56,7 @@ bool AIClassic::runOnModule(Module &M) {
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
-		if (F->begin() == F->end()) continue;
+		if (F->empty()) continue;
 
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
@@ -64,7 +64,6 @@ bool AIClassic::runOnModule(Module &M) {
 				<< "-         COMPUTING FUNCTION             -\n"
 				<< "------------------------------------------\n";
 		Out->resetColor();
-		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
 
@@ -95,7 +94,5 @@ void AIClassic::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
-	// MM: Since LV and LI are class members, do you really want to
-	// MM: pass them as parameters?
-	computeFunc(F,LSMT,LV,LI);
+	computeFunc(F);
 }

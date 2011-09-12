@@ -33,7 +33,7 @@ class AISimple : public AIPass {
 		~AISimple () {}
 		/// Apply the simple abstract interpretation algorithm
 		/// (ascending iterations + narrowing) on function F.
-		void computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI);
+		void computeFunc(Function * F);
 
 	private:
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;

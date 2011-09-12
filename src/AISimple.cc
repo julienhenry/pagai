@@ -27,7 +27,7 @@
 
 using namespace llvm;
 
-void AISimple::computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI) {
+void AISimple::computeFunc(Function * F) {
 	BasicBlock * b;
 	Node * n;
 

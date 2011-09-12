@@ -53,7 +53,7 @@ bool AIGopan::runOnModule(Module &M) {
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
-		if (F->begin() == F->end()) continue;
+		if (F->empty()) continue;
 
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
@@ -61,7 +61,6 @@ bool AIGopan::runOnModule(Module &M) {
 				<< "-         COMPUTING FUNCTION             -\n"
 				<< "------------------------------------------\n";
 		Out->resetColor();
-		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
 
@@ -84,15 +83,13 @@ bool AIGopan::runOnModule(Module &M) {
 }
 
 void AIGopan::computeFunction(Function * F) {
-	BasicBlock * b;
-
-	// A = {first basicblock}
-	b = F->begin();
-	if (b == F->end()) return;
+	if (F->empty()) {
+		return;
+	}
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
-	computeFunc(F,LSMT,LV,LI);
+	computeFunc(F);
 }
