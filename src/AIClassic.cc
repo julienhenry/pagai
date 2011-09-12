@@ -45,6 +45,10 @@ bool AIClassic::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
+	// We're not using SMT-solving here, but SMT is also the class
+	// computing the set of points of interest Pr, i.e. the set of
+	// points where invariants should be computed and stored.
+	// MM: is the above comment correct?
 	LSMT = &(getAnalysis<SMT>());
 	*Out << "Starting analysis: S\n";
 
@@ -91,5 +95,7 @@ void AIClassic::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
+	// MM: Since LV and LI are class members, do you really want to
+	// MM: pass them as parameters?
 	computeFunc(F,LSMT,LV,LI);
 }
