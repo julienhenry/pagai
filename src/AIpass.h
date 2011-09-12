@@ -64,7 +64,8 @@ class AIPass : public InstVisitor<AIPass> {
 		AIPass () : 
 			LV(NULL),
 			LI(NULL),
-			LSMT(NULL) {
+			LSMT(NULL),
+			unknown(false) {
 				man = create_manager(getApronManager());
 				init_apron();
 				threshold = ap_lincons1_array_make(
@@ -77,6 +78,9 @@ class AIPass : public InstVisitor<AIPass> {
 			}
 
 		virtual void computeFunction(Function * F) = 0;
+
+		/// Set to true when the analysis fails (timeout, ...)
+		bool unknown;
 
 		/// initFunction - initialize the function by creating the Node
 		/// objects, and computing the strongly connected components.

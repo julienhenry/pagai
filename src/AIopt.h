@@ -32,9 +32,6 @@ class AIopt : public ModulePass, public AIPass {
 		std::map<BasicBlock*,PathTree*> pathtree;
 
 		std::set<Node*> A_prime;
-		
-		/// Set to true when the analysis fails (timeout, ...)
-		bool unknown;
 
 		void computeNewPaths(
 			Node * n
@@ -44,7 +41,7 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt() : ModulePass(ID), unknown(false)
+		AIopt() : ModulePass(ID)
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
