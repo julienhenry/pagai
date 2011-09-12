@@ -27,13 +27,20 @@
 
 using namespace llvm;
 
-void AIPass::ascendingIter(Node * n) {
+void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	A.push(n);
-	is_computed.clear();
+	if (!dont_reset) {
+		is_computed.clear();
+	}
 	while (!A.empty()) {
 		Node * current = A.top();
 		A.pop();
 		computeNode(current);
+		if (unknown) {
+			ignoreFunction.insert(F);
+			while (!A.empty()) A.pop();
+			return;
+		}
 	}
 }
 

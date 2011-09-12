@@ -123,7 +123,7 @@ class AIPass : public InstVisitor<AIPass> {
 		/// Basic abstract interpretation ascending iterations
 		/// (iterates over the nodes, calling computeNode for each of
 		/// them)
-		virtual void ascendingIter(Node * n);
+		virtual void ascendingIter(Node * n, Function * F, bool dont_reset = false);
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		/// This function should update the set A of active nodes to

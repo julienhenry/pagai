@@ -134,19 +134,7 @@ void AIpf::computeFunction(Function * F) {
 	n->X_d[passID]->set_top(env);
 	A.push(n);
 
-	is_computed.clear();
-	// Simple Abstract Interpretation algorithm
-	while (!A.empty()) {
-		current = A.top();
-		A.pop();
-		computeNode(current);
-		if (unknown) {
-			ignoreFunction.insert(F);
-			while (!A.empty()) A.pop();
-			return;
-		}
-	}
-
+	ascendingIter(n, F);
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";

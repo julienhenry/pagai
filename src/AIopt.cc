@@ -162,17 +162,10 @@ void AIopt::computeFunction(Function * F) {
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
 			(*it).second->clear(true);
 		}
-		while (!A.empty()) {
-			current = A.top();
-			A.pop();
-			computeNode(current);
-			if (unknown) {
-				ignoreFunction.insert(F);
-				while (!A.empty()) A.pop();
-				return;
-			}
-		}
-	
+		// MM: is it on purpose that is_computed.clear() is called
+		// MM: only outside the loop?
+		ascendingIter(n, F, true);
+
 		// we set X_d abstract values to bottom for narrowing
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;

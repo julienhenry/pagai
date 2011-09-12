@@ -52,7 +52,7 @@ void AISimple::computeFunc(Function * F, SMT * LSMT, Live * LV, LoopInfo * LI) {
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 
-	ascendingIter(n);
+	ascendingIter(n, F);
 
 	narrowingIter(n);
 
