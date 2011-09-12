@@ -83,6 +83,7 @@ void AbstractClassic::widening_threshold(Abstract * X, ap_lincons1_array_t* cons
 	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons);
 	ap_abstract1_clear(man,&Xmain);
 	
+	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
 

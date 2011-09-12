@@ -126,7 +126,14 @@ void AIPass::loopiter(
 			*Out << "Xtemp:\n";
 			Xtemp->print();
 		);
-		Xtemp->widening(Succ->X_s[passID]);
+
+		DEBUG(
+		*Out << "THRESHOLD:\n";
+		fflush(stdout);
+		ap_lincons1_array_fprint(stdout,&threshold);
+		fflush(stdout);
+		);
+		Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
@@ -208,6 +215,25 @@ void AIPass::computeEnv(Node * n) {
 	n->realVar.insert(realVars.begin(), realVars.end());
 }
 
+void computeThreshold(
+	ap_tcons1_array_t* C,
+	std::vector<ap_lincons1_t> * cons,
+	Abstract * A,
+	ap_environment_t * env) {
+	A->set_top(env);
+	A->meet_tcons_array(C);
+	ap_lincons1_array_t cs = A->to_lincons_array();
+	if (ap_lincons1_array_size(&cs) > 0) {
+		ap_lincons1_t c = ap_lincons1_array_get(&cs,0);
+		ap_environment_t * e = ap_lincons1_envref(&c);
+		if (ap_environment_is_leq(e,env)) {
+			ap_lincons1_t tmp = ap_lincons1_copy(&c);
+			cons->push_back(tmp);
+		}
+	}
+	ap_lincons1_array_clear(&cs);
+}
+
 void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
 	
 	// setting the focus path, such that the instructions can be correctly
@@ -246,17 +272,20 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
-	ConstraintsAbstract->set_top(Xtemp.main->env);
+
+	std::vector<ap_lincons1_t> cons;
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
-				DEBUG(
-					tcons1_array_print((*i)->front());
-				);
-				Xtemp.meet_tcons_array((*i)->front());
-				ConstraintsAbstract->meet_tcons_array((*i)->front());
-				ap_tcons1_array_clear((*i)->front());
+			DEBUG(
+				tcons1_array_print((*i)->front());
+			);
+			Xtemp.meet_tcons_array((*i)->front());
+		
+			computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env);
+
+			ap_tcons1_array_clear((*i)->front());
 		} else {
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
@@ -267,22 +296,31 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
-				A_Constraints.push_back(aman->NewAbstract(X2));
+				
+				computeThreshold(*it,&cons,ConstraintsAbstract,env);
+				
 				ap_tcons1_array_clear(*it);
 			}
 			Xtemp.join_array(env,A);
-			ConstraintsAbstract->join_array(env,A_Constraints);
+
+			// this is not the best abstract value we could have...
+			//ConstraintsAbstract->join_array(env,A_Constraints);
 		}
 		delete *i;
 	}
 
 	Xtemp.change_environment(env);
-	ConstraintsAbstract->change_environment(env);
 
 	// we transform the abstract value of constraints into an array of lincons
 	// for a future widening with threshold
 	ap_lincons1_array_clear(&threshold);
-	threshold = ConstraintsAbstract->to_lincons_array();
+	threshold = ap_lincons1_array_make(env,cons.size());
+	for (unsigned k = 0; k < cons.size(); k++) {
+		if (!ap_lincons1_extend_environment_with(&cons[k],env))
+			ap_lincons1_array_set(&threshold,k,&cons[k]);
+	}
+
+	//threshold = ConstraintsAbstract->to_lincons_array();
 	
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 	// the environment may have changed because of the constraints and the Phi
