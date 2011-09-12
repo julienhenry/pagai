@@ -119,10 +119,10 @@ void AbstractGopan::widening(Abstract * X) {
 	*main = Xmain_widening;
 	if (ap_abstract1_is_eq(man,&Xmain_widening,&Xpilot_widening)) {
 		pilot = main;
+		ap_abstract1_clear(man,&Xpilot_widening);
 	} else {
 		pilot = new ap_abstract1_t(Xpilot_widening);
 	}
-	ap_abstract1_clear(man,&Xpilot_widening);
 }
 
 /// widening with threshold is not implemented. We do a classical widening
@@ -219,7 +219,6 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_
 }
 
 void AbstractGopan::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
-
 	ap_abstract1_t Xmain;
 	ap_abstract1_t Xpilot;
 	Xmain = ap_abstract1_join(man,false,main,n->main);

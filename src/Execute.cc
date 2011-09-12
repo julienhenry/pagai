@@ -26,6 +26,7 @@
 #include "SMT.h"
 #include "Compare.h"
 #include "Analyzer.h"
+#include "Expr.h"
 #include "GenerateSMT.h"
 
 using namespace llvm;

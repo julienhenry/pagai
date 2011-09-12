@@ -43,6 +43,13 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	return Exprs[val];
 }
 
+void clear_all_exprs() {
+	std::map<Value *,ap_texpr1_t *>::iterator it = Exprs.begin(), et = Exprs.end();
+	for (;it != et; it++) {
+		ap_texpr1_free((*it).second);
+	}
+}
+
 ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<UndefValue>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
