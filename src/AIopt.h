@@ -33,6 +33,7 @@ class AIopt : public ModulePass, public AIPass {
 
 		std::set<Node*> A_prime;
 		
+		/// Set to true when the analysis fails (timeout, ...)
 		bool unknown;
 
 		void computeNewPaths(

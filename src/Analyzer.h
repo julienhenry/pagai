@@ -47,6 +47,8 @@ Apron_Manager_Type getApronManager();
 
 extern llvm::raw_ostream *Out;
 
+/// Functions ignored by Compare pass (because the analysis failed for
+/// one technique)
 extern std::set<llvm::Function*> ignoreFunction;
 
 
