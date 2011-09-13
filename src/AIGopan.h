@@ -23,6 +23,19 @@
 
 using namespace llvm;
 
+/// @brief Gopan&Reps Implementation.
+///
+/// This class is almost identical to AIClassic, the only difference
+/// being the abstract domain (which uses a main value to decide which
+/// paths are to be explored, and a pilot value to actually compute
+/// the invariants).
+///
+/// There is a lot of code duplication, as a workaround to an LLVM bug
+/// (or misunderstanding): if the classes are actually the same, then
+/// LLVM considers them as duplicate and runs only one of them.
+/// (question asked here:
+/// http://thread.gmane.org/gmane.comp.compilers.llvm.devel/42684
+/// without answer)
 class AIGopan : public ModulePass, public AISimple {
 
 	public:

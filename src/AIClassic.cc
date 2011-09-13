@@ -47,8 +47,7 @@ bool AIClassic::runOnModule(Module &M) {
 	Node * n;
 	// We're not using SMT-solving here, but SMT is also the class
 	// computing the set of points of interest Pr, i.e. the set of
-	// points where invariants should be computed and stored.
-	// MM: is the above comment correct?
+	// points where invariants will be displayed.
 	LSMT = &(getAnalysis<SMT>());
 	*Out << "Starting analysis: S\n";
 
