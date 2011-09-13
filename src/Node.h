@@ -24,7 +24,7 @@ typedef struct _phivar {
 
 /// Information associated to a BasicBlock
 /// (abstract values, ...). The BasicBlock <-> Node association is
-/// maintained through Node::bb and the global variable ::Nodes.
+/// maintained through Node::bb and the global variable Nodes.
 class Node {
 	private:
 		/// used by computeSCC
@@ -36,7 +36,7 @@ class Node {
 		/// man - apron manager
 		ap_manager_t * man;
 
-		/// bb - Basicblock associated to the node
+		/// bb - BasicBlock associated to the Node
 		BasicBlock * bb;
 		/// sccId identifies the strongly connected component the node is in
 		int sccId;
