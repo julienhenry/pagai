@@ -70,6 +70,58 @@ std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
 	return preds;
 }
 
+void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+	AU.addRequired<LoopInfo>();
+	AU.addRequired<Live>();
+	AU.addRequired<SMT>();
+}
+
+bool AISimple::runOnModule(Module &M) {
+	Function * F;
+	BasicBlock * b;
+	Node * n;
+	// We're not using SMT-solving here, but SMT is also the class
+	// computing the set of points of interest Pr, i.e. the set of
+	// points where invariants will be displayed.
+	// Other approaches will compute the invariant only for Pr, hence
+	// Pr points are the only ones for which a comparison can be done.
+	LSMT = &(getAnalysis<SMT>());
+	*Out << "Starting analysis: " << getPassName() << "\n";
+
+	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		F = mIt;
+		
+		// if the function is only a declaration, do nothing
+		if (F->empty()) continue;
+
+		Out->changeColor(raw_ostream::BLUE,true);
+		*Out << "\n\n\n"
+				<< "------------------------------------------\n"
+				<< "-         COMPUTING FUNCTION             -\n"
+				<< "------------------------------------------\n";
+		Out->resetColor();
+		initFunction(F);
+		computeFunction(F);
+
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			n = Nodes[b];
+			if (LSMT->getPr(*b->getParent())->count(b)) {
+				Out->changeColor(raw_ostream::MAGENTA,true);
+				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+				Out->resetColor();
+				n->X_s[passID]->print(true);
+			}
+			//delete Nodes[b];
+		}
+	}
+
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
+	return 0;
+}
+
 void AISimple::computeNode(Node * n) {
 	BasicBlock * b = n->bb;
 	Abstract * Xtemp;
@@ -174,4 +226,16 @@ void AISimple::narrowNode(Node * n) {
 		Xtemp = NULL;
 		A.push(Succ);
 	}
+}
+
+void AISimple::computeFunction(Function * F) {
+	if (F->empty()) {
+		return;
+	}
+
+	// get the information about live variables from the LiveValues pass
+	LV = &(getAnalysis<Live>(*F));
+	LI = &(getAnalysis<LoopInfo>(*F));
+
+	computeFunc(F);
 }

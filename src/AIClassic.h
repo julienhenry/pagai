@@ -24,15 +24,20 @@
 using namespace llvm;
 
 /// Pass implementing the basic abstract interpretation algorithm
-class AIClassic : public ModulePass, public AISimple {
+class AIClassic : public AISimple {
 
 	public:
+		/// @brief Pass Identifier
+		///
+		/// It is crucial for LLVM's pass manager that
+		/// this ID is different (in address) from a class to another,
+		/// hence this cannot be factored in the base class.
 		static char ID;	
 
 	public:
 
 		AIClassic ():
-			ModulePass(ID)
+			AISimple(ID)
 			{
 				aman = new AbstractManClassic();
 				passID = SIMPLE;
@@ -42,17 +47,7 @@ class AIClassic : public ModulePass, public AISimple {
 		~AIClassic () {
 			}
 
-		/// @{
-		/// @name LLVM pass manager stuff
 		const char *getPassName() const;
-
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-
-		bool runOnModule(Module &M);
-		/// @}
-
-		/// Simple wrapper around AISimple::computeFunc()
-		void computeFunction(Function * F);
 };
 
 #endif

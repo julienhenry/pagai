@@ -29,22 +29,20 @@ using namespace llvm;
 /// being the abstract domain (which uses a main value to decide which
 /// paths are to be explored, and a pilot value to actually compute
 /// the invariants).
-///
-/// There is a lot of code duplication, as a workaround to an LLVM bug
-/// (or misunderstanding): if the classes are actually the same, then
-/// LLVM considers them as duplicate and runs only one of them.
-/// (question asked here:
-/// http://thread.gmane.org/gmane.comp.compilers.llvm.devel/42684
-/// without answer)
-class AIGopan : public ModulePass, public AISimple {
+class AIGopan : public AISimple {
 
 	public:
+		/// @brief Pass Identifier
+		///
+		/// It is crucial for LLVM's pass manager that
+		/// this ID is different (in address) from a class to another,
+		/// hence this cannot be factored in the base class.
 		static char ID;	
 
 	public:
 
 		AIGopan ():
-			ModulePass(ID)
+			AISimple(ID)
 			{
 				aman = new AbstractManGopan();
 				//aman = new AbstractManClassic();
@@ -56,12 +54,6 @@ class AIGopan : public ModulePass, public AISimple {
 			}
 
 		const char *getPassName() const;
-
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-
-		bool runOnModule(Module &M);
-
-		void computeFunction(Function * F);
 };
 
 #endif
