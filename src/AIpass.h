@@ -101,8 +101,17 @@ class AIPass : public InstVisitor<AIPass> {
 		/// index in focuspath of the focuspath's basicblock we are working on
 		unsigned focusblock;
 		
-
+		/// list of all the constraints that need to be satisfied 
+		//along the path
 		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
+
+		/// set of Phi variables with their associated expression, 
+		/// that are defined at the last basicblock of the path
+		phivar PHIvars_prime;
+		
+		/// set of Phi variables with their associated expression, 
+		/// that are defined at the "middle" of the path 
+		/// (i.e. not at the last basicblock)
 		phivar PHIvars;
 	
 		/// computes the set of predecessors for a BasicBlock

@@ -154,10 +154,10 @@ void AIPass::loopiter(
 		);
 
 		DEBUG(
-		*Out << "THRESHOLD:\n";
-		fflush(stdout);
-		ap_lincons1_array_fprint(stdout,&threshold);
-		fflush(stdout);
+			*Out << "THRESHOLD:\n";
+			fflush(stdout);
+			ap_lincons1_array_fprint(stdout,&threshold);
+			fflush(stdout);
 		);
 		Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 		DEBUG(
@@ -183,9 +183,6 @@ void AIPass::loopiter(
 		Succ->X_s[passID] = Xpred;
 		only_join = true;
 		U->remove(*path);
-		if (U->exist(*path)) {
-			*Out << "ERROR STILL EXIST\n";
-		}
 	} else {
 		U->insert(*path);
 	}
@@ -268,6 +265,8 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	constraints.clear();
 	PHIvars.name.clear();
 	PHIvars.expr.clear();
+	PHIvars_prime.name.clear();
+	PHIvars_prime.expr.clear();
 	focuspath.assign(path.begin(), path.end());
 	Node * succ = Nodes[focuspath.back()];
 	focusblock = 0;
@@ -295,6 +294,10 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	}
 	ap_environment_t * env = NULL;
 	succ->create_env(&env,LV);
+	Xtemp.change_environment(env);
+
+	// first, we assign the Phi variables defined during the path to the right expressions
+	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
@@ -334,7 +337,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 		delete *i;
 	}
-
 	Xtemp.change_environment(env);
 
 	// we transform the abstract value of constraints into an array of lincons
@@ -346,13 +348,17 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			ap_lincons1_array_set(&threshold,k,&cons[k]);
 	}
 
-	//threshold = ConstraintsAbstract->to_lincons_array();
-	
-	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
-	// the environment may have changed because of the constraints and the Phi
-	// assignations
-	//Xtemp.change_environment(env);
-	
+	Xtemp.assign_texpr_array(&PHIvars_prime.name[0],&PHIvars_prime.expr[0],PHIvars_prime.name.size(),NULL);
+
+	DEBUG(
+		for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
+			ap_var_t name = PHIvars_prime.name[i];
+			ap_texpr1_t expr = PHIvars_prime.expr[i];
+			*Out << "Assigning " << ap_var_to_string(name) << " = ";
+			texpr1_print(&expr);
+			*Out << "\n";
+		}
+	);
 	delete ConstraintsAbstract;
 }
 
@@ -760,8 +766,8 @@ void AIPass::visitPHINode (PHINode &I){
 			if (focusblock == focuspath.size()-1) {
 				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
 					n->add_var(&I);
-					PHIvars.name.push_back((ap_var_t)&I);
-					PHIvars.expr.push_back(*expr);
+					PHIvars_prime.name.push_back((ap_var_t)&I);
+					PHIvars_prime.expr.push_back(*expr);
 					ap_environment_t * env = expr->env;
 					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					DEBUG(

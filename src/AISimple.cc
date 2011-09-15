@@ -167,6 +167,9 @@ void AISimple::computeNode(Node * n) {
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
 		if (LI->isLoopHeader(Succ->bb)) {
+			DEBUG(
+				*Out << "WIDENING\n";
+			);
 			Xtemp->widening(Succ->X_s[passID]);
 		} else {
 			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
