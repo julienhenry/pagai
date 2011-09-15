@@ -11,7 +11,7 @@ OBJS		= $(subst $(SRC_REP),$(OBJ_REP),$(SRC:.cc=.o))
 CC			= clang++
 #CPPFLAGS	= -Wall -g -pg #-O2 
 CPPFLAGS	= -O2  
-#CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
+CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2 
 #CPPFLAGS	= -Wall -g -DPRINT_DEBUG -DPRINT_DEBUG_SMT -O2 
 #LDFLAGS		= -pg
 LDFLAGS		= 

@@ -276,6 +276,8 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 			if (isa<CmpInst>(v)) {
 				cond = computeCondition(dyn_cast<CmpInst>(v));
 			} else if (isa<PHINode>(v)) {
+				// BUG : stack overflow when two PHINode objects are mutually
+				// dependent
 				cond = computeCondition(dyn_cast<PHINode>(v));
 			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
 				if (vint->isZero()) {
