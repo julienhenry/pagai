@@ -10,6 +10,12 @@
 #define DEBUG(X) do { } while (0)
 #endif
 
+#ifdef PRINT_DEBUG_SMT
+#define DEBUG_SMT(X) do {X} while (0)
+#else
+#define DEBUG_SMT(X) do { } while (0)
+#endif
+
 #include <time.h>
 
 extern int n_paths;

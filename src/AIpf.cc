@@ -116,8 +116,6 @@ void AIpf::computeFunction(Function * F) {
 	LSMT->getRho(*F);
 	*Out << "OK\n";
 	
-	//LSMT->man->SMT_print(LSMT->getRho(*F));
-
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -180,7 +178,7 @@ void AIpf::computeNode(Node * n) {
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID);
 		std::list<BasicBlock*> path;
-		DEBUG(
+		DEBUG_SMT(
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
@@ -288,7 +286,7 @@ void AIpf::narrowNode(Node * n) {
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
 		std::list<BasicBlock*> path;
-		DEBUG(
+		DEBUG_SMT(
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished

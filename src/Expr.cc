@@ -28,6 +28,10 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
 		double x = FP->getValueAPF().convertToDouble();
+		if (!FP->isExactlyValue(x)) {
+			float f = FP->getValueAPF().convertToFloat(); 
+			x = f;
+		}
 		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
 	}
 	if (isa<ConstantPointerNull>(val)) {
