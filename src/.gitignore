@@ -1,4 +1,5 @@
 analyzer
+.depend
 pagai
 tags
 Makefile.config

@@ -32,7 +32,6 @@ ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include -
 #ICFLAGS		= 
 EXEC		= pagai
 
-
 CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native) 
 #CPPFLAGS += -I/import/linux/i686/soft/llvm/2.9/include  -DNDEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -O3 -fno-exceptions -fno-rtti -fPIC -Woverloaded-virtual -Wcast-qual
 
@@ -88,7 +87,7 @@ all: $(EXEC)
 $(EXEC) : $(OBJS)
 	$(CC) $(LCFLAGS) -o $@ $^ $(CUDD_LIBS) $(LDFLAGS)
 
-${OBJ_REP}%.o : %.cc *.h
+${OBJ_REP}%.o : %.cc 
 	$(CC) $(ICFLAGS) -o $@ -c $< $(CPPFLAGS)
 
 .PHONY: doc
@@ -98,8 +97,18 @@ doc:
 .PHONY: clean realclean
 
 clean:
+	rm .depend
 	rm -rf $(OBJ_REP)*.o
 
 realclean: clean
 	rm -rf $(EXEC)
 
+depend: .depend
+
+.depend: 
+	$(CC) -MM $(ICFLAGS) $(CPPFLAGS) $(SRC) > .depend
+	@mv -f .depend .depend.tmp
+	@sed -e 's|.*:|$(OBJ_REP)&|' < .depend.tmp > .depend
+	@rm .depend.tmp
+
+-include .depend
