@@ -105,13 +105,13 @@ fi
 
 NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
-echo "running analyzer on $NAME"
+echo "running Pagai on $NAME"
 
 if [ $GOPAN -eq 1 ] ; then
-    "$BASEDIR"/src/analyzer -g -i "$OUTPUT"
+    "$BASEDIR"/src/pagai -g -i "$OUTPUT"
 elif [ $YICES -eq 1 ] ; then
-    "$BASEDIR"/src/analyzer -y -i "$OUTPUT"
+    "$BASEDIR"/src/pagai -y -i "$OUTPUT"
 else
-    "$BASEDIR"/src/analyzer -i "$OUTPUT"
+    "$BASEDIR"/src/pagai -i "$OUTPUT"
 fi
 

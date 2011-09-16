@@ -96,17 +96,17 @@ fi
 
 NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
-echo "running analyzer on $NAME"
+echo "running Pagai on $NAME"
 if [ $COMPARE -eq 1 ] ; then
-	analyzer_2 -c -b -i $OUTPUT
+	pagai_2 -c -b -i $OUTPUT
 else
 	if [ $GOPAN -eq 1 ] ; then
-		analyzer_2 -g -b -i $OUTPUT
+		pagai_2 -g -b -i $OUTPUT
 	else
 		if [ $YICES -eq 1 ] ; then
-			analyzer_2 -y -b -i $OUTPUT
+			pagai_2 -y -b -i $OUTPUT
 		else
-			analyzer_2 -b -i $OUTPUT
+			pagai_2 -b -i $OUTPUT
 		fi
 	fi
 fi

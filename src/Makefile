@@ -30,7 +30,7 @@ CPPFLAGS	= -Wall -g -DPRINT_DEBUG -O2
 LDFLAGS		= 
 ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include -I$(CUDD_PATH)/include 
 #ICFLAGS		= 
-EXEC		= analyzer
+EXEC		= pagai
 
 
 CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native) 
