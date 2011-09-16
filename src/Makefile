@@ -1,8 +1,21 @@
+Config=Makefile.config
+
+ifeq ($(wildcard $(Config)),)
+# config file doesn't exist
 YICES_PATH	= /home/jhenry/local/yices
 Z3_PATH		= /home/jhenry/local/z3
-#LLVM_PATH	= /home/jhenry/local/llvm-2.9
 LLVM_PATH	= /usr
 CUDD_PATH	= /home/jhenry/local/cudd-2.4.2
+
+GMP_PREFIX=/usr
+MPFR_PREFIX=/usr
+APRON_PREFIX=/usr
+PPL_PREFIX=/usr
+CAMLIDL_PREFIX=/usr
+else
+# config file exists    
+include $(Config)
+endif
 
 SRC		= $(wildcard ../src/*.cc)
 OBJ_REP		= ../obj/
@@ -19,11 +32,6 @@ ICFLAGS		= -I$(YICES_PATH)/include -I$(Z3_PATH)/include -I$(LLVM_PATH)/include -
 #ICFLAGS		= 
 EXEC		= analyzer
 
-GMP_PREFIX=/usr
-MPFR_PREFIX=/usr
-APRON_PREFIX=/usr
-PPL_PREFIX=/usr
-CAMLIDL_PREFIX=/usr
 
 CPPFLAGS += $(shell llvm-config --cxxflags jit bitreader bitwriter native) 
 #CPPFLAGS += -I/import/linux/i686/soft/llvm/2.9/include  -DNDEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -O3 -fno-exceptions -fno-rtti -fPIC -Woverloaded-virtual -Wcast-qual

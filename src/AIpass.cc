@@ -331,9 +331,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				ap_tcons1_array_clear(*it);
 			}
 			Xtemp.join_array(env,A);
-
-			// this is not the best abstract value we could have...
-			//ConstraintsAbstract->join_array(env,A_Constraints);
 		}
 		delete *i;
 	}
