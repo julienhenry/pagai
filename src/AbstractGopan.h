@@ -9,6 +9,7 @@
 class Node;
 class Abstract;
 
+/// Abstract Domain used by Lookahead Widening algorithm
 class AbstractGopan : public Abstract {
 
 	private:

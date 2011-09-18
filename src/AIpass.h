@@ -18,6 +18,8 @@ class SMT;
 class Live;
 class Node;
 
+/// @brief Base class for abstract interpretation
+///
 /// Base class factoring helper functions and data-structure to
 /// perform Abstract Interpretation (i.e. graph traversal on the CFG,
 /// Apron Manager, SMT solver, ...).

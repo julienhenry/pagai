@@ -4,6 +4,7 @@
 #include "ap_global1.h"
 #include "Abstract.h"
 
+/// class that creates Abstract objects
 class AbstractMan {
 
 	public:
@@ -11,7 +12,7 @@ class AbstractMan {
 	virtual Abstract * NewAbstract(Abstract * A) = 0;
 };
 
-
+/// class that create Abstract objects of type AbstractClassic
 class AbstractManClassic : public AbstractMan {
 	
 	public:
@@ -19,6 +20,7 @@ class AbstractManClassic : public AbstractMan {
 	Abstract * NewAbstract(Abstract * A);
 };
 
+/// class that create Abstract objects of type AbstractGopan
 class AbstractManGopan : public AbstractMan {
 
 	public:

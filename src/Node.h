@@ -22,6 +22,8 @@ typedef struct _phivar {
 	std::vector<ap_texpr1_t> expr;
 } phivar;
 
+/// @brief class that keeps information associated to a BasicBlock
+///
 /// Information associated to a BasicBlock
 /// (abstract values, ...). The BasicBlock <-> Node association is
 /// maintained through Node::bb and the global variable Nodes.

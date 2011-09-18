@@ -11,6 +11,7 @@
 
 using namespace llvm;
 
+/// Pass that only computes the SMT-formula and outputs it
 class GenerateSMT : public ModulePass {
 	
 	private:

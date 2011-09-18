@@ -7,6 +7,7 @@
 
 class Node;
 
+/// Base class of abstract domains
 class Abstract {
 
 	public:

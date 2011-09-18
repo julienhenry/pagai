@@ -10,6 +10,7 @@
 
 using namespace llvm;
 
+/// Path Focusing implementation with Lookahead Widening
 class AIopt : public ModulePass, public AIPass {
 
 	private:

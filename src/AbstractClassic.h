@@ -9,6 +9,7 @@
 class Node;
 class AbstractGopan;
 
+/// Abstract Domain, used by every AI pass but AIGopan
 class AbstractClassic: public Abstract {
 
 	protected:

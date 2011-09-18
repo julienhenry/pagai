@@ -10,7 +10,7 @@
 
 using namespace llvm;
 
-/// Abstract Interpratation with Path Focusing algorithm (using SMT-solving)
+/// Abstract Interpretation with Path Focusing algorithm (using SMT-solving)
 class AIpf : public ModulePass, public AIPass {
 
 	public:

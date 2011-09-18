@@ -8,13 +8,17 @@
 
 using namespace llvm;
 
-/// Live - Analysis that provides liveness information for
-/// LLVM IR Values.
+/// @brief Liveness analysis
 ///
+/// Analysis that provides liveness information for
+/// LLVM IR Values.
 class Live : public FunctionPass {
+	
+	private:
+
 	LoopInfo *LI;
 
-	/// Memo - A bunch of state to be associated with a value.
+	/// A bunch of state to be associated with a value.
 	///
 	struct Memo {
 		/// Used - The set of blocks which contain a use of the value.
