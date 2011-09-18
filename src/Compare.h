@@ -1,11 +1,5 @@
-
 #ifndef COMPARE_H
 #define COMPARE_H
-
-#include "llvm/Pass.h"
-#include "llvm/Support/CFG.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallPtrSet.h"
 
 #include "SMT.h"
 #include "Node.h"

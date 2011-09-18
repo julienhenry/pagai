@@ -1,13 +1,5 @@
 #include <map>
 
-#include "llvm/BasicBlock.h"
-#include "llvm/Type.h"
-#include "llvm/Support/CFG.h"
-#include "llvm/Support/FormattedStream.h"
-
-
-#include "ap_global1.h"
-
 #include "Expr.h"
 #include "apron.h"
 #include "Debug.h"

@@ -1,21 +1,11 @@
-
-#include "llvm/Module.h"
-#include "llvm/Instructions.h"
-#include "llvm/BasicBlock.h"
-#include "llvm/Pass.h"
-#include "llvm/PassManager.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Analysis/LoopInfo.h"
 
-
-#include "Analyzer.h"
-#include "SMT.h"
-#include "Node.h"
-#include "SMT_manager.h"
-#include "z3_manager.h"
-#include "yices.h"
-#include "Debug.h"
 #include "GenerateSMT.h"
+#include "Analyzer.h"
+#include "Live.h"
+#include "Node.h"
+#include "Debug.h"
 
 using namespace std;
 

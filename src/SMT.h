@@ -6,12 +6,7 @@
 #include <list>
 #include <set>
 
-#include "llvm/Module.h"
-#include "llvm/Pass.h"
-#include "llvm/PassManager.h"
-#include "llvm/Support/CFG.h"
 #include "llvm/Support/InstVisitor.h"
-#include "llvm/Support/FormattedStream.h"
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "Analyzer.h"

@@ -1,4 +1,3 @@
-
 #include "Analyzer.h"
 #include "AbstractMan.h"
 #include "Abstract.h"

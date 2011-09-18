@@ -3,9 +3,6 @@
 
 #include <map>
 
-#include "llvm/BasicBlock.h"
-#include "llvm/Value.h"
-
 #include "ap_global1.h"
 
 #include "Node.h"

@@ -1,11 +1,9 @@
 #ifndef LIVE_H
 #define LIVE_H
 
-#include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/LoopInfo.h"
 
 using namespace llvm;

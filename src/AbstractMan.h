@@ -4,7 +4,6 @@
 #include "ap_global1.h"
 #include "Abstract.h"
 
-
 class AbstractMan {
 
 	public:

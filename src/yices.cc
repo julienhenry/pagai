@@ -3,14 +3,6 @@
 #include <sstream>
 #include <stdio.h>
 
-#include "llvm/Module.h"
-#include "llvm/Instructions.h"
-#include "llvm/BasicBlock.h"
-#include "llvm/Pass.h"
-#include "llvm/PassManager.h"
-#include "llvm/Support/CFG.h"
-#include "llvm/Support/FormattedStream.h"
-
 #include <gmp.h>
 #include "yices_c.h"
 

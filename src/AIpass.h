@@ -4,25 +4,19 @@
 #include <queue>
 #include <vector>
 
-#include "llvm/Module.h"
-#include "llvm/Pass.h"
-#include "llvm/PassManager.h"
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
-#include "llvm/Analysis/LoopInfo.h"
-
-#include "ap_global1.h"
 
 #include "Analyzer.h"
 #include "apron.h"
-#include "Node.h"
-#include "Live.h"
-#include "SMT.h"
 #include "PathTree.h"
 #include "AbstractMan.h"
 
 using namespace llvm;
+
+class SMT;
+class Live;
+class Node;
 
 /// Base class factoring helper functions and data-structure to
 /// perform Abstract Interpretation (i.e. graph traversal on the CFG,

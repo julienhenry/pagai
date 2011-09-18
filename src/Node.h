@@ -11,11 +11,11 @@
 #include "ap_global1.h"
 
 #include "Analyzer.h"
-#include "Abstract.h"
-#include "Live.h"
-#include "AbstractGopan.h"
 
 using namespace llvm;
+
+class Abstract;
+class Live;
 
 typedef struct _phivar {
 	std::vector<ap_var_t> name;

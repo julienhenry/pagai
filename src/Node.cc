@@ -6,15 +6,12 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
 
-#include "ap_global1.h"
-
 #include "Node.h"
+#include "Live.h"
 #include "Expr.h"
-#include "Abstract.h"
 #include "Debug.h"
+#include "Abstract.h"
 #include "Analyzer.h"
-#include "AbstractClassic.h"
-#include "AbstractGopan.h"
 
 using namespace llvm;
 
