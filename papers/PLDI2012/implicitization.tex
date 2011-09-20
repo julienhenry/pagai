@@ -276,6 +276,11 @@ One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
 The combination of these two techniques considers an ascending sequence of
 subsets of the paths between two points in $P_R$.
 
+We also assume that the program in expressed in SSA form, meaning that each
+variable is only assigned once in the transition graph. This is not a
+restriction, since there exist standard algorithm that transform a program into
+an SSA form.
+
 The set of paths is kept implicit by an SMT formula $\rho$ expressing
 the semantics of the program, assuming that the transition semantics can be
 expressed within a decidable theory.
@@ -289,7 +294,7 @@ can easily be expressed as the
 cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
 
 The current working subset of paths is stored using a compact representation,
-such as Binary Decision Diagrams.
+such as binary decision diagrams.
 
 \subsection{Ascending iterations}
 \label{subsec:ascending}
@@ -315,7 +320,7 @@ x \notin X_j^s)$$
 
 Since we do not work on the entire transition graph but on a subset of it, we
 have to cunjunct the formula $f(p_i)$ with the actual set of working paths,
-noted $P$, expressed as a boolean formula, where the boolean variables are the
+noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 \emph{reachability predicates} of the control points. We can easily construct
 this formula from the binary decision diagram using dynamic programming, and
 avoiding an exponentially sized formula. In other words, we force the SMT solver
@@ -336,7 +341,7 @@ This new subgraph is the union of the paths of the previous one with a set
 $P'$ of new paths that become feasible regarding the current abstract values.
 $P'$ is progressively constructed during the analysis of the subgraph.
 
-We distinguish two phases in the analysis of a point $p_i \in P_R$:
+We distinguish two phases when analysing a point $p_i \in P_R$:
 \begin{enumerate}
 \item We search for paths starting at point $p_i$, such that these paths are in
 $P$, i.e are included in the working subgraph. Each time we find a path, we
