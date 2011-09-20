@@ -1,0 +1,33 @@
+\STATE $A \gets \emptyset$
+\STATE $P \gets \emptyset$
+\FORALL {$p \in P_R / I_p \neq \emptyset$}
+	\STATE $A \gets A \cup p$
+\ENDFOR
+
+\WHILE{true}
+\STATE $A' \gets \emptyset$
+
+\STATE $P' \gets \emptyset$
+
+\WHILE{$A \neq \emptyset$}
+	\STATE Select $p_i \in A$
+	\STATE $A \gets A \setminus \{p_i\}$
+	\STATE // First only consider the paths already seen (in $P$)
+	\STATE PathFocusing($p_i$)
+	
+	\STATE // Check if there exists new feasible paths that have 
+	\STATE // never been computed and that make the invariant grow
+	\STATE ComputeNewPaths($p_i$)
+
+\ENDWHILE
+\STATE Narrow
+\IF {$P' = \emptyset$}
+	\STATE \textbf{break}
+\ENDIF
+\STATE // Add the new feasible paths to the graph and restart 
+\STATE $P \gets P \cup P'$
+\STATE $A \gets A'$
+\ENDWHILE
+
+\STATE \RETURN $\{X_i^s,\ i \in P_R\}$
+

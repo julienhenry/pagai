@@ -9,6 +9,7 @@
 \usepackage{amsmath,amsfonts}
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
+\usepackage{algorithmic,algorithm}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
@@ -223,7 +224,7 @@ Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS
 Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation;
 contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
 
-\section{Guided static analysis}
+\subsection{Guided static analysis}
 \label{sec:guided_multigraph}
 \emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improved over classical upward Kleene iterations with widening.
 Consider the following program:
@@ -260,7 +261,128 @@ otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
 
 
+\section{Guided analysis over the paths}
+\label{sec:combined}
 
+Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
+graph of the program. One could instead apply the same technique to the implicit
+multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
+unfeasible paths.
+
+Let $P$ be the set of control points in the transition graph, 
+$P_W \subseteq P$ the set of widening points
+such that removing the points in $P_W$ gives an acyclic graph.
+One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
+The combination of these two techniques considers an ascending sequence of
+subsets of the paths between two points in $P_R$.
+
+The set of paths is kept implicit by an SMT formula $\rho$ expressing
+the semantics of the program, assuming that the transition semantics can be
+expressed within a decidable theory.
+
+This formula contains Boolean \emph{reachability predicates} $b_i$ for each
+control points $p_i \notin P_R$, $b_i^s$ and $b_i^d$ for each $p_i \in P_R$, so
+that a path 
+$p_{i_1} \rightarrow p_{i_2} \rightarrow \dots \rightarrow p_{i_n}$ 
+between two points $p_{i_1}, p_{i_n} \in P_R$ 
+can easily be expressed as the
+cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
+
+The current working subset of paths is stored using a compact representation,
+such as Binary Decision Diagrams.
+
+\subsection{Ascending iterations}
+\label{subsec:ascending}
+
+The algorithm for computing an inductive invariant over a subgraph is the Path
+Focused algorithm from \citet{Monniaux_Gonnord_SAS11}.
+
+In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
+model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
+\in P_R$ of $p_i$, such that the image of $X_{p_i}^s$ by the path transformation
+is not included in the actual $X_{p_j}^s$.
+Intuitively, such a path makes the abstract value $X_{p_j}^s$ grow, and thus is
+an interesting path to focus on. When the formula becomes unsatisfiable, it
+means the analysis of $p_i$ is finished.
+
+If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
+successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
+associated to $p_i$ :
+$$f(p_i) = \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
+b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+x \notin X_j^s)$$
+
+Since we do not work on the entire transition graph but on a subset of it, we
+have to cunjunct the formula $f(p_i)$ with the actual set of working paths,
+noted $P$, expressed as a boolean formula, where the boolean variables are the
+\emph{reachability predicates} of the control points. We can easily construct
+this formula from the binary decision diagram using dynamic programming, and
+avoiding an exponentially sized formula. In other words, we force the SMT solver
+to give us a path which is in $P$.
+
+
+\subsection{Adding new paths}
+\label{subsec:addingpaths}
+
+Our technique computes the fixpoint iterations on a ascending sequence of
+subgraphs, until the complete graph is reached.
+
+When the analysis of a subgraph is finished, meaning that the abstract values
+for each control points has converged to an inductive invariant for this subgraph,
+the next subgraph to work on has to be computed.
+
+This new subgraph is the union of the paths of the previous one with a set
+$P'$ of new paths that become feasible regarding the current abstract values.
+$P'$ is progressively constructed during the analysis of the subgraph.
+
+We distinguish two phases in the analysis of a point $p_i \in P_R$:
+\begin{enumerate}
+\item We search for paths starting at point $p_i$, such that these paths are in
+$P$, i.e are included in the working subgraph. Each time we find a path, we
+update the abstract value of the destination point of the path. This is the
+phase explained in \ref{subsec:ascending}.
+\item  When the precedent phase terminates, there is no more paths in
+$P$, starting at $p_i$, 
+that make the abstract values of the successors grow (otherwise, the SMT
+solver would not have answered ``\emph{unsat}''). However, there may
+exist such paths in the entire multigraph, that are not in $P$. The second phase
+computes these paths and adds them to $P'$.
+\end{enumerate}
+
+It is not necessary to add into $P'$ all the new feasible paths. We just have
+to add a new path into $P'$ until no more path can make the invariant grow,
+as proposed by Algorithm \ref{algo:computepaths}. For that, we use another
+abstract value associated to a control point $p_j$, noted $X_j^d$, which is
+different from $X_j^s$.
+
+\begin{algorithm}
+	\caption{ComputeNewPaths}
+	\label{algo:computepaths}
+	\begin{algorithmic}[1] 
+	\input{algo/compute-paths}
+	\end{algorithmic}
+\end{algorithm}
+
+\subsection{Algorithm}
+
+The algorithm for Guided static analysis on the implicit multigraph is described
+in Algorithm \ref{algo:combined}.
+
+We maintain a set of active control points $A$, containing the points in $P_R$
+that still need to be processed. We apply the two previously described phases to
+the elements of $A$ until $A$ is empty. When $A$ is empty, it means the
+invariant computation of the subgraph is finished. As proposed by
+\citet{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations, and we
+restart the analysis with a new subgraph if needed.
+\begin{algorithm}
+	\caption{Guided static analysis on implicit multigraph}
+	\label{algo:combined}
+	\begin{algorithmic}[1] 
+	\input{algo/algo-combined}
+	\end{algorithmic}
+\end{algorithm}
+ 
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
