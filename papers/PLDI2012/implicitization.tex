@@ -347,12 +347,16 @@ We distinguish two phases when analysing a point $p_i \in P_R$:
 $P$, i.e are included in the working subgraph. Each time we find a path, we
 update the abstract value of the destination point of the path. This is the
 phase explained in \ref{subsec:ascending}.
-\item  When the precedent phase terminates, there is no more paths in
+\item  When the previous phase terminates, there is no more paths in
 $P$, starting at $p_i$, 
 that make the abstract values of the successors grow (otherwise, the SMT
 solver would not have answered ``\emph{unsat}''). However, there may
 exist such paths in the entire multigraph, that are not in $P$. The second phase
-computes these paths and adds them to $P'$.
+computes these paths and adds them to $P'$. We also use SMT solving to discover
+these new paths, but we slightly change the SMT formula given to the SMT solver.
+We now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
+P$. Since we already know that $f(p_i) \wedge P$ is \emph{unsatisfiable}, all
+the paths given by the SMT solver won't be in $P$.
 \end{enumerate}
 
 It is not necessary to add into $P'$ all the new feasible paths. We just have
@@ -387,7 +391,17 @@ restart the analysis with a new subgraph if needed.
 	\input{algo/algo-combined}
 	\end{algorithmic}
 \end{algorithm}
- 
+
+Termination of this algorihm is guaranteed, because:
+\begin{itemize}
+\item 
+the subset of paths $P$ is
+strictly increasing at each loop iteration, and bounded by the finite set of
+paths in the entire graph. 
+\item the set $P'$ always verifies $P \wedge P' = false$ by construction, 
+which guarantees that $P$
+will eventually be empty after a finite number of loop iterations.
+\end{itemize}
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
