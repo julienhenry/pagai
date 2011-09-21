@@ -276,14 +276,14 @@ One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
 The combination of these two techniques considers an ascending sequence of
 subsets of the paths between two points in $P_R$.
 
-We also assume that the program in expressed in SSA form, meaning that each
-variable is only assigned once in the transition graph. This is not a
-restriction, since there exist standard algorithm that transform a program into
-an SSA form.
 
 The set of paths is kept implicit by an SMT formula $\rho$ expressing
 the semantics of the program, assuming that the transition semantics can be
-expressed within a decidable theory.
+expressed within a decidable theory. For an easy construction of $\rho$, 
+we also assume that the program in expressed in SSA form, meaning that each
+variable is only assigned once in the transition graph. This is not a
+restriction, since there exist standard algorithms that transform a program into
+an SSA format.
 
 This formula contains Boolean \emph{reachability predicates} $b_i$ for each
 control points $p_i \notin P_R$, $b_i^s$ and $b_i^d$ for each $p_i \in P_R$, so
@@ -292,6 +292,9 @@ $p_{i_1} \rightarrow p_{i_2} \rightarrow \dots \rightarrow p_{i_n}$
 between two points $p_{i_1}, p_{i_n} \in P_R$ 
 can easily be expressed as the
 cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
+The Boolean $b_{i}^s$ is $true$ when the path starts at point $p_i$, whereas
+$b_i^d$ is $true$ when the path arrives at $p_i$.
+
 
 The current working subset of paths is stored using a compact representation,
 such as binary decision diagrams.
@@ -304,9 +307,9 @@ Focused algorithm from \citet{Monniaux_Gonnord_SAS11}.
 
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
 model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
-\in P_R$ of $p_i$, such that the image of $X_{p_i}^s$ by the path transformation
-is not included in the actual $X_{p_j}^s$.
-Intuitively, such a path makes the abstract value $X_{p_j}^s$ grow, and thus is
+\in P_R$ of $p_i$, such that the image of $X_{i}^s$ by the path transformation
+is not included in the actual $X_{j}^s$.
+Intuitively, such a path makes the abstract value $X_{j}^s$ grow, and thus is
 an interesting path to focus on. When the formula becomes unsatisfiable, it
 means the analysis of $p_i$ is finished.
 
@@ -324,7 +327,7 @@ noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 \emph{reachability predicates} of the control points. We can easily construct
 this formula from the binary decision diagram using dynamic programming, and
 avoiding an exponentially sized formula. In other words, we force the SMT solver
-to give us a path which is in $P$.
+to give us a path included in $P$.
 
 
 \subsection{Adding new paths}
@@ -360,7 +363,7 @@ the paths given by the SMT solver won't be in $P$.
 \end{enumerate}
 
 It is not necessary to add into $P'$ all the new feasible paths. We just have
-to add a new path into $P'$ until no more path can make the invariant grow,
+to add them one after another, until no more path can make the invariant grow,
 as proposed by Algorithm \ref{algo:computepaths}. For that, we use another
 abstract value associated to a control point $p_j$, noted $X_j^d$, which is
 different from $X_j^s$.
@@ -398,12 +401,84 @@ Termination of this algorihm is guaranteed, because:
 the subset of paths $P$ is
 strictly increasing at each loop iteration, and bounded by the finite set of
 paths in the entire graph. 
-\item the set $P'$ always verifies $P \wedge P' = false$ by construction, 
+\item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
 which guarantees that $P$
 will eventually be empty after a finite number of loop iterations.
 \end{itemize}
+
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
+
+\citet{DBLP:conf/pldi/GulwaniZ10} proposes a technique for computing disjunctive invariants, by
+distinguishing all the paths inside a loop. In
+this section, we propose to improve this technique by using SMT queries to find
+interesting paths, the objective being to avoid an explicit exhaustive
+enumeration of an exponential number of paths.
+
+This technique is aimed at computing for a loop header $p_i$ a disjunctive invariant
+$\bigvee_{1\leq j \leq m} X_{i,j}$. 
+To do so, one chooses an integer $\delta \in [1,m]$, and
+a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$, assuming there
+are $n$ distinct paths in the loop.  For each
+abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
+image of $X_{i,j}$ by the path is joined with
+$X_{i,\sigma(j,k)}$.
+Initially, the $\delta$-th abstract value is assigned to the initial states of
+$p_i$, and each other abstract value is assigned to bottom.
+
+Our method improves this technique in two ways :
+\begin{itemize}
+\item Instead of enumerating the whole set of paths, we keep them implicit and
+compute them only when needed.
+\item At each loop iteration of the algorithm explained in
+\cite{DBLP:conf/pldi/GulwaniZ10}, an image by a path and a union of abstract
+values are computed for each path and each disjunct. 
+Lots of these operations may be useless, in the sense that the resulting
+abstract value may not change.
+In our approach, we do this only for paths and disjuncts that makes the
+resulting abstract value grow.
+\end{itemize}
+
+Our improvement consists in a slight modification of the SMT formula we solve.
+We introduce in this formula Boolean variables $\{d_k, 1 \leq k \leq m\}$, so
+that we can easily find in the model which abstract value of the disjunction we
+have to choose. The resulting formula that is given to the SMT solver is defined
+by $g(p_i)$.
+
+\begin{eqnarray*}
+g(p_i) = & \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
+ & \wedge 
+\displaystyle\bigvee_{1 \leq k \leq m} (d_k \wedge x \in X_{i,k} \wedge \bigwedge_{l \neq k}
+\neg d_l) \\
+ & \wedge
+\displaystyle\bigvee_{j \in Succ(i)} 
+(b_j^d \wedge \bigwedge_{1 \leq k \leq m} (x \notin X_{j,k}))
+\end{eqnarray*}
+
+Our algorithm for computing disjunctive invariants is described in Algorithm
+\ref{algo:disjunctive}
+
+\begin{algorithm}[!h]
+\caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
+\label{algo:disjunctive}
+\begin{algorithmic}[1] 
+\FORALL {$k \in \{1,..,m\} \setminus \{\delta\}$}
+	\STATE $X_{i,k} \gets \perp$
+\ENDFOR
+\STATE $X_{i,\delta} \gets I_{p_i}$
+\WHILE {true}
+		\STATE $res \gets SmtSolve\left[g(p_i)\right]$
+	\IF {$res = unsat$}
+		\STATE \textbf{break}
+	\ENDIF
+	\STATE Compute the path $\tau_{i,k}$ from $res$ 
+	\STATE Take $j \in \{ l | d_l = true\}$ 
+	\STATE $X_{i,\sigma(j,k)} \gets X_{i,\sigma(j,k)} \sqcup
+	\tau_{i,k}(X_{i,j})$
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
 
 \section{Experimental comparisons}
 \label{sec:experiments}
