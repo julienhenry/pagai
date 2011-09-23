@@ -225,7 +225,7 @@ Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the expo
 contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
 
 \subsection{Guided static analysis}
-\label{sec:guided_multigraph}
+\label{sec:guided}
 \emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improved over classical upward Kleene iterations with widening.
 Consider the following program:
 \lstinputlisting{gopan_reps.c}
@@ -261,21 +261,20 @@ otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
 
 
-\section{Guided analysis over the paths}
-\label{sec:combined}
+\subsection{Path-focused technique}
+\label{sec:path_focusing}
 
-Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
-graph of the program. One could instead apply the same technique to the implicit
-multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
-unfeasible paths.
+\emph{Path-focused} technique from \citet{Monniaux_Gonnord_SAS11} proposes to
+distinguish the different paths in the program in order to avoid loss of
+precision due to merge operations. Since the number of paths may be exponential,
+the technique keeps them implicit and computes them when needed using
+SMT-solving. Then, the iterations are computed over a reduced multigraph instead
+of the classical transition graph.
 
 Let $P$ be the set of control points in the transition graph, 
 $P_W \subseteq P$ the set of widening points
 such that removing the points in $P_W$ gives an acyclic graph.
 One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
-The combination of these two techniques considers an ascending sequence of
-subsets of the paths between two points in $P_R$.
-
 
 The set of paths is kept implicit by an SMT formula $\rho$ expressing
 the semantics of the program, assuming that the transition semantics can be
@@ -293,17 +292,38 @@ between two points $p_{i_1}, p_{i_n} \in P_R$
 can easily be expressed as the
 cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
 The Boolean $b_{i}^s$ is $true$ when the path starts at point $p_i$, whereas
-$b_i^d$ is $true$ when the path arrives at $p_i$.
+$b_i^d$ is $true$ when the path arrives at $p_i$. In other words, we split the
+points in $P_R$ into a \emph{source} point, with only outgoing transitions, and
+a \emph{destination} point, with only incoming transitions, so that the
+resulting graph is acyclic and there is no paths going through control
+points in $P_R$.
 
+In order to find focus paths, we solve an SMT formula which is satisfiable when
+there exist a path starting at a point $p_i \in P_R$ in a state included in the
+actual invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
+state outside of $X_j$. In this case, we construct this path using the model and
+update $X_j$. When $p_i = p_j$, meaning that the path is actually a self-loop,
+we can apply a widening/narrowing sequence, or even compute the transitive
+closure of the loop using abstract acceleration. % TODO citation laure gonnord
 
+\section{Guided analysis over the paths}
+\label{sec:guided_multigraph}
+
+Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
+graph of the program. One could instead apply the same technique to the implicit
+multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
+unfeasible paths.
+In this section, we use the same notations as \ref{sec:path_focusing}.
+
+The combination of these two techniques considers an ascending sequence of
+subsets of the paths between two points in $P_R$.
 The current working subset of paths is stored using a compact representation,
 such as binary decision diagrams.
 
 \subsection{Ascending iterations}
 \label{subsec:ascending}
 
-The algorithm for computing an inductive invariant over a subgraph is the Path
-Focused algorithm from \citet{Monniaux_Gonnord_SAS11}.
+The algorithm for computing an inductive invariant over a subgraph is the Path-focused algorithm from \citet{Monniaux_Gonnord_SAS11}.
 
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
 model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
@@ -322,7 +342,7 @@ b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wed
 x \notin X_j^s)$$
 
 Since we do not work on the entire transition graph but on a subset of it, we
-have to cunjunct the formula $f(p_i)$ with the actual set of working paths,
+cunjunct the formula $f(p_i)$ with the actual set of working paths,
 noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 \emph{reachability predicates} of the control points. We can easily construct
 this formula from the binary decision diagram using dynamic programming, and
@@ -366,7 +386,7 @@ It is not necessary to add into $P'$ all the new feasible paths. We just have
 to add them one after another, until no more path can make the invariant grow,
 as proposed by Algorithm \ref{algo:computepaths}. For that, we use another
 abstract value associated to a control point $p_j$, noted $X_j^d$, which is
-different from $X_j^s$.
+distinct from $X_j^s$, and initialized to $X_j^s$.
 
 \begin{algorithm}
 	\caption{ComputeNewPaths}
@@ -385,8 +405,13 @@ We maintain a set of active control points $A$, containing the points in $P_R$
 that still need to be processed. We apply the two previously described phases to
 the elements of $A$ until $A$ is empty. When $A$ is empty, it means the
 invariant computation of the subgraph is finished. As proposed by
-\citet{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations, and we
-restart the analysis with a new subgraph if needed.
+\citet{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations.
+These narrowing iterations allow to recover precision lost by
+widening, before taking into account new feasible paths.
+Thus, our technique combines both the advantages of \emph{Guided Static
+Analysis} and \emph{Path-focusing}.
+We then restart the analysis with a new subgraph if needed.
+
 \begin{algorithm}
 	\caption{Guided static analysis on implicit multigraph}
 	\label{algo:combined}
@@ -409,7 +434,7 @@ will eventually be empty after a finite number of loop iterations.
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
-\citet{DBLP:conf/pldi/GulwaniZ10} proposes a technique for computing disjunctive invariants, by
+\citet{DBLP:conf/pldi/GulwaniZ10} propose a technique for computing disjunctive invariants, by
 distinguishing all the paths inside a loop. In
 this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
@@ -426,6 +451,11 @@ $X_{i,\sigma(j,k)}$.
 Initially, the $\delta$-th abstract value is assigned to the initial states of
 $p_i$, and each other abstract value is assigned to bottom.
 
+$m$, $\delta$ and $\sigma$ can be defined heuristically.
+For instance, one could defined $\sigma$ so that $\sigma(j,k)$ only depends on the
+last transition of the path, or else construct it dynamically during the
+analysis.
+
 Our method improves this technique in two ways :
 \begin{itemize}
 \item Instead of enumerating the whole set of paths, we keep them implicit and
@@ -439,7 +469,8 @@ In our approach, we do this only for paths and disjuncts that makes the
 resulting abstract value grow.
 \end{itemize}
 
-Our improvement consists in a slight modification of the SMT formula we solve.
+Our improvement consists in a slight modification of the SMT formula we solve in
+\ref{sec:guided_multigraph}.
 We introduce in this formula Boolean variables $\{d_k, 1 \leq k \leq m\}$, so
 that we can easily find in the model which abstract value of the disjunction we
 have to choose. The resulting formula that is given to the SMT solver is defined
