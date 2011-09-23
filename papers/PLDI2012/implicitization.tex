@@ -441,7 +441,7 @@ We revise the rate limiter described in \ref{subsec:rate_lim}. In this example,
 loop header are actually self loops. In such a case, the technique performs a
 widening/narrowing sequence or accelerates the loop, thus leading to a precise
 invariant. However, in real cases, there also exist paths that are not
-self loops, and \emph{Path-focusing} only performs a widening. 
+self loops, where \emph{Path-focusing} only performs a widening. 
 This widening may induce unrecoverable loss of precision.
 
 Suppose the main loop of the rate limiter contains a nested loop:
