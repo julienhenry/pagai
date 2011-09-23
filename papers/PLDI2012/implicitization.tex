@@ -7,6 +7,7 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \usepackage{amsmath,amsfonts}
+\usepackage{mathcomp,amssymb}
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
@@ -34,6 +35,7 @@ color=blue]
 \newcommand{\parts}[1]{\mathscr{P}(#1)}
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\widening}{\mathop{\triangledown}}
 
 \begin{document}
 
@@ -120,6 +122,7 @@ We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \
 TODO
 
 \subsection{A simple, motivating example}
+\label{subsec:rate_lim}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
@@ -431,6 +434,39 @@ which guarantees that $P$
 will eventually be empty after a finite number of loop iterations.
 \end{itemize}
 
+\subsection{Example}
+
+We revise the rate limiter described in \ref{subsec:rate_lim}. In this example,
+\emph{Path-focused} technique works well because all the paths starting at the
+loop header are actually self loops. In such a case, the technique performs a
+widening/narrowing sequence or accelerates the loop, thus leading to a precise
+invariant. However, in real cases, there also exist paths that are not
+self loops, and \emph{Path-focusing} only performs a widening. 
+This widening may induce unrecoverable loss of precision.
+
+Suppose the main loop of the rate limiter contains a nested loop:
+\lstinputlisting{rlim_int_loop.c}
+
+We choose $P_R$ as the set of loop headers of the function, plus the initial
+state. In this case, we have three elements in $P_R$.
+We also unroll the loop once, in order to distinguish the paths that don't go
+through the loop from the others:
+\begin{lstlisting}[numbers=none]
+if (wait) {
+   while (wait()) {}
+}
+\end{lstlisting}
+
+The main loop in the expanded multigraph has then 24 distinct paths, half of
+them being self loops, and the other half going to the header of the nested loop.
+
+Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5 
+$\lstinline|x_old| \in (-\infty,+\infty)$.
+Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
+better, and finds $\lstinline|x_old| \in (-\infty,10000)$.
+Our combined technique gives us the expected invariant 
+$\lstinline|x_old| \in (-10000,10000)$.
+
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
@@ -471,10 +507,14 @@ resulting abstract value grow.
 
 Our improvement consists in a slight modification of the SMT formula we solve in
 \ref{sec:guided_multigraph}.
-We introduce in this formula Boolean variables $\{d_k, 1 \leq k \leq m\}$, so
+We introduce in this formula Boolean variables $\{d_j, 1 \leq j \leq m\}$, so
 that we can easily find in the model which abstract value of the disjunction we
 have to choose. The resulting formula that is given to the SMT solver is defined
 by $g(p_i)$.
+When the formula is satisfiable, we know that the index $j$ of the starting
+disjunct that has to be chosen is the one for which the associate Boolean value
+$d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
+$\sigma(j,k)$, thus know the index of the disjunct to join with.
 
 \begin{eqnarray*}
 g(p_i) = & \rho \wedge b_i^s \wedge 
@@ -488,7 +528,9 @@ g(p_i) = & \rho \wedge b_i^s \wedge
 \end{eqnarray*}
 
 Our algorithm for computing disjunctive invariants is described in Algorithm
-\ref{algo:disjunctive}
+\ref{algo:disjunctive}. In this algorithm, instead of simply joining the two
+abstract values, we use the widening operator to ensure the algorithm terminates
+when using abstract domains with infinite height.
 
 \begin{algorithm}[!h]
 \caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
@@ -505,8 +547,7 @@ Our algorithm for computing disjunctive invariants is described in Algorithm
 	\ENDIF
 	\STATE Compute the path $\tau_{i,k}$ from $res$ 
 	\STATE Take $j \in \{ l | d_l = true\}$ 
-	\STATE $X_{i,\sigma(j,k)} \gets X_{i,\sigma(j,k)} \sqcup
-	\tau_{i,k}(X_{i,j})$
+	\STATE $X_{i,\sigma(j,k)} \gets X_{i,\sigma(j,k)} \widening (X_{i,\sigma(j,k)} \sqcup \tau_{i,k}(X_{i,j}))$
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
