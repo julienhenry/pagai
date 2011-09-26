@@ -28,4 +28,11 @@ class AbstractManGopan : public AbstractMan {
 	Abstract * NewAbstract(Abstract * A);
 };
 
+/// class that create Abstract objects of type AbstractDisj
+class AbstractManDisj : public AbstractMan {
+
+	public:
+	Abstract * NewAbstract(ap_manager_t * man, ap_environment_t * env);
+	Abstract * NewAbstract(Abstract * A);
+};
 #endif

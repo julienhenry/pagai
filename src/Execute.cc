@@ -20,6 +20,7 @@
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
+#include "AIdis.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -111,6 +112,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				break;
 			case SIMPLE:
 				AIPass = new AIClassic();
+				break;
+			case LW_WITH_PF_DISJ:
+				AIPass = new AIdis();
 				break;
 		}
 	}
