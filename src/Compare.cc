@@ -6,6 +6,7 @@
 #include "AIClassic.h"
 #include "Node.h"
 #include "Debug.h"
+#include "ModulePassWrapper.h"
 
 using namespace llvm;
 
@@ -20,8 +21,8 @@ const char * Compare::getPassName() const {
 Compare::Compare() : ModulePass(ID) {}
 
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 	AU.addRequired<AIpf>();
-	AU.addRequired<AIopt>();
 	AU.addRequired<SMT>();
 	AU.addRequired<AIGopan>();
 	AU.addRequired<AIClassic>();

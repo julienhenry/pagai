@@ -23,8 +23,10 @@ class AIGopan : public AISimple {
 
 	public:
 
-		AIGopan ():
-			AISimple(ID)
+		AIGopan(char &_ID) : AISimple(_ID) {init();}
+		AIGopan (): AISimple(ID) {init();}
+
+		void init()
 			{
 				aman = new AbstractManGopan();
 				//aman = new AbstractManClassic();

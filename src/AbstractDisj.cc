@@ -12,7 +12,6 @@
 #include "Analyzer.h"
 
 AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env) {
-	*Out << "HELLO\n";
 	man_disj = new AbstractManClassic();
 	disj.push_back(man_disj->NewAbstract(_man,env));
 	main = disj[0]->main;

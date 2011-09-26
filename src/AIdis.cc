@@ -10,10 +10,13 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "ModulePassWrapper.h"
 
 using namespace llvm;
 
 static RegisterPass<AIdis> X("AIdisPass", "Abstract Interpretation Pass", false, true);
+static RegisterPass<ModulePassWrapper<AIdis, 0> > Y0("AIdisPass_wrapped0", "Abstract Interpretation Pass", false, true);
+static RegisterPass<ModulePassWrapper<AIdis, 1> > Y1("AIdisPass_wrapped1", "Abstract Interpretation Pass", false, true);
 
 char AIdis::ID = 0;
 

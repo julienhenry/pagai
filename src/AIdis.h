@@ -28,7 +28,9 @@ class AIdis : public ModulePass, public AIPass {
 
 	public:
 
-		AIdis() : ModulePass(ID)
+		AIdis(char &_ID) : ModulePass(_ID) {init();}
+		AIdis() : ModulePass(ID) {init();}
+		void init()
 			{
 				aman = new AbstractManDisj();
 				passID = LW_WITH_PF_DISJ;

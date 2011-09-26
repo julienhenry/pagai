@@ -86,6 +86,8 @@ std::string TechniquesToString(Techniques t) {
 			return "CLASSIC";
 		case LW_WITH_PF_DISJ:
 			return "DISJUNCTIVE";
+		default:
+			abort();
 	}
 }
 
