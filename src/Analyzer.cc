@@ -84,6 +84,8 @@ std::string TechniquesToString(Techniques t) {
 			return "COMBINED TECHNIQUE";
 		case SIMPLE:
 			return "CLASSIC";
+		default:
+			abort();
 	}
 }
 
