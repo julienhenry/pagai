@@ -20,6 +20,7 @@
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
+#include "ModulePassWrapper.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -107,7 +108,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				AIPass = new AIpf();
 				break;
 			case LW_WITH_PF:
-				AIPass = new AIopt();
+				AIPass = new ModulePassWrapper<AIopt, 0>();
 				break;
 			case SIMPLE:
 				AIPass = new AIClassic();

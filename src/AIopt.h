@@ -28,7 +28,9 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt() : ModulePass(ID)
+		AIopt(char &_ID) : ModulePass(_ID) {init();}
+		AIopt() : ModulePass(ID) {init();}
+		void init()
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
