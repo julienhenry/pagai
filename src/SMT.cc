@@ -190,10 +190,12 @@ SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_bo
 	std::vector<SMT_expr> disj;
 	std::vector<Abstract*>::iterator it = A->disj.begin(), et = A->disj.end();
 	if (insert_booleans) {
-		for (;it != et; it++) {
+		for (int index = 0;it != et; it++, index++) {
 			std::vector<SMT_expr> cunj;
 			cunj.push_back(AbstractToSmt(b,*it));
 			// we create a boolean predicate for each disjunct
+			*Out << getDisjunctiveIndexName(A,index) << "\n";
+
 			disj.push_back(man->SMT_mk_and(cunj));
 		}
 	} else {
@@ -207,7 +209,6 @@ SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_bo
 SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 
 	if (A->is_bottom()) return man->SMT_mk_false();
-
 	if (AbstractDisj * Adis = dynamic_cast<AbstractDisj*>(A)) 
 		return AbstractDisjToSmt(b,Adis,false);
 

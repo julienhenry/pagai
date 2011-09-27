@@ -63,6 +63,14 @@ class AIdis : public ModulePass, public AIPass {
 		
 		/// narrowNode - apply narrowing at node n
 		void narrowNode(Node * n);
+
+		void loopiter(
+			Node * n, 
+			int index,
+			Abstract * &Xtemp,
+			std::list<BasicBlock*> * path,
+			bool &only_join,
+			PathTree * const U);
 };
 
 #endif

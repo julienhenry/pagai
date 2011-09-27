@@ -30,6 +30,7 @@ AbstractDisj::AbstractDisj(Abstract* A) {
 		}
 		main = disj[0]->main;
 	} else {
+		*Out << "ERROR\n";
 		// ERROR
 		main = NULL;
 	}

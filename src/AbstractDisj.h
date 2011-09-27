@@ -14,10 +14,10 @@ class AbstractDisj: public Abstract {
 
 	public:
 		std::vector<Abstract*> disj;
-
-	protected:
+		
 		AbstractMan * man_disj;
 
+	protected:
 		void clear_all();
 
 	public:
