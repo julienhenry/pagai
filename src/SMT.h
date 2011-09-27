@@ -11,6 +11,7 @@
 
 #include "Analyzer.h"
 #include "Abstract.h"
+#include "AbstractDisj.h"
 #include "SMT_manager.h"
 
 using namespace llvm;
@@ -44,6 +45,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 
 		/// these following methods are used to create a variable name for
 		//edges, nodes, values, undeterministic choices, ...
+		const std::string getDisjunctiveIndexName(AbstractDisj * A, int index);
 		const std::string getUndeterministicChoiceName(Value * v);
 		const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		const std::string getValueName(Value * v, bool primed);
@@ -159,6 +161,12 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons);
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
 		/// @}
+
+		/// Creates an SMT formula associated to a disjunctive invariant. If
+		/// insert_booleans is true, each disjunct is cunjunct with a boolean
+		/// predicate, as detailed in the paper, so that we can deduce which
+		/// disjunct to choose.
+		SMT_expr AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_booleans);
 
 		/// @{
 		/// @name Visit methods

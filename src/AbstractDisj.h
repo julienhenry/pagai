@@ -5,6 +5,7 @@
 
 #include "ap_global1.h"
 #include "Abstract.h"
+#include "AbstractMan.h"
 
 class Node;
 

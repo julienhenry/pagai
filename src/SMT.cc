@@ -185,9 +185,31 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 	return NULL;
 }
 
+
+SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_booleans) {
+	std::vector<SMT_expr> disj;
+	std::vector<Abstract*>::iterator it = A->disj.begin(), et = A->disj.end();
+	if (insert_booleans) {
+		for (;it != et; it++) {
+			std::vector<SMT_expr> cunj;
+			cunj.push_back(AbstractToSmt(b,*it));
+			// we create a boolean predicate for each disjunct
+			disj.push_back(man->SMT_mk_and(cunj));
+		}
+	} else {
+		for (;it != et; it++) {
+			disj.push_back(AbstractToSmt(b,*it));
+		}
+	}
+	return man->SMT_mk_or(disj);
+}
+
 SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 
 	if (A->is_bottom()) return man->SMT_mk_false();
+
+	if (AbstractDisj * Adis = dynamic_cast<AbstractDisj*>(A)) 
+		return AbstractDisjToSmt(b,Adis,false);
 
 	std::vector<SMT_expr> constraints;
 	ap_lincons1_t lincons;
@@ -202,6 +224,12 @@ SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 		return man->SMT_mk_true();
 	else
 		return man->SMT_mk_and(constraints);
+}
+
+const std::string SMT::getDisjunctiveIndexName(AbstractDisj * A, int index) {
+	std::ostringstream name;
+	name << "d_" << A << "_" << index;
+	return name.str();
 }
 
 const std::string SMT::getUndeterministicChoiceName(Value * v) {
