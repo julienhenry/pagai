@@ -1,5 +1,5 @@
-#ifndef _AIOPT_H
-#define _AIOPT_H
+#ifndef _AIDIS_H
+#define _AIDIS_H
 
 #include <queue>
 #include <vector>
@@ -11,7 +11,7 @@
 using namespace llvm;
 
 /// Path Focusing implementation with Lookahead Widening
-class AIopt : public ModulePass, public AIPass {
+class AIdis : public ModulePass, public AIPass {
 
 	private:
 		/// paths - remembers all the paths that have already been
@@ -28,17 +28,16 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt(char &_ID) : ModulePass(_ID) {init();}
-		AIopt() : ModulePass(ID) {init();}
+		AIdis(char &_ID) : ModulePass(_ID) {init();}
+		AIdis() : ModulePass(ID) {init();}
 		void init()
 			{
-				//aman = new AbstractManGopan();
-				aman = new AbstractManClassic();
-				passID = LW_WITH_PF;
-				Passes[LW_WITH_PF] = passID;	
+				aman = new AbstractManDisj();
+				passID = LW_WITH_PF_DISJ;
+				Passes[LW_WITH_PF_DISJ] = passID;	
 			}
 
-		~AIopt () {
+		~AIdis () {
 			for (std::map<BasicBlock*,PathTree*>::iterator 
 				it = pathtree.begin(),
 				et = pathtree.end(); 

@@ -26,7 +26,8 @@ enum Techniques {
 	LOOKAHEAD_WIDENING,
 	PATH_FOCUSING,
 	LW_WITH_PF,
-	SIMPLE
+	SIMPLE,
+	LW_WITH_PF_DISJ
 };
 
 std::string TechniquesToString(Techniques t);

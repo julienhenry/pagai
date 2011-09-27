@@ -1,0 +1,20 @@
+To compile PAGAI, run
+
+cmake .
+make
+
+from the toplevel.
+
+Alternatively, one can use an out-of-tree build with
+
+mkdir build
+cd build
+cmake ..
+make
+
+Variables (path to libraries, build options, ...) can be set for each
+build with e.g.
+
+cmake -DSTATIC_LINK=ON .
+cmake -i .
+cmake-gui .

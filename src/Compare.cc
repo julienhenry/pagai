@@ -6,6 +6,7 @@
 #include "AIClassic.h"
 #include "Node.h"
 #include "Debug.h"
+#include "ModulePassWrapper.h"
 
 using namespace llvm;
 
@@ -20,8 +21,8 @@ const char * Compare::getPassName() const {
 Compare::Compare() : ModulePass(ID) {}
 
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 	AU.addRequired<AIpf>();
-	AU.addRequired<AIopt>();
 	AU.addRequired<SMT>();
 	AU.addRequired<AIGopan>();
 	AU.addRequired<AIClassic>();
@@ -29,18 +30,45 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 }
 
 int Compare::compareAbstract(Abstract * A, Abstract * B) {
+	bool f = false;
+	bool g = false;
+
 	ap_environment_t * cenv = intersect_environment(
 			A->main->env,
 			B->main->env);
-	
+
 	A->change_environment(cenv);
 	B->change_environment(cenv);
 
-	if (A->is_eq(B)) {
+	LSMT->reset_SMTcontext();
+	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);
+	SMT_expr B_smt = LSMT->AbstractToSmt(NULL,B);
+
+	LSMT->push_context();
+	// f = A and not B
+	std::vector<SMT_expr> cunj;
+	cunj.push_back(A_smt);
+	cunj.push_back(LSMT->man->SMT_mk_not(B_smt));
+	SMT_expr test = LSMT->man->SMT_mk_and(cunj);
+	if (LSMT->SMTsolve_simple(test)) {
+		f = true;
+	}
+	LSMT->pop_context();
+
+	// g = B and not A
+	cunj.clear();
+	cunj.push_back(B_smt);
+	cunj.push_back(LSMT->man->SMT_mk_not(A_smt));
+	test = LSMT->man->SMT_mk_and(cunj);
+	if (LSMT->SMTsolve_simple(test)) {
+		g = true;
+	}
+
+	if (!f && !g) {
 		return 0;
-	} else if (A->is_leq(B)) {
+	} else if (!f && g) {
 		return 1;
-	} else if (B->is_leq(A)) {
+	} else if (f && !g) {
 		DEBUG(
 			*Out << "############################\n";
 			B->print();

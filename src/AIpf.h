@@ -18,7 +18,9 @@ class AIpf : public ModulePass, public AIPass {
 
 	public:
 
-		AIpf (): ModulePass(ID)
+		AIpf(char &_ID) : ModulePass(_ID) {init();}
+		AIpf (): ModulePass(ID) {init();}
+		void init()
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();

@@ -20,6 +20,8 @@
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
+#include "AIdis.h"
+#include "ModulePassWrapper.h"
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
@@ -42,8 +44,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	raw_fd_ostream *FDOut = NULL;
 
 	LLVMContext & Context = getGlobalContext();
-
-	////
 	
 	std::string ErrorMessage;
 	std::auto_ptr<Module> M;
@@ -101,16 +101,19 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	} else { 
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
-				AIPass = new AIGopan();
+				AIPass = new ModulePassWrapper<AIGopan, 0>();
 				break;
 			case PATH_FOCUSING:
-				AIPass = new AIpf();
+				AIPass = new ModulePassWrapper<AIpf, 0>();
 				break;
 			case LW_WITH_PF:
-				AIPass = new AIopt();
+				AIPass = new ModulePassWrapper<AIopt, 0>();
 				break;
 			case SIMPLE:
-				AIPass = new AIClassic();
+				AIPass = new ModulePassWrapper<AIClassic, 0>();
+				break;
+			case LW_WITH_PF_DISJ:
+				AIPass = new ModulePassWrapper<AIdis, 0>();
 				break;
 		}
 	}

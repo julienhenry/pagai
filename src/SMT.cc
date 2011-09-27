@@ -602,6 +602,11 @@ int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	return res;	
 }
 
+int SMT::SMTsolve_simple(SMT_expr expr) {
+	std::set<std::string> true_booleans;
+	return man->SMT_check(expr,&true_booleans);
+}
+
 void SMT::visitReturnInst (ReturnInst &I) {
 }
 

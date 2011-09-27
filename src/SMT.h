@@ -142,6 +142,10 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// the model
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
+		/// solve the SMT expression, and returns 1 if satisfiable, 0 if not, -1
+		/// if unknown
+		int SMTsolve_simple(SMT_expr expr);
+
 		/// gets the name of the node associated to a specific basicblock
 		const std::string getNodeName(BasicBlock* b, bool src);
 

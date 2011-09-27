@@ -17,9 +17,10 @@ class AIClassic : public AISimple {
 		static char ID;	
 
 	public:
+		AIClassic(char &_ID) : AISimple(_ID) {init();}
+		AIClassic (): AISimple(ID) {init();}
 
-		AIClassic ():
-			AISimple(ID)
+		void init()
 			{
 				aman = new AbstractManClassic();
 				passID = SIMPLE;

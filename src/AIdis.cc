@@ -1,7 +1,7 @@
 #include <vector>
 #include <list>
 
-#include "AIopt.h"
+#include "AIdis.h"
 #include "Expr.h"
 #include "Node.h"
 #include "apron.h"
@@ -14,35 +14,35 @@
 
 using namespace llvm;
 
-static RegisterPass<AIopt> X("AIOptPass", "Abstract Interpretation Pass", false, true);
-static RegisterPass<ModulePassWrapper<AIopt, 0> > Y0("AIOptPass_wrapped0", "Abstract Interpretation Pass", false, true);
-static RegisterPass<ModulePassWrapper<AIopt, 1> > Y1("AIOptPass_wrapped1", "Abstract Interpretation Pass", false, true);
+static RegisterPass<AIdis> X("AIdisPass", "Abstract Interpretation Pass", false, true);
+static RegisterPass<ModulePassWrapper<AIdis, 0> > Y0("AIdisPass_wrapped0", "Abstract Interpretation Pass", false, true);
+static RegisterPass<ModulePassWrapper<AIdis, 1> > Y1("AIdisPass_wrapped1", "Abstract Interpretation Pass", false, true);
 
-char AIopt::ID = 0;
+char AIdis::ID = 0;
 
-const char * AIopt::getPassName() const {
-	return "AIopt";
+const char * AIdis::getPassName() const {
+	return "AIdis";
 }
 
-void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
+void AIdis::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMT>();
 }
 
-bool AIopt::runOnModule(Module &M) {
+bool AIdis::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b = NULL;
 	Node * n = NULL;
 	int N_Pr = 0;
 	LSMT = &(getAnalysis<SMT>());
 
-	*Out << "Starting analysis: PF+LW\n";
+	*Out << "Starting analysis: DISJUNCTIVE\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
-		
+
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 
@@ -100,7 +100,7 @@ bool AIopt::runOnModule(Module &M) {
 
 
 
-void AIopt::computeFunction(Function * F) {
+void AIdis::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * const n = Nodes[F->begin()];
 	Node * current;
@@ -183,11 +183,11 @@ void AIopt::computeFunction(Function * F) {
 	}
 }
 
-std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
+std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
 
-void AIopt::computeNewPaths(Node * n) {
+void AIdis::computeNewPaths(Node * n) {
 	Node * Succ;
 	Abstract * Xtemp = NULL;
 	std::vector<Abstract*> Join;
@@ -249,7 +249,7 @@ void AIopt::computeNewPaths(Node * n) {
 	}
 }
 
-void AIopt::computeNode(Node * n) {
+void AIdis::computeNode(Node * n) {
 	BasicBlock * const b = n->bb;
 	Abstract * Xtemp = NULL;
 	Node * Succ = NULL;
@@ -355,7 +355,7 @@ void AIopt::computeNode(Node * n) {
 	computeNewPaths(n);	
 }
 
-void AIopt::narrowNode(Node * n) {
+void AIdis::narrowNode(Node * n) {
 	Abstract * Xtemp = NULL;
 	Node * Succ;
 

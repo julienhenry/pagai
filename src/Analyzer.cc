@@ -84,6 +84,10 @@ std::string TechniquesToString(Techniques t) {
 			return "COMBINED TECHNIQUE";
 		case SIMPLE:
 			return "CLASSIC";
+		case LW_WITH_PF_DISJ:
+			return "DISJUNCTIVE";
+		default:
+			abort();
 	}
 }
 
@@ -124,6 +128,8 @@ bool setTechnique(char * t) {
 		technique = LW_WITH_PF;
 	} else if (!d.compare("s")) {
 		technique = SIMPLE;
+	} else if (!d.compare("dis")) {
+		technique = LW_WITH_PF_DISJ;
 	} else {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
 		return 1;

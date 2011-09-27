@@ -3,3 +3,7 @@
 *.aux
 *.swp
 .nfs*
+/Makefile
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
