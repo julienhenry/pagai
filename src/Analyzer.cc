@@ -20,30 +20,30 @@ std::map<Techniques,int> Passes;
 
 void show_help() {
         std::cout << "Usage :\n \
-\tanalyzer -h OR analyzer [options]  -i <filename> \n \
+\tpagai -h OR pagai [options]  -i <filename> \n \
 -h : help\n \
 -d : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
 		   * oct (Octagons)\n \
-		   * pk (NewPolka strict polyhedra)\n \
+		   * pk (NewPolka strict polyhedra), default\n \
 		   * pkeq (NewPolka linear equalities)\n \
 		   * ppl_poly (PPL strict polyhedra)\n \
 		   * ppl_grid (PPL grids)\n \
 		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
 		example of option: -d box\n \
 -i : input file\n \
--o : output file\n \
 -t : use a specific technique\n \
 		possible techniques:\n \
 		  * lw (Lookahead Widening)\n \
 		  * pf (Path Focusing)\n \
-		  * lw+pf (combination of Lookahead Widening and Path Focusing)\n \
+		  * lw+pf (combination of Lookahead Widening and Path Focusing), default\n \
 		  * s (simple abstract interpretation)\n \
--c : compare the 3 techniques (lw, pf and lw+pf)\n \
+		example of option: -t pf\n \
+-c : compare the 4 techniques (lw, pf, lw+pf and s)\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMT formula\n \
--y : use Yices instead of the Z3 SMT-solver (unused when -g)\n";
+-y : use Yices instead of the Z3 SMT-solver (for techniques with lw)\n";
 }
 
 SMT_Solver getSMTSolver() {
