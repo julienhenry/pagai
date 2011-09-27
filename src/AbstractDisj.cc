@@ -51,10 +51,18 @@ AbstractDisj::~AbstractDisj() {
 
 /// set_top - sets the abstract to top on the environment env
 void AbstractDisj::set_top(ap_environment_t * env) {
-	disj[0]->set_top(env);
+	set_top(env,0);
+}
+
+void AbstractDisj::set_top(ap_environment_t * env, int index) {
+	int i = 0;
+	// every disjunct is at bottom except the one of index 'index'
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
-	for (it++; it != et; it++) {
-		(*it)->set_bottom(env);
+	for (; it != et; it++, i++) {
+		if (i == index)
+			(*it)->set_top(env);
+		else
+			(*it)->set_bottom(env);
 	}
 }
 
@@ -66,6 +74,11 @@ void AbstractDisj::set_bottom(ap_environment_t * env) {
 	}
 }
 
+void AbstractDisj::set_bottom(ap_environment_t * env, int index) {
+	disj[index]->set_bottom(env);
+}
+
+
 void AbstractDisj::change_environment(ap_environment_t * env) {
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {
@@ -73,14 +86,26 @@ void AbstractDisj::change_environment(ap_environment_t * env) {
 	}
 }
 
+void AbstractDisj::change_environment(ap_environment_t * env, int index) {
+	disj[index]->change_environment(env);
+}
+
 // NOT CORRECT
 bool AbstractDisj::is_leq (Abstract *d) {
 	return ap_abstract1_is_leq(man,main,d->main);
 }
 
+bool AbstractDisj::is_leq (Abstract *d, int index) {
+	return disj[index]->is_leq(d);
+}
+
 // NOT CORRECT
 bool AbstractDisj::is_eq (Abstract *d) {
 		return ap_abstract1_is_eq(man,main,d->main);
+}
+
+bool AbstractDisj::is_eq (Abstract *d, int index) {
+	return disj[index]->is_eq(d);
 }
 
 bool AbstractDisj::is_bottom() {
@@ -91,9 +116,10 @@ bool AbstractDisj::is_bottom() {
 	return true;
 }
 
-/// widening - Compute the widening operation according to the Gopan & Reps
-/// approach
-//
+bool AbstractDisj::is_bottom(int index) {
+	return disj[index]->is_bottom();
+}
+
 //NOT CORRECT
 void AbstractDisj::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
@@ -105,6 +131,10 @@ void AbstractDisj::widening(Abstract * X) {
 	
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
+}
+
+void AbstractDisj::widening(Abstract * X, int index) {
+	disj[index]->widening(X);
 }
 
 //NOT CORRECT
@@ -120,12 +150,20 @@ void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
 	*main = Xmain_widening;
 }
 
+void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons, int index) {
+	disj[index]->widening_threshold(X,cons);
+}
+
 void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons) {
 
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {
 		(*it)->meet_tcons_array(tcons);
 	}
+}
+
+void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons, int index) {
+	disj[index]->meet_tcons_array(tcons);
 }
 
 void AbstractDisj::canonicalize() {
@@ -145,6 +183,16 @@ void AbstractDisj::assign_texpr_array(
 	for (; it != et; it++) {
 		(*it)->assign_texpr_array(tvar,texpr,size,dest);
 	}
+}
+
+void AbstractDisj::assign_texpr_array(
+		ap_var_t* tvar, 
+		ap_texpr1_t* texpr, 
+		size_t size, 
+		ap_abstract1_t* dest,
+		int index
+		) {
+	disj[index]->assign_texpr_array(tvar,texpr,size,dest);
 }
 
 //NOT CORRECT
@@ -169,6 +217,10 @@ void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_p
 	}
 }
 
+void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred, int index) {
+	disj[index]->join_array(env,X_pred);
+}
+
 //NOT CORRECT
 void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 	std::vector<Abstract*> v;
@@ -177,14 +229,26 @@ void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 	join_array(env,v);
 }
 
+void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n, int index) {
+	disj[index]->join_array_dpUcm(env,n);
+}
+
 //NOT CORRECT
 ap_tcons1_array_t AbstractDisj::to_tcons_array() {
 	return ap_abstract1_to_tcons_array(man,main);
 }
 
+ap_tcons1_array_t AbstractDisj::to_tcons_array(int index) {
+	return disj[index]->to_tcons_array();
+}
+
 //NOT CORRECT
 ap_lincons1_array_t AbstractDisj::to_lincons_array() {
 	return ap_abstract1_to_lincons_array(man,main);
+}
+
+ap_lincons1_array_t AbstractDisj::to_lincons_array(int index) {
+	return disj[index]->to_lincons_array();
 }
 
 void AbstractDisj::print(bool only_main) {

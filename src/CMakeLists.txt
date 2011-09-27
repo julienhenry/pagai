@@ -25,7 +25,7 @@ include_directories(${GMP_PREFIX}/include
 # be linked to the version of libutils chosen by the linker.
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib ${CMAKE_EXE_LINKER_FLAGS}")
 link_directories(/usr/lib/
-  ${GMP_PREFIX}/lib
+  ${GMP_PREFIX}/lib 
   ${MPFR_PREFIX}/lib 
   ${APRON_PREFIX}/lib
   ${PPL_PREFIX}/lib
