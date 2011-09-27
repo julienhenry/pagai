@@ -229,7 +229,7 @@ contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recas
 
 \subsection{Guided static analysis}
 \label{sec:guided}
-\emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improved over classical upward Kleene iterations with widening.
+\emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improvement over classical upward Kleene iterations with widening.
 Consider the following program:
 \lstinputlisting{gopan_reps.c}
 
@@ -282,7 +282,7 @@ One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
 The set of paths is kept implicit by an SMT formula $\rho$ expressing
 the semantics of the program, assuming that the transition semantics can be
 expressed within a decidable theory. For an easy construction of $\rho$, 
-we also assume that the program in expressed in SSA form, meaning that each
+we also assume that the program is expressed in SSA form, meaning that each
 variable is only assigned once in the transition graph. This is not a
 restriction, since there exist standard algorithms that transform a program into
 an SSA format.
