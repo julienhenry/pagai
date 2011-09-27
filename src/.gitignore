@@ -3,5 +3,7 @@ analyzer
 pagai
 tags
 Makefile.config
+Makefile
+DOXYFILE
 html/
 latex/
