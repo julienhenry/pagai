@@ -1,13 +1,13 @@
-\STATE $A \gets \emptyset$
-\STATE $P \gets \emptyset$
+\STATE $A \gets \emptyset$ // States to explore
+\STATE $P \gets \emptyset$ // Paths in the current subset
 \FORALL {$p \in P_R / I_p \neq \emptyset$}
 	\STATE $A \gets A \cup p$
 \ENDFOR
 
 \WHILE{true}
-\STATE $A' \gets \emptyset$
+\STATE $A' \gets \emptyset$ // New states to explore
 
-\STATE $P' \gets \emptyset$
+\STATE $P' \gets \emptyset$ // New paths
 
 \WHILE{$A \neq \emptyset$}
 	\STATE Select $p_i \in A$

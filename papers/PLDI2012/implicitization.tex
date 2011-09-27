@@ -313,7 +313,7 @@ closure of the loop using abstract acceleration. % TODO citation laure gonnord
 \label{sec:guided_multigraph}
 
 Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
-graph of the program. One could instead apply the same technique to the implicit
+graph of the program. We now present a new technique applying this analysis on the implicit
 multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
 unfeasible paths.
 In this section, we use the same notations as \ref{sec:path_focusing}.
@@ -379,8 +379,8 @@ that make the abstract values of the successors grow (otherwise, the SMT
 solver would not have answered ``\emph{unsat}''). However, there may
 exist such paths in the entire multigraph, that are not in $P$. The second phase
 computes these paths and adds them to $P'$. We also use SMT solving to discover
-these new paths, but we slightly change the SMT formula given to the SMT solver.
-We now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
+these new paths, but we slightly change the SMT formula given to the SMT solver:
+we now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
 P$. Since we already know that $f(p_i) \wedge P$ is \emph{unsatisfiable}, all
 the paths given by the SMT solver won't be in $P$.
 \end{enumerate}
@@ -430,7 +430,7 @@ the subset of paths $P$ is
 strictly increasing at each loop iteration, and bounded by the finite set of
 paths in the entire graph. 
 \item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
-which guarantees that $P$
+which guarantees that $P'$
 will eventually be empty after a finite number of loop iterations.
 \end{itemize}
 
@@ -449,7 +449,7 @@ Suppose the main loop of the rate limiter contains a nested loop:
 
 We choose $P_R$ as the set of loop headers of the function, plus the initial
 state. In this case, we have three elements in $P_R$.
-We also unroll the loop once, in order to distinguish the paths that don't go
+We also unroll the loop once, in order to distinguish the paths that do not go
 through the loop from the others:
 \begin{lstlisting}[numbers=none]
 if (wait) {
