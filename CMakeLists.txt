@@ -39,6 +39,11 @@ set(YICES_PATH "/home/jhenry/local/yices" CACHE PATH "Path to the YICES SMT solv
 set(Z3_PATH "/home/jhenry/local/z3" CACHE PATH "Path to the Z3 SMT solver library")
 set(CUDD_PATH "/home/jhenry/local/cudd-2.4.2" CACHE PATH "Path to the CUDD BDD library")
 
+macro(add_cudd_library LIB)
+  find_library(CUDD_LIB${LIB} NAMES ${LIB} PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB} NO_DEFAULT_PATH)
+  target_link_libraries(pagai ${CUDD_LIB${LIB}})
+endmacro()
+
 # configuration
 option(STATIC_LINK "Whether to build executables as static" OFF)
 find_program(CLANG_PATH "clang++")
