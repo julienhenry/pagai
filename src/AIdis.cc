@@ -187,6 +187,11 @@ std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 	return LSMT->getPrPredecessors(b);
 }
 
+int AIdis::sigma(std::list<BasicBlock*> path, int start) {
+	// TODO
+	return start;
+}
+
 void AIdis::computeNewPaths(Node * n) {
 	Node * Succ;
 	Abstract * Xtemp = NULL;
@@ -203,16 +208,14 @@ void AIdis::computeNewPaths(Node * n) {
 		Succ->X_d[passID] = aman->NewAbstract(Succ->X_s[passID]);
 	}
 	while (true) {
-		//DEBUG(
+		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
 			Out->resetColor();
-		//);
+		);
 		// creating the SMT formula we want to check
 		LSMT->push_context();
-		*Out << "FORMULA...";
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
-		*Out << "OK\n";
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			LSMT->man->SMT_print(smtexpr);
@@ -220,15 +223,12 @@ void AIdis::computeNewPaths(Node * n) {
 		int res;
 		int index = 0;
 		struct timeval beginTime = Now();
-		*Out << "SOLVE...";
 		res = LSMT->SMTsolve(smtexpr,&path);
-		*Out << "OK\n";
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
 		if (res != 1 || path.size() == 1) {
-			*Out << "FINISHED\n";
 			if (res == -1) {
 				unknown = true;
 				return;
@@ -237,7 +237,6 @@ void AIdis::computeNewPaths(Node * n) {
 		}
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
-		*Out << "STEP1\n";
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->disj[index]);
 
@@ -247,12 +246,11 @@ void AIdis::computeNewPaths(Node * n) {
 
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 		Join.clear();
-		Join.push_back(SuccDisj->disj[index]);
+		Join.push_back(SuccDisj->disj[sigma(path,index)]);
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		SuccDisj->disj[index] = Xtemp;
+		SuccDisj->disj[sigma(path,index)] = Xtemp;
 		Xtemp = NULL;
-		*Out << "STEP2\n";
 
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,true);
@@ -269,6 +267,7 @@ void AIdis::loopiter(
 	PathTree * const U) {
 	Node * Succ = n;
 	AbstractDisj * SuccDis = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
+	int Sigma = sigma(*path,index);
 
 	std::vector<Abstract*> Join;
 	if (U->exist(*path)) {
@@ -276,7 +275,7 @@ void AIdis::loopiter(
 		Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->disj[index]);
 
 		Join.clear();
-		Join.push_back(SuccDis->man_disj->NewAbstract(Xpred));
+		Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->disj[Sigma]));
 		Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
@@ -294,19 +293,19 @@ void AIdis::loopiter(
 			ap_lincons1_array_fprint(stdout,&threshold);
 			fflush(stdout);
 		);
-		Xtemp->widening_threshold(SuccDis->disj[index],&threshold);
+		Xtemp->widening_threshold(SuccDis->disj[Sigma],&threshold);
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
-		delete SuccDis->disj[index];
-		SuccDis->disj[index] = Xtemp;
+		delete SuccDis->disj[Sigma];
+		SuccDis->disj[Sigma] = Xtemp;
 		DEBUG(
 			*Out << "AFTER MINIWIDENING\n";	
 			Xtemp->print();
 		);
 
-		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->disj[index]);
-		computeTransform(aman,n,*path,*Xtemp);
+		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->disj[Sigma]);
+		computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
 			SuccDis->print();
@@ -335,21 +334,21 @@ void AIdis::computeNode(Node * n) {
 	}
 	PathTree * const U = new PathTree();
 	
-	//DEBUG (
+	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";
 		*Out << "Computing node: " << b << "\n";
 		Out->resetColor();
 		*Out << *b << "\n";
-	//);
+	);
 
 	while (true) {
 		is_computed[n] = true;
-		//DEBUG(
+		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
-		//);
+		);
 		LSMT->push_context();
 		// creating the SMT formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree[b]->generateSMTformula(LSMT));
@@ -376,6 +375,7 @@ void AIdis::computeNode(Node * n) {
 			printPath(path);
 		);
 		Succ = Nodes[path.back()];
+		int Sigma = sigma(path,index);
 		n_iterations++;
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
@@ -388,7 +388,7 @@ void AIdis::computeNode(Node * n) {
 			Xtemp->print();
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
-		SuccDisj->change_environment(Xtemp->main->env,index);
+		SuccDisj->change_environment(Xtemp->main->env,Sigma);
 		if (!U->exist(path)) {
 			n_paths++;
 			only_join = true;
@@ -400,13 +400,13 @@ void AIdis::computeNode(Node * n) {
 			loopiter(n,index,Xtemp,&path,only_join,U);
 		} 
 		Join.clear();
-		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->disj[index]));
+		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->disj[Sigma]));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
 				//Xtemp->widening(Succ->X_s[passID]);
-				Xtemp->widening_threshold(SuccDisj->disj[index],&threshold);
+				Xtemp->widening_threshold(SuccDisj->disj[Sigma],&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
@@ -415,8 +415,8 @@ void AIdis::computeNode(Node * n) {
 			*Out << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
-		delete SuccDisj->disj[index];
-		SuccDisj->disj[index] = Xtemp;
+		delete SuccDisj->disj[Sigma];
+		SuccDisj->disj[Sigma] = Xtemp;
 		Xtemp = NULL;
 		DEBUG(
 			*Out << "RESULT:\n";
@@ -470,6 +470,7 @@ void AIdis::narrowNode(Node * n) {
 		);
 		
 		Succ = Nodes[path.back()];
+		int Sigma = sigma(path,index);
 
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
@@ -483,14 +484,14 @@ void AIdis::narrowNode(Node * n) {
 
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 
-		if (SuccDisj->disj[index]->is_bottom()) {
-			delete SuccDisj->disj[index];
-			SuccDisj->disj[index] = Xtemp;
+		if (SuccDisj->disj[Sigma]->is_bottom()) {
+			delete SuccDisj->disj[Sigma];
+			SuccDisj->disj[Sigma] = Xtemp;
 		} else {
 			std::vector<Abstract*> Join;
-			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->disj[index]));
+			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->disj[Sigma]));
 			Join.push_back(Xtemp);
-			SuccDisj->disj[index]->join_array(Xtemp->main->env,Join);
+			SuccDisj->disj[Sigma]->join_array(Xtemp->main->env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

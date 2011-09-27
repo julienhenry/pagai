@@ -23,6 +23,8 @@ class AIdis : public ModulePass, public AIPass {
 		void computeNewPaths(
 			Node * n
 			);
+
+		int sigma(std::list<BasicBlock*> path, int start);
 	public:
 		static char ID;	
 
