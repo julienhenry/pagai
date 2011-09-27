@@ -2,6 +2,7 @@
 \STATE $P \gets \emptyset$ // Paths in the current subset
 \FORALL {$p \in P_R / I_p \neq \emptyset$}
 	\STATE $A \gets A \cup p$
+        // \MM{Pourquoi pas juste $A \gets \{p | P_R / I_p \neq \emptyset\}$ a la place de tout le forall?}
 \ENDFOR
 
 \WHILE{true}

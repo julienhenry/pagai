@@ -6,6 +6,8 @@
 % 11pt          To set in 11-point type instead of 9-point.
 % authoryear    To obtain author/year citation style instead of numeric.
 
+\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+
 \usepackage{amsmath,amsfonts}
 \usepackage{mathcomp,amssymb}
 \usepackage{dmnatbib}
@@ -318,10 +320,28 @@ multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges
 unfeasible paths.
 In this section, we use the same notations as \ref{sec:path_focusing}.
 
+\MM{$X^s$ n'est pas defini. A priori, il suffit d'ajouter un truc du style ... ``except that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for another abstract value $X^d$ later in the algorithm'' ici.}
+
 The combination of these two techniques considers an ascending sequence of
 subsets of the paths between two points in $P_R$.
 The current working subset of paths is stored using a compact representation,
 such as binary decision diagrams.
+
+\MM{Je trouve qu'il manque une vue de haut niveau quelque part par ici. Dire qu'en gros, l'algo, c'est :
+
+\begin{algorithm}
+  \begin{algorithmic}
+    \STATE \textit{Subset} $\gets \emptyset$
+    \WHILE{true}
+    \STATE Ascending iteration on a \textit{Subset}
+    \STATE Narrow
+    \STATE Add new paths to \textit{Subset}
+    \ENDWHILE
+  \end{algorithmic}
+\end{algorithm}
+
+Sans ca, enchainer tout de suite sur ``ascending iterations'' est un peu brutal.
+}
 
 \subsection{Ascending iterations}
 \label{subsec:ascending}
