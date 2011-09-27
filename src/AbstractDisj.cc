@@ -21,6 +21,7 @@ AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env) {
 
 
 AbstractDisj::AbstractDisj(Abstract* A) {
+	man_disj = new AbstractManClassic();
 	man = A->man;
 	disj.clear();
 	if (AbstractDisj * A_dis = dynamic_cast<AbstractDisj*>(A)) {
@@ -30,7 +31,7 @@ AbstractDisj::AbstractDisj(Abstract* A) {
 		}
 		main = disj[0]->main;
 	} else {
-		*Out << "ERROR\n";
+		*Out << "ERROR when trying to create a disjunctive invariant\n";
 		// ERROR
 		main = NULL;
 	}
@@ -47,6 +48,7 @@ void AbstractDisj::clear_all() {
 }
 
 AbstractDisj::~AbstractDisj() {
+	delete man_disj;
 	clear_all();
 }
 

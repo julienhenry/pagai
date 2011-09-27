@@ -276,14 +276,14 @@ void AIdis::loopiter(
 		Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->disj[index]);
 
 		Join.clear();
-		Join.push_back(aman->NewAbstract(Xpred));
-		Join.push_back(aman->NewAbstract(Xtemp));
+		Join.push_back(SuccDis->man_disj->NewAbstract(Xpred));
+		Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		DEBUG(
 			*Out << "BEFORE MINIWIDENING\n";	
 			*Out << "Succ->X:\n";
-			Succ->X_s[passID]->print();
+			SuccDis->print();
 			*Out << "Xtemp:\n";
 			Xtemp->print();
 		);
@@ -294,28 +294,28 @@ void AIdis::loopiter(
 			ap_lincons1_array_fprint(stdout,&threshold);
 			fflush(stdout);
 		);
-		Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+		Xtemp->widening_threshold(SuccDis->disj[index],&threshold);
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
-		delete Succ->X_s[passID];
-		Succ->X_s[passID] = Xtemp;
+		delete SuccDis->disj[index];
+		SuccDis->disj[index] = Xtemp;
 		DEBUG(
 			*Out << "AFTER MINIWIDENING\n";	
 			Xtemp->print();
 		);
 
-		Xtemp = aman->NewAbstract(n->X_s[passID]);
+		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->disj[index]);
 		computeTransform(aman,n,*path,*Xtemp);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-			n->X_s[passID]->print();
+			SuccDis->print();
 			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
 			Xtemp->print();
 		);
 		
-		delete Succ->X_s[passID];
-		Succ->X_s[passID] = Xpred;
+		delete SuccDis->disj[index];
+		SuccDis->disj[index] = Xpred;
 		only_join = true;
 		U->remove(*path);
 	} else {
@@ -429,9 +429,7 @@ void AIdis::computeNode(Node * n) {
 	delete U;
 	// now, we check if there exist new feasible paths that has never been
 	// computed, and that make the invariant grow
-	*Out << "computePaths...\n";
 	computeNewPaths(n);	
-	*Out << "computePaths...OK\n";
 }
 
 void AIdis::narrowNode(Node * n) {
