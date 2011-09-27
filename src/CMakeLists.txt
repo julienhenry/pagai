@@ -13,6 +13,10 @@ if(${STATIC_LINK})
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -static")
 endif()
 
+if(${PRINT_DEBUG})
+  add_definitions(-DPRINT_DEBUG)
+endif()
+
 include_directories(
   ${YICES_PATH}/include 
   ${Z3_PATH}/include
