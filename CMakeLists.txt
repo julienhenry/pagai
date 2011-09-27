@@ -49,4 +49,6 @@ option(STATIC_LINK "Whether to build executables as static" OFF)
 find_program(CLANG_PATH "clang++")
 set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
 
+option(PRINT_DEBUG "Activate debug traces" ON)
+
 add_subdirectory(src)
