@@ -101,9 +101,9 @@ void AbstractDisj::change_environment(ap_environment_t * env, int index) {
 	disj[index]->change_environment(env);
 }
 
-// NOT CORRECT
+// NOT IMPLEMENTED
 bool AbstractDisj::is_leq (Abstract *d) {
-	return ap_abstract1_is_leq(man,main,d->main);
+	return false;
 }
 
 bool AbstractDisj::is_leq (Abstract *d, int index) {
@@ -112,7 +112,7 @@ bool AbstractDisj::is_leq (Abstract *d, int index) {
 
 // NOT CORRECT
 bool AbstractDisj::is_eq (Abstract *d) {
-		return ap_abstract1_is_eq(man,main,d->main);
+	return ap_abstract1_is_eq(man,main,d->main);
 }
 
 bool AbstractDisj::is_eq (Abstract *d, int index) {
@@ -131,34 +131,16 @@ bool AbstractDisj::is_bottom(int index) {
 	return disj[index]->is_bottom();
 }
 
-//NOT CORRECT
+//NOT IMPLEMENTED
 void AbstractDisj::widening(Abstract * X) {
-	ap_abstract1_t Xmain_widening;
-	ap_abstract1_t Xmain;
-
-	Xmain = ap_abstract1_join(man,false,X->main,main);
-	Xmain_widening = ap_abstract1_widening(man,X->main,&Xmain);
-	ap_abstract1_clear(man,&Xmain);
-	
-	ap_abstract1_clear(man,main);
-	*main = Xmain_widening;
 }
 
 void AbstractDisj::widening(Abstract * X, int index) {
 	disj[index]->widening(X);
 }
 
-//NOT CORRECT
+//NOT IMPLEMENTED
 void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
-	ap_abstract1_t Xmain_widening;
-	ap_abstract1_t Xmain;
-
-	Xmain = ap_abstract1_join(man,false,X->main,main);
-	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons);
-	ap_abstract1_clear(man,&Xmain);
-	
-	ap_abstract1_clear(man,main);
-	*main = Xmain_widening;
 }
 
 void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons, int index) {
@@ -206,38 +188,16 @@ void AbstractDisj::assign_texpr_array(
 	disj[index]->assign_texpr_array(tvar,texpr,size,dest);
 }
 
-//NOT CORRECT
+//NOT IMPLEMENTED
 void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
-	size_t size = X_pred.size();
-	ap_abstract1_clear(man,main);
-
-	ap_abstract1_t  Xmain[size];
-	
-	for (unsigned i=0; i < size; i++) {
-		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
-		delete X_pred[i];
-	}
-	
-	if (size > 1) {
-		*main = ap_abstract1_join_array(man,Xmain,size);	
-		for (unsigned i=0; i < size; i++) {
-			ap_abstract1_clear(man,&Xmain[i]);
-		}
-	} else {
-		*main = Xmain[0];
-	}
 }
 
 void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred, int index) {
 	disj[index]->join_array(env,X_pred);
 }
 
-//NOT CORRECT
+//NOT IMPLEMENTED
 void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
-	std::vector<Abstract*> v;
-	v.push_back(n);
-	v.push_back(new AbstractDisj(this));
-	join_array(env,v);
 }
 
 void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n, int index) {
