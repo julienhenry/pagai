@@ -10,7 +10,7 @@
 
 using namespace llvm;
 
-/// Path Focusing implementation with Lookahead Widening
+/// Pass that computes disjunctive invariants
 class AIdis : public ModulePass, public AIPass {
 
 	private:

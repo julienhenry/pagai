@@ -59,7 +59,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		if (ErrorMessage.size())
 			errs() << ErrorMessage << "\n";
 		else
-			errs() << "bitcode didn't read correctly.\n";
+			errs() << "failed to read the bitcode file.\n";
 		return;
 	}
 
@@ -95,10 +95,26 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
 
-	ModulePass *AIPass;
+	FunctionPass *LoopInfoPass = new LoopInfo();
+
+	Passes.add(TD);
+	Passes.add(createVerifierPass());
+	Passes.add(createGCLoweringPass());
+	//Passes.add(createLowerInvokePass());
+	Passes.add(createPromoteMemoryToRegisterPass());
+	Passes.add(createLoopSimplifyPass());	
+	Passes.add(LoopInfoPass);
+
+	// this pass converts SwitchInst instructions into a sequence of
+	// binary branch instructions, much easier to deal with
+	Passes.add(createLowerSwitchPass());	
+
 	if (onlyOutputsRho()) {
-		AIPass = new GenerateSMT();
+		Passes.add(new GenerateSMT());
+	} else if (compareTechniques()) {
+		Passes.add(new Compare());
 	} else { 
+		ModulePass *AIPass;
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
 				AIPass = new ModulePassWrapper<AIGopan, 0>();
@@ -116,31 +132,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				AIPass = new ModulePassWrapper<AIdis, 0>();
 				break;
 		}
-	}
-
-
-	FunctionPass *LoopInfoPass = new LoopInfo();
-
-	Passes.add(TD);
-	Passes.add(createVerifierPass());
-	Passes.add(createGCLoweringPass());
-	//Passes.add(createLowerInvokePass());
-	Passes.add(createPromoteMemoryToRegisterPass());
-	Passes.add(createLoopSimplifyPass());	
-	Passes.add(LoopInfoPass);
-
-	// this pass converts SwitchInst instructions into a sequence of
-	// chained binary branch instructions, much easier to deal with
-	Passes.add(createLowerSwitchPass());	
-
-	Passes.add(new Live());
-	Passes.add(new SMT());
-	Passes.add(AIPass);
-	if (compareTechniques()) {
-		Passes.add(new AIpf());
-		Passes.add(new AIGopan());
-		Passes.add(new AIClassic());
-		Passes.add(new Compare());
+		Passes.add(AIPass);
 	}
 
 	Passes.run(*M.get());

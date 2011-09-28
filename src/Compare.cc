@@ -4,6 +4,7 @@
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
+#include "AIdis.h"
 #include "Node.h"
 #include "Debug.h"
 #include "ModulePassWrapper.h"
@@ -22,10 +23,11 @@ Compare::Compare() : ModulePass(ID) {}
 
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
-	AU.addRequired<AIpf>();
+	AU.addRequired<ModulePassWrapper<AIpf, 0> >();
+	AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
+	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
+	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
 	AU.addRequired<SMT>();
-	AU.addRequired<AIGopan>();
-	AU.addRequired<AIClassic>();
 	AU.setPreservesAll();
 }
 
@@ -183,6 +185,7 @@ bool Compare::runOnModule(Module &M) {
 				compareTechniques(n,LW_WITH_PF,PATH_FOCUSING);
 				compareTechniques(n,LW_WITH_PF,LOOKAHEAD_WIDENING);
 				compareTechniques(n,LW_WITH_PF,SIMPLE);
+				compareTechniques(n,LW_WITH_PF_DISJ,LW_WITH_PF);
 			}
 		}
 	}
@@ -192,6 +195,7 @@ bool Compare::runOnModule(Module &M) {
 	printResults(LW_WITH_PF,PATH_FOCUSING);
 	printResults(LW_WITH_PF,LOOKAHEAD_WIDENING);
 	printResults(LW_WITH_PF,SIMPLE);
+	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
 
 	printAllResults();
 	return true;
