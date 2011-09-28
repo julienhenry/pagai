@@ -188,7 +188,9 @@ std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 
 int AIdis::sigma(std::list<BasicBlock*> path, int start) {
 	// TODO
-	return start;
+	if(start == 4)
+		return 0;
+	else return start+1;
 }
 
 void AIdis::computeNewPaths(Node * n) {

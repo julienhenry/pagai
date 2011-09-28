@@ -22,7 +22,11 @@ class AbstractDisj: public Abstract {
 
 	public:
 
+		/// create a disjunctive invariant with one sigle disjunct
 		AbstractDisj(ap_manager_t* _man, ap_environment_t * env);
+
+		/// create a disjunctive invariant with max_index+1 disjunct
+		AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_index);
 
 		/// copy constructor : duplicates the abstract value
 		AbstractDisj(Abstract* A);
