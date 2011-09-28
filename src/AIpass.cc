@@ -58,6 +58,8 @@ void AIPass::initFunction(Function * F) {
 				n->env = ap_environment_alloc_empty();
 			}
 			// creating an X and an Y abstract value for this node
+			// TODO : do not create an abstract for a BB not in P_R when passID
+			// is a pass using SMT-solving
 			n->X_s[passID] = aman->NewAbstract(n->man,n->env);
 			n->X_d[passID] = aman->NewAbstract(n->man,n->env);
 	}
