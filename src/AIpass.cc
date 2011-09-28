@@ -47,13 +47,12 @@ void AIPass::initFunction(Function * F) {
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			if (Nodes.count(i) == 0) {
-				n = new Node(man,i);
+				n = new Node(i);
 				Nodes[i] = n;
 			} else {
 				//resetting parameters
 				already_seen = true;
 				n = Nodes[i];
-				n->man = man;
 				n->intVar.clear();
 				n->realVar.clear();
 				n->env = ap_environment_alloc_empty();
@@ -61,8 +60,8 @@ void AIPass::initFunction(Function * F) {
 			// creating an X and an Y abstract value for this node
 			// TODO : do not create an abstract for a BB not in P_R when passID
 			// is a pass using SMT-solving
-			n->X_s[passID] = aman->NewAbstract(n->man,n->env);
-			n->X_d[passID] = aman->NewAbstract(n->man,n->env);
+			n->X_s[passID] = aman->NewAbstract(man,n->env);
+			n->X_d[passID] = aman->NewAbstract(man,n->env);
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components

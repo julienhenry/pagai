@@ -35,9 +35,6 @@ class Node {
 		bool isInStack;
 		void computeSCC_rec(int & n,std::stack<Node*> * S);
 	public:
-		/// man - apron manager
-		ap_manager_t * man;
-
 		/// bb - BasicBlock associated to the Node
 		BasicBlock * bb;
 		/// sccId identifies the strongly connected component the node is in
@@ -62,7 +59,7 @@ class Node {
 		std::map<Value*,std::set<ap_var_t> > realVar;
 
 	public:
-		Node(ap_manager_t * man, BasicBlock * _bb);
+		Node(BasicBlock * _bb);
 		~Node();
 
 		/// computeSCC - compute the strongly connected components of the CFG 

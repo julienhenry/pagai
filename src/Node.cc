@@ -20,13 +20,12 @@ std::map<BasicBlock *,Node *> Nodes;
 int i = 0;
 
 
-Node::Node(ap_manager_t * _man, BasicBlock * _bb) {
+Node::Node(BasicBlock * _bb) {
 	index = 0;
 	lowlink = 0;
 	isInStack = false;
 	bb = _bb;
 	id = i++;
-	man = _man;
 	env = ap_environment_alloc_empty();
 }
 
