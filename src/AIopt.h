@@ -28,7 +28,7 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt(char &_ID) : ModulePass(_ID) {init();}
+		AIopt(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
 		AIopt() : ModulePass(ID) {init();}
 		void init()
 			{

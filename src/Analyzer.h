@@ -47,6 +47,7 @@ bool useBagnaraWidening();
 char* getFilename();
 
 Apron_Manager_Type getApronManager();
+Apron_Manager_Type getApronManager(int i);
 
 extern llvm::raw_ostream *Out;
 

@@ -14,6 +14,8 @@ class AISimple : public ModulePass, public AIPass {
 
 	public:
 
+		AISimple (char & ID, Apron_Manager_Type _man) : ModulePass(ID), AIPass(_man) {}
+
 		AISimple (char & ID) : ModulePass(ID) {}
 
 		~AISimple () {}

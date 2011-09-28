@@ -53,6 +53,7 @@ void AIPass::initFunction(Function * F) {
 				//resetting parameters
 				already_seen = true;
 				n = Nodes[i];
+				n->man = man;
 				n->intVar.clear();
 				n->realVar.clear();
 				n->env = ap_environment_alloc_empty();

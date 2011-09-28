@@ -18,7 +18,7 @@ class AIpf : public ModulePass, public AIPass {
 
 	public:
 
-		AIpf(char &_ID) : ModulePass(_ID) {init();}
+		AIpf(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
 		AIpf (): ModulePass(ID) {init();}
 		void init()
 			{

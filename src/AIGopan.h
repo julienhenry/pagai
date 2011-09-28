@@ -23,7 +23,7 @@ class AIGopan : public AISimple {
 
 	public:
 
-		AIGopan(char &_ID) : AISimple(_ID) {init();}
+		AIGopan(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {init();}
 		AIGopan (): AISimple(ID) {init();}
 
 		void init()

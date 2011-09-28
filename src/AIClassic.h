@@ -17,7 +17,7 @@ class AIClassic : public AISimple {
 		static char ID;	
 
 	public:
-		AIClassic(char &_ID) : AISimple(_ID) {init();}
+		AIClassic(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {init();}
 		AIClassic (): AISimple(ID) {init();}
 
 		void init()

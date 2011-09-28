@@ -80,6 +80,17 @@ Apron_Manager_Type getApronManager() {
 	return ap_manager;
 }
 
+Apron_Manager_Type getApronManager(int i) {
+	if (i == 0) {
+		*Out << "PK\n";
+		return PK;
+	} else {
+		*Out << "BOX\n";
+		return BOX;
+	}
+	return ap_manager;
+}
+
 std::string TechniquesToString(Techniques t) {
 	switch (t) {
 		case LOOKAHEAD_WIDENING:
@@ -191,7 +202,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDd:i:o:ycft:b",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDd:i:o:ycCft:b",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -201,6 +212,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'c':
             compare = true;
+            break;
+        case 'C':
+            compare_Domain = true;
             break;
         case 't':
             arg = optarg;

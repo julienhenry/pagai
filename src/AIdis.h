@@ -30,7 +30,7 @@ class AIdis : public ModulePass, public AIPass {
 
 	public:
 
-		AIdis(char &_ID) : ModulePass(_ID) {init();}
+		AIdis(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
 		AIdis() : ModulePass(ID) {init();}
 		void init()
 			{

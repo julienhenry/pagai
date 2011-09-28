@@ -1,6 +1,8 @@
 #ifndef MODULEPASSWRAPPER_H
 #define MODULEPASSWRAPPER_H
 
+#include "Analyzer.h"
+
 using namespace llvm;
 
 /// \brief Wrapper to allow instanciating an LLVM pass multiple times.
@@ -44,8 +46,10 @@ class ModulePassWrapper : public P {
 		static char ID;
 
 		ModulePassWrapper()
-			: P(ID)
-			{/* */}
+			: P(ID,getApronManager(i))
+			{
+			*Out << "i = " << i << "\n";	
+			}
 		~ModulePassWrapper() {}
 };
 
