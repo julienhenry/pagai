@@ -38,6 +38,8 @@ Techniques getTechnique();
 
 bool compareTechniques();
 
+bool compareDomain();
+
 bool onlyOutputsRho();
 
 bool useBagnaraWidening();

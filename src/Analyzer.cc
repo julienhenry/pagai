@@ -10,6 +10,7 @@
 SMT_Solver manager;
 Techniques technique;
 bool compare;
+bool compare_Domain;
 bool onlyrho;
 bool bagnara_widening;
 Apron_Manager_Type ap_manager;
@@ -39,8 +40,9 @@ void show_help() {
 		  * pf (Path Focusing)\n \
 		  * lw+pf (combination of Lookahead Widening and Path Focusing), default\n \
 		  * s (simple abstract interpretation)\n \
+		  * dis (lw+pf, using disjunctive invariants)\n \
 		example of option: -t pf\n \
--c : compare the 4 techniques (lw, pf, lw+pf and s)\n \
+-c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMT formula\n \
 -y : use Yices instead of the Z3 SMT-solver (for techniques with lw)\n";
@@ -56,6 +58,10 @@ Techniques getTechnique() {
 
 bool compareTechniques() {
 	return compare;
+}
+
+bool compareDomain() {
+	return compare_Domain;
 }
 
 bool useBagnaraWidening() {
@@ -154,6 +160,7 @@ int main(int argc, char* argv[]) {
 	ap_manager = PK;
 	technique = LW_WITH_PF;
 	compare = false;
+	compare_Domain = false;
 	onlyrho = false;
 	bagnara_widening = false;
 	n_totalpaths = 0;
