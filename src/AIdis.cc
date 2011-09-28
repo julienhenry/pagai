@@ -154,7 +154,7 @@ void AIdis::computeFunction(Function * F) {
 		// we set X_d abstract values to bottom for narrowing
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (Nodes[b] != n) {
+			if (LSMT->getPr(*F)->count(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}

@@ -6,6 +6,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpass.h"
+#include "AISimple.h"
 #include "Expr.h"
 #include "Live.h"
 #include "Node.h"
@@ -60,8 +61,16 @@ void AIPass::initFunction(Function * F) {
 			// creating an X and an Y abstract value for this node
 			// TODO : do not create an abstract for a BB not in P_R when passID
 			// is a pass using SMT-solving
-			n->X_s[passID] = aman->NewAbstract(man,n->env);
-			n->X_d[passID] = aman->NewAbstract(man,n->env);
+			
+			if (LSMT == NULL
+				||dynamic_cast<AISimple*>(this)
+				|| LSMT->getPr(*F)->count(i)) {
+				n->X_s[passID] = aman->NewAbstract(man,n->env);
+				n->X_d[passID] = aman->NewAbstract(man,n->env);
+			} else {
+				n->X_s[passID] = NULL;
+				n->X_d[passID] = NULL;
+			}
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
@@ -106,11 +115,15 @@ void AIPass::copy_Xd_to_Xs(Function * F) {
 	ap_environment_t * env = ap_environment_alloc_empty();
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
-		delete Nodes[b]->X_s[passID];
-		Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_d[passID]);
-		if (b != F->begin()) {
-			delete Nodes[b]->X_d[passID];
-			Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
+
+		if (dynamic_cast<AISimple*>(this)
+			|| LSMT->getPr(*F)->count(i)) {
+			delete Nodes[b]->X_s[passID];
+			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_d[passID]);
+			if (b != F->begin()) {
+				delete Nodes[b]->X_d[passID];
+				Nodes[b]->X_d[passID] = aman->NewAbstract(man,env);
+			}
 		}
 	}
 }
