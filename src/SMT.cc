@@ -194,8 +194,9 @@ SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_bo
 			std::vector<SMT_expr> cunj;
 			cunj.push_back(AbstractToSmt(b,*it));
 			// we create a boolean predicate for each disjunct
-			*Out << getDisjunctiveIndexName(A,index) << "\n";
-
+			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
+			SMT_expr dexpr = man->SMT_mk_expr_from_bool_var(dvar);
+			cunj.push_back(dexpr);
 			disj.push_back(man->SMT_mk_and(cunj));
 		}
 	} else {
@@ -359,18 +360,27 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 }
 
 /// getElementFromString - 
-void SMT::getElementFromString(std::string name, bool &isEdge, bool &start, BasicBlock * &src, BasicBlock * &dest) {
+void SMT::getElementFromString(
+	std::string name,
+	bool &isEdge,
+	bool &isIndex,
+	bool &start,
+	BasicBlock * &src,
+	BasicBlock * &dest,
+	int &index) {
 
 	std::string edge ("t_");
 	std::string simple_node ("b_");
 	std::string source_node ("bs_");
 	std::string dest_node ("bd_");
+	std::string disjunctive_index ("d_");
 	size_t found;
 	void* address;
 	src = NULL;
 	dest = NULL;
 	start = false;
 
+	// case 1 : this is an edge
 	found = name.find(edge);
 	if (found!=std::string::npos) {
 		isEdge = true;
@@ -386,9 +396,23 @@ void SMT::getElementFromString(std::string name, bool &isEdge, bool &start, Basi
 		return;
 	}
 	isEdge = false;
-	std::string nodename;
-	found = name.find(simple_node);
 
+	// case 2 : this is a disjunctive index
+	found = name.find(disjunctive_index);
+	if (found!=std::string::npos) {
+		isIndex = true;
+		std::string source = name.substr (2,9);
+		std::string stringindex(name);
+		stringindex.erase(0,12);	
+		std::istringstream indexStream(stringindex);
+		indexStream >> index;
+		return;
+	}
+	isIndex = false;
+	
+	std::string nodename;
+	// case 3 : this is a node
+	found = name.find(simple_node);
 	if (found==std::string::npos) {
 		found = name.find(source_node);
 		if (found==std::string::npos) found = name.find(dest_node);
@@ -566,9 +590,12 @@ SMT_expr SMT::createSMTformula(
 			formula.push_back(man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar)));
 		}
 	}
-	
+
 	Abstract * A = Nodes[source]->X_s[t];
-	formula.push_back(AbstractToSmt(NULL,A));
+	if (AbstractDisj * Adis = dynamic_cast<AbstractDisj*>(A))
+		formula.push_back(AbstractDisjToSmt(NULL,Adis,true));
+	else
+		formula.push_back(AbstractToSmt(NULL,A));
 
 	std::vector<SMT_expr> Or;
 	std::set<BasicBlock*> Successors = getPrSuccessors(source);
@@ -599,24 +626,35 @@ SMT_expr SMT::createSMTformula(
 	return man->SMT_mk_and(formula);
 }
 
-/// SMTsolve - solve an SMT formula and computes its model in case of a 'sat'
+/// solve an SMT formula and computes its model in case of a 'sat'
 /// formula
 int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+	int index;
+	return SMTsolve(expr,path,index);
+}
+
+/// solve an SMT formula and computes its model in case of a 'sat'
+/// formula. In the case of a pass using disjunctive invariants, index is set to
+/// the associated index of the disjunct to focus on.
+int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
 	res = man->SMT_check(expr,&true_booleans);
 	if (res != 1) return res;
-	bool isEdge, start;
+	bool isEdge, isIndex, start;
 	BasicBlock * src;
 	BasicBlock * dest;
+	int disj;
 
 	std::set<std::string>::iterator i = true_booleans.begin(), e = true_booleans.end();
 	for (; i != e; ++i) {
 		std::string name = *i;
-		getElementFromString(name,isEdge,start,src,dest);
+		getElementFromString(name,isEdge,isIndex,start,src,dest,disj);
 		if (isEdge) {
 			succ[src] = dest;
+		} else if (isIndex) {
+			index = disj;
 		} else {
 			if (start)
 				path->push_back(src);

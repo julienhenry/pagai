@@ -17,6 +17,10 @@ if(${PRINT_DEBUG})
   add_definitions(-DPRINT_DEBUG)
 endif()
 
+if(${PRINT_DEBUG_SMT})
+  add_definitions(-DPRINT_DEBUG_SMT)
+endif()
+
 include_directories(
   ${YICES_PATH}/include 
   ${Z3_PATH}/include

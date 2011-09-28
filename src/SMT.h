@@ -60,18 +60,24 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_var getVar(Value * v, bool primed);
 
 		/// getElementFromString - take a string name as input, and find if it
-		/// is the name of an edge or a node
+		/// is the name of an edge, a node, or a the index of a disjunctive
+		//invariant
 		/// if it is an edge :
 		///  - src becomes the source of the edge
 		///  - dest becomes the destination of the edge
 		/// if it is a Node :
 		///  - src becomes the basicblock of this node
 		///  - start is true iff the block is a start Node
+		/// if it is an index for a disjunctive invariant :
+		/// - isIndex is true
+		/// - index is the associated index
 		void getElementFromString(	std::string name,
 									bool &isEdge, 
+									bool &isIndex,
 									bool &start, 
 									BasicBlock * &src, 
-									BasicBlock * &dest);
+									BasicBlock * &dest,
+									int &index);
 		
 		/// computeCondition - compute and return the expression associated to a
 		/// condition
@@ -139,10 +145,15 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 			Techniques t,
 			SMT_expr constraint = NULL);
 
-		/// SMTsolve - solve the SMT expression expr and return true iff expr is
+		/// solve the SMT expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from
 		/// the model
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
+
+		/// solve an SMT formula and computes its model in case of a 'sat'
+		/// formula. In the case of a pass using disjunctive invariants, index is set to
+		/// the associated index of the disjunct to focus on.
+		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index);
 
 		/// solve the SMT expression, and returns 1 if satisfiable, 0 if not, -1
 		/// if unknown

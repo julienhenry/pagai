@@ -122,7 +122,6 @@ void AIdis::computeFunction(Function * F) {
 	*Out << "Computing Rho...";
 	LSMT->getRho(*F);
 	*Out << "OK\n";
-	
 
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
@@ -223,7 +222,7 @@ void AIdis::computeNewPaths(Node * n) {
 		int res;
 		int index = 0;
 		struct timeval beginTime = Now();
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,index);
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 
@@ -359,9 +358,10 @@ void AIdis::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		// TODO : index
-		int index = 0;
+		int index;
 		struct timeval beginTime = Now();
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,index);
+		*Out << "Index = " << index << "\n";
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
@@ -459,7 +459,7 @@ void AIdis::narrowNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index = 0;
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,index);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) unknown = true;
