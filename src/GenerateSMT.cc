@@ -30,7 +30,7 @@ GenerateSMT::~GenerateSMT() {
 void GenerateSMT::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMT>();
+	AU.addRequired<SMTpass>();
 	AU.setPreservesAll();
 }
 
@@ -58,7 +58,7 @@ void GenerateSMT::printBasicBlock(BasicBlock* b) {
 }
 
 bool GenerateSMT::runOnModule(Module &M) {
-	LSMT = &(getAnalysis<SMT>());
+	LSMT = &(getAnalysis<SMTpass>());
 	Function * F;
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {

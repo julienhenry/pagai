@@ -14,7 +14,7 @@
 
 using namespace llvm;
 
-class SMT;
+class SMTpass;
 class Live;
 class Node;
 
@@ -22,7 +22,7 @@ class Node;
 ///
 /// Base class factoring helper functions and data-structure to
 /// perform Abstract Interpretation (i.e. graph traversal on the CFG,
-/// Apron Manager, SMT solver, ...).
+/// Apron Manager, SMTpass solver, ...).
 class AIPass : public InstVisitor<AIPass> {
 
 	protected:
@@ -30,8 +30,8 @@ class AIPass : public InstVisitor<AIPass> {
 		Live * LV;
 		/// LI - result of the LoopInfo pass
 		LoopInfo * LI;
-		/// LSMT - result of the SMT pass
-		SMT * LSMT;
+		/// LSMT - result of the SMTpass pass
+		SMTpass * LSMT;
 
 		/// id of the pass
 		Techniques passID;

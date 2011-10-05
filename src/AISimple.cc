@@ -8,7 +8,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
-#include "SMT.h"
+#include "SMTpass.h"
 #include "Debug.h"
 #include "Analyzer.h"
 
@@ -61,19 +61,19 @@ void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMT>();
+	AU.addRequired<SMTpass>();
 }
 
 bool AISimple::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
-	// We're not using SMT-solving here, but SMT is also the class
+	// We're not using SMT-solving here, but SMTpass is also the class
 	// computing the set of points of interest Pr, i.e. the set of
 	// points where invariants will be displayed.
 	// Other approaches will compute the invariant only for Pr, hence
 	// Pr points are the only ones for which a comparison can be done.
-	LSMT = &(getAnalysis<SMT>());
+	LSMT = &(getAnalysis<SMTpass>());
 	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {

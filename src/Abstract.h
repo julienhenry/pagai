@@ -32,10 +32,17 @@ class Abstract {
 		/// change_environment - change the environment of the abstract value
 		virtual void change_environment(ap_environment_t * env) = 0;
 
-		/// is_leq - return true iff this <= d
-		virtual bool is_leq(Abstract * d) = 0;
+		/// compare the abstract value with another one
+		/// return 0 in equal
+		/// return 1 in case of this <= d
+		/// return -1 in case of d <= this
+		/// return -2 if not comparable
+		int compare(Abstract * d);
 
-		virtual bool is_eq(Abstract * d) = 0;
+		/// is_leq - return true iff this <= d
+		virtual bool is_leq(Abstract * d);
+
+		virtual bool is_eq(Abstract * d);
 
 		/// is_bottom - return true iff the abstract value is at bottom
 		virtual bool is_bottom() = 0;

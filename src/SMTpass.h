@@ -18,8 +18,8 @@ using namespace llvm;
 
 /// @brief SMT-formula creation pass
 ///
-/// Uses SMT::man as an abstraction layer to access the SMT solver.
-class SMT : public ModulePass, public InstVisitor<SMT> {
+/// Uses SMTpass::man as an abstraction layer to access the SMTpass solver.
+class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 	
 	private:
 		LoopInfo * LI;
@@ -39,7 +39,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// rho_components - when constructing rho, we use this vector
 		std::vector<SMT_expr> rho_components;
 
-		/// instructions - when constructing instruction-related SMT formula, we
+		/// instructions - when constructing instruction-related SMTpass formula, we
 		/// use this vector
 		std::vector<SMT_expr> instructions;
 
@@ -53,7 +53,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// getValueExpr - get the expression associated to a value
 		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
 
-		/// getValueType - return the SMT type of the value
+		/// getValueType - return the SMTpass type of the value
 		SMT_type getValueType(Value * v);
 
 		/// getVar - function to use for getting a variable from a value
@@ -108,8 +108,8 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// man - manager (Microsoft z3 or Yices)
 		SMT_manager * man;
 
-		SMT();
-		~SMT();
+		SMTpass();
+		~SMTpass();
 
 		const char * getPassName() const;
 		void getAnalysisUsage(AnalysisUsage &AU) const;
@@ -119,7 +119,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 
 		/// getPr - get the set Pr. The set Pr is computed only once
 		std::set<BasicBlock*>* getPr(Function &F);
-		/// getRho - get the SMT formula Rho. Rho is computed only once
+		/// getRho - get the SMTpass formula Rho. Rho is computed only once
 		SMT_expr getRho(Function &F);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of
@@ -129,12 +129,12 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		/// b in Pr
 		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
-		/// push_context - push the context of the SMT manager
+		/// push_context - push the context of the SMTpass manager
 		void push_context();
-		/// pop_context - pop the context of the SMT manager
+		/// pop_context - pop the context of the SMTpass manager
 		void pop_context();
 		
-		/// createSMTformula - compute and return the SMT formula associated to
+		/// createSMTformula - compute and return the SMTpass formula associated to
 		/// the BasicBlock source, as described in the paper
 		/// if we are in narrowing phase, use_X_d has to be true.
 		/// We can cunjunct this formula with an SMT_expr formula given as
@@ -145,17 +145,17 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 			Techniques t,
 			SMT_expr constraint = NULL);
 
-		/// solve the SMT expression expr and return true iff expr is
+		/// solve the SMTpass expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from
 		/// the model
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
-		/// solve an SMT formula and computes its model in case of a 'sat'
+		/// solve an SMTpass formula and computes its model in case of a 'sat'
 		/// formula. In the case of a pass using disjunctive invariants, index is set to
 		/// the associated index of the disjunct to focus on.
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index);
 
-		/// solve the SMT expression, and returns 1 if satisfiable, 0 if not, -1
+		/// solve the SMTpass expression, and returns 1 if satisfiable, 0 if not, -1
 		/// if unknown
 		int SMTsolve_simple(SMT_expr expr);
 
@@ -173,7 +173,7 @@ class SMT : public ModulePass, public InstVisitor<SMT> {
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
 		/// @}
 
-		/// Creates an SMT formula associated to a disjunctive invariant. If
+		/// Creates an SMTpass formula associated to a disjunctive invariant. If
 		/// insert_booleans is true, each disjunct is cunjunct with a boolean
 		/// predicate, as detailed in the paper, so that we can deduce which
 		/// disjunct to choose.

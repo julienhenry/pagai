@@ -25,7 +25,7 @@
 #include "Node.h"
 #include "Execute.h"
 #include "Live.h"
-#include "SMT.h"
+#include "SMTpass.h"
 #include "Compare.h"
 #include "Analyzer.h"
 #include "GenerateSMT.h"

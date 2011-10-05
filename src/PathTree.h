@@ -9,7 +9,7 @@
 
 #include "cuddObj.hh"
 
-#include "SMT.h"
+#include "SMTpass.h"
 
 using namespace llvm;
 
@@ -50,19 +50,19 @@ class PathTree {
 
 		/// returns a string that names the basicblock. 
 		/// If smt != NULL, this name is exactly the same as the one 
-		/// used in the SMT pass
+		/// used in the SMTpass pass
 		const std::string getNodeName(
 			BasicBlock* b, 
 			bool src,
-			SMT * smt = NULL) const;
+			SMTpass * smt = NULL) const;
 
 		/// returns the name of the basicBlock associated
 		/// to the level i of the Bdd.
 		/// If smt != NULL, this name is exactly the same as the one 
-		/// used in the SMT pass
+		/// used in the SMTpass pass
 		const std::string getStringFromLevel(
 			int i,
-			SMT * smt = NULL);
+			SMTpass * smt = NULL);
 
 	public:
 		PathTree();
@@ -90,8 +90,8 @@ class PathTree {
 		/// file is given by the filename argument.
 		void DumpDotBDD(BDD graph, std::string filename);
 
-		/// generate the SMT formula associated to the Bdd
+		/// generate the SMTpass formula associated to the Bdd
 		SMT_expr generateSMTformula(
-			SMT * smt);
+			SMTpass * smt);
 };
 #endif

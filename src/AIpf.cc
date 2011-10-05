@@ -6,7 +6,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
-#include "SMT.h"
+#include "SMTpass.h"
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
@@ -28,7 +28,7 @@ void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMT>();
+	AU.addRequired<SMTpass>();
 }
 
 bool AIpf::runOnModule(Module &M) {
@@ -36,7 +36,7 @@ bool AIpf::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	int N_Pr = 0;
-	LSMT = &(getAnalysis<SMT>());
+	LSMT = &(getAnalysis<SMTpass>());
 
 	*Out << "Starting analysis: PF\n";
 
@@ -161,11 +161,11 @@ void AIpf::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "--------------- NEW SMTpass SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
-		// creating the SMT formula we want to check
+		// creating the SMTpass formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
@@ -269,11 +269,11 @@ void AIpf::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "--------------- NEW SMTpass SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
-		// creating the SMT formula we want to check
+		// creating the SMTpass formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(

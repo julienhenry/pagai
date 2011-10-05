@@ -44,7 +44,7 @@ void show_help() {
 		example of option: -t pf\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
--f : only outputs the SMT formula\n \
+-f : only outputs the SMTpass formula\n \
 -y : use Yices instead of the Z3 SMT-solver (for techniques with lw)\n";
 }
 

@@ -8,7 +8,7 @@ using namespace llvm;
 /// @brief Base class implementing the basic abstract interpretation algorithm
 ///
 /// This class contains the parts of the algorimth common to
-/// algorithms that do not use SMT solving to chose the order in which
+/// algorithms that do not use SMTpass solving to chose the order in which
 /// nodes are visited (i.e. Classic, and Gopan&Reps).
 class AISimple : public ModulePass, public AIPass {
 

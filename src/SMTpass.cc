@@ -6,7 +6,7 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Analysis/LoopInfo.h"
 
-#include "SMT.h"
+#include "SMTpass.h"
 #include "z3_manager.h"
 #include "yices.h"
 #include "Expr.h"
@@ -15,16 +15,16 @@
 
 using namespace std;
 
-char SMT::ID = 0;
-static RegisterPass<SMT>
-X("SMT","SMT-formula creation pass",false,true);
+char SMTpass::ID = 0;
+static RegisterPass<SMTpass>
+X("SMTpass","SMT-formula creation pass",false,true);
 
 
-const char * SMT::getPassName() const {
+const char * SMTpass::getPassName() const {
 	return "SMT";
 }
 
-SMT::SMT() : ModulePass(ID), nundef(0) {
+SMTpass::SMTpass() : ModulePass(ID), nundef(0) {
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -35,32 +35,32 @@ SMT::SMT() : ModulePass(ID), nundef(0) {
 	}
 }
 
-SMT::~SMT() {
+SMTpass::~SMTpass() {
 	delete man;
 }
 
-void SMT::getAnalysisUsage(AnalysisUsage &AU) const {
+void SMTpass::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<LoopInfo>();
 	AU.setPreservesAll();
 }
 
-bool SMT::runOnModule(Module &M) {
+bool SMTpass::runOnModule(Module &M) {
 	return 0;
 }
 
-std::set<BasicBlock*>* SMT::getPr(Function &F) {
+std::set<BasicBlock*>* SMTpass::getPr(Function &F) {
 	if (!Pr.count(&F))
 		computePr(F);
 	return Pr[&F];
 }
 
-SMT_expr SMT::getRho(Function &F) {
+SMT_expr SMTpass::getRho(Function &F) {
 	if (!rho.count(&F))
 		computeRho(F);
 	return rho[&F];
 }
 
-void SMT::reset_SMTcontext() {
+void SMTpass::reset_SMTcontext() {
 	rho.clear();
 	delete man;
 	switch (getSMTSolver()) {
@@ -73,12 +73,12 @@ void SMT::reset_SMTcontext() {
 	}
 }
 
-SMT_expr SMT::texpr1ToSmt(ap_texpr1_t texpr) {
+SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
 	// NOT IMPLEMENTED
 	return NULL;
 }
 
-SMT_expr SMT::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer) {
+SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer) {
 	std::vector<SMT_expr> elts;
 	SMT_expr val;
 	SMT_expr coefficient;
@@ -117,7 +117,7 @@ SMT_expr SMT::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer)
 	return man->SMT_mk_sum(elts);
 }
 
-SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
+SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
 	mp_rnd_t round = GMP_RNDN;
 	ap_double_set_scalar(&value,scalar,round);
 
@@ -127,7 +127,7 @@ SMT_expr SMT::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
 		return man->SMT_mk_real(value);
 }
 
-SMT_expr SMT::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
+SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
 	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
 	//ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
@@ -160,7 +160,7 @@ SMT_expr SMT::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 	return NULL;
 }
 
-SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
+SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
 	ap_constyp_t* constyp = ap_tcons1_constypref(&tcons);
 	ap_texpr1_t texpr = ap_tcons1_texpr1ref(&tcons);
 	ap_scalar_t* scalar = ap_tcons1_scalarref(&tcons);
@@ -186,7 +186,7 @@ SMT_expr SMT::tcons1ToSmt(ap_tcons1_t tcons) {
 }
 
 
-SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_booleans) {
+SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_booleans) {
 	std::vector<SMT_expr> disj;
 	std::vector<Abstract*>::iterator it = A->disj.begin(), et = A->disj.end();
 	if (insert_booleans) {
@@ -207,7 +207,7 @@ SMT_expr SMT::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_bo
 	return man->SMT_mk_or(disj);
 }
 
-SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
+SMT_expr SMTpass::AbstractToSmt(BasicBlock * b, Abstract * A) {
 
 	if (A->is_bottom()) return man->SMT_mk_false();
 	if (AbstractDisj * Adis = dynamic_cast<AbstractDisj*>(A)) 
@@ -228,19 +228,19 @@ SMT_expr SMT::AbstractToSmt(BasicBlock * b, Abstract * A) {
 		return man->SMT_mk_and(constraints);
 }
 
-const std::string SMT::getDisjunctiveIndexName(AbstractDisj * A, int index) {
+const std::string SMTpass::getDisjunctiveIndexName(AbstractDisj * A, int index) {
 	std::ostringstream name;
 	name << "d_" << A << "_" << index;
 	return name.str();
 }
 
-const std::string SMT::getUndeterministicChoiceName(Value * v) {
+const std::string SMTpass::getUndeterministicChoiceName(Value * v) {
 	std::ostringstream name;
 	name << "c_" << v;
 	return name.str();
 }
 
-const std::string SMT::getNodeName(BasicBlock* b, bool src) {
+const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
 	std::set<BasicBlock*> * FPr = getPr(*(b->getParent()));
 	if (FPr->count(b)) {
@@ -255,13 +255,13 @@ const std::string SMT::getNodeName(BasicBlock* b, bool src) {
 	return name.str();
 }
 
-const std::string SMT::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
+const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 	std::ostringstream name;
 	name << "t_" << b1 << "_" << b2;
 	return name.str();
 }
 
-const std::string SMT::getValueName(Value * v, bool primed) {
+const std::string SMTpass::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
 	if (primed)
 		name << "x'_" << ap_var_to_string((ap_var_t)v) << "_";
@@ -271,7 +271,7 @@ const std::string SMT::getValueName(Value * v, bool primed) {
 }
 
 
-SMT_type SMT::getValueType(Value * v) {
+SMT_type SMTpass::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {
 		case Type::IntegerTyID:
 			return man->int_type;
@@ -280,12 +280,12 @@ SMT_type SMT::getValueType(Value * v) {
 	}
 }
 
-SMT_var SMT::getVar(Value * v, bool primed) {
+SMT_var SMTpass::getVar(Value * v, bool primed) {
 	std::string name = getValueName(v,primed);
 	return man->SMT_mk_var(name,getValueType(v));
 }
 
-SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
+SMT_expr SMTpass::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 	SMT_var var;
 
 	ap_texpr_rtype_t ap_type;
@@ -360,7 +360,7 @@ SMT_expr SMT::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 }
 
 /// getElementFromString - 
-void SMT::getElementFromString(
+void SMTpass::getElementFromString(
 	std::string name,
 	bool &isEdge,
 	bool &isIndex,
@@ -435,7 +435,7 @@ void SMT::getElementFromString(
 
 // computePr - computes the set Pr of BasicBlocks
 // for the moment - Pr = Pw + blocks with a ret inst
-void SMT::computePr(Function &F) {
+void SMTpass::computePr(Function &F) {
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	BasicBlock * b;
 	LI = &(getAnalysis<LoopInfo>(F));
@@ -458,15 +458,15 @@ void SMT::computePr(Function &F) {
 	Pr[&F] = FPr;
 }
 
-std::set<BasicBlock*> SMT::getPrPredecessors(BasicBlock * b) {
+std::set<BasicBlock*> SMTpass::getPrPredecessors(BasicBlock * b) {
 	return Pr_pred[b];
 }
 
-std::set<BasicBlock*> SMT::getPrSuccessors(BasicBlock * b) {
+std::set<BasicBlock*> SMTpass::getPrSuccessors(BasicBlock * b) {
 	return Pr_succ[b];
 }
 
-void SMT::computeRhoRec(Function &F, 
+void SMTpass::computeRhoRec(Function &F, 
 		BasicBlock * b,
 		BasicBlock * dest,
 		bool newPr,
@@ -534,7 +534,7 @@ void SMT::computeRhoRec(Function &F,
 	}
 }
 
-void SMT::computeRho(Function &F) {
+void SMTpass::computeRho(Function &F) {
 	std::set<BasicBlock*> visited;
 	BasicBlock * b;
 
@@ -561,17 +561,17 @@ void SMT::computeRho(Function &F) {
 }
 
 
-void SMT::push_context() {
+void SMTpass::push_context() {
 	man->push_context();
 }
 
-void SMT::pop_context() {
+void SMTpass::pop_context() {
 	man->pop_context();
 }
 
 /// createSMTformula - create the smt formula that is described in the paper
 ///
-SMT_expr SMT::createSMTformula(
+SMT_expr SMTpass::createSMTformula(
 	BasicBlock * source, 
 	bool use_X_d, 
 	Techniques t,
@@ -626,17 +626,17 @@ SMT_expr SMT::createSMTformula(
 	return man->SMT_mk_and(formula);
 }
 
-/// solve an SMT formula and computes its model in case of a 'sat'
+/// solve an SMTpass formula and computes its model in case of a 'sat'
 /// formula
-int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	int index;
 	return SMTsolve(expr,path,index);
 }
 
-/// solve an SMT formula and computes its model in case of a 'sat'
+/// solve an SMTpass formula and computes its model in case of a 'sat'
 /// formula. In the case of a pass using disjunctive invariants, index is set to
 /// the associated index of the disjunct to focus on.
-int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
+int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
@@ -669,19 +669,19 @@ int SMT::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
 	return res;	
 }
 
-int SMT::SMTsolve_simple(SMT_expr expr) {
+int SMTpass::SMTsolve_simple(SMT_expr expr) {
 	std::set<std::string> true_booleans;
 	return man->SMT_check(expr,&true_booleans);
 }
 
-void SMT::visitReturnInst (ReturnInst &I) {
+void SMTpass::visitReturnInst (ReturnInst &I) {
 }
 
-SMT_expr SMT::computeCondition(PHINode * inst) {
+SMT_expr SMTpass::computeCondition(PHINode * inst) {
 	return construct_phi_ite(*inst,0,inst->getNumIncomingValues());
 }
 
-SMT_expr SMT::computeCondition(CmpInst * inst) {
+SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) {
@@ -749,7 +749,7 @@ SMT_expr SMT::computeCondition(CmpInst * inst) {
 	return NULL;
 }
 
-void SMT::visitBranchInst (BranchInst &I) {
+void SMTpass::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,true));
@@ -792,13 +792,13 @@ void SMT::visitBranchInst (BranchInst &I) {
 	}
 }
 
-void SMT::visitSwitchInst (SwitchInst &I) {
+void SMTpass::visitSwitchInst (SwitchInst &I) {
 }
 
-void SMT::visitIndirectBrInst (IndirectBrInst &I) {
+void SMTpass::visitIndirectBrInst (IndirectBrInst &I) {
 }
 
-void SMT::visitInvokeInst (InvokeInst &I) {
+void SMTpass::visitInvokeInst (InvokeInst &I) {
 	BasicBlock * b = I.getParent();
 
 	SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(&I));
@@ -826,31 +826,31 @@ void SMT::visitInvokeInst (InvokeInst &I) {
 	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
 }
 
-void SMT::visitUnwindInst (UnwindInst &I) {
+void SMTpass::visitUnwindInst (UnwindInst &I) {
 }
 
-void SMT::visitUnreachableInst (UnreachableInst &I) {
+void SMTpass::visitUnreachableInst (UnreachableInst &I) {
 }
 
-void SMT::visitICmpInst (ICmpInst &I) {
+void SMTpass::visitICmpInst (ICmpInst &I) {
 }
 
-void SMT::visitFCmpInst (FCmpInst &I) {
+void SMTpass::visitFCmpInst (FCmpInst &I) {
 }
 
-void SMT::visitAllocaInst (AllocaInst &I) {
+void SMTpass::visitAllocaInst (AllocaInst &I) {
 }
 
-void SMT::visitLoadInst (LoadInst &I) {
+void SMTpass::visitLoadInst (LoadInst &I) {
 }
 
-void SMT::visitStoreInst (StoreInst &I) {
+void SMTpass::visitStoreInst (StoreInst &I) {
 }
 
-void SMT::visitGetElementPtrInst (GetElementPtrInst &I) {
+void SMTpass::visitGetElementPtrInst (GetElementPtrInst &I) {
 }
 
-SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
+SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
 		return getValueExpr(I.getIncomingValue(i), primed[NULL]);
@@ -864,7 +864,7 @@ SMT_expr SMT::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }
 
-void SMT::visitPHINode (PHINode &I) {
+void SMTpass::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
@@ -888,70 +888,70 @@ void SMT::visitPHINode (PHINode &I) {
 	rho_components.push_back(expr);
 }
 
-void SMT::visitTruncInst (TruncInst &I) {
+void SMTpass::visitTruncInst (TruncInst &I) {
 }
 
-void SMT::visitZExtInst (ZExtInst &I) {
+void SMTpass::visitZExtInst (ZExtInst &I) {
 }
 
-void SMT::visitSExtInst (SExtInst &I) {
+void SMTpass::visitSExtInst (SExtInst &I) {
 }
 
-void SMT::visitFPTruncInst (FPTruncInst &I) {
+void SMTpass::visitFPTruncInst (FPTruncInst &I) {
 }
 
-void SMT::visitFPExtInst (FPExtInst &I) {
+void SMTpass::visitFPExtInst (FPExtInst &I) {
 }
 
-void SMT::visitFPToUIInst (FPToUIInst &I) {
+void SMTpass::visitFPToUIInst (FPToUIInst &I) {
 }
 
-void SMT::visitFPToSIInst (FPToSIInst &I) {
+void SMTpass::visitFPToSIInst (FPToSIInst &I) {
 }
 
-void SMT::visitUIToFPInst (UIToFPInst &I) {
+void SMTpass::visitUIToFPInst (UIToFPInst &I) {
 }
 
-void SMT::visitSIToFPInst (SIToFPInst &I) {
+void SMTpass::visitSIToFPInst (SIToFPInst &I) {
 }
 
-void SMT::visitPtrToIntInst (PtrToIntInst &I) {
+void SMTpass::visitPtrToIntInst (PtrToIntInst &I) {
 }
 
-void SMT::visitIntToPtrInst (IntToPtrInst &I) {
+void SMTpass::visitIntToPtrInst (IntToPtrInst &I) {
 }
 
-void SMT::visitBitCastInst (BitCastInst &I) {
+void SMTpass::visitBitCastInst (BitCastInst &I) {
 }
 
-void SMT::visitSelectInst (SelectInst &I) {
+void SMTpass::visitSelectInst (SelectInst &I) {
 }
 
-void SMT::visitCallInst(CallInst &I) {
+void SMTpass::visitCallInst(CallInst &I) {
 }
 
-void SMT::visitVAArgInst (VAArgInst &I) {
+void SMTpass::visitVAArgInst (VAArgInst &I) {
 }
 
-void SMT::visitExtractElementInst (ExtractElementInst &I) {
+void SMTpass::visitExtractElementInst (ExtractElementInst &I) {
 }
 
-void SMT::visitInsertElementInst (InsertElementInst &I) {
+void SMTpass::visitInsertElementInst (InsertElementInst &I) {
 }
 
-void SMT::visitShuffleVectorInst (ShuffleVectorInst &I) {
+void SMTpass::visitShuffleVectorInst (ShuffleVectorInst &I) {
 }
 
-void SMT::visitExtractValueInst (ExtractValueInst &I) {
+void SMTpass::visitExtractValueInst (ExtractValueInst &I) {
 }
 
-void SMT::visitInsertValueInst (InsertValueInst &I) {
+void SMTpass::visitInsertValueInst (InsertValueInst &I) {
 }
 
-void SMT::visitTerminatorInst (TerminatorInst &I) {
+void SMTpass::visitTerminatorInst (TerminatorInst &I) {
 }
 
-void SMT::visitBinaryOperator (BinaryOperator &I) {
+void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	ap_texpr_rtype_t ap_type;
 	int t = get_ap_type((Value*)&I, ap_type);
 
@@ -1010,8 +1010,8 @@ void SMT::visitBinaryOperator (BinaryOperator &I) {
 	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
-void SMT::visitCmpInst (CmpInst &I) {
+void SMTpass::visitCmpInst (CmpInst &I) {
 }
 
-void SMT::visitCastInst (CastInst &I) {
+void SMTpass::visitCastInst (CastInst &I) {
 }

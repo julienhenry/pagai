@@ -1,7 +1,7 @@
 #ifndef COMPARE_H
 #define COMPARE_H
 
-#include "SMT.h"
+#include "SMTpass.h"
 #include "Node.h"
 #include "Abstract.h"
 #include "Analyzer.h"
@@ -24,7 +24,7 @@ class CmpResults {
 class Compare : public ModulePass {
 
 	private:
-		SMT * LSMT;
+		SMTpass * LSMT;
 
 		std::map<
 			Techniques,

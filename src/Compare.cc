@@ -27,7 +27,7 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
-	AU.addRequired<SMT>();
+	AU.addRequired<SMTpass>();
 	AU.setPreservesAll();
 }
 
@@ -159,7 +159,7 @@ bool Compare::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
-	LSMT = &(getAnalysis<SMT>());
+	LSMT = &(getAnalysis<SMTpass>());
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"

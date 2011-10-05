@@ -7,7 +7,7 @@
 #include "llvm/Support/CFG.h"
 
 #include "SMT_manager.h"
-#include "SMT.h"
+#include "SMTpass.h"
 
 using namespace llvm;
 
@@ -15,7 +15,7 @@ using namespace llvm;
 class GenerateSMT : public ModulePass {
 	
 	private:
-		SMT * LSMT;
+		SMTpass * LSMT;
 
 	public:
 		static char ID;

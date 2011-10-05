@@ -6,7 +6,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
-#include "SMT.h"
+#include "SMTpass.h"
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
@@ -28,7 +28,7 @@ void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMT>();
+	AU.addRequired<SMTpass>();
 }
 
 bool AIopt::runOnModule(Module &M) {
@@ -36,7 +36,7 @@ bool AIopt::runOnModule(Module &M) {
 	BasicBlock * b = NULL;
 	Node * n = NULL;
 	int N_Pr = 0;
-	LSMT = &(getAnalysis<SMT>());
+	LSMT = &(getAnalysis<SMTpass>());
 
 	*Out << "Starting analysis: PF+LW\n";
 
@@ -206,10 +206,10 @@ void AIopt::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
+			*Out << "-------------- NEW SMTpass SOLVE2 -------------------------\n";
 			Out->resetColor();
 		);
-		// creating the SMT formula we want to check
+		// creating the SMTpass formula we want to check
 		LSMT->push_context();
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
 		std::list<BasicBlock*> path;
@@ -274,11 +274,11 @@ void AIopt::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "-------------- NEW SMTpass SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
-		// creating the SMT formula we want to check
+		// creating the SMTpass formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree[b]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
@@ -368,11 +368,11 @@ void AIopt::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
+			*Out << "NARROWING----------- NEW SMTpass SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
-		// creating the SMT formula we want to check
+		// creating the SMTpass formula we want to check
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree[n->bb]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
