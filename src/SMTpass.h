@@ -18,7 +18,7 @@ using namespace llvm;
 
 /// @brief SMT-formula creation pass
 ///
-/// Uses SMTpass::man as an abstraction layer to access the SMTpass solver.
+/// Uses SMTpass::man as an abstraction layer to access the SMT solver.
 class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 	
 	private:
@@ -39,21 +39,21 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// rho_components - when constructing rho, we use this vector
 		std::vector<SMT_expr> rho_components;
 
-		/// instructions - when constructing instruction-related SMTpass formula, we
+		/// instructions - when constructing instruction-related SMT formula, we
 		/// use this vector
 		std::vector<SMT_expr> instructions;
 
 		/// these following methods are used to create a variable name for
 		//edges, nodes, values, undeterministic choices, ...
-		const std::string getDisjunctiveIndexName(AbstractDisj * A, int index);
-		const std::string getUndeterministicChoiceName(Value * v);
-		const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
-		const std::string getValueName(Value * v, bool primed);
+		static const std::string getDisjunctiveIndexName(AbstractDisj * A, int index);
+		static const std::string getUndeterministicChoiceName(Value * v);
+		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
+		static const std::string getValueName(Value * v, bool primed);
 
 		/// getValueExpr - get the expression associated to a value
 		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
 
-		/// getValueType - return the SMTpass type of the value
+		/// getValueType - return the SMT type of the value
 		SMT_type getValueType(Value * v);
 
 		/// getVar - function to use for getting a variable from a value
@@ -71,13 +71,14 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// if it is an index for a disjunctive invariant :
 		/// - isIndex is true
 		/// - index is the associated index
-		void getElementFromString(	std::string name,
-									bool &isEdge, 
-									bool &isIndex,
-									bool &start, 
-									BasicBlock * &src, 
-									BasicBlock * &dest,
-									int &index);
+		static void getElementFromString(	
+			std::string name,
+			bool &isEdge, 
+			bool &isIndex,
+			bool &start, 
+			BasicBlock * &src, 
+			BasicBlock * &dest,
+			int &index);
 		
 		/// computeCondition - compute and return the expression associated to a
 		/// condition
@@ -119,7 +120,7 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 
 		/// getPr - get the set Pr. The set Pr is computed only once
 		std::set<BasicBlock*>* getPr(Function &F);
-		/// getRho - get the SMTpass formula Rho. Rho is computed only once
+		/// getRho - get the SMT formula Rho. Rho is computed only once
 		SMT_expr getRho(Function &F);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of
@@ -129,12 +130,12 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// b in Pr
 		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
-		/// push_context - push the context of the SMTpass manager
+		/// push_context - push the context of the SMT manager
 		void push_context();
-		/// pop_context - pop the context of the SMTpass manager
+		/// pop_context - pop the context of the SMT manager
 		void pop_context();
 		
-		/// createSMTformula - compute and return the SMTpass formula associated to
+		/// createSMTformula - compute and return the SMT formula associated to
 		/// the BasicBlock source, as described in the paper
 		/// if we are in narrowing phase, use_X_d has to be true.
 		/// We can cunjunct this formula with an SMT_expr formula given as
@@ -145,17 +146,17 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 			Techniques t,
 			SMT_expr constraint = NULL);
 
-		/// solve the SMTpass expression expr and return true iff expr is
+		/// solve the SMT expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from
 		/// the model
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
 
-		/// solve an SMTpass formula and computes its model in case of a 'sat'
+		/// solve an SMT formula and computes its model in case of a 'sat'
 		/// formula. In the case of a pass using disjunctive invariants, index is set to
 		/// the associated index of the disjunct to focus on.
 		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index);
 
-		/// solve the SMTpass expression, and returns 1 if satisfiable, 0 if not, -1
+		/// solve the SMT expression, and returns 1 if satisfiable, 0 if not, -1
 		/// if unknown
 		int SMTsolve_simple(SMT_expr expr);
 
@@ -173,7 +174,7 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
 		/// @}
 
-		/// Creates an SMTpass formula associated to a disjunctive invariant. If
+		/// Creates an SMT formula associated to a disjunctive invariant. If
 		/// insert_booleans is true, each disjunct is cunjunct with a boolean
 		/// predicate, as detailed in the paper, so that we can deduce which
 		/// disjunct to choose.
