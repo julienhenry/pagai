@@ -3,9 +3,9 @@
 
 #include "llvm/Instructions.h"
 #include "llvm/Support/CFG.h"
-#include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpass.h"
+#include "Pr.h"
 #include "AISimple.h"
 #include "Expr.h"
 #include "Live.h"
@@ -61,7 +61,7 @@ void AIPass::initFunction(Function * F) {
 			// creating an X and an Y abstract value for this node
 			if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
-				|| LSMT->getPr(*F)->count(i)) {
+				|| Pr::getPr(*F)->count(i)) {
 				n->X_s[passID] = aman->NewAbstract(man,n->env);
 				n->X_d[passID] = aman->NewAbstract(man,n->env);
 			} else {
@@ -114,7 +114,7 @@ void AIPass::copy_Xd_to_Xs(Function * F) {
 		b = i;
 
 		if (dynamic_cast<AISimple*>(this)
-			|| LSMT->getPr(*F)->count(i)) {
+			|| Pr::getPr(*F)->count(i)) {
 			delete Nodes[b]->X_s[passID];
 			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_d[passID]);
 			if (b != F->begin()) {

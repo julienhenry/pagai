@@ -7,6 +7,7 @@
 #include "apron.h"
 #include "Live.h"
 #include "SMTpass.h"
+#include "Pr.h"
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
@@ -26,7 +27,7 @@ const char * AIopt::getPassName() const {
 
 void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<LoopInfo>();
+	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMTpass>();
 }
@@ -65,7 +66,7 @@ bool AIopt::runOnModule(Module &M) {
 		pathtree.clear();
 
 		// we create the new pathtree
-		std::set<BasicBlock*>* Pr = LSMT->getPr(*F);
+		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
@@ -77,7 +78,7 @@ bool AIopt::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
+			if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
@@ -118,7 +119,7 @@ void AIopt::computeFunction(Function * F) {
 	DEBUG(
 		*Out << "Computing Pr...\n";
 	);
-	LSMT->getPr(*F);
+	Pr::getPr(*F);
 	*Out << "Computing Rho...";
 	LSMT->getRho(*F);
 	*Out << "OK\n";
@@ -155,7 +156,7 @@ void AIopt::computeFunction(Function * F) {
 		// we set X_d abstract values to bottom for narrowing
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (LSMT->getPr(*F)->count(i) && Nodes[b] != n) {
+			if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
@@ -184,7 +185,7 @@ void AIopt::computeFunction(Function * F) {
 }
 
 std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
-	return LSMT->getPrPredecessors(b);
+	return Pr::getPrPredecessors(b);
 }
 
 void AIopt::computeNewPaths(Node * n) {
@@ -193,7 +194,7 @@ void AIopt::computeNewPaths(Node * n) {
 	std::vector<Abstract*> Join;
 
 	// first, we set X_d abstract values to X_s
-	std::set<BasicBlock*> successors = LSMT->getPrSuccessors(n->bb);
+	std::set<BasicBlock*> successors = Pr::getPrSuccessors(n->bb);
 	for (std::set<BasicBlock*>::iterator it = successors.begin(),
 			et = successors.end();
 			it != et;

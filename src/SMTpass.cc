@@ -4,8 +4,8 @@
 #include <string>
 
 #include "llvm/Support/CFG.h"
-#include "llvm/Analysis/LoopInfo.h"
 
+#include "Pr.h"
 #include "SMTpass.h"
 #include "z3_manager.h"
 #include "yices.h"
@@ -42,18 +42,12 @@ SMTpass::~SMTpass() {
 }
 
 void SMTpass::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<LoopInfo>();
+	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
 bool SMTpass::runOnModule(Module &M) {
 	return 0;
-}
-
-std::set<BasicBlock*>* SMTpass::getPr(Function &F) {
-	if (!Pr.count(&F))
-		computePr(F);
-	return Pr[&F];
 }
 
 SMT_expr SMTpass::getRho(Function &F) {
@@ -250,7 +244,7 @@ const std::string SMTpass::getUndeterministicChoiceName(Value * v) {
 
 const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
-	std::set<BasicBlock*> * FPr = getPr(*(b->getParent()));
+	std::set<BasicBlock*> * FPr = Pr::getPr(*(b->getParent()));
 	if (FPr->count(b)) {
 		if (src)
 			name << "bs_";
@@ -434,40 +428,6 @@ void SMTpass::getElementFromString(
 
 }
 
-
-// computePr - computes the set Pr of BasicBlocks
-// for the moment - Pr = Pw + blocks with a ret inst
-void SMTpass::computePr(Function &F) {
-	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
-	BasicBlock * b;
-	LI = &(getAnalysis<LoopInfo>(F));
-
-	FPr->insert(F.begin());
-
-	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
-		b = i;
-		if (LI->isLoopHeader(b)) {
-			FPr->insert(b);
-		}
-
-		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
-			if (isa<ReturnInst>(*it)) {
-				FPr->insert(b);
-			}
-		}
-
-	}
-	Pr[&F] = FPr;
-}
-
-std::set<BasicBlock*> SMTpass::getPrPredecessors(BasicBlock * b) {
-	return Pr_pred[b];
-}
-
-std::set<BasicBlock*> SMTpass::getPrSuccessors(BasicBlock * b) {
-	return Pr_succ[b];
-}
-
 void SMTpass::computeRhoRec(Function &F, 
 		BasicBlock * b,
 		BasicBlock * dest,
@@ -477,18 +437,18 @@ void SMTpass::computeRhoRec(Function &F,
 	bool first = (visited->count(b) > 0);
 	visited->insert(b);
 
-	if (!Pr[&F]->count(b) || newPr) {
+	if (!Pr::getPr(F)->count(b) || newPr) {
 		// we recursively construct Rho, starting from the predecessors
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
-			if (!Pr[&F]->count(pred)) {
+			if (!Pr::getPr(F)->count(pred)) {
 				if (!visited->count(pred)) {
 					computeRhoRec(F,pred,dest,false,visited);
 				}
-				Pr_pred[b].insert(Pr_pred[pred].begin(),Pr_pred[pred].end());
+				Pr::Pr_pred[b].insert(Pr::Pr_pred[pred].begin(),Pr::Pr_pred[pred].end());
 			} else {
-				Pr_pred[b].insert(pred);
+				Pr::Pr_pred[b].insert(pred);
 			}
 			//Pr_succ[pred].insert(dest);
 		}
@@ -541,7 +501,7 @@ void SMTpass::computeRho(Function &F) {
 	BasicBlock * b;
 
 	rho_components.clear();
-	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
+	std::set<BasicBlock*>::iterator i = Pr::getPr(F)->begin(), e = Pr::getPr(F)->end();
 	for (;i!= e; ++i) {
 		b = *i;
 		computeRhoRec(F,b,b,true,&visited);
@@ -550,13 +510,13 @@ void SMTpass::computeRho(Function &F) {
 
 	// Pr_pred has already been computed, but not Pr_succ
 	// Now, we can easily compute Pr_succ
-	i = Pr[&F]->begin();
-	e = Pr[&F]->end();
+	i = Pr::getPr(F)->begin();
+	e = Pr::getPr(F)->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		std::set<BasicBlock*>::iterator it = Pr_pred[b].begin(), et = Pr_pred[b].end();
+		std::set<BasicBlock*>::iterator it = Pr::Pr_pred[b].begin(), et = Pr::Pr_pred[b].end();
 		for (;it != et; it++) {
-			Pr_succ[*it].insert(b);
+			Pr::Pr_succ[*it].insert(b);
 		}
 	}
 }
@@ -584,7 +544,7 @@ SMT_expr SMTpass::createSMTformula(
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(source,true));
 	formula.push_back(man->SMT_mk_expr_from_bool_var(bvar));
 
-	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
+	std::set<BasicBlock*>::iterator i = Pr::getPr(F)->begin(), e = Pr::getPr(F)->end();
 	for (; i!=e; ++i) {
 		if (*i != source) {
 			bvar = man->SMT_mk_bool_var(getNodeName(*i,true));
@@ -599,7 +559,7 @@ SMT_expr SMTpass::createSMTformula(
 		formula.push_back(AbstractToSmt(NULL,A));
 
 	std::vector<SMT_expr> Or;
-	std::set<BasicBlock*> Successors = getPrSuccessors(source);
+	std::set<BasicBlock*> Successors = Pr::getPrSuccessors(source);
 	i = Successors.begin(), e = Successors.end();
 	for (; i!=e; ++i) {
 		std::vector<SMT_expr> SuccExp;
@@ -857,7 +817,10 @@ SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 }
 
 bool SMTpass::is_primed(BasicBlock * b, Instruction &I) {
-	return (I.getParent() == b && Pr[b->getParent()]->count(b));
+	return (b != NULL 
+			&& (I.getParent() == b && Pr::getPr(*b->getParent())->count(b))
+			&& isa<PHINode>(I)
+			);
 }
 
 void SMTpass::visitPHINode (PHINode &I) {

@@ -8,7 +8,7 @@
 #include "Node.h"
 #include "apron.h"
 #include "Live.h"
-#include "SMTpass.h"
+#include "Pr.h"
 #include "Debug.h"
 #include "Analyzer.h"
 
@@ -23,7 +23,6 @@ void AISimple::computeFunc(Function * F) {
 	if (b == F->end()) return;
 	n = Nodes[b];
 
-	LSMT->getPr(*F);
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -61,19 +60,13 @@ void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMTpass>();
+	AU.addRequired<Pr>();
 }
 
 bool AISimple::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
-	// We're not using SMT-solving here, but SMTpass is also the class
-	// computing the set of points of interest Pr, i.e. the set of
-	// points where invariants will be displayed.
-	// Other approaches will compute the invariant only for Pr, hence
-	// Pr points are the only ones for which a comparison can be done.
-	LSMT = &(getAnalysis<SMTpass>());
 	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
@@ -94,7 +87,7 @@ bool AISimple::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
+			if (Pr::getPr(*b->getParent())->count(b)) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();

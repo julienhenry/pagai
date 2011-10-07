@@ -7,6 +7,7 @@
 #include "apron.h"
 #include "Live.h"
 #include "SMTpass.h"
+#include "Pr.h"
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
@@ -26,7 +27,7 @@ const char * AIpf::getPassName() const {
 
 void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<LoopInfo>();
+	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 	AU.addRequired<SMTpass>();
 }
@@ -59,7 +60,7 @@ bool AIpf::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
+			if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
@@ -98,10 +99,6 @@ void AIpf::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 	LI = &(getAnalysis<LoopInfo>(*F));
 
-	DEBUG(
-		*Out << "Computing Pr...\n";
-	);
-	LSMT->getPr(*F);
 	*Out << "Computing Rho...";
 	LSMT->getRho(*F);
 	*Out << "OK\n";
@@ -134,7 +131,7 @@ void AIpf::computeFunction(Function * F) {
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
-	return LSMT->getPrPredecessors(b);
+	return Pr::getPrPredecessors(b);
 }
 
 void AIpf::computeNode(Node * n) {

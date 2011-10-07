@@ -1,4 +1,5 @@
 #include "Compare.h"
+#include "Pr.h"
 #include "Expr.h"
 #include "AIpf.h"
 #include "AIopt.h"
@@ -28,6 +29,7 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
 	AU.addRequired<SMTpass>();
+	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -178,7 +180,7 @@ bool Compare::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (LSMT->getPr(*b->getParent())->count(b)) {
+			if (Pr::getPr(*b->getParent())->count(b)) {
 				compareTechniques(n,LOOKAHEAD_WIDENING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,LOOKAHEAD_WIDENING);

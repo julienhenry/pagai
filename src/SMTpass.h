@@ -22,19 +22,10 @@ using namespace llvm;
 class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 	
 	private:
-		LoopInfo * LI;
-
 		static int nundef;
 
 		/// rho - stores the rho formula associated to each function
 		std::map<Function*,SMT_expr> rho;
-		/// Pr - associate to each formula its set of Pr nodes
-		std::map<Function*,std::set<BasicBlock*>*> Pr;
-
-		/// Pr_succ - associate to each basicBlock its successors in Pr
-		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
-		/// Pr_succ - associate to each basicBlock its predecessors in Pr
-		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_pred;
 
 		/// rho_components - when constructing rho, we use this vector
 		std::vector<SMT_expr> rho_components;
@@ -88,8 +79,6 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// construct_phi_ite - called by visitPHINode
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
 
-		/// computePr - compute the set Pr for a function
-		void computePr(Function &F);
 	
 		/// say if the value needs to be primed in the basicblock
 		bool is_primed(BasicBlock * b, Instruction &I);
@@ -118,17 +107,9 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 
 		void reset_SMTcontext();
 
-		/// getPr - get the set Pr. The set Pr is computed only once
-		std::set<BasicBlock*>* getPr(Function &F);
 		/// getRho - get the SMT formula Rho. Rho is computed only once
 		SMT_expr getRho(Function &F);
 
-		/// getPrPredecessors - returns a set containing all the predecessors of
-		/// b in Pr
-		std::set<BasicBlock*> getPrPredecessors(BasicBlock * b);
-		/// getPrPredecessors - returns a set containing all the successors of
-		/// b in Pr
-		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 
 		/// push_context - push the context of the SMT manager
 		void push_context();
