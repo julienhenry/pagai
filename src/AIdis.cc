@@ -65,12 +65,13 @@ bool AIdis::runOnModule(Module &M) {
 		}
 		pathtree.clear();
 
-		// we create the new pathtree
-		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
+		// we create the new pathtree and Sigma
+		std::set<BasicBlock*>* Pr = Pr::getPr(*F); 
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
 			pathtree[*it] = new PathTree();
+			S[*it] = new Sigma();
 		}
 
 		computeFunction(F);
@@ -188,11 +189,7 @@ std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 }
 
 int AIdis::sigma(std::list<BasicBlock*> path, int start) {
-	// TODO
-	if (path.front() == path.back())
-		return 1;
-	else
-		return 0;
+	return S[path.front()]->getSigma(path,start);
 }
 
 void AIdis::computeNewPaths(Node * n) {

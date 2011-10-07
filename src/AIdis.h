@@ -10,6 +10,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpass.h"
+#include "Sigma.h"
 
 using namespace llvm;
 
@@ -19,6 +20,8 @@ class AIdis : public ModulePass, public AIPass {
 	private:
 
 		LoopInfo * LI;
+
+		std::map<BasicBlock*,Sigma*> S;
 
 		/// paths - remembers all the paths that have already been
 		/// visited

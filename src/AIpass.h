@@ -93,10 +93,10 @@ class AIPass : public InstVisitor<AIPass> {
 		void initFunction(Function * F);
 		
 		/// printBasicBlock - print a basicBlock on standard output
-		void printBasicBlock(BasicBlock * b);
+		static void printBasicBlock(BasicBlock * b);
 
 		/// printPath - print a path on standard output
-		void printPath(std::list<BasicBlock*> path);
+		static void printPath(std::list<BasicBlock*> path);
 	
 		/// computeEnv - compute the new environment of Node n, based on 
 		/// its intVar and RealVar maps
