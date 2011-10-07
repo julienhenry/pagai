@@ -36,11 +36,6 @@ class AbstractGopan : public Abstract {
 		/// is_bottom - return true iff this is bottom
 		bool is_bottom();
 
-		/// is_leq - return true iff this <= d
-		bool is_leq(Abstract * d);
-
-		bool is_eq(Abstract * d);
-
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		void widening(Abstract * X);

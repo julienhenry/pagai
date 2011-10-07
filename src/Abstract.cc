@@ -1,5 +1,6 @@
 #include "SMTpass.h"
 #include "Abstract.h"
+#include "AbstractGopan.h"
 
 int Abstract::compare(Abstract * d) {
 	SMTpass * LSMT = SMTpass::getInstance();
@@ -44,6 +45,17 @@ int Abstract::compare(Abstract * d) {
 }
 
 bool Abstract::is_leq(Abstract * d) {
+	if (dynamic_cast<AbstractGopan*>(d) 
+		&& dynamic_cast<AbstractGopan*>(this)) {
+		if (ap_abstract1_is_eq(man,main,d->main)) {
+			if (ap_abstract1_is_leq(man,pilot,d->pilot) || d->pilot == NULL) 
+				return true; 
+			else 
+				return false;
+		}
+		return ap_abstract1_is_leq(man,main,d->main);
+	}
+
 	return (compare(d) == 0);
 }
 

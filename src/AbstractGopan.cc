@@ -72,23 +72,6 @@ bool AbstractGopan::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);
 }
 
-bool AbstractGopan::is_leq (Abstract *d) {
-	if (ap_abstract1_is_eq(man,main,d->main)) {
-		if (ap_abstract1_is_leq(man,pilot,d->pilot) || d->pilot == NULL) 
-			return true; 
-		else 
-			return false;
-	}
-	return ap_abstract1_is_leq(man,main,d->main);
-}
-
-bool AbstractGopan::is_eq (Abstract *d) {
-	if (ap_abstract1_is_eq(man,main,d->main))
-		return true; 
-	else 
-		return false;
-}
-
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
 void AbstractGopan::widening(Abstract * X) {
