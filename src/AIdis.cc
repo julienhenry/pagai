@@ -431,7 +431,7 @@ void AIdis::computeNode(Node * n) {
 	}
 
 	delete U;
-	// now, we check if there exist new feasible paths that has never been
+	// now, we check if there exist new feasible paths that have never been
 	// computed, and that make the invariant grow
 	computeNewPaths(n);	
 }

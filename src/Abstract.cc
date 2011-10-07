@@ -45,6 +45,8 @@ int Abstract::compare(Abstract * d) {
 }
 
 bool Abstract::is_leq(Abstract * d) {
+	// in the case we compare two AbstractGopan, we have to slightly change the
+	// comparison
 	if (dynamic_cast<AbstractGopan*>(d) 
 		&& dynamic_cast<AbstractGopan*>(this)) {
 		if (ap_abstract1_is_eq(man,main,d->main)) {
