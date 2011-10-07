@@ -1,7 +1,8 @@
 #include "SMTpass.h"
 #include "Abstract.h"
 
-int Abstract::compare(Abstract * d, SMTpass * LSMT) {
+int Abstract::compare(Abstract * d) {
+	SMTpass * LSMT = SMTpass::getInstance();
 	bool f = false;
 	bool g = false;
 
@@ -42,10 +43,10 @@ int Abstract::compare(Abstract * d, SMTpass * LSMT) {
 	}
 }
 
-bool Abstract::is_leq(Abstract * d, SMTpass * LSMT) {
-	return (compare(d,LSMT) == 0);
+bool Abstract::is_leq(Abstract * d) {
+	return (compare(d) == 0);
 }
 
-bool Abstract::is_eq(Abstract * d, SMTpass * LSMT) {
-	return (compare(d,LSMT) == 1);
+bool Abstract::is_eq(Abstract * d) {
+	return (compare(d) == 1);
 }

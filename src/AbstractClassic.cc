@@ -49,13 +49,13 @@ void AbstractClassic::change_environment(ap_environment_t * env) {
 		*main = ap_abstract1_change_environment(man,true,main,env,false);
 }
 
-bool AbstractClassic::is_leq (Abstract *d) {
-		return ap_abstract1_is_leq(man,main,d->main);
-}
-
-bool AbstractClassic::is_eq (Abstract *d) {
-		return ap_abstract1_is_eq(man,main,d->main);
-}
+//bool AbstractClassic::is_leq (Abstract *d) {
+//		return ap_abstract1_is_leq(man,main,d->main);
+//}
+//
+//bool AbstractClassic::is_eq (Abstract *d) {
+//		return ap_abstract1_is_eq(man,main,d->main);
+//}
 
 bool AbstractClassic::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);

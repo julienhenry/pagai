@@ -101,21 +101,11 @@ void AbstractDisj::change_environment(ap_environment_t * env, int index) {
 	disj[index]->change_environment(env);
 }
 
-// NOT IMPLEMENTED
-bool AbstractDisj::is_leq (Abstract *d) {
-	return false;
-}
-
-bool AbstractDisj::is_leq (Abstract *d, int index) {
+bool AbstractDisj::is_leq_index (Abstract *d, int index) {
 	return disj[index]->is_leq(d);
 }
 
-// NOT CORRECT
-bool AbstractDisj::is_eq (Abstract *d) {
-	return ap_abstract1_is_eq(man,main,d->main);
-}
-
-bool AbstractDisj::is_eq (Abstract *d, int index) {
+bool AbstractDisj::is_eq_index (Abstract *d, int index) {
 	return disj[index]->is_eq(d);
 }
 

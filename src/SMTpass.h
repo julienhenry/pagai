@@ -18,6 +18,8 @@ using namespace llvm;
 /// @brief SMT-formula creation pass
 ///
 /// Uses SMTpass::man as an abstraction layer to access the SMT solver.
+/// It is a singleton design : we use getInstance() to get an object of type
+/// SMTpass * 
 class SMTpass : public InstVisitor<SMTpass> {
 	
 	private:

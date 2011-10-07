@@ -45,12 +45,9 @@ class AbstractDisj: public Abstract {
 		void change_environment(ap_environment_t * env);
 		void change_environment(ap_environment_t * env, int index);
 
-		/// is_leq - return true iff this <= d
-		bool is_leq(Abstract * d);
-		bool is_leq(Abstract * d, int index);
+		bool is_leq_index(Abstract * d, int index);
 
-		bool is_eq(Abstract * d);
-		bool is_eq(Abstract * d, int index);
+		bool is_eq_index(Abstract * d, int index);
 
 		/// is_bottom - return true iff the abstract value is at bottom
 		bool is_bottom();

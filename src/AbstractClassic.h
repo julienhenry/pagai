@@ -33,11 +33,6 @@ class AbstractClassic: public Abstract {
 		/// change_environment - change the environment of the abstract value
 		void change_environment(ap_environment_t * env);
 
-		/// is_leq - return true iff this <= d
-		bool is_leq(Abstract * d);
-
-		bool is_eq(Abstract * d);
-
 		/// is_bottom - return true iff the abstract value is at bottom
 		bool is_bottom();
 

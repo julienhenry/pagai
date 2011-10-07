@@ -38,16 +38,12 @@ class Abstract {
 		/// return 1 in case of this <= d
 		/// return -1 in case of d <= this
 		/// return -2 if not comparable
-		int compare(Abstract * d, SMTpass * LSMT);
+		int compare(Abstract * d);
 
 		/// is_leq - return true iff this <= d
-		virtual bool is_leq(Abstract * d) = 0;
+		virtual bool is_leq(Abstract * d);
 		
-		virtual bool is_leq(Abstract * d, SMTpass * LSMT);
-
-		virtual bool is_eq(Abstract * d) = 0;
-
-		virtual bool is_eq(Abstract * d, SMTpass * LSMT);
+		virtual bool is_eq(Abstract * d);
 
 		/// is_bottom - return true iff the abstract value is at bottom
 		virtual bool is_bottom() = 0;
