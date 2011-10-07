@@ -20,11 +20,13 @@ static RegisterPass<SMTpass>
 X("SMTpass","SMT-formula creation pass",false,true);
 
 
+int SMTpass::nundef = 0;
+
 const char * SMTpass::getPassName() const {
 	return "SMT";
 }
 
-SMTpass::SMTpass() : ModulePass(ID), nundef(0) {
+SMTpass::SMTpass() : ModulePass(ID) {
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -90,7 +92,13 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 	ap_coeff_t* coeff;
 
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
-		val = getValueExpr((Value*)var, primed[b]);
+		bool primed;
+		if (Instruction * I = dyn_cast<Instruction>((Value*)var)) {
+			primed = is_primed(b,*I);
+		} else {
+			primed = false;
+		}
+		val = getValueExpr((Value*)var, primed);
 		if (((Value*)var)->getType()->isIntegerTy()) {
 			coefficient = scalarToSmt(coeff->val.scalar,true,value);
 			if (value != 0) 
@@ -285,7 +293,7 @@ SMT_var SMTpass::getVar(Value * v, bool primed) {
 	return man->SMT_mk_var(name,getValueType(v));
 }
 
-SMT_expr SMTpass::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
+SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	SMT_var var;
 
 	ap_texpr_rtype_t ap_type;
@@ -344,16 +352,10 @@ SMT_expr SMTpass::getValueExpr(Value * v, std::set<Value*> ssa_defs) {
 		nundef++;
 		return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
 	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
-		if (ssa_defs.count(v))
-			var = getVar(v,true);
-		else
-			var = getVar(v,false);
+		var = getVar(v,primed);
 		return man->SMT_mk_expr_from_var(var);
 	} else {
-		if (ssa_defs.count(v))
-			var = getVar(v,true);
-		else
-			var = getVar(v,false);
+		var = getVar(v,primed);
 		return man->SMT_mk_expr_from_var(var);
 	}
 	return NULL;
@@ -539,7 +541,6 @@ void SMTpass::computeRho(Function &F) {
 	BasicBlock * b;
 
 	rho_components.clear();
-	primed[NULL].clear();
 	std::set<BasicBlock*>::iterator i = Pr[&F]->begin(), e = Pr[&F]->end();
 	for (;i!= e; ++i) {
 		b = *i;
@@ -694,17 +695,8 @@ SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 
 	SMT_expr op1, op2;
 
-	// that's a trick: outgoing edges from Pr states never have primed variables
-	// in their branchment condition. So, we use an emptyset instead of the one
-	// we should use (which is dedicated to the destination node only)
-	//if (Pr[inst->getParent()->getParent()]->count(inst->getParent())) {
-		std::set<Value*> emptyset;
-		op1 = getValueExpr(inst->getOperand(0), emptyset);
-		op2 = getValueExpr(inst->getOperand(1), emptyset);
-	//} else {
-	//	op1 = getValueExpr(inst->getOperand(0), primed[inst->getParent()]);
-	//	op2 = getValueExpr(inst->getOperand(1), primed[inst->getParent()]);
-	//}
+	op1 = getValueExpr(inst->getOperand(0), false);
+	op2 = getValueExpr(inst->getOperand(1), false);
 
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
@@ -853,9 +845,9 @@ void SMTpass::visitGetElementPtrInst (GetElementPtrInst &I) {
 SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	if (i == n-1) {
 		// this is the last possible value of the PHI-variable
-		return getValueExpr(I.getIncomingValue(i), primed[NULL]);
+		return getValueExpr(I.getIncomingValue(i), false);
 	}
-	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), primed[NULL]);
+	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), false);
 
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
@@ -864,18 +856,18 @@ SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }
 
+bool SMTpass::is_primed(BasicBlock * b, Instruction &I) {
+	return (I.getParent() == b && Pr[b->getParent()]->count(b));
+}
+
 void SMTpass::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	// we prime this PHI variable iff it is a Phivar from a block in Pr
-	if (Pr[I.getParent()->getParent()]->count(I.getParent())) {
-		primed[I.getParent()].insert(&I);
-	}
-	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
-	if (!primed[I.getParent()].count(&I) && I.getNumIncomingValues() != 1) {
+	if (is_primed(I.getParent(),I) && I.getNumIncomingValues() != 1) {
 		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(I.getParent(),false));
 		SMT_expr bexpr = man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar));
 		std::vector<SMT_expr> disj;
@@ -957,11 +949,11 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 
 	//primed[I.getParent()].insert(&I);
 	//exist_prime.insert(&I);
-	SMT_expr expr = getValueExpr(&I, primed[I.getParent()]);	
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = NULL;	
 	std::vector<SMT_expr> operands;
-	operands.push_back(getValueExpr(I.getOperand(0), primed[NULL]));
-	operands.push_back(getValueExpr(I.getOperand(1), primed[NULL]));
+	operands.push_back(getValueExpr(I.getOperand(0), false));
+	operands.push_back(getValueExpr(I.getOperand(1), false));
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 

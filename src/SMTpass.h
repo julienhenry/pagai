@@ -24,7 +24,7 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 	private:
 		LoopInfo * LI;
 
-		int nundef;
+		static int nundef;
 
 		/// rho - stores the rho formula associated to each function
 		std::map<Function*,SMT_expr> rho;
@@ -51,7 +51,7 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		static const std::string getValueName(Value * v, bool primed);
 
 		/// getValueExpr - get the expression associated to a value
-		SMT_expr getValueExpr(Value * v, std::set<Value*> ssa_defs);
+		SMT_expr getValueExpr(Value * v, bool primed);
 
 		/// getValueType - return the SMT type of the value
 		SMT_type getValueType(Value * v);
@@ -91,8 +91,8 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// computePr - compute the set Pr for a function
 		void computePr(Function &F);
 	
-		/// primed - remember which value needs to be primed in each basicblock
-		std::map<BasicBlock*, std::set<Value*> > primed;
+		/// say if the value needs to be primed in the basicblock
+		bool is_primed(BasicBlock * b, Instruction &I);
 
 		/// computeRhoRec - recursive function called by computeRho
 		void computeRhoRec(	Function &F, 
