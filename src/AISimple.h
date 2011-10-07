@@ -1,6 +1,9 @@
 #ifndef _AISIMPLE_H
 #define _AISIMPLE_H
 
+#include "llvm/Module.h"
+#include "llvm/Pass.h"
+#include "llvm/Analysis/LoopInfo.h"
 #include "AIpass.h"
 
 using namespace llvm;
@@ -11,6 +14,9 @@ using namespace llvm;
 /// algorithms that do not use SMTpass solving to chose the order in which
 /// nodes are visited (i.e. Classic, and Gopan&Reps).
 class AISimple : public ModulePass, public AIPass {
+
+	private:
+		LoopInfo * LI;
 
 	public:
 

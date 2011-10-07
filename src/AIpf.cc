@@ -29,7 +29,6 @@ void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMTpass>();
 }
 
 bool AIpf::runOnModule(Module &M) {
@@ -37,7 +36,7 @@ bool AIpf::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	int N_Pr = 0;
-	LSMT = &(getAnalysis<SMTpass>());
+	LSMT = SMTpass::getInstance();
 
 	*Out << "Starting analysis: PF\n";
 

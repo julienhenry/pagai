@@ -29,7 +29,6 @@ void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMTpass>();
 }
 
 bool AIopt::runOnModule(Module &M) {
@@ -37,7 +36,8 @@ bool AIopt::runOnModule(Module &M) {
 	BasicBlock * b = NULL;
 	Node * n = NULL;
 	int N_Pr = 0;
-	LSMT = &(getAnalysis<SMTpass>());
+	//LSMT = &(getAnalysis<SMTpass>());
+	LSMT = SMTpass::getInstance();
 
 	*Out << "Starting analysis: PF+LW\n";
 

@@ -81,8 +81,6 @@ void AIPass::initFunction(Function * F) {
 
 void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
-	//LoopInfo &LI = getAnalysis<LoopInfo>(*(b->getParent()));
-	//if (LI.isLoopHeader(b)) {
 	//	*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	//} else {
 		*Out << b << ": SCC=" << n->sccId << ":\n" << *b;

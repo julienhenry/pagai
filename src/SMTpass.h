@@ -7,7 +7,6 @@
 #include <set>
 
 #include "llvm/Support/InstVisitor.h"
-#include "llvm/Analysis/LoopInfo.h"
 
 #include "Analyzer.h"
 #include "Abstract.h"
@@ -19,9 +18,13 @@ using namespace llvm;
 /// @brief SMT-formula creation pass
 ///
 /// Uses SMTpass::man as an abstraction layer to access the SMT solver.
-class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
+class SMTpass : public InstVisitor<SMTpass> {
 	
 	private:
+		
+		SMTpass();
+		~SMTpass();
+
 		static int nundef;
 
 		/// rho - stores the rho formula associated to each function
@@ -79,7 +82,6 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 		/// construct_phi_ite - called by visitPHINode
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
 
-	
 		/// say if the value needs to be primed in the basicblock
 		bool is_primed(BasicBlock * b, Instruction &I);
 
@@ -91,19 +93,13 @@ class SMTpass : public ModulePass, public InstVisitor<SMTpass> {
 							std::set<BasicBlock*> * visited);
 		void computeRho(Function &F);
 
-
 	public:
 		static char ID;
 
 		/// man - manager (Microsoft z3 or Yices)
 		SMT_manager * man;
 
-		SMTpass();
-		~SMTpass();
-
-		const char * getPassName() const;
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-		bool runOnModule(Module &M);
+		static SMTpass * getInstance();
 
 		void reset_SMTcontext();
 

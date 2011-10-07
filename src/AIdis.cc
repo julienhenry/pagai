@@ -28,8 +28,8 @@ const char * AIdis::getPassName() const {
 void AIdis::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Pr>();
+	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
-	AU.addRequired<SMTpass>();
 }
 
 bool AIdis::runOnModule(Module &M) {
@@ -37,7 +37,7 @@ bool AIdis::runOnModule(Module &M) {
 	BasicBlock * b = NULL;
 	Node * n = NULL;
 	int N_Pr = 0;
-	LSMT = &(getAnalysis<SMTpass>());
+	LSMT = SMTpass::getInstance();
 
 	*Out << "Starting analysis: DISJUNCTIVE\n";
 

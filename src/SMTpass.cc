@@ -15,18 +15,9 @@
 
 using namespace std;
 
-char SMTpass::ID = 0;
-static RegisterPass<SMTpass>
-X("SMTpass","SMT-formula creation pass",false,true);
-
-
 int SMTpass::nundef = 0;
 
-const char * SMTpass::getPassName() const {
-	return "SMT";
-}
-
-SMTpass::SMTpass() : ModulePass(ID) {
+SMTpass::SMTpass() {
 	switch (getSMTSolver()) {
 		case Z3_MANAGER:
 			man = new z3_manager();
@@ -41,13 +32,12 @@ SMTpass::~SMTpass() {
 	delete man;
 }
 
-void SMTpass::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<Pr>();
-	AU.setPreservesAll();
-}
+SMTpass * instance = NULL;
 
-bool SMTpass::runOnModule(Module &M) {
-	return 0;
+SMTpass * SMTpass::getInstance() {
+	if (instance == NULL)
+		instance = new SMTpass();
+	return instance;
 }
 
 SMT_expr SMTpass::getRho(Function &F) {

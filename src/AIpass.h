@@ -28,8 +28,6 @@ class AIPass : public InstVisitor<AIPass> {
 	protected:
 		/// LV - result of the Live pass
 		Live * LV;
-		/// LI - result of the LoopInfo pass
-		LoopInfo * LI;
 		/// LSMT - result of the SMTpass pass
 		SMTpass * LSMT;
 
@@ -59,7 +57,6 @@ class AIPass : public InstVisitor<AIPass> {
 
 		AIPass (Apron_Manager_Type _man) : 
 			LV(NULL),
-			LI(NULL),
 			LSMT(NULL),
 			unknown(false) {
 				man = create_manager(_man);
@@ -69,7 +66,6 @@ class AIPass : public InstVisitor<AIPass> {
 
 		AIPass () : 
 			LV(NULL),
-			LI(NULL),
 			LSMT(NULL),
 			unknown(false) {
 				man = create_manager(getApronManager());

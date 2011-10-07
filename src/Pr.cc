@@ -37,6 +37,7 @@ bool Pr::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
+		if (F->isDeclaration()) continue;
 		computePr(*F);
 	}
 	return 0;

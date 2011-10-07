@@ -1,6 +1,9 @@
 #ifndef COMPARE_H
 #define COMPARE_H
 
+#include "llvm/Module.h"
+#include "llvm/Pass.h"
+
 #include "SMTpass.h"
 #include "Node.h"
 #include "Abstract.h"
