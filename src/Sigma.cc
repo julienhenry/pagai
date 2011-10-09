@@ -5,20 +5,21 @@
 #include "Analyzer.h"
 #include "AIpass.h"
 #include "Sigma.h"
+#include "SMTpass.h"
 #include "Debug.h"
 
 
 Sigma::Sigma() {
 	mgr = new Cudd(0,0);
-	//mgr->makeVerbose();
-	//Add = new ADD(mgr->addZero());
 	AddIndex=0;
 	background = mgr->addZero().getNode();
 	zero = mgr->addZero().getNode();
 }
 
 Sigma::~Sigma() {
-	//delete Add;
+	for (std::map<int,ADD*>::iterator it = Add.begin(), et = Add.end(); it != et; it++) {
+		delete it->second;
+	}
 	delete mgr;	
 }
 
@@ -33,18 +34,6 @@ ADD Sigma::getADDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) 
 	}
 	return mgr->addVar(n);
 }
-
-//ADD Sigma::getADDfromStartIndex(int start) {
-//	int n;
-//	if (!AddVarIndex.count(start)) {
-//		n = AddIndex;
-//		AddIndex++;
-//		AddVarIndex[start] = n;
-//	} else {
-//		n = AddVarIndex[start];	
-//	}
-//	return mgr->addVar(n);
-//}
 
 void Sigma::insert(std::list<BasicBlock*> path, int start) {
 	std::list<BasicBlock*> workingpath;
@@ -91,7 +80,9 @@ void Sigma::remove(std::list<BasicBlock*> path, int start) {
 }
 
 void Sigma::clear() {
-	//*Add = mgr->addZero();
+	for (std::map<int,ADD*>::iterator it = Add.begin(), et = Add.end(); it != et; it++) {
+		*(it->second) = mgr->addZero();
+	}
 }
 
 bool Sigma::exist(std::list<BasicBlock*> path, int start) {
@@ -115,9 +106,8 @@ bool Sigma::exist(std::list<BasicBlock*> path, int start) {
 	return (f <= *Add[start]);
 }
 
-bool Sigma::isZero() {
-	return true;
-	//return !(*Add > mgr->addZero());
+bool Sigma::isZero(int start) {
+	return !(*Add[start] > mgr->addZero());
 }
 
 void Sigma::setActualValue(std::list<BasicBlock*> path, int start, int value) {
@@ -213,16 +203,6 @@ int Sigma::getSigma(std::list<BasicBlock*> path, int start) {
 	return res -1;
 }
 
-const std::string Sigma::getNodeName(BasicBlock* b, bool src) const {
-	std::ostringstream name;
-	if (src)
-		name << "bs_";
-	else
-		name << "b_";
-	name << b;
-	return name.str();
-}
-
 void Sigma::DumpDotADD(ADD graph, std::string filename) {
 	std::ostringstream name;
 	name << filename << ".dot";
@@ -230,10 +210,10 @@ void Sigma::DumpDotADD(ADD graph, std::string filename) {
 	int n = AddVar.size() + AddVarSource.size();
 	char * inames[n];
 	for (std::map<BasicBlock*,int>::iterator it = AddVar.begin(), et = AddVar.end(); it != et; it++) {
-		inames[it->second] = strdup(getNodeName(it->first,false).c_str());
+		inames[it->second] = strdup(SMTpass::getNodeName(it->first,false).c_str());
 	}
 	for (std::map<BasicBlock*,int>::iterator it = AddVarSource.begin(), et = AddVarSource.end(); it != et; it++) {
-		inames[it->second] = strdup(getNodeName(it->first,true).c_str());
+		inames[it->second] = strdup(SMTpass::getNodeName(it->first,true).c_str());
 	}
 
     char const* onames[] = {"A"};

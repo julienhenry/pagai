@@ -35,23 +35,12 @@ BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &ma
 	return mgr->bddVar(n);
 }
 
-const std::string PathTree::getNodeName(BasicBlock* b, bool src, SMTpass * smt) const {
-	if (smt != NULL) return smt->getNodeName(b,src);
-	std::ostringstream name;
-	if (src)
-		name << "bs_";
-	else
-		name << "b_";
-	name << b;
-	return name.str();
-}
-
 const std::string PathTree::getStringFromLevel(int const i, SMTpass * smt) {
 	BasicBlock * bb = levels[i]; 
 	if (BddVarStart.count(bb) && BddVarStart[bb]==i)
-		return getNodeName(bb,true,smt);
+		return SMTpass::getNodeName(bb,true);
 	else
-		return getNodeName(bb,false,smt);
+		return SMTpass::getNodeName(bb,false);
 }
 
 void PathTree::DumpDotBDD(BDD graph, std::string filename) {
@@ -62,10 +51,10 @@ void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 
 	char * inames[n];
 	for (std::map<BasicBlock*,int>::iterator it = BddVar.begin(), et = BddVar.end(); it != et; it++) {
-		inames[it->second] = strdup(getNodeName(it->first,false).c_str());
+		inames[it->second] = strdup(SMTpass::getNodeName(it->first,false).c_str());
 	}
 	for (std::map<BasicBlock*,int>::iterator it = BddVarStart.begin(), et = BddVarStart.end(); it != et; it++) {
-		inames[it->second] = strdup(getNodeName(it->first,true).c_str());
+		inames[it->second] = strdup(SMTpass::getNodeName(it->first,true).c_str());
 	}
 
     char const* onames[] = {"B"};

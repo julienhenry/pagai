@@ -26,16 +26,14 @@ class Sigma {
 		std::map<BasicBlock*,int> AddVar;
 		/// stores the index of the source basicBlock in the ADD
 		std::map<BasicBlock*,int> AddVarSource;
-		/// stores the index of the start index in the ADD
-		//std::map<int,int> AddVarIndex;
 
 		/// number of levels in the ADD
 		int AddIndex;
 
-		
+		/// get the ADD node associated to a specific basicblock	
+		/// the map should be AddVar or AddVarSource, depending if we consider
+		/// the starting point or not
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
-
-		//ADD getADDfromStartIndex(int start);
 
 		/// Add that stores the various seen paths
 		std::map<int,ADD*> Add;
@@ -48,24 +46,28 @@ class Sigma {
 
 		/// check if the Bdd contains the path given as argument
 		bool exist(std::list<BasicBlock*> path, int start);
-		
+	
+		/// get the actual value of sigma stored in the BDD for sigma(path,start)
 		int getActualValue(std::list<BasicBlock*> path, int start);
+
+		/// set the value of sigma(path,start)
 		void setActualValue(std::list<BasicBlock*> path, int start, int value);
 
-		const std::string getNodeName(BasicBlock* b, bool src) const;
+		//const std::string getNodeName(BasicBlock* b, bool src) const;
+		
+		void DumpDotADD(ADD graph, std::string filename);
+
+		bool isZero(int start);
+
 	public:
 		
 		Sigma();
 		~Sigma();
 
-		/// clear the Bdd. The result will be an empty Bdd
+		/// clear the Add. The result will be an empty Add
 		void clear();
-
 
 		int getSigma(std::list<BasicBlock*> path, int start);
 
-		bool isZero();
-
-		void DumpDotADD(ADD graph, std::string filename);
 };
 #endif

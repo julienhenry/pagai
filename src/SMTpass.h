@@ -140,7 +140,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 		int SMTsolve_simple(SMT_expr expr);
 
 		/// gets the name of the node associated to a specific basicblock
-		const std::string getNodeName(BasicBlock* b, bool src);
+		static const std::string getNodeName(BasicBlock* b, bool src);
 
 		/// @{
 		/// @name XToSmt - transform an apron object of type X into an SMT

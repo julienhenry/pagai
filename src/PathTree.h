@@ -48,14 +48,6 @@ class PathTree {
 		/// BddVarStart, else it is BddVar
 		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 
-		/// returns a string that names the basicblock. 
-		/// If smt != NULL, this name is exactly the same as the one 
-		/// used in the SMTpass pass
-		const std::string getNodeName(
-			BasicBlock* b, 
-			bool src,
-			SMTpass * smt = NULL) const;
-
 		/// returns the name of the basicBlock associated
 		/// to the level i of the Bdd.
 		/// If smt != NULL, this name is exactly the same as the one 
