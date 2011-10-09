@@ -30,12 +30,22 @@ class AbstractDisj: public Abstract {
 		/// add a new disjunct in the abstract
 		/// the method return the index of the new disjunct
 		int AddDisjunct(ap_environment_t * env);
-
+		
+		/// get the disjunct of index 'index'
 		Abstract * getDisjunct(int index);
+
+		/// set the disjunct 'index' to the abstract A
+		/// IMPORTANT: A should not duplicated, and should not be deleted
 		void setDisjunct(int index, Abstract * A);
 
+		/// verifies that the AbstractDisj has at least N disjunct
+		/// if not, it creates disjuncts so that the AbstractDisj has N
+		/// disjuncts
 		void SetNDisjunct(int N);
 		
+		/// get the index of the last disjunct
+		/// WARNING : the first index is 0. If the result of this method is N,
+		/// it means the invariant has N+1 disjuncts, indexed from 0 to N
 		int getMaxIndex();
 
 		/// copy constructor : duplicates the abstract value
