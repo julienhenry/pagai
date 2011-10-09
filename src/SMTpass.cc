@@ -180,11 +180,11 @@ SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
 
 SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool insert_booleans) {
 	std::vector<SMT_expr> disj;
-	std::vector<Abstract*>::iterator it = A->disj.begin(), et = A->disj.end();
+	int N = A->getMaxIndex();
 	if (insert_booleans) {
-		for (int index = 0;it != et; it++, index++) {
+		for (int index = 0;index <= N; index++) {
 			std::vector<SMT_expr> cunj;
-			cunj.push_back(AbstractToSmt(b,*it));
+			cunj.push_back(AbstractToSmt(b,A->getDisjunct(index)));
 			// we create a boolean predicate for each disjunct
 			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
 			SMT_expr dexpr = man->SMT_mk_expr_from_bool_var(dvar);
@@ -192,8 +192,8 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 			disj.push_back(man->SMT_mk_and(cunj));
 		}
 	} else {
-		for (;it != et; it++) {
-			disj.push_back(AbstractToSmt(b,*it));
+		for (int index = 0;index <= N; index++) {
+			disj.push_back(AbstractToSmt(b,A->getDisjunct(index)));
 		}
 	}
 	return man->SMT_mk_or(disj);

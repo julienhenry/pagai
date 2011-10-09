@@ -28,6 +28,33 @@ AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_i
 	man = _man;
 }
 
+int AbstractDisj::AddDisjunct(ap_environment_t * env) {
+	disj.push_back(man_disj->NewAbstract(man,env));
+	return disj.size()-1;
+}
+
+Abstract * AbstractDisj::getDisjunct(int index) {
+	SetNDisjunct(index);
+	return disj[index];
+}
+
+void AbstractDisj::setDisjunct(int index, Abstract * A) {
+	SetNDisjunct(index);
+	disj[index] = A;
+}
+
+int AbstractDisj::getMaxIndex() {
+	return disj.size()-1;
+}
+
+void AbstractDisj::SetNDisjunct(int N) {
+	if (N <= disj.size()-1) return;
+	ap_environment_t * env = ap_environment_alloc_empty();
+	while (N > disj.size()-1) {
+		disj.push_back(man_disj->NewAbstract(man,env));
+	}
+}
+
 AbstractDisj::AbstractDisj(Abstract* A) {
 	man_disj = new AbstractManClassic();
 	man = A->man;
@@ -66,6 +93,7 @@ void AbstractDisj::set_top(ap_environment_t * env) {
 }
 
 void AbstractDisj::set_top(ap_environment_t * env, int index) {
+	SetNDisjunct(index);
 	int i = 0;
 	// every disjunct is at bottom except the one of index 'index'
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
@@ -86,6 +114,7 @@ void AbstractDisj::set_bottom(ap_environment_t * env) {
 }
 
 void AbstractDisj::set_bottom(ap_environment_t * env, int index) {
+	SetNDisjunct(index);
 	disj[index]->set_bottom(env);
 }
 
@@ -98,14 +127,17 @@ void AbstractDisj::change_environment(ap_environment_t * env) {
 }
 
 void AbstractDisj::change_environment(ap_environment_t * env, int index) {
+	SetNDisjunct(index);
 	disj[index]->change_environment(env);
 }
 
 bool AbstractDisj::is_leq_index (Abstract *d, int index) {
+	SetNDisjunct(index);
 	return disj[index]->is_leq(d);
 }
 
 bool AbstractDisj::is_eq_index (Abstract *d, int index) {
+	SetNDisjunct(index);
 	return disj[index]->is_eq(d);
 }
 
@@ -118,6 +150,7 @@ bool AbstractDisj::is_bottom() {
 }
 
 bool AbstractDisj::is_bottom(int index) {
+	SetNDisjunct(index);
 	return disj[index]->is_bottom();
 }
 
@@ -126,6 +159,7 @@ void AbstractDisj::widening(Abstract * X) {
 }
 
 void AbstractDisj::widening(Abstract * X, int index) {
+	SetNDisjunct(index);
 	disj[index]->widening(X);
 }
 
@@ -134,6 +168,7 @@ void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
 }
 
 void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons, int index) {
+	SetNDisjunct(index);
 	disj[index]->widening_threshold(X,cons);
 }
 
@@ -146,6 +181,7 @@ void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons) {
 }
 
 void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons, int index) {
+	SetNDisjunct(index);
 	disj[index]->meet_tcons_array(tcons);
 }
 
@@ -175,6 +211,7 @@ void AbstractDisj::assign_texpr_array(
 		ap_abstract1_t* dest,
 		int index
 		) {
+	SetNDisjunct(index);
 	disj[index]->assign_texpr_array(tvar,texpr,size,dest);
 }
 
@@ -183,6 +220,7 @@ void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_p
 }
 
 void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred, int index) {
+	SetNDisjunct(index);
 	disj[index]->join_array(env,X_pred);
 }
 
@@ -191,6 +229,7 @@ void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 }
 
 void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n, int index) {
+	SetNDisjunct(index);
 	disj[index]->join_array_dpUcm(env,n);
 }
 
@@ -200,6 +239,7 @@ ap_tcons1_array_t AbstractDisj::to_tcons_array() {
 }
 
 ap_tcons1_array_t AbstractDisj::to_tcons_array(int index) {
+	SetNDisjunct(index);
 	return disj[index]->to_tcons_array();
 }
 
@@ -209,6 +249,7 @@ ap_lincons1_array_t AbstractDisj::to_lincons_array() {
 }
 
 ap_lincons1_array_t AbstractDisj::to_lincons_array(int index) {
+	SetNDisjunct(index);
 	return disj[index]->to_lincons_array();
 }
 

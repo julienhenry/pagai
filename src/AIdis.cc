@@ -238,7 +238,7 @@ void AIdis::computeNewPaths(Node * n) {
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
-		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->disj[index]);
+		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
 
@@ -246,10 +246,10 @@ void AIdis::computeNewPaths(Node * n) {
 
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 		Join.clear();
-		Join.push_back(SuccDisj->disj[sigma(path,index)]);
+		Join.push_back(SuccDisj->getDisjunct(sigma(path,index)));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		SuccDisj->disj[sigma(path,index)] = Xtemp;
+		SuccDisj->setDisjunct(sigma(path,index),Xtemp);
 		Xtemp = NULL;
 
 		// there is a new path that has to be explored
@@ -272,10 +272,10 @@ void AIdis::loopiter(
 	std::vector<Abstract*> Join;
 	if (U->exist(*path)) {
 		// backup the previous abstract value
-		Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->disj[index]);
+		Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(index));
 
 		Join.clear();
-		Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->disj[Sigma]));
+		Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma)));
 		Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
@@ -293,18 +293,18 @@ void AIdis::loopiter(
 			ap_lincons1_array_fprint(stdout,&threshold);
 			fflush(stdout);
 		);
-		Xtemp->widening_threshold(SuccDis->disj[Sigma],&threshold);
+		Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
-		delete SuccDis->disj[Sigma];
-		SuccDis->disj[Sigma] = Xtemp;
+		delete SuccDis->getDisjunct(Sigma);
+		SuccDis->setDisjunct(Sigma,Xtemp);
 		DEBUG(
 			*Out << "AFTER MINIWIDENING\n";	
 			Xtemp->print();
 		);
 
-		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->disj[Sigma]);
+		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
 		computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
@@ -313,8 +313,8 @@ void AIdis::loopiter(
 			Xtemp->print();
 		);
 		
-		delete SuccDis->disj[index];
-		SuccDis->disj[index] = Xpred;
+		delete SuccDis->getDisjunct(index);
+		SuccDis->setDisjunct(index,Xpred);
 		only_join = true;
 		U->remove(*path);
 	} else {
@@ -378,7 +378,7 @@ void AIdis::computeNode(Node * n) {
 		n_iterations++;
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
-		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->disj[index]);
+		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -399,13 +399,13 @@ void AIdis::computeNode(Node * n) {
 			loopiter(n,index,Xtemp,&path,only_join,U);
 		} 
 		Join.clear();
-		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->disj[Sigma]));
+		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
 				//Xtemp->widening(Succ->X_s[passID]);
-				Xtemp->widening_threshold(SuccDisj->disj[Sigma],&threshold);
+				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
@@ -414,8 +414,8 @@ void AIdis::computeNode(Node * n) {
 			*Out << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
-		delete SuccDisj->disj[Sigma];
-		SuccDisj->disj[Sigma] = Xtemp;
+		delete SuccDisj->getDisjunct(Sigma);
+		SuccDisj->setDisjunct(Sigma,Xtemp);
 		Xtemp = NULL;
 		DEBUG(
 			*Out << "RESULT:\n";
@@ -473,7 +473,7 @@ void AIdis::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
-		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->disj[index]);
+		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
 
 		DEBUG(
@@ -483,14 +483,14 @@ void AIdis::narrowNode(Node * n) {
 
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 
-		if (SuccDisj->disj[Sigma]->is_bottom()) {
-			delete SuccDisj->disj[Sigma];
-			SuccDisj->disj[Sigma] = Xtemp;
+		if (SuccDisj->getDisjunct(Sigma)->is_bottom()) {
+			delete SuccDisj->getDisjunct(Sigma);
+			SuccDisj->setDisjunct(Sigma, Xtemp);
 		} else {
 			std::vector<Abstract*> Join;
-			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->disj[Sigma]));
+			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 			Join.push_back(Xtemp);
-			SuccDisj->disj[Sigma]->join_array(Xtemp->main->env,Join);
+			SuccDisj->getDisjunct(Sigma)->join_array(Xtemp->main->env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

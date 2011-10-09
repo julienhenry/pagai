@@ -13,20 +13,30 @@ class Node;
 class AbstractDisj: public Abstract {
 
 	public:
-		std::vector<Abstract*> disj;
-		
 		AbstractMan * man_disj;
 
 	protected:
+		std::vector<Abstract*> disj;
+		
 		void clear_all();
 
 	public:
-
 		/// create a disjunctive invariant with one sigle disjunct
 		AbstractDisj(ap_manager_t* _man, ap_environment_t * env);
 
 		/// create a disjunctive invariant with max_index+1 disjunct
 		AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_index);
+
+		/// add a new disjunct in the abstract
+		/// the method return the index of the new disjunct
+		int AddDisjunct(ap_environment_t * env);
+
+		Abstract * getDisjunct(int index);
+		void setDisjunct(int index, Abstract * A);
+
+		void SetNDisjunct(int N);
+		
+		int getMaxIndex();
 
 		/// copy constructor : duplicates the abstract value
 		AbstractDisj(Abstract* A);

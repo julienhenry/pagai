@@ -22,7 +22,7 @@ Abstract * AbstractManGopan::NewAbstract(Abstract * A) {
 }
 
 Abstract * AbstractManDisj::NewAbstract(ap_manager_t * man, ap_environment_t * env) {
-	return new AbstractDisj(man,env,1);
+	return new AbstractDisj(man,env,0);
 }
 
 Abstract * AbstractManDisj::NewAbstract(Abstract * A) {
