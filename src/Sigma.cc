@@ -8,6 +8,7 @@
 #include "SMTpass.h"
 #include "Debug.h"
 
+//#DEFINE DUMP_ADD
 
 Sigma::Sigma() {
 	mgr = new Cudd(0,0);
@@ -197,9 +198,11 @@ int Sigma::getSigma(std::list<BasicBlock*> path, int start) {
 		//*Out << start << " is already assigned to " << res-1 << "\n";
 	}
 	
+#ifdef DUMP_ADD
 	std::ostringstream filename;
 	filename << "ADD_" << path.front() << "_" << start;
 	DumpDotADD(*Add[start],filename.str());
+#endif
 	return res -1;
 }
 
