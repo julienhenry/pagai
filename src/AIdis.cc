@@ -358,11 +358,9 @@ void AIdis::computeNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
-		// TODO : index
 		int index;
 		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path,index);
-		*Out << "Index = " << index << "\n";
 		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {

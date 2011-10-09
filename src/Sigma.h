@@ -27,7 +27,7 @@ class Sigma {
 		/// stores the index of the source basicBlock in the ADD
 		std::map<BasicBlock*,int> AddVarSource;
 		/// stores the index of the start index in the ADD
-		std::map<int,int> AddVarIndex;
+		//std::map<int,int> AddVarIndex;
 
 		/// number of levels in the ADD
 		int AddIndex;
@@ -35,10 +35,10 @@ class Sigma {
 		
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 
-		ADD getADDfromStartIndex(int start);
+		//ADD getADDfromStartIndex(int start);
 
 		/// Add that stores the various seen paths
-		ADD * Add;
+		std::map<int,ADD*> Add;
 
 		/// insert a path in the Bdd
 		void insert(std::list<BasicBlock*> path, int start);
@@ -52,6 +52,7 @@ class Sigma {
 		int getActualValue(std::list<BasicBlock*> path, int start);
 		void setActualValue(std::list<BasicBlock*> path, int start, int value);
 
+		const std::string getNodeName(BasicBlock* b, bool src) const;
 	public:
 		
 		Sigma();
@@ -64,5 +65,7 @@ class Sigma {
 		int getSigma(std::list<BasicBlock*> path, int start);
 
 		bool isZero();
+
+		void DumpDotADD(ADD graph, std::string filename);
 };
 #endif
