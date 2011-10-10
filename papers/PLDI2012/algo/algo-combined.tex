@@ -1,5 +1,3 @@
-\label{alg=combined}
-
 \STATE $A \gets \emptyset$ // States to explore
 \STATE $P \gets \emptyset$ // Paths in the current subset
 \FORALL {$p \in P_R / I_p \neq \emptyset$}
@@ -23,12 +21,12 @@
 
 \ENDWHILE \label{alg=end-ascending}
 \STATE Narrow \label{alg=narrowing}
-\IF {$P' = \emptyset$} \label{alg=start-add-paths}
+\IF {$P' = \emptyset$}
 	\STATE \textbf{break}
-\ENDIF \label{alg=end-add-paths}
-\STATE // Add the new feasible paths to the graph and restart 
+\ENDIF 
+\STATE // Add the new feasible paths to the graph and restart  \label{alg=start-add-paths}
 \STATE $P \gets P \cup P'$
-\STATE $A \gets A'$
+\STATE $A \gets A'$ \label{alg=end-add-paths}
 \ENDWHILE
 
 \STATE \RETURN $\{X_i^s,\ i \in P_R\}$
