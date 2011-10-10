@@ -327,20 +327,24 @@ subsets of the paths between two points in $P_R$.
 The current working subset of paths is stored using a compact representation,
 such as binary decision diagrams.
 
-\MM{Je trouve qu'il manque une vue de haut niveau quelque part par ici. Dire qu'en gros, l'algo, c'est :
+\MM{Je trouve qu'il manque une vue de haut niveau quelque part par
+  ici. Dire qu'en gros, l'algo, c'est (en pseudo-code ou en langue naturelle) :
 
 \begin{algorithm}
   \begin{algorithmic}
     \STATE \textit{Subset} $\gets \emptyset$
     \WHILE{true}
-    \STATE Ascending iteration on a \textit{Subset}
-    \STATE Narrow
-    \STATE Add new paths to \textit{Subset}
+    \STATE Ascending iteration on a \textit{Subset} (lines~\ref{alg=start-ascending}-\ref{alg=end-ascending} in algorithm~\ref{alg=combined})
+    \STATE Narrow (line~\ref{alg=narrowing} in algorithm~\ref{alg=combined})
+    \STATE Add new paths to \textit{Subset} (lines~\ref{alg=start-add-paths}-\ref{alg=end-add-paths} in algorithm~\ref{alg=combined})
     \ENDWHILE
   \end{algorithmic}
 \end{algorithm}
 
 Sans ca, enchainer tout de suite sur ``ascending iterations'' est un peu brutal.
+
+Ensuite, on peut rafiner la définition de ``Subset'' ($A$ et $P$), et
+enchainer sur l'algo 2.
 }
 
 \subsection{Ascending iterations}

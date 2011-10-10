@@ -1,3 +1,5 @@
+\label{alg=combined}
+
 \STATE $A \gets \emptyset$ // States to explore
 \STATE $P \gets \emptyset$ // Paths in the current subset
 \FORALL {$p \in P_R / I_p \neq \emptyset$}
@@ -10,7 +12,7 @@
 
 \STATE $P' \gets \emptyset$ // New paths
 
-\WHILE{$A \neq \emptyset$}
+\WHILE{$A \neq \emptyset$} \label{alg=start-ascending}
 	\STATE Select $p_i \in A$
 	\STATE $A \gets A \setminus \{p_i\}$
 	\STATE // First only consider the paths already seen (in $P$)
@@ -19,11 +21,11 @@
 	\STATE // add new feasible paths into $P'$
 	\STATE ComputeNewPaths($p_i$)
 
-\ENDWHILE
-\STATE Narrow
-\IF {$P' = \emptyset$}
+\ENDWHILE \label{alg=end-ascending}
+\STATE Narrow \label{alg=narrowing}
+\IF {$P' = \emptyset$} \label{alg=start-add-paths}
 	\STATE \textbf{break}
-\ENDIF
+\ENDIF \label{alg=end-add-paths}
 \STATE // Add the new feasible paths to the graph and restart 
 \STATE $P \gets P \cup P'$
 \STATE $A \gets A'$
