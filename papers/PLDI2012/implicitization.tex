@@ -512,7 +512,7 @@ Initially, the $\delta$-th abstract value is assigned to the initial states of
 $p_i$, and each other abstract value is assigned to bottom.
 
 $m$, $\delta$ and $\sigma$ can be defined heuristically.
-For instance, one could defined $\sigma$ so that $\sigma(j,k)$ only depends on the
+For instance, one could define $\sigma$ so that $\sigma(j,k)$ only depends on the
 last transition of the path, or else construct it dynamically during the
 analysis.
 
@@ -533,7 +533,11 @@ Our improvement consists in a slight modification of the SMT formula we solve in
 \ref{sec:guided_multigraph}.
 We introduce in this formula Boolean variables $\{d_j, 1 \leq j \leq m\}$, so
 that we can easily find in the model which abstract value of the disjunction we
-have to choose. The resulting formula that is given to the SMT solver is defined
+have to choose.
+\MM{Le ``we have to choose'' est un peu vague. Tu veux dire ``which
+  abstract value of the disjunction has to be chosen to make the
+  invariant grow'' ?}
+The resulting formula that is given to the SMT solver is defined
 by $g(p_i)$.
 When the formula is satisfiable, we know that the index $j$ of the starting
 disjunct that has to be chosen is the one for which the associate Boolean value
@@ -556,6 +560,11 @@ Our algorithm for computing disjunctive invariants is described in Algorithm
 abstract values, we use the widening operator to ensure the algorithm terminates
 when using abstract domains with infinite height.
 
+\MM{Comment cet algo se place par rapport à l'algo
+  \ref{algo:combined} ? Si je comprends bien, la boucle while
+  remplace l'algo \ref{algo:computepaths}, et l'initialisation au
+  début remplace le début de \ref{algo:combined}. Faudrait rendre ça
+  explicite.}
 \begin{algorithm}[!h]
 \caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
 \label{algo:disjunctive}
