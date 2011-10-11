@@ -363,7 +363,9 @@ in Algorithm \ref{algo:combined}.
 The current working subset of paths, noted $P$, is stored using a
 compact representation, such as binary decision diagrams.
 We also maintain a set of active control points $A$, containing the points in $P_R$
-that still need to be processed. 
+that still need to be processed. Each time the abstract value of a control point
+$p$ is updated, $p$ is inserted in $A$.
+
 We apply the Path-focused technique\cite{Monniaux_Gonnord_SAS11} to
 the elements of $A$ until $A$ is empty. 
 We also check which paths become feasible, so that we can include them into the
