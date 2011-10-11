@@ -550,21 +550,40 @@ Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
 better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
 
 Now, see how our technique performs on this example.
-Our combined technique gives us the expected invariant 
-$\lstinline|x_old| \in~[-10000,10000]$.
 
-\JH{Expliquer la figure 2}
+Figure \ref{fig:example-graph} shows the sequence of subset of paths during the
+analysis. The points in $P_R$ are noted $p_i$, where $i$ is the corresponding
+line in the code: for instance, $p_5$ corresponds to the header of the main
+loop.
+
+\begin{enumerate}
+	\item The first non-empty subset of paths is depicted on Figure
+		\ref{fig:example-graph} Step 1. We apply Path-Focusing on this graph,
+		and discover for $p_5$ the inductive invariant $\lstinline|x_old| = 0$.
+		We also compute the set $P'$ of paths that have to be added at the next
+		iteration. 
+		For describing the different paths in the loop, we introduce the Boolean
+		values $c_7, c_8, c_9$, where $c_i$ is \emph{true} when the path goes
+		through the \emph{then} branch of the \emph{if-then-else} at line $i$, and
+		\emph{false} when the path goes through the \emph{else} branch.
+		We then add into $P'$ the following paths:
+\JH{A compl\'eter}
+\end{enumerate}
+
+%Our combined technique gives us the expected invariant 
+%$\lstinline|x_old| \in~[-10000,10000]$.
+
 
 \begin{figure}
-\label{fig:multigraph}
+\label{fig:example-graph}
 \centering
 \begin{minipage}[c]{.10\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
-	\node[PRstate] (n00) {$p_0$};
-	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_1$};
-	\node[PRstate] (n1) [below of=n0] {$p_2$};
+	\node[PRstate] (n00) {$p_4$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
+	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
 	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
 
   \path [transition] 
@@ -575,9 +594,9 @@ $\lstinline|x_old| \in~[-10000,10000]$.
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
-	\node[PRstate] (n00) {$p_0$};
-	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_1$};
-	\node[PRstate] (n1) [below of=n0] {$p_2$};
+	\node[PRstate] (n00) {$p_4$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
+	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
 	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
 
   \path [transition] 
