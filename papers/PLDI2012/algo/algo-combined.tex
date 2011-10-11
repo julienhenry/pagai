@@ -1,7 +1,9 @@
 \STATE $A \gets \emptyset$ // States to explore
 \STATE $P \gets \emptyset$ // Paths in the current subset
 \STATE $A \gets \{p | P_R / I_p \neq \emptyset\}$
-
+\FORALL{$p_i \in P_R$}
+	\STATE $X_i^s \gets I_{p_i}$ \label{alg=X-init}
+\ENDFOR 
 \WHILE{true}
 \STATE $A' \gets \emptyset$ // States to explore at the next iteration
 

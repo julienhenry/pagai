@@ -552,7 +552,7 @@ In our approach, we do this only for paths and disjuncts that makes the
 resulting abstract value grow.
 \end{itemize}
 
-Our improvement consists in a slight modification of the SMT formula we solve in
+Our improvement consists in a modification of the SMT formula we solve in
 \ref{sec:guided_multigraph}.
 We introduce in this formula Boolean variables $\{d_j, 1 \leq j \leq m\}$, so
 that we can easily find in the model which abstract value of the disjunction has
@@ -575,24 +575,32 @@ g(p_i) = & \rho \wedge b_i^s \wedge
 (b_j^d \wedge \bigwedge_{1 \leq k \leq m} (x \notin X_{j,k}))
 \end{eqnarray*}
 
-Our algorithm for computing disjunctive invariants is described in Algorithm
-\ref{algo:disjunctive}. In this algorithm, instead of simply joining the two
-abstract values, we use the widening operator to ensure the algorithm terminates
-when using abstract domains with infinite height.
-
-\MM{Comment cet algo se place par rapport à l'algo
-  \ref{algo:combined} ? Si je comprends bien, la boucle while
-  remplace l'algo \ref{algo:computepaths}, et l'initialisation au
-  début remplace le début de \ref{algo:combined}. Faudrait rendre ça
-  explicite.}
+In our algorithm, the initialization of the abstract values slightly differs from
+algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
+initialize each disjunct. Line~\ref{alg=X-init} is then replaced by:
 \begin{algorithm}[!h]
-\caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
-\label{algo:disjunctive}
 \begin{algorithmic}[1] 
 \FORALL {$k \in \{1,..,m\} \setminus \{\delta\}$}
 	\STATE $X_{i,k} \gets \perp$
 \ENDFOR
 \STATE $X_{i,\delta} \gets I_{p_i}$
+\end{algorithmic}
+\end{algorithm}
+
+Furthermore, the Path-focused algorithm (line~\ref{alg=pf} from algorithm
+\ref{algo:combined}) is enhanced to deal with disjunctive invariants, and
+is detailed in algorithm \ref{algo:disjunctive}.
+
+The \emph{Update} function can classically assign to $X_{i,\sigma(j,k)}$ the
+value $X_{i,\sigma(j,k)} \widening (X_{i,\sigma(j,k)} \sqcup
+\tau_{i,k}(X_{i,j}))$, or can integrate the special treatment for self loops
+proposed by \citet{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
+acceleration.
+
+\begin{algorithm}[!h]
+\caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
+\label{algo:disjunctive}
+\begin{algorithmic}[1] 
 \WHILE {true}
 		\STATE $res \gets SmtSolve\left[g(p_i)\right]$
 	\IF {$res = unsat$}
@@ -600,10 +608,15 @@ when using abstract domains with infinite height.
 	\ENDIF
 	\STATE Compute the path $\tau_{i,k}$ from $res$ 
 	\STATE Take $j \in \{ l | d_l = true\}$ 
-	\STATE $X_{i,\sigma(j,k)} \gets X_{i,\sigma(j,k)} \widening (X_{i,\sigma(j,k)} \sqcup \tau_{i,k}(X_{i,j}))$
+	\STATE Update($X_{i,\sigma(j,k)})$
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
+
+The $\sigma$ function takes as parameters the index of the starting abstract
+value, and the path we focus on. If we dynamically construct this function
+during the analysis, we should store the results of the sigma function into a
+compact representation, such as Algebraic Decision Diagrams.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
