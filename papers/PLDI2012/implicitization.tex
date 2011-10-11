@@ -37,6 +37,7 @@ color=blue]
 \newcommand{\parts}[1]{\mathscr{P}(#1)}
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
 \newcommand{\widening}{\mathop{\triangledown}}
 
 \begin{document}
@@ -121,7 +122,20 @@ Some presentations of abstract interpretation identify an element $\abstr{x}$ wi
 We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcap \abstr{y})$ for all $\abstr{x},\abstr{y}$.
 
 \subsection{SMT-solving}
-TODO
+Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
+Despite an exponential worst-case complexity, the DPLL algorithm \cite{Kroening_Strichman_08,Handbook_SAT} solves many useful SAT problems in practice.
+
+SAT was extended to \emph{satisfiability modulo theory} (SMT): in addition to propositional literals, SMT formulas admit atoms from a theory.
+For instance, the theories of linear integer arithmetic (LIA) and linear real arithmetic (LRA) have atoms of the form $a_1 x_1 + \dots + a_n x_n \bowtie C$ where $a_1,\dots,a_n,C$ are integer constants, $x_1\,dots,x_n$ are variables (interpreted over $\ZZ$ for LIA and $\RR$ or $\QQ$ for LRA), and $\bowtie$ is a comparison operator $=,\neq,<,\leq,>,\geq$.
+Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approach \cite{Kroening_Strichman_08,Handbook_SAT} solve many useful SMT problems in practice. All these tools provide a \emph{satisfying assignment} if the problem is satisfiable.
+
+Most SMT solvers, including Z3%
+\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
+Yices,%
+\footnote{\url{http://yices.csl.sri.com/}}
+and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
+offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
+it may then backtrack some of the constraints and add other ones without restarting from scratch.
 
 \subsection{A simple, motivating example}
 \label{subsec:rate_lim}
