@@ -509,12 +509,18 @@ if (wait) {
 The main loop in the expanded multigraph has then 24 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
-Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5 
-$\lstinline|x_old| \in (-\infty,+\infty)$.
+Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
+$\lstinline|x_old| \in~]-\infty,+\infty[$.
 Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
-better, and finds $\lstinline|x_old| \in (-\infty,10000)$.
+better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
 Our combined technique gives us the expected invariant 
-$\lstinline|x_old| \in (-10000,10000)$.
+$\lstinline|x_old| \in~[-10000,10000]$.
+
+In this example, we see that our technique actually combines best of
+\emph{Guided Static Analysis} and \emph{Path Focusing}. Still, we need to unroll
+the loop once in order to get precise results. Section \ref{sec:disjunctive}
+proposes a new technique that gives precise invariants without needing such
+graph transformations.
 
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
@@ -623,6 +629,8 @@ compact representation, such as Algebraic Decision Diagrams.
 \section{Experimental comparisons}
 \label{sec:experiments}
 
+Our analyzer uses Yices \cite{DBLP:conf/cav/DutertreM06}
+ or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08} as SMT-solver.
 \section{Conclusion}
 
 % Cas a probleme:
