@@ -653,7 +653,9 @@ acceleration.
 The $\sigma$ function takes as parameters the index of the starting abstract
 value, and the path we focus on. If we dynamically construct this function
 during the analysis, we should store the results of the sigma function into a
-compact representation, such as Algebraic Decision Diagrams.
+compact representation, such as Algebraic Decision Diagrams. Notice that the
+image of a couple $(j,k)$ by the function $\sigma$ will be computed only if
+needed.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
