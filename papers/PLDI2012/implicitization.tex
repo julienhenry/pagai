@@ -8,8 +8,8 @@
 
 \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
 
-\usepackage{amsmath,amsfonts}
-\usepackage{mathcomp,amssymb}
+\usepackage{amsmath}
+\usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
@@ -132,9 +132,9 @@ x' \in \gamma \circ \abstr{\tau}(\abstr{x})
 \end{equation}
 It is easy to see that if to any control point $p \in P$ we attach an abstract element $\abstr{x}_p$ such that
 (i) for any $p$, $\gamma(\abstr{x}_p)$ includes all initial states possible at control node $p$
-(ii) for any $p,p'$, $\abstr{\tau}_{p,p'} (\abstr{x}_p) \sqsubseteq \abstr{x}_{p'}$, noting $\tau_{p,p'}$ the transition from $p$ to~$p'$, then $(\gamma(\abstr{x}_p))_{p \in P}$ form an \emph{inductive invariant}: by induction, the current program states always lie in $\gamma(\abstr{x}_p)$ at program location~$p$.
+(ii) for any $p,p'$, $\abstr{\tau}_{p,p'} (\abstr{x}_p) \sqsubseteq \abstr{x}_{p'}$, noting $\tau_{p,p'}$ the transition from $p$ to~$p'$, then $(\gamma(\abstr{x}_p))_{p \in P}$ form an \emph{inductive invariant}: by induction, the program states always lie in $\gamma(\abstr{x}_p)$ at program location~$p$.
 
-
+\emph{Kleene iterations} compute such an inductive invariant as the stationary limit, if it exists, of the following system: for each $p$, initialize $\abstr{x}_p$ such that $\gamma(\abstr{x}_p)$ is a superset of the initial states at point $p$; then iterate the following: if $\abstr{\tau}_{p,p'} (\abstr{x}_p) \nsqsubseteq \abstr{x}_{p'}$, replace $\abstr{x}_{p'}$ by $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$. Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascending chain $a_1 \sqsubsetneq a_2 \sqsubsetneq \dots$; this condition is however not met by domains such as intervals or convex polyhedra.
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
