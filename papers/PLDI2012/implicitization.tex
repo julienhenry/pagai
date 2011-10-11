@@ -9,8 +9,8 @@
 \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
 \newcommand{\JH}[1]{{\color{blue} TODO(JH): #1}}
 
-\usepackage{amsmath,amsfonts}
-\usepackage{mathcomp,amssymb}
+\usepackage{amsmath}
+\usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
@@ -114,6 +114,7 @@ With respect to abstract domains on numerical variables, it uses the APRON libra
 
 \section{Bases}
 \subsection{Static analysis by abstract interpretation}
+\label{sec:static_analysis}
 Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is often referred to as the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.
 The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: \left(\abstr{X},\sqsubseteq\right) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
 %
@@ -121,6 +122,25 @@ The concrete and abstract domains are connected by a monotone \emph{concretizati
 Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
 
 We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcap \abstr{y})$ for all $\abstr{x},\abstr{y}$.
+
+Classically, one considers the control-flow graph of the program, with edges labeled with concrete transition relations (e.g. $x' = x+1$ for an instruction \lstinline|x = x+1;|), and attaches an abstract element to each control point.
+A concrete transition relation $\tau \subseteq X \times X$ is replaced by an abstract \emph{forward abstract transformer} $\abstr{\tau}: \abstr{X} \rightarrow \abstr{X}$, such that
+\begin{equation}
+\forall \abstr{x} \in \abstr{X}, x,x' \in X,~
+x \in \gamma(\abstr{x}) \land (x,x') \in \tau \implies
+x' \in \gamma \circ \abstr{\tau}(\abstr{x})
+\label{eqn:transformer_correct}
+\end{equation}
+It is easy to see that if to any control point $p \in P$ we attach an abstract element $\abstr{x}_p$ such that
+(i) for any $p$, $\gamma(\abstr{x}_p)$ includes all initial states possible at control node $p$
+(ii) for any $p,p'$, $\abstr{\tau}_{p,p'} (\abstr{x}_p) \sqsubseteq \abstr{x}_{p'}$, noting $\tau_{p,p'}$ the transition from $p$ to~$p'$, then $(\gamma(\abstr{x}_p))_{p \in P}$ form an \emph{inductive invariant}: by induction, the program states always lie in $\gamma(\abstr{x}_p)$ at program location~$p$.
+
+\emph{Kleene iterations} compute such an inductive invariant as the stationary limit, if it exists, of the following system: for each $p$, initialize $\abstr{x}_p$ such that $\gamma(\abstr{x}_p)$ is a superset of the initial states at point $p$; then iterate the following:
+if $\abstr{\tau}_{p,p'} (\abstr{x}_p) \nsqsubseteq \abstr{x}_{p'}$, replace $\abstr{x}_{p'}$ by $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$.
+Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascending chain $a_1 \sqsubsetneq a_2 \sqsubsetneq \dots$; this condition is however not met by domains such as intervals or convex polyhedra.
+
+\emph{Widening-accelerated Kleene iterations} proceed by replacing $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$ by $\abstr{x}_{p'} \widening (\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p))$ where $\widening$ is a \emph{widening operator}: for all $\abstr{x},\abstr{y}$, $\gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \widening \abstr{y})$, and there exists no sequence $\abstr{u}_1,\abstr{u}_2,\dots$ of the form $\abstr{u}_{n+1} = \abstr{u}_n \widening \abstr{v}_n$ where $\abstr{v}_n$ is another sequence.
+Such iterations necessarily lead to a stationary $(\abstr{x}_p)_{p \in P}$, which define an inductive invariant $(\gamma(\abstr{x}_p))_{p \in P}$. Note that this invariant is not, in general, the least one expressible in the abstract domain, and may depend on the iteration ordering (the successive choices~$p,p'$).
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
@@ -284,12 +304,12 @@ Termination ensues from the finiteness of the control-flow graph.
 \subsection{Path-focused technique}
 \label{sec:path_focusing}
 
-\emph{Path-focused} technique from \citet{Monniaux_Gonnord_SAS11} proposes to
-distinguish the different paths in the program in order to avoid loss of
+\citet{Monniaux_Gonnord_SAS11}'s \emph{path-focused} technique
+distinguishes the different paths in the program in order to avoid loss of
 precision due to merge operations. Since the number of paths may be exponential,
 the technique keeps them implicit and computes them when needed using
-SMT-solving. Then, the iterations are computed over a reduced multigraph instead
-of the classical transition graph.
+SMT-solving.
+The (accelerated) Kleene iterations (\S\ref{sec:static_analysis}) are computed over a reduced multigraph instead of the classical transition graph.
 
 Let $P$ be the set of control points in the transition graph, 
 $P_W \subseteq P$ the set of widening points
