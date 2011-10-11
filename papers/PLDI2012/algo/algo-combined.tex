@@ -1,12 +1,9 @@
 \STATE $A \gets \emptyset$ // States to explore
 \STATE $P \gets \emptyset$ // Paths in the current subset
-\FORALL {$p \in P_R / I_p \neq \emptyset$}
-	\STATE $A \gets A \cup p$
-        // \MM{Pourquoi pas juste $A \gets \{p | P_R / I_p \neq \emptyset\}$ a la place de tout le forall?}
-\ENDFOR
+\STATE $A \gets \{p | P_R / I_p \neq \emptyset\}$
 
 \WHILE{true}
-\STATE $A' \gets \emptyset$ // New states to explore
+\STATE $A' \gets \emptyset$ // States to explore at the next iteration
 
 \STATE $P' \gets \emptyset$ // New paths
 
@@ -14,10 +11,10 @@
 	\STATE Select $p_i \in A$
 	\STATE $A \gets A \setminus \{p_i\}$
 	\STATE // First only consider the paths already seen (in $P$)
-	\STATE PathFocusing($p_i$)
+	\STATE PathFocusing($p_i$) \label{alg=pf}
 	
 	\STATE // add new feasible paths into $P'$
-	\STATE ComputeNewPaths($p_i$)
+	\STATE ComputeNewPaths($p_i$) \label{alg=computeNewPaths}
 
 \ENDWHILE \label{alg=end-ascending}
 \STATE Narrow \label{alg=narrowing}
