@@ -7,6 +7,7 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+\newcommand{\JH}[1]{{\color{blue} TODO(JH): #1}}
 
 \usepackage{amsmath,amsfonts}
 \usepackage{mathcomp,amssymb}
@@ -486,7 +487,7 @@ distinct from $X_j^s$, and initialized to $X_j^s$.
 \end{algorithm}
 
 \subsection{Termination}
-Termination of this algorihm is guaranteed, because:
+Termination of this algorithm is guaranteed, because:
 \begin{itemize}
 \item 
 the subset of paths $P$ is
@@ -527,8 +528,53 @@ Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
 $\lstinline|x_old| \in~]-\infty,+\infty[$.
 Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
 better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
+
+Now, see how our technique performs on this example.
 Our combined technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,10000]$.
+
+\JH{Expliquer la figure 2}
+
+\begin{figure}
+\label{fig:multigraph}
+\centering
+\begin{minipage}[c]{.10\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n00) {$p_0$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_1$};
+	\node[PRstate] (n1) [below of=n0] {$p_2$};
+	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
+
+  \path [transition] 
+		(n00) edge              node {} (n0);
+\end{tikzpicture}
+\end{minipage} 
+\begin{minipage}[c]{.21\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n00) {$p_0$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_1$};
+	\node[PRstate] (n1) [below of=n0] {$p_2$};
+	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
+
+  \path [transition] 
+		(n00) edge  node {} (n0);
+  \path [transition] 
+		(n0) edge  [loop right] node [right] {$\neg c_7 \wedge c_8 \wedge \neg c_9$} (n0);
+  \path [transition] 
+		(n0) edge  [loop left] node [left] {$\neg c_7 \wedge c_8 \wedge \neg c_9$} (n0);
+  \path [transition] 
+		(n0) edge  [out=-45, in=45] node [right] {$\neg c_7 \wedge \neg c_8 \wedge c_9$} (n1);
+  \path [transition] 
+		(n0) edge  [out=-135, in=135] node [left] {$\neg c_7 \wedge \neg c_8 \wedge c_9$} (n1);
+\end{tikzpicture}
+\end{minipage}
+\caption{Ascending sequence of subgraphs}
+\end{figure}
+
 
 In this example, we see that our technique actually combines best of
 \emph{Guided Static Analysis} and \emph{Path Focusing}. Still, we need to unroll
