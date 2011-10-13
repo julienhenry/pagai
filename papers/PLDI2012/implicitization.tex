@@ -160,6 +160,8 @@ it may then backtrack some of the constraints and add other ones without restart
 
 \subsection{A simple, motivating example}
 \label{subsec:rate_lim}
+\JH{les tests des lignes 7 et 8 ont \'et\'e remplac\'es par des in\'egalit\'es
+strictes}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
@@ -557,27 +559,44 @@ line in the code: for instance, $p_5$ corresponds to the header of the main
 loop.
 
 \begin{enumerate}
-	\item The first non-empty subset of paths is depicted on Figure
+	\item The first subset of paths is depicted on Figure
 		\ref{fig:example-graph} Step 1. We apply Path-Focusing on this graph,
 		and discover for $p_5$ the inductive invariant $\lstinline|x_old| = 0$.
-		We also compute the set $P'$ of paths that have to be added at the next
-		iteration. 
-		For describing the different paths in the loop, we introduce the Boolean
-		values $c_7, c_8, c_9$, where $c_i$ is \emph{true} when the path goes
-		through the \emph{then} branch of the \emph{if-then-else} at line $i$, and
-		\emph{false} when the path goes through the \emph{else} branch.
-		We then add into $P'$ the following paths:
-\JH{A compl\'eter}
+	\item
+		We then compute the set $P'$ of paths that have to be added into the
+		next subgraph. 
+		The image of $\lstinline|x_old| = 0$ by the path that goes from $p_5$ to
+		itself, and that goes through the \emph{else} branch of each 
+		\emph{if-then-else}, is $-10 \leq \lstinline|x_old| \leq 10$. This path
+		is then added to our subgraph. Moreover, there is no other path whose
+		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
+		Additionnally, the path that goes from $p_5$ to
+		$p_11$, that goes through the \emph{else} branch of each 
+		\emph{if-then-else} at lines 7,8 and 9, is also 
+		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
+		new subgraph. Again, there is no new path that goes to $p_11$ with an
+		image outside of $-10 \leq \lstinline|x_old| \leq 10$.
+	\item
+		We apply Path Focusing on this new subgraph (\ref{fig:example-graph}
+		Step 2). When we have reached an inductive invariant, we narrow, and the
+		result for both $p_5$ and $p_11$ is the polyhedron 
+		$-10000 \leq \lstinline|x_old| \leq 10000$.
+	\item Finally, we compute the new subgraph. The SMT-solver does not find any
+		new path that makes the abstract values grow, and the algorithm
+		terminates.
 \end{enumerate}
 
-%Our combined technique gives us the expected invariant 
-%$\lstinline|x_old| \in~[-10000,10000]$.
+Our technique gives us the expected invariant 
+$\lstinline|x_old| \in~[-10000,10000]$. 
+Here, only 3 paths over the 25 have been computed during the analysis. In
+practice, depending on the order the SMT-solver returns the paths, other
+feasible paths could have been added during the analysis.
 
 
 \begin{figure}
 \label{fig:example-graph}
 \centering
-\begin{minipage}[c]{.10\textwidth}
+\begin{minipage}[c]{.15\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
@@ -587,10 +606,10 @@ loop.
 	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
 
   \path [transition] 
-		(n00) edge              node {} (n0);
+		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
 \end{tikzpicture}
 \end{minipage} 
-\begin{minipage}[c]{.21\textwidth}
+\begin{minipage}[c]{.28\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
@@ -600,15 +619,23 @@ loop.
 	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
 
   \path [transition] 
-		(n00) edge  node {} (n0);
+		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
   \path [transition] 
-		(n0) edge  [loop right] node [right] {$\neg c_7 \wedge c_8 \wedge \neg c_9$} (n0);
+		(n0) edge  [loop left] node [left, xshift=0.2cm] {
+		$\begin{array}{r}
+			-10000 \leq \lstinline|x| \leq 10000 \\
+			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
+			\lstinline|x_old| \gets \lstinline|x|
+		\end{array}$
+		} (n0);
   \path [transition] 
-		(n0) edge  [loop left] node [left] {$\neg c_7 \wedge c_8 \wedge \neg c_9$} (n0);
-  \path [transition] 
-		(n0) edge  [out=-45, in=45] node [right] {$\neg c_7 \wedge \neg c_8 \wedge c_9$} (n1);
-  \path [transition] 
-		(n0) edge  [out=-135, in=135] node [left] {$\neg c_7 \wedge \neg c_8 \wedge c_9$} (n1);
+		(n0) edge node [left, yshift=-0.2cm, xshift=0.2cm] {
+		$\begin{array}{r}
+			-10000 \leq \lstinline|x| \leq 10000 \\
+			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
+			\lstinline|x_old| \gets \lstinline|x|
+		\end{array}$
+		} (n1);
 \end{tikzpicture}
 \end{minipage}
 \caption{Ascending sequence of subgraphs}
