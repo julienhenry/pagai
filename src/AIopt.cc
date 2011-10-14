@@ -154,7 +154,6 @@ void AIopt::computeFunction(Function * F) {
 		}
 		
 		// compute the new paths starting in a point in A'
-		*Out << "Computing paths...\n";
 		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
 			computeNewPaths(*it); // this method adds elements in A
 		}
@@ -234,8 +233,6 @@ void AIopt::computeNewPaths(Node * n) {
 			}
 			break;
 		}
-
-		printPath(path);
 
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
