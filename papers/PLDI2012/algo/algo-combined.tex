@@ -1,30 +1,28 @@
-\STATE $A \gets \{p | P_R / I_p \neq \emptyset\}$ // States to explore
-\STATE $P \gets \emptyset$ // Paths in the current subset
+\STATE $A' \gets \{p | P_R / I_p \neq \emptyset\}$ \COMMENT{States to explore}
+\STATE $A \gets \emptyset$
+\STATE $P \gets \emptyset$ \COMMENT{Paths in the current subset}
 \FORALL{$p_i \in P_R$}
 	\STATE $X_i^s \gets I_{p_i}$ \label{alg=X-init}
 \ENDFOR 
-\WHILE{true}
-\STATE $A' \gets \emptyset$ // States to explore at the next iteration
+\WHILE{$A' \neq \emptyset$}
 
-\STATE $P' \gets \emptyset$ // New paths
+\STATE $P' \gets \emptyset$ \COMMENT{new paths}
+	
+\FORALL{$p_i \in A'$}\label{alg=start-add-paths}
+\STATE ComputeNewPaths($p_i$) \COMMENT{Update $A$ and $P'$}\label{alg=computeNewPaths}
+\ENDFOR \label{alg=end-add-paths}
 
-\WHILE{$A \neq \emptyset$} \label{alg=start-ascending}
+\STATE $P \gets P \cup P'$
+
+\STATE \COMMENT{ascending iterations}
+\WHILE{$A \neq \emptyset$} \label{alg=start-ascending} 
 	\STATE Select $p_i \in A$
 	\STATE $A \gets A \setminus \{p_i\}$
-	\STATE // First only consider the paths already seen (in $P$)
-	\STATE PathFocusing($p_i$) \label{alg=pf}
+	\STATE \COMMENT{only consider the paths in $P$}
+	\STATE PathFocusing($p_i$) \COMMENT{Update $A$ and $A'$\label{alg=pf}}
 	
-	\STATE // add new feasible paths into $P'$
-	\STATE ComputeNewPaths($p_i$) \label{alg=computeNewPaths}
-
 \ENDWHILE \label{alg=end-ascending}
 \STATE Narrow \label{alg=narrowing}
-\IF {$P' = \emptyset$}
-	\STATE \textbf{break}
-\ENDIF 
-\STATE // Add the new feasible paths to the graph and restart  \label{alg=start-add-paths}
-\STATE $P \gets P \cup P'$
-\STATE $A \gets A'$ \label{alg=end-add-paths}
 \ENDWHILE
 
 \STATE \RETURN $\{X_i^s,\ i \in P_R\}$

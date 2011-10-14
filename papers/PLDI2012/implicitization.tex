@@ -41,6 +41,9 @@ color=blue]
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\widening}{\mathop{\triangledown}}
 
+% commentaires dans les algorithmes crees avec le package algorithmic
+\renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
+
 \begin{document}
 
 \conferenceinfo{PLDI '12}{11-16 June 2012, Beijing} 
@@ -375,9 +378,9 @@ feasible paths. The result will then be an inductive invariant of the entire pro
   \begin{algorithmic}
     \STATE \textit{Subset} $\gets \emptyset$
     \WHILE{true}
+    \STATE Add new paths to \textit{Subset} (lines~\ref{alg=start-add-paths}-\ref{alg=end-add-paths} in algorithm~\ref{algo:combined})
     \STATE Ascending iteration on \textit{Subset} (lines~\ref{alg=start-ascending}-\ref{alg=end-ascending} in algorithm~\ref{algo:combined})
     \STATE Narrow (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined})
-    \STATE Add new paths to \textit{Subset} (lines~\ref{alg=start-add-paths}-\ref{alg=end-add-paths} in algorithm~\ref{algo:combined})
     \ENDWHILE
   \end{algorithmic}
 \end{algorithm}
