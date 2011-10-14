@@ -139,18 +139,36 @@ void AIopt::computeFunction(Function * F) {
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	A.push(n);
+	
+	//A' <- initial state
+	A_prime.clear();	
+	A_prime.insert(n);
 
 	is_computed.clear();
+
 	// Abstract Interpretation algorithm
-	
-	while (true) {
-		A_prime.clear();	
+	while (!A_prime.empty()) {
+		// P' <- emptyset
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
 			(*it).second->clear(true);
 		}
-		// MM: is it on purpose that is_computed.clear() is called
-		// MM: only outside the loop?
+		
+		// compute the new paths starting in a point in A'
+		*Out << "Computing paths...\n";
+		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
+			computeNewPaths(*it); // this method adds elements in A
+		}
+
+		// P <- P U P'
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
+			if (!(*it).second->isZero(true)) {
+				// we add the new feasible paths to the graph
+				(*it).second->mergeBDD();
+			}
+		}
+		A_prime.clear();
+
+		is_computed.clear();
 		ascendingIter(n, F, true);
 
 		// we set X_d abstract values to bottom for narrowing
@@ -166,21 +184,6 @@ void AIopt::computeFunction(Function * F) {
 		// then we move X_d abstract values to X_s abstract values
 		copy_Xd_to_Xs(F);
 
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
-			if (!(*it).second->isZero(true)) {
-				// we add the new feasible paths to the graph
-				(*it).second->mergeBDD();
-			}
-		}
-		// we insert the new elements in A
-		std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end();
-		if (it == et) break;
-		for (; it != et; it++) {
-			current = *it;
-			is_computed[current] = false;
-			A.push(current);
-		}
-		A_prime.clear();
 	}
 }
 
@@ -207,7 +210,7 @@ void AIopt::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMTpass SOLVE2 -------------------------\n";
+			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
 			Out->resetColor();
 		);
 		// creating the SMTpass formula we want to check
@@ -231,6 +234,9 @@ void AIopt::computeNewPaths(Node * n) {
 			}
 			break;
 		}
+
+		printPath(path);
+
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
@@ -246,7 +252,7 @@ void AIopt::computeNewPaths(Node * n) {
 
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,true);
-		A_prime.insert(n);
+		A.push(n);
 	}
 }
 
@@ -275,7 +281,7 @@ void AIopt::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
@@ -348,12 +354,12 @@ void AIopt::computeNode(Node * n) {
 		);
 		A.push(Succ);
 		is_computed[Succ] = false;
+		// we have to search for new paths starting at Succ, 
+		// since the associated abstract value has changed
+		A_prime.insert(Succ);
 	}
 
 	delete U;
-	// now, we check if there exist new feasible paths that has never been
-	// computed, and that make the invariant grow
-	computeNewPaths(n);	
 }
 
 void AIopt::narrowNode(Node * n) {
