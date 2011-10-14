@@ -144,8 +144,6 @@ void AIopt::computeFunction(Function * F) {
 	A_prime.clear();	
 	A_prime.insert(n);
 
-	is_computed.clear();
-
 	// Abstract Interpretation algorithm
 	while (!A_prime.empty()) {
 		// P' <- emptyset
@@ -182,7 +180,6 @@ void AIopt::computeFunction(Function * F) {
 
 		// then we move X_d abstract values to X_s abstract values
 		copy_Xd_to_Xs(F);
-
 	}
 }
 
@@ -355,7 +352,6 @@ void AIopt::computeNode(Node * n) {
 		// since the associated abstract value has changed
 		A_prime.insert(Succ);
 	}
-
 	delete U;
 }
 
