@@ -1,4 +1,4 @@
-\STATE $A' \gets \{p | P_R / I_p \neq \emptyset\}$ \COMMENT{States to explore}
+\STATE $A' \gets \{p | P_R / I_p \neq \emptyset\}$
 \STATE $A \gets \emptyset$
 \STATE $P \gets \emptyset$ \COMMENT{Paths in the current subset}
 \FORALL{$p_i \in P_R$}
@@ -13,12 +13,12 @@
 \ENDFOR \label{alg=end-add-paths}
 
 \STATE $P \gets P \cup P'$
+\STATE $A' \gets \emptyset$
 
-\STATE \COMMENT{ascending iterations}
+\STATE \COMMENT{ascending iterations on $P$}
 \WHILE{$A \neq \emptyset$} \label{alg=start-ascending} 
 	\STATE Select $p_i \in A$
 	\STATE $A \gets A \setminus \{p_i\}$
-	\STATE \COMMENT{only consider the paths in $P$}
 	\STATE PathFocusing($p_i$) \COMMENT{Update $A$ and $A'$\label{alg=pf}}
 	
 \ENDWHILE \label{alg=end-ascending}

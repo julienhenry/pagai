@@ -402,26 +402,30 @@ in Algorithm \ref{algo:combined}.
 
 The current working subset of paths, noted $P$, is stored using a
 compact representation, such as binary decision diagrams.
-We also maintain a set of active control points $A$, containing the points in $P_R$
-that still need to be processed. Each time the abstract value of a control point
-$p$ is updated, $p$ is inserted in $A$.
+We also maintain two sets of control points:
+\begin{itemize}
+	\item $A'$ contains the points in $P_R$ that may be the starting points of new
+		feasible paths.
+	\item $A$ contains the points in $P_R$ on which we apply the ascending iterations.
+	Each time the abstract value of a control point $p$ is updated, $p$ is
+	inserted in both $A$ and $A'$.
+\end{itemize}
 
+We first check which paths become feasible, so that we can include them into the
+next subset of paths. The set $P'$ of new feasible paths is added to the
+previous set $P$. Each starting points of paths in $P'$ is added into $A$.
 We apply the Path-focused technique\cite{Monniaux_Gonnord_SAS11} to
 the elements of $A$ until $A$ is empty. 
-We also check which paths become feasible, so that we can include them into the
-next subset of paths at the next iteration. These new feasible paths are
-temporarily stored in a set $P'$. 
-When $A$ is empty, it means the
+When $A$ becomes empty, it means the
 invariant computation of the subgraph is finished. As proposed by
 \citet{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations.
 These narrowing iterations allow to recover precision lost by
-widening, before taking into account new feasible paths.
+widening, before computing and taking into account new feasible paths.
 Thus, our technique combines both the advantages of \emph{Guided Static
 Analysis} and \emph{Path-focusing}.
-We then restart the analysis with a new subgraph if needed, by adding into $P$
-the paths in $P'$. The set of active points $A$ is assigned to $A'$, which is
-the set of control points that are starting points of a new feasible path in
-$P'$.
+
+After narrowing, we restart the analysis, starting from the computation the new
+subgraph.
 
 \begin{algorithm}
 	\caption{Guided static analysis on implicit multigraph}
@@ -476,19 +480,20 @@ the next subgraph to work on has to be computed.
 
 This new subgraph is the union of the paths of the previous one with a set
 $P'$ of new paths that become feasible regarding the current abstract values.
-$P'$ is progressively constructed during the analysis of the subgraph.
 
-We distinguish two phases when analysing a point $p_i \in P_R$:
+We distinguish two phases when analysing a subgraph $P$:
 \begin{enumerate}
-\item We search for paths starting at point $p_i$, such that these paths are in
-$P$, i.e are included in the working subgraph. Each time we find a path, we
-update the abstract value of the destination point of the path. This is the
-phase explained in \ref{subsec:ascending}.
+\item We search for paths starting at point $p_i \in P_R$, such that these paths
+	are in $P$, i.e are included in the working subgraph. Each time we find a
+	path, we update the abstract value of the destination point of the path.
+	This is the phase explained in \ref{subsec:ascending}.
 \item  When the previous phase terminates, there is no more paths in
 $P$, starting at $p_i$, 
 that make the abstract values of the successors grow (otherwise, the SMT
-solver would not have answered ``\emph{unsat}''). However, there may
-exist such paths in the entire multigraph, that are not in $P$. The second phase
+solver would not have answered ``\emph{unsat}''). Narrowing iterations preserves
+this property. 
+However, there may exist such paths in the entire multigraph, that are not in
+$P$. The second phase
 computes these paths and adds them to $P'$ (line~\ref{alg=computeNewPaths} in
 algorithm~\ref{algo:combined}). We also use SMT solving to discover
 these new paths, but we slightly change the SMT formula given to the SMT solver:
