@@ -47,9 +47,8 @@ class ModulePassWrapper : public P {
 
 		ModulePassWrapper()
 			: P(ID,getApronManager(i))
-			{
-			*Out << "i = " << i << "\n";	
-			}
+			{}
+
 		~ModulePassWrapper() {}
 };
 

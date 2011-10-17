@@ -15,7 +15,6 @@ struct timeval Now() {
 	struct timeval tp; 
 	gettimeofday(&tp,NULL); 
 	return tp;
-	//return double(tp.tv_sec) + double(tp.tv_usec)*1e-6; 
 } 
 
 struct timeval add(struct timeval t1, struct timeval t2) {
