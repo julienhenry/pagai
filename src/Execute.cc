@@ -137,14 +137,19 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
 				AIPass = new ModulePassWrapper<AIGopan, 0>();
+				break;
 			case PATH_FOCUSING:
 				AIPass = new ModulePassWrapper<AIpf, 0>();
+				break;
 			case LW_WITH_PF:
 				AIPass = new ModulePassWrapper<AIopt, 0>();
+				break;
 			case SIMPLE:
 				AIPass = new ModulePassWrapper<AIClassic, 0>();
+				break;
 			case LW_WITH_PF_DISJ:
 				AIPass = new ModulePassWrapper<AIdis, 0>();
+				break;
 		}
 		Passes.add(AIPass);
 	}

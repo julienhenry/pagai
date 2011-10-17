@@ -217,9 +217,7 @@ void AIopt::computeNewPaths(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		int res;
-		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path);
-		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
@@ -287,9 +285,7 @@ void AIopt::computeNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
-		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path);
-		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {

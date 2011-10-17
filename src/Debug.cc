@@ -1,4 +1,5 @@
 #include "Debug.h"
+#include "Analyzer.h"
 
 #include <sys/time.h>
 
@@ -21,6 +22,7 @@ struct timeval add(struct timeval t1, struct timeval t2) {
 	struct timeval res;
 	res.tv_sec = t1.tv_sec + t2.tv_sec;
 	res.tv_usec = t1.tv_usec + t2.tv_usec;
+	//*Out << res.tv_usec << " = " << t1.tv_usec << "+" << t2.tv_usec << "\n";
 	if (res.tv_usec >= 1000000) {
 		res.tv_usec -= 1000000;
 		res.tv_sec++;
@@ -36,5 +38,6 @@ struct timeval sub(struct timeval t1, struct timeval t2) {
 		res.tv_sec--;
 	}
 	res.tv_usec = t1.tv_usec - t2.tv_usec;
+	*Out << res.tv_usec << " = " << t1.tv_usec << "-" << t2.tv_usec << "\n";
 	return res;
 }

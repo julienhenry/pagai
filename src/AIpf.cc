@@ -170,10 +170,8 @@ void AIpf::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 	
-		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path);
 		
-		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 
 		if (res != 1 || path.size() == 1) {

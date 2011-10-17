@@ -132,7 +132,6 @@ bool setApronManager(char * domain, int i) {
 bool setTechnique(char * t) {
 	std::string d;
 	d.assign(t);
-	
 	if (!d.compare("lw")) {
 		technique = LOOKAHEAD_WIDENING;
 	} else if (!d.compare("pf")) {

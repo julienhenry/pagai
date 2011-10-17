@@ -591,7 +591,9 @@ int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) 
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
+	struct timeval beginTime = Now();
 	res = man->SMT_check(expr,&true_booleans);
+	SMT_time = add(SMT_time,sub(Now(),beginTime));
 	if (res != 1) return res;
 	bool isEdge, isIndex, start;
 	BasicBlock * src;
@@ -622,7 +624,9 @@ int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) 
 
 int SMTpass::SMTsolve_simple(SMT_expr expr) {
 	std::set<std::string> true_booleans;
+	//struct timeval beginTime = Now();
 	return man->SMT_check(expr,&true_booleans);
+	//SMT_time = add(SMT_time,sub(Now(),beginTime));
 }
 
 void SMTpass::visitReturnInst (ReturnInst &I) {

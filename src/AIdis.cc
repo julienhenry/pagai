@@ -222,9 +222,7 @@ void AIdis::computeNewPaths(Node * n) {
 		);
 		int res;
 		int index = 0;
-		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path,index);
-		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
@@ -359,9 +357,7 @@ void AIdis::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index;
-		struct timeval beginTime = Now();
 		res = LSMT->SMTsolve(smtexpr,&path,index);
-		SMT_time = add(SMT_time,sub(Now(),beginTime));
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
