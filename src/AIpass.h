@@ -60,7 +60,6 @@ class AIPass : public InstVisitor<AIPass> {
 			LSMT(NULL),
 			unknown(false) {
 				man = create_manager(_man);
-				*Out << "Created manager\n";
 				init();
 			}
 
