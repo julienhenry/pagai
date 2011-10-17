@@ -87,7 +87,13 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 
 void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 
-	switch (compareAbstract(n->X_s[t1],n->X_s[t2])) {
+	params P1, P2;
+	P1.T = t1;
+	P2.T = t2;
+	P1.D = getApronManager();
+	P2.D = getApronManager();
+
+	switch (compareAbstract(n->X_s[P1],n->X_s[P2])) {
 		case 0:
 			results[t1][t2].eq++;
 			results[t2][t1].eq++;

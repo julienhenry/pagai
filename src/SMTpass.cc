@@ -525,7 +525,7 @@ void SMTpass::pop_context() {
 SMT_expr SMTpass::createSMTformula(
 	BasicBlock * source, 
 	bool use_X_d, 
-	Techniques t,
+	params t,
 	SMT_expr constraint) {
 	Function &F = *source->getParent();
 	std::vector<SMT_expr> formula;

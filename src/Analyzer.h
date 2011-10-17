@@ -56,6 +56,6 @@ extern llvm::raw_ostream *Out;
 extern std::set<llvm::Function*> ignoreFunction;
 
 
-extern std::map<Techniques,int> Passes;
+//extern std::map<Techniques,int> Passes;
 
 #endif

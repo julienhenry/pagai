@@ -17,10 +17,18 @@ using namespace llvm;
 class Abstract;
 class Live;
 
-typedef struct _phivar {
+struct phivar {
 	std::vector<ap_var_t> name;
 	std::vector<ap_texpr1_t> expr;
-} phivar;
+};
+
+struct params {
+	Techniques T;
+	Apron_Manager_Type D;
+
+	bool operator<(const params& A) const
+	{ return (T<A.T) || (T==A.T && D < A.D); }
+};
 
 /// @brief class that keeps information associated to a BasicBlock
 ///
@@ -42,9 +50,9 @@ class Node {
 		int id;
 
 		/// X_s - Abstract domain of the source state
-		std::map<Techniques,Abstract*> X_s;
+		std::map<params,Abstract*> X_s;
 		/// X_d - Abstract domain of the destination state
-		std::map<Techniques,Abstract*> X_d;
+		std::map<params,Abstract*> X_d;
 
 		ap_environment_t * env;
 

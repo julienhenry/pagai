@@ -17,14 +17,21 @@ class AIClassic : public AISimple {
 		static char ID;	
 
 	public:
-		AIClassic(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {init();}
-		AIClassic (): AISimple(ID) {init();}
+		AIClassic(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {
+			init();
+			passID.D = _man;
+		}
+		
+		AIClassic (): AISimple(ID) {
+			init();
+			passID.D = getApronManager();
+		}
 
 		void init()
 			{
 				aman = new AbstractManClassic();
-				passID = SIMPLE;
-				Passes[SIMPLE] = passID;	
+				passID.T = SIMPLE;
+				//Passes[SIMPLE] = passID;	
 			}
 
 		~AIClassic () {

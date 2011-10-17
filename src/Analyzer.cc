@@ -13,7 +13,7 @@ bool compare;
 bool compare_Domain;
 bool onlyrho;
 bool bagnara_widening;
-Apron_Manager_Type ap_manager;
+Apron_Manager_Type ap_manager[2];
 llvm::raw_ostream *Out;
 char* filename;
 int npass;
@@ -43,6 +43,9 @@ void show_help() {
 		  * dis (lw+pf, using disjunctive invariants)\n \
 		example of option: -t pf\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
+-C : compare two abstract domains using the same technique\n \
+          -C --domain1 box --domain2 pkeq -t pf\n \
+	\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMTpass formula\n \
 -y : use Yices instead of the Z3 SMT-solver (for techniques with lw)\n";
@@ -77,18 +80,11 @@ char* getFilename() {
 }
 
 Apron_Manager_Type getApronManager() {
-	return ap_manager;
+	return ap_manager[0];
 }
 
 Apron_Manager_Type getApronManager(int i) {
-	if (i == 0) {
-		*Out << "PK\n";
-		return PK;
-	} else {
-		*Out << "BOX\n";
-		return BOX;
-	}
-	return ap_manager;
+	return ap_manager[i];
 }
 
 std::string TechniquesToString(Techniques t) {
@@ -108,24 +104,24 @@ std::string TechniquesToString(Techniques t) {
 	}
 }
 
-bool setApronManager(char * domain) {
+bool setApronManager(char * domain, int i) {
 	std::string d;
 	d.assign(domain);
 	
 	if (!d.compare("box")) {
-		ap_manager = BOX;
+		ap_manager[i] = BOX;
 	} else if (!d.compare("oct")) {
-		ap_manager = OCT;
+		ap_manager[i] = OCT;
 	} else if (!d.compare("pk")) {
-		ap_manager = PK;
+		ap_manager[i] = PK;
 	} else if (!d.compare("pkeq")) {
-		ap_manager = PKEQ;
+		ap_manager[i] = PKEQ;
 	} else if (!d.compare("ppl_poly")) {
-		ap_manager = PPL_POLY;
+		ap_manager[i] = PPL_POLY;
 	} else if (!d.compare("ppl_grid")) {
-		ap_manager = PPL_GRID;
+		ap_manager[i] = PPL_GRID;
 	} else if (!d.compare("pkgrid")) {
-		ap_manager = PKGRID;
+		ap_manager[i] = PKGRID;
 	} else {
 		std::cout << "Wrong parameter defining the abstract domain\n";
 		return 1;
@@ -168,7 +164,8 @@ int main(int argc, char* argv[]) {
 
 	filename=NULL;
 	manager = Z3_MANAGER;
-	ap_manager = PK;
+	ap_manager[0] = PK;
+	ap_manager[1] = BOX;
 	technique = LW_WITH_PF;
 	compare = false;
 	compare_Domain = false;
@@ -192,6 +189,7 @@ int main(int argc, char* argv[]) {
 			{"compare",     no_argument,       0, 'c'},
 			{"technique",  required_argument,       0, 't'},
 			{"domain",  required_argument, 0, 'd'},
+			{"domain2",  required_argument, 0, 'e'},
 			{"input",  required_argument, 0, 'i'},
 			{"output",    required_argument, 0, 'o'},
 			{"yices",    no_argument, 0, 'y'},
@@ -202,7 +200,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDd:i:o:ycCft:b",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:bd:e:",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -224,7 +222,13 @@ int main(int argc, char* argv[]) {
             break;
         case 'd':
             arg = optarg;
-			if (setApronManager(arg)) {
+			if (setApronManager(arg,0)) {
+				bad_use = true;
+			}
+            break;
+        case 'e':
+            arg = optarg;
+			if (setApronManager(arg,1)) {
 				bad_use = true;
 			}
             break;

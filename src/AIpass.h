@@ -32,7 +32,7 @@ class AIPass : public InstVisitor<AIPass> {
 		SMTpass * LSMT;
 
 		/// id of the pass
-		Techniques passID;
+		params passID;
 
 		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;

@@ -27,6 +27,7 @@
 #include "Live.h"
 #include "SMTpass.h"
 #include "Compare.h"
+#include "CompareDomain.h"
 #include "Analyzer.h"
 #include "GenerateSMT.h"
 
@@ -113,39 +114,39 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		Passes.add(new GenerateSMT());
 	} else if (compareTechniques()) {
 		Passes.add(new Compare());
+	} else if (compareDomain()) {
+		switch (getTechnique()) {
+			case LOOKAHEAD_WIDENING:
+				Passes.add(new CompareDomain<LOOKAHEAD_WIDENING>());
+				break;
+			case PATH_FOCUSING:
+				Passes.add(new CompareDomain<PATH_FOCUSING>());
+				break;
+			case LW_WITH_PF:
+				Passes.add(new CompareDomain<LW_WITH_PF>());
+				break;
+			case SIMPLE:
+				Passes.add(new CompareDomain<SIMPLE>());
+				break;
+			case LW_WITH_PF_DISJ:
+				Passes.add(new CompareDomain<LW_WITH_PF_DISJ>());
+				break;
+		}
 	} else { 
 		ModulePass *AIPass;
-		ModulePass *AIPass2;
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
 				AIPass = new ModulePassWrapper<AIGopan, 0>();
-				if (compareDomain()) 
-					AIPass2 = new ModulePassWrapper<AIGopan, 1>();
-				break;
 			case PATH_FOCUSING:
 				AIPass = new ModulePassWrapper<AIpf, 0>();
-				if (compareDomain()) 
-					AIPass2 = new ModulePassWrapper<AIpf, 1>();
-				break;
 			case LW_WITH_PF:
 				AIPass = new ModulePassWrapper<AIopt, 0>();
-				if (compareDomain()) 
-					AIPass2 = new ModulePassWrapper<AIopt, 1>();
-				break;
 			case SIMPLE:
 				AIPass = new ModulePassWrapper<AIClassic, 0>();
-				if (compareDomain()) 
-					AIPass2 = new ModulePassWrapper<AIClassic, 1>();
-				break;
 			case LW_WITH_PF_DISJ:
 				AIPass = new ModulePassWrapper<AIdis, 0>();
-				if (compareDomain()) 
-					AIPass2 = new ModulePassWrapper<AIdis, 1>();
-				break;
 		}
 		Passes.add(AIPass);
-		if (compareDomain()) 
-			Passes.add(AIPass2);
 	}
 
 	Passes.run(*M.get());

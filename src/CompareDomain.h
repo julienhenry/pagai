@@ -1,0 +1,130 @@
+#ifndef COMPAREDOMAIN_H
+#define COMPAREDOMAIN_H
+
+#include "Compare.h"
+
+#include "Pr.h"
+#include "ModulePassWrapper.h"
+#include "SMTpass.h"
+#include "AIpf.h"
+#include "AIopt.h"
+#include "AIGopan.h"
+#include "AIClassic.h"
+#include "AIdis.h"
+#include "Debug.h"
+
+using namespace llvm;
+
+template<Techniques T>
+class CompareDomain : public ModulePass {
+	
+	private:	
+		SMTpass * LSMT;
+	
+	public:
+		/// It is crucial for LLVM's pass manager that
+		/// this ID is different (in address) from a class to another,
+		/// but the template instantiation mechanism will make sure it
+		/// is the case.
+		static char ID;
+
+		CompareDomain() : ModulePass(ID)
+		{}
+
+		~CompareDomain() {}
+		
+		void getAnalysisUsage(AnalysisUsage &AU) const;
+
+		bool runOnModule(Module &M);
+};
+
+template<Techniques T>
+char CompareDomain<T>::ID = 0;
+		
+template<Techniques T>
+void CompareDomain<T>::getAnalysisUsage(AnalysisUsage &AU) const {
+	switch(T) {
+		case LOOKAHEAD_WIDENING:
+			AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
+			AU.addRequired<ModulePassWrapper<AIGopan, 1> >();
+			break;
+		case PATH_FOCUSING:
+			AU.addRequired<ModulePassWrapper<AIpf, 0> >();
+			AU.addRequired<ModulePassWrapper<AIpf, 1> >();
+			break;
+		case LW_WITH_PF:
+			AU.addRequired<ModulePassWrapper<AIopt, 0> >();
+			AU.addRequired<ModulePassWrapper<AIopt, 1> >();
+			break;
+		case SIMPLE:
+			AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
+			AU.addRequired<ModulePassWrapper<AIClassic, 1> >();
+			break;
+		case LW_WITH_PF_DISJ:
+			AU.addRequired<ModulePassWrapper<AIdis, 0> >();
+			AU.addRequired<ModulePassWrapper<AIdis, 1> >();
+			break;
+	}
+	AU.addRequired<Pr>();
+	AU.setPreservesAll();
+}
+
+
+template<Techniques T>
+bool CompareDomain<T>::runOnModule(Module &M) {
+	Function * F;
+	BasicBlock * b;
+	Node * n;
+	LSMT = SMTpass::getInstance();
+
+	Out->changeColor(raw_ostream::BLUE,true);
+	*Out << "\n\n\n"
+			<< "---------------------------------\n"
+			<< "-   COMPARING ABSTRACT DOMAINS  -\n"
+			<< "---------------------------------\n";
+	Out->resetColor();
+
+	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		F = mIt;
+		
+		// if the function is only a declaration, do nothing
+		if (F->begin() == F->end()) continue;
+
+		if (ignoreFunction.count(F) > 0) continue;
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			n = Nodes[b];
+			if (Pr::getPr(*b->getParent())->count(b)) {
+				// TODO
+				params P1, P2;
+				P1.T = T;
+				P2.T = T;
+				P1.D = getApronManager(0);
+				P2.D = getApronManager(1);
+				DEBUG(
+				*Out << "Comparing the two abstracts :\n";
+				n->X_s[P1]->print();
+				n->X_s[P2]->print();
+				);
+				switch (n->X_s[P1]->compare(n->X_s[P2])) {
+					case 0:
+						*Out << "0\n";
+						break;
+					case 1:
+						*Out << "1\n";
+						break;
+					case -1:
+						*Out << "-1\n";
+						break;
+					case -2:
+						*Out << "-2\n";
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+	return true;
+}
+#endif

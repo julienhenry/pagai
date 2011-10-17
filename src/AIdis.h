@@ -1,7 +1,6 @@
 #ifndef _AIDIS_H
 #define _AIDIS_H
 
-#include <queue>
 #include <vector>
 
 #include "llvm/Module.h"
@@ -39,13 +38,21 @@ class AIdis : public ModulePass, public AIPass {
 
 	public:
 
-		AIdis(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
-		AIdis() : ModulePass(ID) {init();}
+		AIdis(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+			init();
+			passID.D = _man;
+		}
+		
+		AIdis() : ModulePass(ID) {
+			init();
+			passID.D = getApronManager();
+		}
+		
 		void init()
 			{
 				aman = new AbstractManDisj();
-				passID = LW_WITH_PF_DISJ;
-				Passes[LW_WITH_PF_DISJ] = passID;	
+				passID.T = LW_WITH_PF_DISJ;
+				//Passes[LW_WITH_PF_DISJ] = passID;	
 			}
 
 		~AIdis () {

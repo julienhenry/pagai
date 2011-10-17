@@ -31,13 +31,13 @@ Node::Node(BasicBlock * _bb) {
 
 Node::~Node() {
 	// deleting all the abstract values attached to this node
-	for (std::map<Techniques,Abstract*>::iterator it = X_s.begin(), 
+	for (std::map<params,Abstract*>::iterator it = X_s.begin(), 
 			et = X_s.end();
 			it != et;
 			it++) {
 		delete (*it).second;
 	}
-	for (std::map<Techniques,Abstract*>::iterator it = X_d.begin(),
+	for (std::map<params,Abstract*>::iterator it = X_d.begin(),
 			et = X_d.end();
 			it != et;
 			it++) {

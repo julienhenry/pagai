@@ -24,14 +24,22 @@ class AIpf : public ModulePass, public AIPass {
 
 	public:
 
-		AIpf(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
-		AIpf (): ModulePass(ID) {init();}
+		AIpf(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+			init();
+			passID.D = _man;
+		}
+
+		AIpf (): ModulePass(ID) {
+			init();
+			passID.D = getApronManager();
+		}
+		
 		void init()
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
-				passID = PATH_FOCUSING;
-				Passes[PATH_FOCUSING] = passID;	
+				passID.T = PATH_FOCUSING;
+				//Passes[PATH_FOCUSING] = passID;	
 			}
 
 		~AIpf () {}

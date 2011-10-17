@@ -34,14 +34,22 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {init();}
-		AIopt() : ModulePass(ID) {init();}
+		AIopt(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+			init();
+			passID.D = _man;
+		}
+		
+		AIopt() : ModulePass(ID) {
+			init();
+			passID.D = getApronManager();
+		}
+
 		void init()
 			{
 				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
-				passID = LW_WITH_PF;
-				Passes[LW_WITH_PF] = passID;	
+				passID.T = LW_WITH_PF;
+				//Passes[LW_WITH_PF] = passID;	
 			}
 
 		~AIopt () {

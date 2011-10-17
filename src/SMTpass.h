@@ -10,6 +10,7 @@
 
 #include "Analyzer.h"
 #include "Abstract.h"
+#include "Node.h"
 #include "AbstractDisj.h"
 #include "SMT_manager.h"
 
@@ -122,7 +123,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 		SMT_expr createSMTformula(
 			BasicBlock * source, 
 			bool use_X_d, 
-			Techniques t,
+			params t,
 			SMT_expr constraint = NULL);
 
 		/// solve the SMT expression expr and return true iff expr is

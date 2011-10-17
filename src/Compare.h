@@ -26,7 +26,7 @@ class CmpResults {
 /// Pass that compares abstract values computed by each AI pass
 class Compare : public ModulePass {
 
-	private:
+	protected:
 		SMTpass * LSMT;
 
 		std::map<

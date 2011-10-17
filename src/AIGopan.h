@@ -23,15 +23,22 @@ class AIGopan : public AISimple {
 
 	public:
 
-		AIGopan(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {init();}
-		AIGopan (): AISimple(ID) {init();}
+		AIGopan(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {
+			init();
+			passID.D = _man;
+		}
+		
+		AIGopan (): AISimple(ID) {
+			init();
+			passID.D = getApronManager();
+		}
 
 		void init()
 			{
 				aman = new AbstractManGopan();
 				//aman = new AbstractManClassic();
-				passID = LOOKAHEAD_WIDENING;
-				Passes[LOOKAHEAD_WIDENING] = passID;	
+				passID.T = LOOKAHEAD_WIDENING;
+				//Passes[LOOKAHEAD_WIDENING] = passID;	
 			}
 
 		~AIGopan () {
