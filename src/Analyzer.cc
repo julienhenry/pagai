@@ -44,7 +44,7 @@ void show_help() {
 		example of option: -t pf\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -C : compare two abstract domains using the same technique\n \
-          -C --domain1 box --domain2 pkeq -t pf\n \
+          example: ./pagai -i <filename> -C --domain box --domain2 pkeq -t pf\n \
 	\n \
 -b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMTpass formula\n \
