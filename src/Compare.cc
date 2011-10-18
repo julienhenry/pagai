@@ -160,6 +160,11 @@ void Compare::printAllResults() {
 			<< results[LW_WITH_PF][SIMPLE].gt << " "
 			<< results[LW_WITH_PF][SIMPLE].un << " "
 			<< "\n";
+	*Out	<< results[LW_WITH_PF_DISJ][LW_WITH_PF].eq << " "
+			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].lt << " "
+			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].gt << " "
+			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].un << " "
+			<< "\n";
 }
 
 bool Compare::runOnModule(Module &M) {

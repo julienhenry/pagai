@@ -131,10 +131,18 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		}
 	}
 
-	*Out << ApronManagerToString(getApronManager(0)) << " " 
+	Out->changeColor(raw_ostream::MAGENTA,true);
+	*Out << ApronManagerToString(getApronManager(0)) << " - " 
 		<< ApronManagerToString(getApronManager(1)) << "\n";
-	*Out << "EQ LT GT UN\n";
-	*Out << eq << " " << lt << " " << gt << " " << un;
+	Out->resetColor();
+	*Out << "\n";
+	*Out << "EQ " << eq << "\n";
+	*Out << "LT " << lt << "\n";
+	*Out << "GT " << gt << "\n";
+	*Out << "UN " << un << "\n";
+
+	*Out << "\n\nMATRIX:\n";
+	*Out << eq << " " << lt << " " << gt << " " << un << "\n";
 	return true;
 }
 #endif
