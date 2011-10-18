@@ -34,12 +34,16 @@ int Abstract::compare(Abstract * d) {
 	LSMT->pop_context();
 	
 	if (!f && !g) {
+		// eq
 		return 0;
 	} else if (!f && g) {
+		// lt
 		return 1;
 	} else if (f && !g) {
+		// gt
 		return -1;
 	} else {
+		// not comparable
 		return -2;
 	}
 }
@@ -58,9 +62,9 @@ bool Abstract::is_leq(Abstract * d) {
 		return ap_abstract1_is_leq(man,main,d->main);
 	}
 
-	return (compare(d) == 0);
+	return (compare(d) >= 0);
 }
 
 bool Abstract::is_eq(Abstract * d) {
-	return (compare(d) == 1);
+	return (compare(d) == 0);
 }
