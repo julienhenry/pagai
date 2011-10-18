@@ -14,8 +14,8 @@ execute_process(COMMAND llvm-config --cxxflags jit interpreter nativecodegen bit
 # trailing \n in llvm-config's output.
 STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
 # llvm-config has a -fno-rtti -fno-exception by default, uncomment this if needed.
-# STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
-# STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
 
 execute_process(COMMAND llvm-config --ldflags
                 OUTPUT_VARIABLE LLVM_LDFLAGS)
