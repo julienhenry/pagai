@@ -129,6 +129,25 @@ bool setApronManager(char * domain, int i) {
 	return 0;
 }
 
+std::string ApronManagerToString(Apron_Manager_Type D) {
+	switch (D) {
+		case BOX:
+			return "BOX";
+		case OCT:
+			return "OCT";
+		case PK:
+			return "PK";
+		case PKEQ:
+			return "PKEQ";
+		case PPL_POLY:
+			return "PPL_POLY";
+		case PPL_GRID:
+			return "PPL_GRID";
+		case PKGRID:
+			return "PKGRID";
+	}
+}
+
 bool setTechnique(char * t) {
 	std::string d;
 	d.assign(t);

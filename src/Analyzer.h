@@ -32,6 +32,8 @@ enum Techniques {
 
 std::string TechniquesToString(Techniques t);
 
+std::string ApronManagerToString(Apron_Manager_Type D);
+
 SMT_Solver getSMTSolver();
 
 Techniques getTechnique();

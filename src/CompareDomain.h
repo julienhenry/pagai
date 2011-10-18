@@ -77,6 +77,11 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	Node * n;
 	LSMT = SMTpass::getInstance();
 
+	int gt = 0;
+	int lt = 0;
+	int eq = 0;
+	int un = 0;
+
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
 			<< "---------------------------------\n"
@@ -108,16 +113,16 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 				);
 				switch (n->X_s[P1]->compare(n->X_s[P2])) {
 					case 0:
-						*Out << "0\n";
+						eq++;
 						break;
 					case 1:
-						*Out << "1\n";
+						lt++;
 						break;
 					case -1:
-						*Out << "-1\n";
+						gt++;
 						break;
 					case -2:
-						*Out << "-2\n";
+						un++;
 						break;
 					default:
 						break;
@@ -125,6 +130,11 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 			}
 		}
 	}
+
+	*Out << ApronManagerToString(getApronManager(0)) << " " 
+		<< ApronManagerToString(getApronManager(1)) << "\n";
+	*Out << "EQ LT GT UN\n";
+	*Out << eq << " " << lt << " " << gt << " " << un;
 	return true;
 }
 #endif
