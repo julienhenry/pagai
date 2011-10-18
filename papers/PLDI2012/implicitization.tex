@@ -6,9 +6,14 @@
 % 11pt          To set in 11-point type instead of 9-point.
 % authoryear    To obtain author/year citation style instead of numeric.
 
-\usepackage{amsmath,amsfonts}
+\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+\newcommand{\JH}[1]{{\color{blue} TODO(JH): #1}}
+
+\usepackage{amsmath}
+\usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
+\usepackage{algorithmic,algorithm}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
@@ -33,6 +38,11 @@ color=blue]
 \newcommand{\parts}[1]{\mathscr{P}(#1)}
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\widening}{\mathop{\triangledown}}
+
+% commentaires dans les algorithmes crees avec le package algorithmic
+\renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
 
 \begin{document}
 
@@ -107,18 +117,54 @@ With respect to abstract domains on numerical variables, it uses the APRON libra
 
 \section{Bases}
 \subsection{Static analysis by abstract interpretation}
+\label{sec:static_analysis}
 Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is often referred to as the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.
-The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: (\abstr{X},\sqsubseteq) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
+The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: \left(\abstr{X},\sqsubseteq\right) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
 %
 \footnote{%
 Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
 
 We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcap \abstr{y})$ for all $\abstr{x},\abstr{y}$.
 
+Classically, one considers the control-flow graph of the program, with edges labeled with concrete transition relations (e.g. $x' = x+1$ for an instruction \lstinline|x = x+1;|), and attaches an abstract element to each control point.
+A concrete transition relation $\tau \subseteq X \times X$ is replaced by an abstract \emph{forward abstract transformer} $\abstr{\tau}: \abstr{X} \rightarrow \abstr{X}$, such that
+\begin{equation}
+\forall \abstr{x} \in \abstr{X}, x,x' \in X,~
+x \in \gamma(\abstr{x}) \land (x,x') \in \tau \implies
+x' \in \gamma \circ \abstr{\tau}(\abstr{x})
+\label{eqn:transformer_correct}
+\end{equation}
+It is easy to see that if to any control point $p \in P$ we attach an abstract element $\abstr{x}_p$ such that
+(i) for any $p$, $\gamma(\abstr{x}_p)$ includes all initial states possible at control node $p$
+(ii) for any $p,p'$, $\abstr{\tau}_{p,p'} (\abstr{x}_p) \sqsubseteq \abstr{x}_{p'}$, noting $\tau_{p,p'}$ the transition from $p$ to~$p'$, then $(\gamma(\abstr{x}_p))_{p \in P}$ form an \emph{inductive invariant}: by induction, the program states always lie in $\gamma(\abstr{x}_p)$ at program location~$p$.
+
+\emph{Kleene iterations} compute such an inductive invariant as the stationary limit, if it exists, of the following system: for each $p$, initialize $\abstr{x}_p$ such that $\gamma(\abstr{x}_p)$ is a superset of the initial states at point $p$; then iterate the following:
+if $\abstr{\tau}_{p,p'} (\abstr{x}_p) \nsqsubseteq \abstr{x}_{p'}$, replace $\abstr{x}_{p'}$ by $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$.
+Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascending chain $a_1 \sqsubsetneq a_2 \sqsubsetneq \dots$; this condition is however not met by domains such as intervals or convex polyhedra.
+
+\emph{Widening-accelerated Kleene iterations} proceed by replacing $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$ by $\abstr{x}_{p'} \widening (\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p))$ where $\widening$ is a \emph{widening operator}: for all $\abstr{x},\abstr{y}$, $\gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \widening \abstr{y})$, and there exists no sequence $\abstr{u}_1,\abstr{u}_2,\dots$ of the form $\abstr{u}_{n+1} = \abstr{u}_n \widening \abstr{v}_n$ where $\abstr{v}_n$ is another sequence.
+Such iterations necessarily lead to a stationary $(\abstr{x}_p)_{p \in P}$, which define an inductive invariant $(\gamma(\abstr{x}_p))_{p \in P}$. Note that this invariant is not, in general, the least one expressible in the abstract domain, and may depend on the iteration ordering (the successive choices~$p,p'$).
+
 \subsection{SMT-solving}
-TODO
+Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
+Despite an exponential worst-case complexity, the DPLL algorithm \cite{Kroening_Strichman_08,Handbook_SAT} solves many useful SAT problems in practice.
+
+SAT was extended to \emph{satisfiability modulo theory} (SMT): in addition to propositional literals, SMT formulas admit atoms from a theory.
+For instance, the theories of linear integer arithmetic (LIA) and linear real arithmetic (LRA) have atoms of the form $a_1 x_1 + \dots + a_n x_n \bowtie C$ where $a_1,\dots,a_n,C$ are integer constants, $x_1\,dots,x_n$ are variables (interpreted over $\ZZ$ for LIA and $\RR$ or $\QQ$ for LRA), and $\bowtie$ is a comparison operator $=,\neq,<,\leq,>,\geq$.
+Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approach \cite{Kroening_Strichman_08,Handbook_SAT} solve many useful SMT problems in practice. All these tools provide a \emph{satisfying assignment} if the problem is satisfiable.
+
+Most SMT solvers, including Z3%
+\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
+Yices,%
+\footnote{\url{http://yices.csl.sri.com/}}
+and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
+offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
+it may then backtrack some of the constraints and add other ones without restarting from scratch.
 
 \subsection{A simple, motivating example}
+\label{subsec:rate_lim}
+\JH{les tests des lignes 7 et 8 ont \'et\'e remplac\'es par des in\'egalit\'es
+strictes}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
@@ -223,9 +269,9 @@ Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS
 Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation;
 contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
 
-\section{Guided static analysis}
-\label{sec:guided_multigraph}
-\emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improved over classical upward Kleene iterations with widening.
+\subsection{Guided static analysis}
+\label{sec:guided}
+\emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improvement over classical upward Kleene iterations with widening.
 Consider the following program:
 \lstinputlisting{gopan_reps.c}
 
@@ -260,12 +306,480 @@ otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
 
 
+\subsection{Path-focused technique}
+\label{sec:path_focusing}
+
+\citet{Monniaux_Gonnord_SAS11}'s \emph{path-focused} technique
+distinguishes the different paths in the program in order to avoid loss of
+precision due to merge operations. Since the number of paths may be exponential,
+the technique keeps them implicit and computes them when needed using
+SMT-solving.
+The (accelerated) Kleene iterations (\S\ref{sec:static_analysis}) are computed over a reduced multigraph instead of the classical transition graph.
+
+Let $P$ be the set of control points in the transition graph, 
+$P_W \subseteq P$ the set of widening points
+such that removing the points in $P_W$ gives an acyclic graph.
+One can choose a set $P_R$ such that $P_W \subseteq P_R \subseteq P$.
+
+The set of paths is kept implicit by an SMT formula $\rho$ expressing
+the semantics of the program, assuming that the transition semantics can be
+expressed within a decidable theory. For an easy construction of $\rho$, 
+we also assume that the program is expressed in SSA form, meaning that each
+variable is only assigned once in the transition graph. This is not a
+restriction, since there exist standard algorithms that transform a program into
+an SSA format.
+
+This formula contains Boolean \emph{reachability predicates} $b_i$ for each
+control points $p_i \notin P_R$, $b_i^s$ and $b_i^d$ for each $p_i \in P_R$, so
+that a path 
+$p_{i_1} \rightarrow p_{i_2} \rightarrow \dots \rightarrow p_{i_n}$ 
+between two points $p_{i_1}, p_{i_n} \in P_R$ 
+can easily be expressed as the
+cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
+The Boolean $b_{i}^s$ is $true$ when the path starts at point $p_i$, whereas
+$b_i^d$ is $true$ when the path arrives at $p_i$. In other words, we split the
+points in $P_R$ into a \emph{source} point, with only outgoing transitions, and
+a \emph{destination} point, with only incoming transitions, so that the
+resulting graph is acyclic and there is no paths going through control
+points in $P_R$.
+
+In order to find focus paths, we solve an SMT formula which is satisfiable when
+there exist a path starting at a point $p_i \in P_R$ in a state included in the
+actual invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
+state outside of $X_j$. In this case, we construct this path using the model and
+update $X_j$. When $p_i = p_j$, meaning that the path is actually a self-loop,
+we can apply a widening/narrowing sequence, or even compute the transitive
+closure of the loop using abstract acceleration. % TODO citation laure gonnord
+
+\section{Guided analysis over the paths}
+\label{sec:guided_multigraph}
+
+Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
+graph of the program. We now present a new technique applying this analysis on the implicit
+multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
+unfeasible paths.
+In this section, we use the same notations as \ref{sec:path_focusing}, except
+that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
+another abstract value $X_i^d$ later in the algorithm.
+
+
+The combination of these two techniques aims at first discovering a precise
+inductive invariant for a subset of paths between two points in $P_R$, 
+by the mean of ascending and narrowing iterations. When an
+inductive invariant has been found, we add new feasible paths to the subset and
+compute an inductive invariant for this new subset, starting with the results
+from the previous analysis.
+In other words, our technique considers an ascending sequence of
+subsets of the paths between two points in $P_R$.
+We iterate the operations until we consider the whole program, i.e all the
+feasible paths. The result will then be an inductive invariant of the entire program.
+
+\begin{algorithm}
+  \begin{algorithmic}
+    \STATE \textit{Subset} $\gets \emptyset$
+    \WHILE{true}
+    \STATE Add new paths to \textit{Subset} (lines~\ref{alg=start-add-paths}-\ref{alg=end-add-paths} in algorithm~\ref{algo:combined})
+    \STATE Ascending iteration on \textit{Subset} (lines~\ref{alg=start-ascending}-\ref{alg=end-ascending} in algorithm~\ref{algo:combined})
+    \STATE Narrow (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined})
+    \ENDWHILE
+  \end{algorithmic}
+\end{algorithm}
+
+
+%\MM{Je trouve qu'il manque une vue de haut niveau quelque part par
+%  ici. Dire qu'en gros, l'algo, c'est (en pseudo-code ou en langue naturelle) :
+%
+%Sans ca, enchainer tout de suite sur ``ascending iterations'' est un peu brutal.
+%
+%Ensuite, on peut rafiner la définition de ``Subset'' ($A$ et $P$), et
+%enchainer sur l'algo 2.
+%}
+
+\subsection{Algorithm}
+
+The algorithm for Guided static analysis on the implicit multigraph is described
+in Algorithm \ref{algo:combined}.
+
+The current working subset of paths, noted $P$, is stored using a
+compact representation, such as binary decision diagrams.
+We also maintain two sets of control points:
+\begin{itemize}
+	\item $A'$ contains the points in $P_R$ that may be the starting points of new
+		feasible paths.
+	\item $A$ contains the points in $P_R$ on which we apply the ascending iterations.
+	Each time the abstract value of a control point $p$ is updated, $p$ is
+	inserted in both $A$ and $A'$.
+\end{itemize}
+
+We first check which paths become feasible, so that we can include them into the
+next subset of paths. The set $P'$ of new feasible paths is added to the
+previous set $P$. Each starting points of paths in $P'$ is added into $A$.
+We apply the Path-focused technique\cite{Monniaux_Gonnord_SAS11} to
+the elements of $A$ until $A$ is empty. 
+When $A$ becomes empty, it means the
+invariant computation of the subgraph is finished. As proposed by
+\citet{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations.
+These narrowing iterations allow to recover precision lost by
+widening, before computing and taking into account new feasible paths.
+Thus, our technique combines both the advantages of \emph{Guided Static
+Analysis} and \emph{Path-focusing}.
+
+After narrowing, we restart the analysis, starting from the computation the new
+subgraph.
+
+\begin{algorithm}
+	\caption{Guided static analysis on implicit multigraph}
+	\label{algo:combined}
+	\begin{algorithmic}[1] 
+	\input{algo/algo-combined.tex}
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Ascending iterations by Path-focusing}
+\label{subsec:ascending}
+
+The algorithm for computing an inductive invariant over a subgraph is the
+Path-focused algorithm from \citet{Monniaux_Gonnord_SAS11} with special
+treatment for self loops (line~\ref{alg=pf} in algorithm~\ref{algo:combined}).
+
+In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
+model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
+\in P_R$ of $p_i$, such that the image of $X_{i}^s$ by the path transformation
+is not included in the actual $X_{j}^s$.
+Intuitively, such a path makes the abstract value $X_{j}^s$ grow, and thus is
+an interesting path to focus on. We loop until the formula becomes unsatisfiable,
+meaning that the analysis of $p_i$ is finished.
+
+If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
+successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
+associated to $p_i$ :
+$$f(p_i) = \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
+b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+x \notin X_j^s)$$
+
+Since we do not work on the entire transition graph but on a subset of it, we
+cunjunct the formula $f(p_i)$ with the actual set of working paths,
+noted $P$, expressed as a Boolean formula, where the Boolean variables are the
+\emph{reachability predicates} of the control points. We can easily construct
+this formula from the binary decision diagram using dynamic programming, and
+avoiding an exponentially sized formula. In other words, we force the SMT solver
+to give us a path included in $P$.
+
+
+\subsection{Adding new paths}
+\label{subsec:addingpaths}
+
+Our technique computes the fixpoint iterations on a ascending sequence of
+subgraphs, until the complete graph is reached.
+
+When the analysis of a subgraph is finished, meaning that the abstract values
+for each control points has converged to an inductive invariant for this subgraph,
+the next subgraph to work on has to be computed.
+
+This new subgraph is the union of the paths of the previous one with a set
+$P'$ of new paths that become feasible regarding the current abstract values.
+
+We distinguish two phases when analysing a subgraph $P$:
+\begin{enumerate}
+\item We search for paths starting at point $p_i \in P_R$, such that these paths
+	are in $P$, i.e are included in the working subgraph. Each time we find a
+	path, we update the abstract value of the destination point of the path.
+	This is the phase explained in \ref{subsec:ascending}.
+\item  When the previous phase terminates, there is no more paths in
+$P$, starting at $p_i$, 
+that make the abstract values of the successors grow (otherwise, the SMT
+solver would not have answered ``\emph{unsat}''). Narrowing iterations preserves
+this property. 
+However, there may exist such paths in the entire multigraph, that are not in
+$P$. The second phase
+computes these paths and adds them to $P'$ (line~\ref{alg=computeNewPaths} in
+algorithm~\ref{algo:combined}). We also use SMT solving to discover
+these new paths, but we slightly change the SMT formula given to the SMT solver:
+we now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
+P$. Since we already know that $f(p_i) \wedge P$ is \emph{unsatisfiable}, all
+the paths given by the SMT solver won't be in $P$.
+\end{enumerate}
+
+It is not necessary to add into $P'$ all the new feasible paths. We just have
+to add them one after another, until no more path can make the invariant grow,
+as proposed by Algorithm \ref{algo:computepaths}. For that, we use another
+abstract value associated to a control point $p_j$, noted $X_j^d$, which is
+distinct from $X_j^s$, and initialized to $X_j^s$.
+
+\begin{algorithm}
+	\caption{ComputeNewPaths}
+	\label{algo:computepaths}
+	\begin{algorithmic}[1] 
+	\input{algo/compute-paths.tex}
+	\end{algorithmic}
+\end{algorithm}
+
+\subsection{Termination}
+Termination of this algorithm is guaranteed, because:
+\begin{itemize}
+\item 
+the subset of paths $P$ is
+strictly increasing at each loop iteration, and bounded by the finite set of
+paths in the entire graph. 
+\item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
+which guarantees that $P'$
+will eventually be empty after a finite number of loop iterations.
+\end{itemize}
+
+\subsection{Example}
+
+We revise the rate limiter described in \ref{subsec:rate_lim}. In this example,
+\emph{Path-focused} technique works well because all the paths starting at the
+loop header are actually self loops. In such a case, the technique performs a
+widening/narrowing sequence or accelerates the loop, thus leading to a precise
+invariant. However, in real cases, there also exist paths that are not
+self loops, where \emph{Path-focusing} only performs a widening. 
+This widening may induce unrecoverable loss of precision.
+
+Suppose the main loop of the rate limiter contains a nested loop:
+\lstinputlisting{rlim_int_loop.c}
+
+We choose $P_R$ as the set of loop headers of the function, plus the initial
+state. In this case, we have three elements in $P_R$.
+We also unroll the loop once, in order to distinguish the paths that do not go
+through the loop from the others:
+\begin{lstlisting}[numbers=none]
+if (wait) {
+   while (wait()) {}
+}
+\end{lstlisting}
+
+The main loop in the expanded multigraph has then 24 distinct paths, half of
+them being self loops, and the other half going to the header of the nested loop.
+
+Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
+$\lstinline|x_old| \in~]-\infty,+\infty[$.
+Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
+better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
+
+Now, see how our technique performs on this example.
+
+Figure \ref{fig:example-graph} shows the sequence of subset of paths during the
+analysis. The points in $P_R$ are noted $p_i$, where $i$ is the corresponding
+line in the code: for instance, $p_5$ corresponds to the header of the main
+loop.
+
+\begin{enumerate}
+	\item The first subset of paths is depicted on Figure
+		\ref{fig:example-graph} Step 1. We apply Path-Focusing on this graph,
+		and discover for $p_5$ the inductive invariant $\lstinline|x_old| = 0$.
+	\item
+		We then compute the set $P'$ of paths that have to be added into the
+		next subgraph. 
+		The image of $\lstinline|x_old| = 0$ by the path that goes from $p_5$ to
+		itself, and that goes through the \emph{else} branch of each 
+		\emph{if-then-else}, is $-10 \leq \lstinline|x_old| \leq 10$. This path
+		is then added to our subgraph. Moreover, there is no other path whose
+		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
+		Additionnally, the path that goes from $p_5$ to
+		$p_11$, that goes through the \emph{else} branch of each 
+		\emph{if-then-else} at lines 7,8 and 9, is also 
+		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
+		new subgraph. Again, there is no new path that goes to $p_11$ with an
+		image outside of $-10 \leq \lstinline|x_old| \leq 10$.
+	\item
+		We apply Path Focusing on this new subgraph (\ref{fig:example-graph}
+		Step 2). When we have reached an inductive invariant, we narrow, and the
+		result for both $p_5$ and $p_11$ is the polyhedron 
+		$-10000 \leq \lstinline|x_old| \leq 10000$.
+	\item Finally, we compute the new subgraph. The SMT-solver does not find any
+		new path that makes the abstract values grow, and the algorithm
+		terminates.
+\end{enumerate}
+
+Our technique gives us the expected invariant 
+$\lstinline|x_old| \in~[-10000,10000]$. 
+Here, only 3 paths over the 25 have been computed during the analysis. In
+practice, depending on the order the SMT-solver returns the paths, other
+feasible paths could have been added during the analysis.
+
+
+\begin{figure}
+\label{fig:example-graph}
+\centering
+\begin{minipage}[c]{.15\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n00) {$p_4$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
+	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
+	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
+
+  \path [transition] 
+		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
+\end{tikzpicture}
+\end{minipage} 
+\begin{minipage}[c]{.28\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n00) {$p_4$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
+	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
+	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
+
+  \path [transition] 
+		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
+  \path [transition] 
+		(n0) edge  [loop left] node [left, xshift=0.2cm] {
+		$\begin{array}{r}
+			-10000 \leq \lstinline|x| \leq 10000 \\
+			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
+			\lstinline|x_old| \gets \lstinline|x|
+		\end{array}$
+		} (n0);
+  \path [transition] 
+		(n0) edge node [left, yshift=-0.2cm, xshift=0.2cm] {
+		$\begin{array}{r}
+			-10000 \leq \lstinline|x| \leq 10000 \\
+			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
+			\lstinline|x_old| \gets \lstinline|x|
+		\end{array}$
+		} (n1);
+\end{tikzpicture}
+\end{minipage}
+\caption{Ascending sequence of subgraphs}
+\end{figure}
+
+
+In this example, we see that our technique actually combines best of
+\emph{Guided Static Analysis} and \emph{Path Focusing}. Still, we need to unroll
+the loop once in order to get precise results. Section \ref{sec:disjunctive}
+proposes a new technique that gives precise invariants without needing such
+graph transformations.
 
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
+\citet{DBLP:conf/pldi/GulwaniZ10} propose a technique for computing disjunctive invariants, by
+distinguishing all the paths inside a loop. In
+this section, we propose to improve this technique by using SMT queries to find
+interesting paths, the objective being to avoid an explicit exhaustive
+enumeration of an exponential number of paths.
+
+This technique is aimed at computing for a loop header $p_i$ a disjunctive invariant
+$\bigvee_{1\leq j \leq m} X_{i,j}$. 
+To do so, one chooses an integer $\delta \in [1,m]$, and
+a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$, assuming there
+are $n$ distinct paths in the loop.  For each
+abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
+image of $X_{i,j}$ by the path is joined with
+$X_{i,\sigma(j,k)}$.
+Initially, the $\delta$-th abstract value is assigned to the initial states of
+$p_i$, and each other abstract value is assigned to bottom.
+
+$m$, $\delta$ and $\sigma$ can be defined heuristically.
+For instance, one could define $\sigma$ so that $\sigma(j,k)$ only depends on the
+last transition of the path, or else construct it dynamically during the
+analysis.
+
+Our method improves this technique in two ways :
+\begin{itemize}
+\item Instead of enumerating the whole set of paths, we keep them implicit and
+compute them only when needed.
+\item At each loop iteration of the algorithm explained in
+\cite{DBLP:conf/pldi/GulwaniZ10}, an image by a path and a union of abstract
+values are computed for each path and each disjunct. 
+Lots of these operations may be useless, in the sense that the resulting
+abstract value may not change.
+In our approach, we do this only for paths and disjuncts that makes the
+resulting abstract value grow.
+\end{itemize}
+
+Our improvement consists in a modification of the SMT formula we solve in
+\ref{sec:guided_multigraph}.
+We introduce in this formula Boolean variables $\{d_j, 1 \leq j \leq m\}$, so
+that we can easily find in the model which abstract value of the disjunction has
+to be chosen to make the invariant grow.
+The resulting formula that is given to the SMT solver is defined
+by $g(p_i)$.
+When the formula is satisfiable, we know that the index $j$ of the starting
+disjunct that has to be chosen is the one for which the associate Boolean value
+$d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
+$\sigma(j,k)$, thus know the index of the disjunct to join with.
+
+\begin{eqnarray*}
+g(p_i) = & \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
+ & \wedge 
+\displaystyle\bigvee_{1 \leq k \leq m} (d_k \wedge x \in X_{i,k} \wedge \bigwedge_{l \neq k}
+\neg d_l) \\
+ & \wedge
+\displaystyle\bigvee_{j \in Succ(i)} 
+(b_j^d \wedge \bigwedge_{1 \leq k \leq m} (x \notin X_{j,k}))
+\end{eqnarray*}
+
+In our algorithm, the initialization of the abstract values slightly differs from
+algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
+initialize each disjunct. Line~\ref{alg=X-init} is then replaced by:
+\begin{algorithm}[!h]
+\begin{algorithmic}[1] 
+\FORALL {$k \in \{1,..,m\} \setminus \{\delta\}$}
+	\STATE $X_{i,k} \gets \perp$
+\ENDFOR
+\STATE $X_{i,\delta} \gets I_{p_i}$
+\end{algorithmic}
+\end{algorithm}
+
+Furthermore, the Path-focused algorithm (line~\ref{alg=pf} from algorithm
+\ref{algo:combined}) is enhanced to deal with disjunctive invariants, and
+is detailed in algorithm \ref{algo:disjunctive}.
+
+The \emph{Update} function can classically assign to $X_{i,\sigma(j,k)}$ the
+value $X_{i,\sigma(j,k)} \widening (X_{i,\sigma(j,k)} \sqcup
+\tau_{i,k}(X_{i,j}))$, or can integrate the special treatment for self loops
+proposed by \citet{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
+acceleration.
+
+\begin{algorithm}[!h]
+\caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
+\label{algo:disjunctive}
+\begin{algorithmic}[1] 
+\WHILE {true}
+		\STATE $res \gets SmtSolve\left[g(p_i)\right]$
+	\IF {$res = unsat$}
+		\STATE \textbf{break}
+	\ENDIF
+	\STATE Compute the path $\tau_{i,k}$ from $res$ 
+	\STATE Take $j \in \{ l | d_l = true\}$ 
+	\STATE Update($X_{i,\sigma(j,k)})$
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
+The $\sigma$ function takes as parameters the index of the starting abstract
+value, and the path we focus on. If we dynamically construct this function
+during the analysis, we should store the results of the sigma function into a
+compact representation, such as Algebraic Decision Diagrams. Notice that the
+image of a couple $(j,k)$ by the function $\sigma$ will be computed only if
+needed.
+
 \section{Experimental comparisons}
 \label{sec:experiments}
+
+We have implemented our proposed solutions inside a prototype intraprocedural
+static analyzer,
+as well as the classical abstract interpretation algorithm, and the state-of-the-art
+techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
+Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
+We also can choose among different abstract domains: convex polyhedra, octagons,
+intervals, grids (convex polyhedra and linear congruences).
+
+For the techniques involving SMT-solving, our analyzer uses Yices
+\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
+as SMT-solver.
+
+We conducted extensive experiments on real-life programs in order to compare the
+different techniques. We also compared the precision of the analysis depending
+on the choice of the abstract domain.
 
 \section{Conclusion}
 

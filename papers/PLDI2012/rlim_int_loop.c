@@ -1,4 +1,5 @@
 extern int input();
+extern int wait();
 void rate_limiter() {
   int x_old = 0;
   while (1) {
@@ -7,5 +8,6 @@ void rate_limiter() {
     if (x > x_old+10) x = x_old+10;
     if (x < x_old-10) x = x_old-10;
     x_old = x;
+    while (wait()) {}
   }
 }
