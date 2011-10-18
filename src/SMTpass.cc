@@ -332,7 +332,8 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 		return man->SMT_mk_real(x);
 	} else if (isa<UndefValue>(v)) {
 		std::ostringstream name;
-		name << getValueName(v,false) << "_" << nundef;
+		//name << getValueName(v,false) << "_" << nundef;
+		name << getValueName(v,false);
 		nundef++;
 		return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
 	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
