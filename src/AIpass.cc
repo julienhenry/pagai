@@ -578,6 +578,11 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 
 	bool res = false;
 
+	// this is a special case : if we are in the first block of the path, 
+	// we can't take the previous block of the path.
+	// Then, we loose precision and return false.
+	if (focusblock == 0) return false;
+
 	// we only consider one single predecessor: the predecessor from the path
 	BasicBlock * pred = focuspath[focusblock-1];
 	Value * pv;
@@ -597,7 +602,7 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 				res = computePHINodeCondition(phi,result,cons);
 			} else {
 				// loss of precision...
-				return false;
+				res = false;
 			}
 		}
 	}
