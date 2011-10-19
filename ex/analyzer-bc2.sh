@@ -98,7 +98,8 @@ NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
 echo "running Pagai on $NAME"
 if [ $COMPARE -eq 1 ] ; then
-	pagai_2 -c -b -i $OUTPUT
+	pagai_2 -c -i $OUTPUT
+	#pagai_2 -c -b -i $OUTPUT
 else
 	if [ $GOPAN -eq 1 ] ; then
 		pagai_2 -g -b -i $OUTPUT
