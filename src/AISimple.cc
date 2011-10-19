@@ -81,6 +81,8 @@ bool AISimple::runOnModule(Module &M) {
 				<< "-         COMPUTING FUNCTION             -\n"
 				<< "------------------------------------------\n";
 		Out->resetColor();
+		LSMT = SMTpass::getInstance();
+		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
 

@@ -36,24 +36,24 @@ SMT_expr z3_manager::SMT_mk_false(){
 
 
 SMT_var z3_manager::SMT_mk_bool_var(std::string name){
-	//if (!vars.count(name)) {
+	if (!vars.count(name)) {
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
 		vars[name] = Z3_mk_string_symbol(ctx,cstr);
 		delete cstr;
 		types[vars[name]] = bool_type;
-	//}
+	}
 	return vars[name];
 }
 
 SMT_var z3_manager::SMT_mk_var(std::string name,SMT_type type){
-	//if (!vars.count(name)) {
+	if (!vars.count(name)) {
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
 		vars[name] = Z3_mk_string_symbol(ctx,cstr);
 		delete cstr;
 		types[vars[name]] = (Z3_sort)type;
-	//} 
+	} 
 	return vars[name];
 }
 
