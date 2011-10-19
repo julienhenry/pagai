@@ -112,11 +112,11 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
 	mp_rnd_t round = GMP_RNDN;
 	ap_double_set_scalar(&value,scalar,round);
-
-	if (integer)
+	if (integer) {
 		return man->SMT_mk_num((int)value);
-	else
+	} else {
 		return man->SMT_mk_real(value);
+	}
 }
 
 SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
@@ -200,7 +200,6 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 }
 
 SMT_expr SMTpass::AbstractToSmt(BasicBlock * b, Abstract * A) {
-
 	if (A->is_bottom()) return man->SMT_mk_false();
 	if (AbstractDisj * Adis = dynamic_cast<AbstractDisj*>(A)) 
 		return AbstractDisjToSmt(b,Adis,false);
