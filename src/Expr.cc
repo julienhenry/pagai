@@ -4,6 +4,8 @@
 #include "apron.h"
 #include "Debug.h"
 #include "Analyzer.h"
+#include "AIpass.h"
+#include "Live.h"
 
 
 ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
@@ -42,6 +44,23 @@ void clear_all_exprs(Node * n) {
 	}
 }
 
+ap_texpr1_t * get_ap_expr_rec(Node * n, Value * val) {
+	if (n->Exprs.count(val) > 0) {
+		return n->Exprs[val];
+	} else if (!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb)) {
+		return NULL;
+	} else {
+		std::set<BasicBlock*> preds = CurrentAIpass->getPredecessors(n->bb);
+		std::set<BasicBlock*>::iterator it = preds.begin(), et = preds.end();
+		for (; it != et; it++) {
+			ap_texpr1_t * res;
+			res = get_ap_expr_rec(Nodes[*it],val);
+			if (res != NULL) return res;
+		}
+	}
+	return NULL;
+}
+
 ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<UndefValue>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
@@ -49,16 +68,14 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<Constant>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
 	}
-	if (n->Exprs.count(val) > 0) {
-		if (n->Exprs[val] == NULL)
-			*Out << "ERROR: NULL pointer in table Exprs !\n";
-		return n->Exprs[val];
-	} else {
+	ap_texpr1_t * res = get_ap_expr_rec(n,val);
+	if (res == NULL) {
 		// val is not yet in the Expr map
 		// We have to create it
 		n->add_var(val);
 		return n->Exprs[val];
 	}
+	return res;
 }
 
 void set_ap_expr(Value * val, ap_texpr1_t * exp, Node * n) {

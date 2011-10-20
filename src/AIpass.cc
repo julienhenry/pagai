@@ -14,6 +14,8 @@
 
 using namespace llvm;
 
+AIPass * CurrentAIpass = NULL;
+
 void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	A.push(n);
 	if (!dont_reset) {
@@ -44,6 +46,7 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	bool already_seen = false;
+	CurrentAIpass = this;
 
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {

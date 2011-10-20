@@ -37,7 +37,6 @@ bool AIpf::runOnModule(Module &M) {
 	Node * n;
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
-
 	*Out << "Starting analysis: PF\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {

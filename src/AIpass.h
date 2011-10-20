@@ -18,16 +18,17 @@ class SMTpass;
 class Live;
 class Node;
 
+
 /// @brief Base class for abstract interpretation
 ///
 /// Base class factoring helper functions and data-structure to
 /// perform Abstract Interpretation (i.e. graph traversal on the CFG,
 /// Apron Manager, SMTpass solver, ...).
 class AIPass : public InstVisitor<AIPass> {
-
-	protected:
+	public:
 		/// LV - result of the Live pass
 		Live * LV;
+	protected:
 		/// LSMT - result of the SMTpass pass
 		SMTpass * LSMT;
 
@@ -231,5 +232,7 @@ class AIPass : public InstVisitor<AIPass> {
 		}
 		/// @}
 };
+
+extern AIPass * CurrentAIpass;
 
 #endif
