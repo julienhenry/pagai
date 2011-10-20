@@ -793,14 +793,10 @@ void AIPass::visitPHINode (PHINode &I){
 					*Out << "\n";
 				);
 				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
-					*Out << "VALUE " << I << "IS LIVE IN " << *n->bb;
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
 				} else {
-					*Out << "VALUE " << I << "IS NOT LIVE IN " << *n->bb;
-					// if this value has already been assigned to a variable in
-					// another path, we have to keep this variable in place
 					set_ap_expr(&I,expr,n);
 				}
 				ap_environment_t * env = expr->env;

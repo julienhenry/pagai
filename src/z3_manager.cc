@@ -264,7 +264,9 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			*Out << "sat\n";
 			);
 			ret = 1;
+			DEBUG_SMT(
 			*Out << Z3_model_to_string(ctx,m);
+			);
 			unsigned n = Z3_get_model_num_constants(ctx,m);
 			for (unsigned i = 0; i < n; i++) {
 				Z3_func_decl decl = Z3_get_model_constant(ctx,m,i);
