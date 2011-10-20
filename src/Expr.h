@@ -14,7 +14,7 @@ using namespace llvm;
 ap_texpr1_t * get_ap_expr(Node * n, Value * val);
 
 /// clear_all_exprs - delete all previously defined apron expressions
-void clear_all_exprs();
+void clear_all_exprs(Node * n);
 
 /// set_ap_expr - associate an Apron expression to a Value, which will be
 /// remembered for future uses. This association is inserted in the environment

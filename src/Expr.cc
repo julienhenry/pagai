@@ -5,17 +5,13 @@
 #include "Debug.h"
 #include "Analyzer.h"
 
-std::map<Value *,ap_texpr1_t *> Exprs;
-
-std::map<Value *,ap_texpr1_t *> Phivar_first_Expr;
-std::map<Value *,ap_texpr1_t *> Phivar_last_Expr;
 
 ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 	if (isa<ConstantInt>(val)) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
 		// it is supposed we use signed int
-		int64_t n = Int->getSExtValue();
-		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),n);
+		int64_t i = Int->getSExtValue();
+		n->Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),i);
 	} 
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
@@ -24,23 +20,23 @@ ap_texpr1_t * create_ap_expr(Node * n, Constant * val) {
 			float f = FP->getValueAPF().convertToFloat(); 
 			x = f;
 		}
-		Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
+		n->Exprs[val] = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
 	}
 	if (isa<ConstantPointerNull>(val)) {
-		Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
+		n->Exprs[val] = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
 	}
 	if (isa<UndefValue>(val)) {
 		n->add_var(val);
 	}
-	if (Exprs.count(val) == 0) {
+	if (n->Exprs.count(val) == 0) {
 		n->add_var(val);
 	}
 
-	return Exprs[val];
+	return n->Exprs[val];
 }
 
-void clear_all_exprs() {
-	std::map<Value *,ap_texpr1_t *>::iterator it = Exprs.begin(), et = Exprs.end();
+void clear_all_exprs(Node * n) {
+	std::map<Value *,ap_texpr1_t *>::iterator it = n->Exprs.begin(), et = n->Exprs.end();
 	for (;it != et; it++) {
 		ap_texpr1_free((*it).second);
 	}
@@ -53,23 +49,23 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<Constant>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
 	}
-	if (Exprs.count(val) > 0) {
-		if (Exprs[val] == NULL)
+	if (n->Exprs.count(val) > 0) {
+		if (n->Exprs[val] == NULL)
 			*Out << "ERROR: NULL pointer in table Exprs !\n";
-		return Exprs[val];
+		return n->Exprs[val];
 	} else {
 		// val is not yet in the Expr map
 		// We have to create it
 		n->add_var(val);
-		return Exprs[val];
+		return n->Exprs[val];
 	}
 }
 
 void set_ap_expr(Value * val, ap_texpr1_t * exp, Node * n) {
-	if (Exprs.count(val)) {
-		Exprs.erase(val);
+	if (n->Exprs.count(val)) {
+		n->Exprs.erase(val);
 	}
-	Exprs[val] = exp;
+	n->Exprs[val] = exp;
 }
 
 ap_environment_t * common_environment(
