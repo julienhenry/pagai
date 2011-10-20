@@ -44,21 +44,23 @@ void clear_all_exprs(Node * n) {
 	}
 }
 
-ap_texpr1_t * get_ap_expr_rec(Node * n, Value * val) {
+ap_texpr1_t * get_ap_expr_rec(Node * n, Value * val, std::set<Node*> * seen) {
+	ap_texpr1_t * res = NULL;
 	if (n->Exprs.count(val) > 0) {
-		return n->Exprs[val];
+		res = n->Exprs[val];
 	} else if (!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb)) {
-		return NULL;
-	} else {
+		res = NULL;
+	} else if (seen->count(n) == 0) {
+		seen->insert(n);
 		std::set<BasicBlock*> preds = CurrentAIpass->getPredecessors(n->bb);
 		std::set<BasicBlock*>::iterator it = preds.begin(), et = preds.end();
 		for (; it != et; it++) {
-			ap_texpr1_t * res;
-			res = get_ap_expr_rec(Nodes[*it],val);
-			if (res != NULL) return res;
+			res = get_ap_expr_rec(Nodes[*it],val,seen);
+			if (res != NULL) break;
 		}
 	}
-	return NULL;
+	seen->insert(n);
+	return res;
 }
 
 ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
@@ -68,7 +70,8 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<Constant>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
 	}
-	ap_texpr1_t * res = get_ap_expr_rec(n,val);
+	std::set<Node*> seen;
+	ap_texpr1_t * res = get_ap_expr_rec(n,val,&seen);
 	if (res == NULL) {
 		// val is not yet in the Expr map
 		// We have to create it
