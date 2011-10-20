@@ -50,6 +50,9 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (isa<UndefValue>(val)) {
 		return create_ap_expr(n,dyn_cast<Constant>(val));
 	}
+	if (isa<Constant>(val)) {
+		return create_ap_expr(n,dyn_cast<Constant>(val));
+	}
 	if (Exprs.count(val) > 0) {
 		if (Exprs[val] == NULL)
 			*Out << "ERROR: NULL pointer in table Exprs !\n";
@@ -57,32 +60,13 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	} else {
 		// val is not yet in the Expr map
 		// We have to create it
-		if (isa<Constant>(val)) {
-			return create_ap_expr(n,dyn_cast<Constant>(val));
-		} else {
-			n->add_var(val);
-			return Exprs[val];
-		}
+		n->add_var(val);
+		return Exprs[val];
 	}
 }
 
-
-ap_texpr1_t * get_phivar_previous_expr(Value * val) {
-	if (Phivar_first_Expr.count(val)) {
-		return Phivar_first_Expr[val];
-	}
-	return NULL;
-}
-
-void set_phivar_previous_expr(Value * val, ap_texpr1_t * exp) {
-	if (Phivar_first_Expr.count(val)) {
-		Phivar_first_Expr.erase(val);
-	}
-	Phivar_first_Expr[val] = exp;
-}
-
-void set_ap_expr(Value * val, ap_texpr1_t * exp) {
-	if (Exprs.count(val) && !Phivar_first_Expr.count(val)) {
+void set_ap_expr(Value * val, ap_texpr1_t * exp, Node * n) {
+	if (Exprs.count(val)) {
 		Exprs.erase(val);
 	}
 	Exprs[val] = exp;

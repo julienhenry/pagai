@@ -289,6 +289,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			if (isa<CmpInst>(v)) {
 				cond = computeCondition(dyn_cast<CmpInst>(v));
 			} else if (isa<PHINode>(v)) {
+				// TODO
 				// BUG : stack overflow when two PHINode objects are mutually
 				// dependent
 				cond = computeCondition(dyn_cast<PHINode>(v));

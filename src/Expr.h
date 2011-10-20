@@ -13,15 +13,13 @@ using namespace llvm;
 /// Node.
 ap_texpr1_t * get_ap_expr(Node * n, Value * val);
 
-ap_texpr1_t * get_phivar_previous_expr(Value * val);
-void set_phivar_previous_expr(Value * val, ap_texpr1_t * exp);
-
 /// clear_all_exprs - delete all previously defined apron expressions
 void clear_all_exprs();
 
 /// set_ap_expr - associate an Apron expression to a Value, which will be
-/// remembered for future uses.
-void set_ap_expr(Value * val, ap_texpr1_t * exp);
+/// remembered for future uses. This association is inserted in the environment
+/// of the control point n 
+void set_ap_expr(Value * val, ap_texpr1_t * exp, Node * n);
 
 /// common_environment - computes and returns the least common environment of
 /// two environments.

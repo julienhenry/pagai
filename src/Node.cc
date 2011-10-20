@@ -110,7 +110,7 @@ void Node::add_var(Value * val) {
 			break;
 	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	set_ap_expr(val,exp);
+	set_ap_expr(val,exp,this);
 }
 
 void Node::create_env(ap_environment_t ** env, Live * LV) {

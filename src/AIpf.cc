@@ -157,7 +157,7 @@ void AIpf::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
@@ -263,7 +263,7 @@ void AIpf::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();

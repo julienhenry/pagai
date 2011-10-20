@@ -102,6 +102,14 @@ void AIPass::printPath(std::list<BasicBlock*> path) {
 		if (i != e) *Out << " --> ";
 	}
 	*Out << "\n";
+	//
+	i = path.begin();
+	while (i != e) {
+		*Out << **i;
+		++i;
+	}
+	*Out << "\n";
+	//
 	Out->resetColor();
 }
 
@@ -749,7 +757,7 @@ void AIPass::visitPHINode (PHINode &I){
 	if (I.getNumIncomingValues() == 1) {
 			pv = I.getIncomingValue(0);
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
-			set_ap_expr(&I,expr);
+			set_ap_expr(&I,expr,n);
 			ap_environment_t * env = expr->env;
 			insert_env_vars_into_node_vars(env,n,(Value*)&I);
 			return;
@@ -774,7 +782,6 @@ void AIPass::visitPHINode (PHINode &I){
 						*Out << "\n";
 					);
 				}
-
 			} else {
 				if (expr == NULL) continue;
 				DEBUG(
@@ -783,11 +790,15 @@ void AIPass::visitPHINode (PHINode &I){
 					*Out << "\n";
 				);
 				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
+					*Out << "VALUE " << I << "IS LIVE IN " << *n->bb;
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
 				} else {
-					set_ap_expr(&I,expr);
+					*Out << "VALUE " << I << "IS NOT LIVE IN " << *n->bb;
+					// if this value has already been assigned to a variable in
+					// another path, we have to keep this variable in place
+					set_ap_expr(&I,expr,n);
 				}
 				ap_environment_t * env = expr->env;
 				insert_env_vars_into_node_vars(env,n,(Value*)&I);
@@ -959,7 +970,7 @@ void AIPass::visitBinaryOperator (BinaryOperator &I){
 
 	// we create the expression associated to the binary op
 	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
-	set_ap_expr(&I,exp);
+	set_ap_expr(&I,exp,n);
 
 	// this value may use some apron variables 
 	// we add these variables in the Node's variable structure, such that we
@@ -998,8 +1009,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 		env = ap_environment_alloc(NULL,0,&var,1);
 	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	set_ap_expr(&I,exp);
-	//print_texpr(exp);
+	set_ap_expr(&I,exp,n);
 	n->add_var((Value*)var);
 }
 
