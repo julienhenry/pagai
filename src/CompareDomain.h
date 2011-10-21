@@ -76,6 +76,7 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	LSMT = SMTpass::getInstance();
+	LSMT->reset_SMTcontext();
 
 	int gt = 0;
 	int lt = 0;

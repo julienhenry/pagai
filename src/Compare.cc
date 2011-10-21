@@ -172,6 +172,7 @@ bool Compare::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	LSMT = SMTpass::getInstance();
+	LSMT->reset_SMTcontext();
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
