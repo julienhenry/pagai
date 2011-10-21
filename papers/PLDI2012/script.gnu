@@ -15,7 +15,7 @@ set mytics 2
 set xtics 2 rotate by -45
 set ytics 2
 set yrange [0:16]
-set ylabel "percentage of control points"
+set label 1 "precentage of control points" at graph -0.125, graph 0.5 center rotate
 set xlabel "Techniques"
 
 plot 'gnuplot/data' using 3 t "less" ls 1, '' using 4 t "greater" ls 2, '' using 5:xtic(1) t "uncomparable" ls 3
