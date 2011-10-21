@@ -785,6 +785,31 @@ on the choice of the abstract domain.
 In order to compare the various techniques, we compare by inclusion the obtained
 abstract values at each control points in $P_R$.
 
+
+In this section, our experimental results come from the analysis of various
+open-source projects listed in Figure \ref{fig:projects}, written in C, C++ and
+Fortran.
+\begin{figure}[!h]
+	\centering
+\begin{tabular}{|l|l|l|} \hline
+	Name & LOC & $|P_R|$ \\ \hline
+	a2ps & 55k & 2012\\
+	gawk & 59k & 902\\ 
+	gnuchess & 38k & 1222\\ 
+	gnugo & 83k & 2801\\
+	grep & 35k & 820\\
+	gzip & 27k & 494\\
+	lapack/blas & 954k & 16422\\
+	make & 34k & 993\\ 
+	sed & 23k & 292\\
+	tar & 73k & 1712\\
+	\hline
+\end{tabular}
+\caption{List of analyzed open-source projects, with their respective number of
+lines of code, and their number of control points in $P_R$}
+\label{fig:projects}
+\end{figure}
+
 \subsection{Precision of the various techniques}
 
 
