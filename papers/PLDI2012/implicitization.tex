@@ -812,15 +812,24 @@ lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{figure}
 
+\subsection{Precision of the various techniques}
 
 \begin{figure}[h]
   \begin{center}
     \input{./techniques.tex}
   \end{center} 
+  \vspace{-20px}
+  \caption{Comparison of the abstract values obtained by classical abstract
+  interpretation (S), \emph{Guided Static
+  Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
+  (G+PF), and its version with disjunctive invariants (DIS).}
+  \label{fig:techniques}
 \end {figure}
 
-\subsection{Precision of the various techniques}
-
+\JH{La comparaison DIS/G+PF n'est pas encore correcte (DIS pas compl\`etement
+impl\'ement\'e)\\} 
+Figures \ref{fig:techniques} shows the results of various comparisons between
+the different analysis techniques.
 
 \subsection{Precision of Abstract Domains}
 
