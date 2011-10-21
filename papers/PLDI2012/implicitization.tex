@@ -165,9 +165,7 @@ it may then backtrack some of the constraints and add other ones without restart
 
 \subsection{A simple, motivating example}
 \label{subsec:rate_lim}
-\JH{les tests des lignes 7 et 8 ont \'et\'e remplac\'es par des in\'egalit\'es
-strictes}
-Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}:
+Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$:
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
 
@@ -175,12 +173,12 @@ The expected inductive invariant is $\verb|x_old| \in [-100000,100000]$, but cla
 Let us briefly see why.
 
 Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant. % TODO expliquer widening suivi de narrowing
-The \lstinline|x >= x_old+10| test at line~7, if taken, yields $\lstinline|x_old| \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain $\lstinline|x| \in (-\infty,100000]$, and the same after union with the no-operation ``else'' branch. Line 8 yields $\lstinline|x| \in (-\infty,+\infty)$.
+The \lstinline|x >= x_old+10| test at line~6, if taken, yields $\lstinline|x_old| \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain $\lstinline|x| \in (-\infty,\allowbreak 100000]$, and the same after union with the no-operation ``else'' branch. Line~7 yields $\lstinline|x| \in (-\infty,+\infty)$.
 
-We could use ``guided widening'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
+We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
 The guided static analysis of \citet{DBLP:conf/sas/GopanR07} performs slightly better, and obtains $\verb|x_old| \in (-\infty,100000]$.
 
-In contrast, let us distinguish all four possible execution paths through the tests at lines 7 and~8. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
+In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
 
 \begin{figure}
