@@ -76,7 +76,6 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 
 	int gt = 0;
 	int lt = 0;
@@ -91,6 +90,7 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	Out->resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		LSMT->reset_SMTcontext();
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing

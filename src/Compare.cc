@@ -43,7 +43,6 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	A->change_environment(cenv);
 	B->change_environment(cenv);
 
-	LSMT->reset_SMTcontext();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);
 	SMT_expr B_smt = LSMT->AbstractToSmt(NULL,B);
 
@@ -172,7 +171,6 @@ bool Compare::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -182,6 +180,7 @@ bool Compare::runOnModule(Module &M) {
 	Out->resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
+		LSMT->reset_SMTcontext();
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
