@@ -331,8 +331,8 @@ void AIdis::computeNode(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
-	PathTree * const U = new PathTree();
-	
+	std::map<int,PathTree*> U;
+
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";
@@ -385,7 +385,11 @@ void AIdis::computeNode(Node * n) {
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
 		SuccDisj->change_environment(Xtemp->main->env,Sigma);
-		if (!U->exist(path)) {
+
+		if (!U.count(index))
+			U[index] = new PathTree();
+
+		if (!U[index]->exist(path)) {
 			n_paths++;
 			only_join = true;
 		} else {
@@ -393,7 +397,7 @@ void AIdis::computeNode(Node * n) {
 		}
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,index,Xtemp,&path,only_join,U);
+			loopiter(n,index,Xtemp,&path,only_join,U[index]);
 		} 
 		Join.clear();
 		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
@@ -424,7 +428,11 @@ void AIdis::computeNode(Node * n) {
 		// since the associated abstract value has changed
 		A_prime.insert(Succ);
 	}
-	delete U;
+
+	//delete U;
+	for (std::map<int,PathTree*>::iterator it = U.begin(), et = U.end(); it != et; it++) {
+		delete it->second;
+	}
 }
 
 void AIdis::narrowNode(Node * n) {
