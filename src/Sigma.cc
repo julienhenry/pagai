@@ -205,13 +205,11 @@ int Sigma::getSigma(
 		for (; it != et; it++, index++) {
 			if (Xtemp->CanJoinPrecisely(D->man_disj,*it)) {
 				res = index+1;
-				*Out << "FIT\n";
 				break;
 			}
 		}
 		if (res == -1) {
 			// there is no abstract value that fits well
-			*Out << "DOES NOT FIT\n";
 			int N = D->disj.size();
 			if (N < Max_Disj)
 				res = N+1;
