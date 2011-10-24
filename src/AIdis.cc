@@ -211,7 +211,7 @@ void AIdis::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMTpass SOLVE2 -------------------------\n";
+			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
 			Out->resetColor();
 		);
 		// creating the SMTpass formula we want to check
@@ -345,7 +345,7 @@ void AIdis::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
@@ -449,7 +449,7 @@ void AIdis::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING----------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
