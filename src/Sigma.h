@@ -16,6 +16,10 @@ class Sigma {
 		/// manager of the CUDD library 
 		Cudd * mgr;
 
+		int Max_Disj;
+
+		void init();
+
 		/// @{
 		/// variables needed by some methods
 		DdNode * background;
@@ -61,6 +65,7 @@ class Sigma {
 
 	public:
 		
+		Sigma(int _Max_Disj);
 		Sigma();
 		~Sigma();
 
@@ -71,7 +76,7 @@ class Sigma {
 			std::list<BasicBlock*> path, 
 			int start,
 			Abstract * Xtemp,
-			params passID,
+			AIPass * pass,
 			bool source);
 
 };

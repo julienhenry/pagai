@@ -8,9 +8,11 @@
 #include "AbstractMan.h"
 
 class Node;
+class Sigma;
 
 /// Abstract Domain used for computing disjunctive invariants
 class AbstractDisj: public Abstract {
+	friend class Sigma;
 
 	public:
 		AbstractMan * man_disj;

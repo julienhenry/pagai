@@ -7,6 +7,7 @@
 
 class Node;
 class SMTpass;
+class AbstractMan;
 
 /// Base class of abstract domains
 class Abstract {
@@ -39,6 +40,8 @@ class Abstract {
 		/// return -1 in case of d <= this
 		/// return -2 if not comparable
 		int compare(Abstract * d);
+
+		bool CanJoinPrecisely(AbstractMan * aman, Abstract * A);
 
 		/// is_leq - return true iff this <= d
 		virtual bool is_leq(Abstract * d);

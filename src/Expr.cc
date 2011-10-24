@@ -125,8 +125,6 @@ ap_environment_t * intersect_environment(
 	return intersect;
 }
 
-
-
 /// common_environment = modifies exp1 and exp2 such that 
 /// they have the same common environment
 ///

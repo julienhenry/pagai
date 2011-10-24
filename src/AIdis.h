@@ -22,6 +22,8 @@ class AIdis : public ModulePass, public AIPass {
 
 		std::map<BasicBlock*,Sigma*> S;
 
+		int Max_Disj;
+
 		/// paths - remembers all the paths that have already been
 		/// visited
 		std::map<BasicBlock*,PathTree*> pathtree;
@@ -55,9 +57,9 @@ class AIdis : public ModulePass, public AIPass {
 		
 		void init()
 			{
+				Max_Disj = 5;
 				aman = new AbstractManDisj();
 				passID.T = LW_WITH_PF_DISJ;
-				//Passes[LW_WITH_PF_DISJ] = passID;	
 			}
 
 		~AIdis () {

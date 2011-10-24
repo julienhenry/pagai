@@ -10,11 +10,20 @@
 
 //#DEFINE DUMP_ADD
 
-Sigma::Sigma() {
+void Sigma::init() {
 	mgr = new Cudd(0,0);
 	AddIndex=0;
 	background = mgr->addZero().getNode();
 	zero = mgr->addZero().getNode();
+}
+
+Sigma::Sigma(int _Max_Disj): Max_Disj(_Max_Disj) {
+	init();
+}
+
+Sigma::Sigma() {
+	init();
+	Max_Disj = 5;
 }
 
 Sigma::~Sigma() {
@@ -183,16 +192,37 @@ int Sigma::getSigma(
 		std::list<BasicBlock*> path, 
 		int start,
 		Abstract * Xtemp,
-		params passID,
+		AIPass * pass,
 		bool source) {
 
 	int res = getActualValue(path,start);
 	if (res == -1) {
 
-		if (path.front() == path.back())
-			res = 2;
-		else 
-			res = 1;
+		AbstractDisj * D  = dynamic_cast<AbstractDisj*>(Nodes[path.back()]->X_d[pass->passID]);
+		// we iterate on the already existing abstract values of the disjunct
+		std::vector<Abstract*>::iterator it = D->disj.begin(), et = D->disj.end();	
+		int index = 0;
+		for (; it != et; it++, index++) {
+			if (Xtemp->CanJoinPrecisely(D->man_disj,*it)) {
+				res = index+1;
+				*Out << "FIT\n";
+				break;
+			}
+		}
+		if (res == -1) {
+			// there is no abstract value that fits well
+			*Out << "DOES NOT FIT\n";
+			int N = D->disj.size();
+			if (N < Max_Disj)
+				res = N+1;
+			else
+				res = N;
+		}
+
+	//	if (path.front() == path.back())
+	//		res = 2;
+	//	else 
+	//		res = 1;
 		setActualValue(path,start,res);	
 		DEBUG(
 			AIPass::printPath(path);

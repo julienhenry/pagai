@@ -1,6 +1,7 @@
 #include "SMTpass.h"
 #include "Abstract.h"
 #include "AbstractGopan.h"
+#include "Expr.h"
 
 int Abstract::compare(Abstract * d) {
 	SMTpass * LSMT = SMTpass::getInstance();
@@ -46,6 +47,34 @@ int Abstract::compare(Abstract * d) {
 		// not comparable
 		return -2;
 	}
+}
+
+bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
+	bool res = true;
+	SMTpass * LSMT = SMTpass::getInstance();
+	std::vector<Abstract*> Join;
+	ap_environment_t * env = common_environment(main->env, A->main->env);
+	Join.push_back(aman->NewAbstract(this));
+	Join.push_back(aman->NewAbstract(A));
+	Abstract * J = aman->NewAbstract(this);
+	J->join_array(env,Join);
+
+	LSMT->push_context();
+	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,this);
+	SMT_expr B_smt = LSMT->AbstractToSmt(NULL,A);
+	SMT_expr J_smt = LSMT->AbstractToSmt(NULL,J);
+	
+	std::vector<SMT_expr> cunj;
+	cunj.push_back(J_smt);
+	cunj.push_back(LSMT->man->SMT_mk_not(A_smt));
+	cunj.push_back(LSMT->man->SMT_mk_not(B_smt));
+	SMT_expr test = LSMT->man->SMT_mk_and(cunj);
+	if (LSMT->SMTsolve_simple(test)) {
+		res = false;
+	}
+	LSMT->pop_context();
+	delete J;
+	return res;
 }
 
 bool Abstract::is_leq(Abstract * d) {

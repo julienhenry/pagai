@@ -28,12 +28,13 @@ class AIPass : public InstVisitor<AIPass> {
 	public:
 		/// LV - result of the Live pass
 		Live * LV;
+		
+		/// id of the pass
+		params passID;
+
 	protected:
 		/// LSMT - result of the SMTpass pass
 		SMTpass * LSMT;
-
-		/// id of the pass
-		params passID;
 
 		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;

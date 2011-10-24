@@ -72,7 +72,7 @@ bool AIdis::runOnModule(Module &M) {
 			it != et;
 			it++) {
 			pathtree[*it] = new PathTree();
-			S[*it] = new Sigma();
+			S[*it] = new Sigma(Max_Disj);
 		}
 
 		computeFunction(F);
@@ -194,7 +194,7 @@ int AIdis::sigma(
 		int start,
 		Abstract * Xtemp,
 		bool source) {
-	return S[path.front()]->getSigma(path,start,Xtemp,passID,source);
+	return S[path.front()]->getSigma(path,start,Xtemp,this,source);
 }
 
 void AIdis::computeNewPaths(Node * n) {
