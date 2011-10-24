@@ -15,6 +15,8 @@
 \usepackage{dmnatbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
+%\usepackage{graphicx}
+%\usepackage{color}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
@@ -126,7 +128,7 @@ The concrete and abstract domains are connected by a monotone \emph{concretizati
 \footnote{%
 Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
 
-We also assume a join operator $\sqcap: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcap \abstr{y})$ for all $\abstr{x},\abstr{y}$.
+We also assume a join operator $\sqcup: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcup \abstr{y})$ for all $\abstr{x},\abstr{y}$.
 
 Classically, one considers the control-flow graph of the program, with edges labeled with concrete transition relations (e.g. $x' = x+1$ for an instruction \lstinline|x = x+1;|), and attaches an abstract element to each control point.
 A concrete transition relation $\tau \subseteq X \times X$ is replaced by an abstract \emph{forward abstract transformer} $\abstr{\tau}: \abstr{X} \rightarrow \abstr{X}$, such that
@@ -780,6 +782,56 @@ as SMT-solver.
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques. We also compared the precision of the analysis depending
 on the choice of the abstract domain.
+
+In order to compare the various techniques, we compare by inclusion the obtained
+abstract values at each control points in $P_R$.
+
+
+In this section, our experimental results come from the analysis of various
+open-source projects listed in Figure \ref{fig:projects}, written in C, C++ and
+Fortran.
+\begin{figure}[!h]
+	\centering
+\begin{tabular}{|l|l|l|} \hline
+	Name & LOC & $|P_R|$ \\ \hline
+	a2ps & 55k & 2012\\
+	gawk & 59k & 902\\ 
+	gnuchess & 38k & 1222\\ 
+	gnugo & 83k & 2801\\
+	grep & 35k & 820\\
+	gzip & 27k & 494\\
+	lapack/blas & 954k & 16422\\
+	make & 34k & 993\\ 
+	sed & 23k & 292\\
+	tar & 73k & 1712\\
+	\hline
+\end{tabular}
+\caption{List of analyzed open-source projects, with their respective number of
+lines of code, and their number of control points in $P_R$}
+\label{fig:projects}
+\end{figure}
+
+\subsection{Precision of the various techniques}
+
+\begin{figure}[h]
+  \begin{center}
+    \input{./techniques.tex}
+  \end{center} 
+  \vspace{-20px}
+  \caption{Comparison of the abstract values obtained by classical abstract
+  interpretation (S), \emph{Guided Static
+  Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
+  (G+PF), and its version with disjunctive invariants (DIS).}
+  \label{fig:techniques}
+\end {figure}
+
+\JH{La comparaison DIS/G+PF n'est pas encore correcte (DIS pas compl\`etement
+impl\'ement\'e)\\} 
+Figures \ref{fig:techniques} shows the results of various comparisons between
+the different analysis techniques.
+
+\subsection{Precision of Abstract Domains}
+
 
 \section{Conclusion}
 
