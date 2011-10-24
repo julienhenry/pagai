@@ -41,6 +41,8 @@ class Compare : public ModulePass {
 			Techniques t1, 
 			Techniques t2);
 
+		void printTime(Techniques t);
+
 		void printAllResults();
 		void printResults(Techniques t1, Techniques t2);
 	public:

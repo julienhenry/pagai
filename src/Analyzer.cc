@@ -194,7 +194,6 @@ int main(int argc, char* argv[]) {
 	n_iterations = 0;
 	SMT_time.tv_sec = 0;
 	SMT_time.tv_usec = 0;
-	Total_time = Now();
 	npass = 0;
 
 	static struct option long_options[] =

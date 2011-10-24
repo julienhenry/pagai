@@ -17,13 +17,15 @@
 #endif
 
 #include <time.h>
+#include <map>
+#include "Node.h"
 
 extern int n_paths;
 extern int n_iterations;
 extern int n_totalpaths;
 
 extern struct timeval SMT_time;
-extern struct timeval Total_time;
+extern std::map<params,struct timeval> Total_time;
 
 struct timeval Now();
 struct timeval add(struct timeval t1, struct timeval t2);

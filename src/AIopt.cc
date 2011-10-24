@@ -40,6 +40,7 @@ bool AIopt::runOnModule(Module &M) {
 	LSMT = SMTpass::getInstance();
 
 	*Out << "Starting analysis: PF+LW\n";
+	Total_time[passID] = Now();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -93,8 +94,8 @@ bool AIopt::runOnModule(Module &M) {
 	*Out << "Number of paths computed: " << n_paths << "\n";
 
 	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-	Total_time = sub(Now(),Total_time);
-	*Out << Total_time.tv_sec << " " << Total_time.tv_usec << " TOTAL_TIME\n";
+	Total_time[passID] = sub(Now(),Total_time[passID]);
+	*Out << Total_time[passID].tv_sec << " " << Total_time[passID].tv_usec << " TOTAL_TIME\n";
 	*Out << N_Pr << " PR_SIZE\n";
 	return 0;
 }

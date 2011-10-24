@@ -114,6 +114,14 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	}
 }
 
+void Compare::printTime(Techniques t) {
+	params P;
+	P.T = t;
+	P.D = getApronManager();
+
+	*Out << Total_time[P].tv_sec << " " << Total_time[P].tv_usec << "\n";
+}
+
 void Compare::printResults(Techniques t1, Techniques t2) {
 
 	Out->changeColor(raw_ostream::MAGENTA,true);
@@ -127,6 +135,14 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 }
 
 void Compare::printAllResults() {
+	
+	*Out << "\nTIME:\n";
+	printTime(SIMPLE);
+	printTime(LOOKAHEAD_WIDENING);
+	printTime(PATH_FOCUSING);
+	printTime(LW_WITH_PF);
+	printTime(LW_WITH_PF_DISJ);
+
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
 	*Out	<< results[LOOKAHEAD_WIDENING][SIMPLE].eq << " "
