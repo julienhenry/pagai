@@ -43,6 +43,7 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	A->change_environment(cenv);
 	B->change_environment(cenv);
 
+	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);
 	SMT_expr B_smt = LSMT->AbstractToSmt(NULL,B);
 
@@ -65,6 +66,7 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	if (LSMT->SMTsolve_simple(test)) {
 		g = true;
 	}
+	LSMT->pop_context();
 
 	if (!f && !g) {
 		return 0;
