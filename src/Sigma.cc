@@ -179,7 +179,12 @@ int Sigma::getActualValue(std::list<BasicBlock*> path, int start) {
 	return -1;
 }
 
-int Sigma::getSigma(std::list<BasicBlock*> path, int start) {
+int Sigma::getSigma(
+		std::list<BasicBlock*> path, 
+		int start,
+		Abstract * Xtemp,
+		params passID,
+		bool source) {
 
 	int res = getActualValue(path,start);
 	if (res == -1) {

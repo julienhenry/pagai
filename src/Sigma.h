@@ -67,7 +67,12 @@ class Sigma {
 		/// clear the Add. The result will be an empty Add
 		void clear();
 
-		int getSigma(std::list<BasicBlock*> path, int start);
+		int getSigma(
+			std::list<BasicBlock*> path, 
+			int start,
+			Abstract * Xtemp,
+			params passID,
+			bool source);
 
 };
 #endif

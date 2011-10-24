@@ -32,7 +32,12 @@ class AIdis : public ModulePass, public AIPass {
 			Node * n
 			);
 
-		int sigma(std::list<BasicBlock*> path, int start);
+		int sigma(
+			std::list<BasicBlock*> path, 
+			int start,
+			Abstract * Xtemp,
+			bool source);
+
 	public:
 		static char ID;	
 
@@ -85,6 +90,7 @@ class AIdis : public ModulePass, public AIPass {
 		void loopiter(
 			Node * n, 
 			int index,
+			int Sigma,
 			Abstract * &Xtemp,
 			std::list<BasicBlock*> * path,
 			bool &only_join,

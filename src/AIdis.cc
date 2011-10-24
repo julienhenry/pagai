@@ -189,8 +189,12 @@ std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 	return Pr::getPrPredecessors(b);
 }
 
-int AIdis::sigma(std::list<BasicBlock*> path, int start) {
-	return S[path.front()]->getSigma(path,start);
+int AIdis::sigma(
+		std::list<BasicBlock*> path, 
+		int start,
+		Abstract * Xtemp,
+		bool source) {
+	return S[path.front()]->getSigma(path,start,Xtemp,passID,source);
 }
 
 void AIdis::computeNewPaths(Node * n) {
@@ -244,11 +248,12 @@ void AIdis::computeNewPaths(Node * n) {
 		Xdisj->change_environment(Xtemp->main->env,index);
 
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
+		int Sigma = sigma(path,index,Xtemp,false);
 		Join.clear();
-		Join.push_back(SuccDisj->getDisjunct(sigma(path,index)));
+		Join.push_back(SuccDisj->getDisjunct(Sigma));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		SuccDisj->setDisjunct(sigma(path,index),Xtemp);
+		SuccDisj->setDisjunct(Sigma,Xtemp);
 		Xtemp = NULL;
 
 		// there is a new path that has to be explored
@@ -260,13 +265,13 @@ void AIdis::computeNewPaths(Node * n) {
 void AIdis::loopiter(
 	Node * n, 
 	int index,
+	int Sigma,
 	Abstract * &Xtemp, 
 	std::list<BasicBlock*> * path,
 	bool &only_join, 
 	PathTree * const U) {
 	Node * Succ = n;
 	AbstractDisj * SuccDis = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
-	int Sigma = sigma(*path,index);
 
 	std::vector<Abstract*> Join;
 	if (U->exist(*path)) {
@@ -371,12 +376,12 @@ void AIdis::computeNode(Node * n) {
 			printPath(path);
 		);
 		Succ = Nodes[path.back()];
-		int Sigma = sigma(path,index);
 		n_iterations++;
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		int Sigma = sigma(path,index,Xtemp,true);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
@@ -397,7 +402,7 @@ void AIdis::computeNode(Node * n) {
 		}
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,index,Xtemp,&path,only_join,U[index]);
+			loopiter(n,index,Sigma,Xtemp,&path,only_join,U[index]);
 		} 
 		Join.clear();
 		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
@@ -473,12 +478,13 @@ void AIdis::narrowNode(Node * n) {
 		);
 		
 		Succ = Nodes[path.back()];
-		int Sigma = sigma(path,index);
 
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		
+		int Sigma = sigma(path,index,Xtemp,false);
 
 		DEBUG(
 			*Out << "POLYHEDRON TO JOIN\n";
