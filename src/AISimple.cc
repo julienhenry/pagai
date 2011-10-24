@@ -68,10 +68,10 @@ bool AISimple::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	*Out << "Starting analysis: " << getPassName() << "\n";
-	Total_time[passID] = Now();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
+		Total_time[passID][F] = Now();
 		
 		// if the function is only a declaration, do nothing
 		if (F->empty()) continue;
@@ -98,12 +98,11 @@ bool AISimple::runOnModule(Module &M) {
 			}
 			//delete Nodes[b];
 		}
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 	}
 
 	//*Out << "Number of iterations: " << n_iterations << "\n";
 	//*Out << "Number of paths computed: " << n_paths << "\n";
-	Total_time[passID] = sub(Now(),Total_time[passID]);
-	*Out << Total_time[passID].tv_sec << " " << Total_time[passID].tv_usec << " TOTAL_TIME\n";
 	return 0;
 }
 

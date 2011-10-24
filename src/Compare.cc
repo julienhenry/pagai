@@ -114,12 +114,20 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	}
 }
 
-void Compare::printTime(Techniques t) {
+void Compare::ComputeTime(Techniques t, Function * F) {
 	params P;
 	P.T = t;
 	P.D = getApronManager();
+	
+	if (Time.count(t)) {
+		Time[t] = add(Time[t],Total_time[P][F]);
+	} else {
+		Time[t] = Total_time[P][F];
+	}
+}
 
-	*Out << Total_time[P].tv_sec << " " << Total_time[P].tv_usec << "\n";
+void Compare::printTime(Techniques t) {
+	*Out << Time[t].tv_sec << " " << Time[t].tv_usec << "\n";
 }
 
 void Compare::printResults(Techniques t1, Techniques t2) {
@@ -135,7 +143,7 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 }
 
 void Compare::printAllResults() {
-	
+
 	*Out << "\nTIME:\n";
 	printTime(SIMPLE);
 	printTime(LOOKAHEAD_WIDENING);
@@ -186,6 +194,7 @@ bool Compare::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
+	int Function_number = 0;
 	LSMT = SMTpass::getInstance();
 
 	Out->changeColor(raw_ostream::BLUE,true);
@@ -201,8 +210,17 @@ bool Compare::runOnModule(Module &M) {
 		
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
+		Function_number++;
 
 		if (ignoreFunction.count(F) > 0) continue;
+
+		// we now count the computing time
+		ComputeTime(SIMPLE,F);
+		ComputeTime(LOOKAHEAD_WIDENING,F);
+		ComputeTime(PATH_FOCUSING,F);
+		ComputeTime(LW_WITH_PF,F);
+		ComputeTime(LW_WITH_PF_DISJ,F);
+
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
@@ -225,6 +243,10 @@ bool Compare::runOnModule(Module &M) {
 	printResults(LW_WITH_PF,SIMPLE);
 	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
 
+	*Out << "\nFUNCTIONS:\n";
+	*Out << Function_number << "\n";
+	*Out << "\nIGNORED:\n";
+	*Out << ignoreFunction.size() << "\n";
 	printAllResults();
 	return true;
 }

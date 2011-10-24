@@ -8,8 +8,7 @@ int n_iterations;
 int n_totalpaths;
 
 struct timeval SMT_time;
-std::map<params,struct timeval> Total_time;
-
+std::map<params,std::map<Function*,struct timeval> > Total_time;
 
 struct timeval Now() { 
 	struct timeval tp; 

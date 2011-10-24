@@ -34,6 +34,7 @@ class Compare : public ModulePass {
 			std::map<Techniques,CmpResults> 
 			> results;
 
+		std::map<Techniques, struct timeval> Time;
 		int compareAbstract(Abstract * A, Abstract * B);
 
 		void compareTechniques(
@@ -41,6 +42,7 @@ class Compare : public ModulePass {
 			Techniques t1, 
 			Techniques t2);
 
+		void ComputeTime(Techniques t, Function * F);
 		void printTime(Techniques t);
 
 		void printAllResults();
