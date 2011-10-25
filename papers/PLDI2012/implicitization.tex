@@ -339,7 +339,7 @@ that a path
 $p_{i_1} \rightarrow p_{i_2} \rightarrow \dots \rightarrow p_{i_n}$ 
 between two points $p_{i_1}, p_{i_n} \in P_R$ 
 can easily be expressed as the
-cunjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
+conjunction $b_{i_1}^s \wedge \bigwedge_{2 \leq k < n} b_{i_k} \wedge b_{i_n}^d$.
 The Boolean $b_{i}^s$ is $true$ when the path starts at point $p_i$, whereas
 $b_i^d$ is $true$ when the path arrives at $p_i$. In other words, we split the
 points in $P_R$ into a \emph{source} point, with only outgoing transitions, and
@@ -464,7 +464,7 @@ b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wed
 x \notin X_j^s)$$
 
 Since we do not work on the entire transition graph but on a subset of it, we
-cunjunct the formula $f(p_i)$ with the actual set of working paths,
+conjoin the formula $f(p_i)$ with the actual set of working paths,
 noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 \emph{reachability predicates} of the control points. We can easily construct
 this formula from the binary decision diagram using dynamic programming, and
@@ -485,7 +485,7 @@ the next subgraph to work on has to be computed.
 This new subgraph is the union of the paths of the previous one with a set
 $P'$ of new paths that become feasible regarding the current abstract values.
 
-We distinguish two phases when analysing a subgraph $P$:
+We distinguish two phases when analyzing a subgraph $P$:
 \begin{enumerate}
 \item We search for paths starting at point $p_i \in P_R$, such that these paths
 	are in $P$, i.e are included in the working subgraph. Each time we find a
@@ -582,7 +582,7 @@ loop.
 		\emph{if-then-else}, is $-10 \leq \lstinline|x_old| \leq 10$. This path
 		is then added to our subgraph. Moreover, there is no other path whose
 		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
-		Additionnally, the path that goes from $p_5$ to
+		Additionally, the path that goes from $p_5$ to
 		$p_11$, that goes through the \emph{else} branch of each 
 		\emph{if-then-else} at lines 7,8 and 9, is also 
 		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
@@ -844,11 +844,11 @@ lines of code, and their number of control points in $P_R$}
 & \multicolumn{3}{c|}{\textbf{PF/G}}
 & \multicolumn{3}{c|}{\textbf{G+PF/PF}}
 & \multicolumn{3}{c|}{\textbf{G+PF/G}} \\ %\cline{2-16}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.} \\
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
  \hline
  \input{table1}
 \end{tabular}
@@ -860,7 +860,7 @@ instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
 The $\subsetneq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
 $\supsetneq$ the percentage of invariants better with the right-side technique,
-and ``inc.'' gives the percentage of invariants that are incomparable, i.e
+and ``unc.'' gives the percentage of invariants that are uncomparable, i.e
 neither greater nor smaller.}
 % TODO: le reste c'est quand c'est egal?
 \label{tab:techniques}
@@ -891,7 +891,7 @@ the SMT-solver is not able to decide the satisfiability of some SMT-formulae
 expressing the semantics of non-linear programs. 
 In this case, we skipped the function for which the SMT-solver returned the
 ``unknown'' result.
-This limitation occured very rarely in our experiments, except for the analysis
+This limitation occurred very rarely in our experiments, except for the analysis
 of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 In such cases, such a technique should make the SMT-formula simpler to solve by using
 for instance \emph{linearization}. However, such transformations are not
