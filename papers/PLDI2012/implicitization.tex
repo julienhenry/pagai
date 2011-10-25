@@ -792,7 +792,7 @@ open-source projects listed in Figure \ref{fig:projects}, written in C, C++ and
 Fortran.
 \begin{figure}[!h]
 	\centering
-\begin{tabular}{|l|l|l|} \hline
+\begin{tabular}{|l|r|r|} \hline
 	Name & LOC & $|P_R|$ \\ \hline
 	a2ps & 55k & 2012\\
 	gawk & 59k & 902\\ 
@@ -825,12 +825,10 @@ lines of code, and their number of control points in $P_R$}
   \label{fig:techniques}
 \end {figure}
 
-Figures \ref{fig:techniques} shows the results of various comparisons between
-the different analysis techniques.
 
 \begin{table*}
 \begin{center}
-\begin{tabular}{|l||c|c|c||c|c|c||c|c|c||c|c|c||c|c|c||} \hline
+\begin{tabular}{|l||r|r|r||r|r|r||r|r|r||r|r|r||r|r|r||} \hline
 \textbf{Benchmark} & \multicolumn{3}{c||}{\textbf{G/S}}
 & \multicolumn{3}{c||}{\textbf{PF/S}}
 & \multicolumn{3}{c||}{\textbf{PF/G}}
@@ -854,7 +852,39 @@ percentage of invariants more precise with the left-side technique,
 \textbf{gt} the percentage of invariants better with the right-side technique,
 and \textbf{un} gives the percentage of invariants that are uncomparable, i.e
 neither greater nor smaller.}
+\label{tab:techniques}
 \end{table*}
+
+Table \ref{tab:techniques} gives the results of the comparison between the
+different analysis techniques, applied to the benchmarks described in Figure
+\ref{fig:projects}. These results are also summarized by Figure \ref{fig:techniques}.
+
+\emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
+result of the classical Abstract Interpretation in $2.37\%$ of the control points
+in $P_R$.
+\emph{Path-focused} technique from \citet{Monniaux_Gonnord_SAS11} gives
+statistically better results, and finds better invariants than \emph{Guided
+Static Analysis} in $7.28\%$ of the cases. However, it also looses precision in an
+important number ($2.93\%$) of control points.
+Our combined technique gives the most promising results, since it is
+statistically more precise than the other techniques.
+
+The analysis using disjunctive invariants seems not to be as efficient as
+expected, and often finds greater invariants than the combined technique
+($11.64\%$). It probably means that our heuristic for the construction of
+$\sigma$ is not effective.
+
+While experiencing with techniques that use SMT-solving, we encountered some
+limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
+the SMT-solver is not able to decide the satisfiability of some SMT-formulae
+expressing the semantics of non-linear programs. 
+In this case, we skipped the function for which the SMT-solver returned the
+``unknown'' result.
+This limitation occured very rarely in our experiments, except for the analysis
+of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
+In such cases, such a technique should make the SMT-formula simpler to solve by using
+for instance \emph{linearization}. However, such transformations are not
+implemented in our analyzer.
 
 \subsection{Precision of Abstract Domains}
 
