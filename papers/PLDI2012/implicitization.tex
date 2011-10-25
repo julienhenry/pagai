@@ -825,10 +825,36 @@ lines of code, and their number of control points in $P_R$}
   \label{fig:techniques}
 \end {figure}
 
-\JH{La comparaison DIS/G+PF n'est pas encore correcte (DIS pas compl\`etement
-impl\'ement\'e)\\} 
 Figures \ref{fig:techniques} shows the results of various comparisons between
 the different analysis techniques.
+
+\begin{table*}
+\begin{center}
+\begin{tabular}{|l||c|c|c||c|c|c||c|c|c||c|c|c||c|c|c||} \hline
+\textbf{Benchmark} & \multicolumn{3}{c||}{\textbf{G/S}}
+& \multicolumn{3}{c||}{\textbf{PF/S}}
+& \multicolumn{3}{c||}{\textbf{PF/G}}
+& \multicolumn{3}{c||}{\textbf{G+PF/PF}}
+& \multicolumn{3}{c||}{\textbf{G+PF/G}} \\ \cline{2-16}
+& \textbf{lt} & \textbf{gt} & \textbf{un} 
+& \textbf{lt} & \textbf{gt} & \textbf{un} 
+& \textbf{lt} & \textbf{gt} & \textbf{un} 
+& \textbf{lt} & \textbf{gt} & \textbf{un} 
+& \textbf{lt} & \textbf{gt} & \textbf{un} \\
+ \hline
+ \input{table1.tex}
+\end{tabular}
+\end{center}
+\caption{Result of the comparison of the various techniques described in this
+paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
+\emph{Path-focused} technique (PF), and our combined technique (G+PF). For
+instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
+over the classic Abstract interpretation algorithm. \textbf{lt} column gives the
+percentage of invariants more precise with the left-side technique,
+\textbf{gt} the percentage of invariants better with the right-side technique,
+and \textbf{un} gives the percentage of invariants that are uncomparable, i.e
+neither greater nor smaller.}
+\end{table*}
 
 \subsection{Precision of Abstract Domains}
 
