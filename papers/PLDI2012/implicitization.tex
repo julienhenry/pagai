@@ -159,7 +159,7 @@ Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approa
 
 Most SMT solvers, including Z3%
 \footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
-Yices,%
+and Yices,%
 \footnote{\url{http://yices.csl.sri.com/}}
 and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
 offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
@@ -308,7 +308,7 @@ otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
 
 
-\subsection{Path-focused technique}
+\subsection{Path-focusing}
 \label{sec:path_focusing}
 
 \citet{Monniaux_Gonnord_SAS11}'s \emph{path-focused} technique
@@ -597,7 +597,7 @@ loop.
 \end{enumerate}
 
 Our technique gives us the expected invariant 
-$\lstinline|x_old| \in~[-10000,10000]$. 
+$\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
 Here, only 3 paths over the 25 have been computed during the analysis. In
 practice, depending on the order the SMT-solver returns the paths, other
 feasible paths could have been added during the analysis.
@@ -774,8 +774,7 @@ techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 We also can choose among different abstract domains: convex polyhedra, octagons,
 intervals, grids (convex polyhedra and linear congruences).
-
-For the techniques involving SMT-solving, our analyzer uses Yices
+For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
 as SMT-solver.
 
