@@ -18,6 +18,8 @@
 %\usepackage{graphicx}
 %\usepackage{color}
 
+\usepackage{siunitx}
+
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
 
@@ -829,25 +831,31 @@ lines of code, and their number of control points in $P_R$}
 
 \begin{table*}
 \begin{center}
-\begin{tabular}{|l|rrr|rrr|rrr|rrr|rrr|} \hline
+\setlength{\tabcolsep}{1ex}
+\begin{tabular}{|l
+|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
+|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
+|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
+|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
+|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]|} \hline
 \multicolumn{1}{|c|}{\textbf{Benchmark}}
 & \multicolumn{3}{c|}{\textbf{G/S}}
 & \multicolumn{3}{c|}{\textbf{PF/S}}
 & \multicolumn{3}{c|}{\textbf{PF/G}}
 & \multicolumn{3}{c|}{\textbf{G+PF/PF}}
 & \multicolumn{3}{c|}{\textbf{G+PF/G}} \\ %\cline{2-16}
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
-& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc. \\
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{inc.} \\
  \hline
- \input{table1.tex}
+ \input{table1}
 \end{tabular}
 \end{center}
 \caption{Result of the comparison of the various techniques described in this
 paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
-\emph{Path-focused} technique (PF), and our combined technique (G+PF). For
+\emph{Path-focusing} (PF), and our combined technique (G+PF). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
 The $\subseteq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
