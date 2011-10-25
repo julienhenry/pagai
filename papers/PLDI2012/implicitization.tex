@@ -792,17 +792,19 @@ Fortran.
 \begin{figure}[!h]
 	\centering
 \begin{tabular}{|l|r|r|} \hline
-	Name & LOC & $|P_R|$ \\ \hline
-	a2ps & 55k & 2012\\
-	gawk & 59k & 902\\ 
-	gnuchess & 38k & 1222\\ 
-	gnugo & 83k & 2801\\
-	grep & 35k & 820\\
-	gzip & 27k & 494\\
-	lapack/blas & 954k & 16422\\
-	make & 34k & 993\\ 
-	sed & 23k & 292\\
-	tar & 73k & 1712\\
+	\multicolumn{1}{|c|}{Name} &
+        \multicolumn{1}{c|}{kLOC} &
+        \multicolumn{1}{c|}{$|P_R|$} \\ \hline
+	a2ps & 55 & 2012\\
+	gawk & 59 & 902\\ 
+	gnuchess & 38 & 1222\\ 
+	gnugo & 83 & 2801\\
+	grep & 35 & 820\\
+	gzip & 27 & 494\\
+	lapack/blas & 954 & 16422\\
+	make & 34 & 993\\ 
+	sed & 23 & 292\\
+	tar & 73 & 1712\\
 	\hline
 \end{tabular}
 \caption{List of analyzed open-source projects, with their respective number of
@@ -827,17 +829,18 @@ lines of code, and their number of control points in $P_R$}
 
 \begin{table*}
 \begin{center}
-\begin{tabular}{|l||r|r|r||r|r|r||r|r|r||r|r|r||r|r|r||} \hline
-\textbf{Benchmark} & \multicolumn{3}{c||}{\textbf{G/S}}
-& \multicolumn{3}{c||}{\textbf{PF/S}}
-& \multicolumn{3}{c||}{\textbf{PF/G}}
-& \multicolumn{3}{c||}{\textbf{G+PF/PF}}
-& \multicolumn{3}{c||}{\textbf{G+PF/G}} \\ \cline{2-16}
-& \textbf{lt} & \textbf{gt} & \textbf{un} 
-& \textbf{lt} & \textbf{gt} & \textbf{un} 
-& \textbf{lt} & \textbf{gt} & \textbf{un} 
-& \textbf{lt} & \textbf{gt} & \textbf{un} 
-& \textbf{lt} & \textbf{gt} & \textbf{un} \\
+\begin{tabular}{|l|rrr|rrr|rrr|rrr|rrr|} \hline
+\multicolumn{1}{|c|}{\textbf{Benchmark}}
+& \multicolumn{3}{c|}{\textbf{G/S}}
+& \multicolumn{3}{c|}{\textbf{PF/S}}
+& \multicolumn{3}{c|}{\textbf{PF/G}}
+& \multicolumn{3}{c|}{\textbf{G+PF/PF}}
+& \multicolumn{3}{c|}{\textbf{G+PF/G}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc.
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & inc. \\
  \hline
  \input{table1.tex}
 \end{tabular}
@@ -846,11 +849,12 @@ lines of code, and their number of control points in $P_R$}
 paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
 \emph{Path-focused} technique (PF), and our combined technique (G+PF). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
-over the classic Abstract interpretation algorithm. \textbf{lt} column gives the
-percentage of invariants more precise with the left-side technique,
-\textbf{gt} the percentage of invariants better with the right-side technique,
-and \textbf{un} gives the percentage of invariants that are uncomparable, i.e
+over the classic Abstract interpretation algorithm.
+The $\subseteq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
+$\subseteq$ the percentage of invariants better with the right-side technique,
+and ``inc.'' gives the percentage of invariants that are incomparable, i.e
 neither greater nor smaller.}
+% TODO: le reste c'est quand c'est egal?
 \label{tab:techniques}
 \end{table*}
 
