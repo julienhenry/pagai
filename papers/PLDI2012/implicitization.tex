@@ -313,7 +313,7 @@ Termination ensues from the finiteness of the control-flow graph.
 \subsection{Path-focusing}
 \label{sec:path_focusing}
 
-\citet{Monniaux_Gonnord_SAS11}'s \emph{path-focused} technique
+\citet{Monniaux_Gonnord_SAS11}'s \emph{path-focusing} technique
 distinguishes the different paths in the program in order to avoid loss of
 precision due to merge operations. Since the number of paths may be exponential,
 the technique keeps them implicit and computes them when needed using
@@ -366,7 +366,6 @@ In this section, we use the same notations as \ref{sec:path_focusing}, except
 that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
 another abstract value $X_i^d$ later in the algorithm.
 
-
 The combination of these two techniques aims at first discovering a precise
 inductive invariant for a subset of paths between two points in $P_R$, 
 by the mean of ascending and narrowing iterations. When an
@@ -418,7 +417,7 @@ We also maintain two sets of control points:
 We first check which paths become feasible, so that we can include them into the
 next subset of paths. The set $P'$ of new feasible paths is added to the
 previous set $P$. Each starting points of paths in $P'$ is added into $A$.
-We apply the Path-focused technique\cite{Monniaux_Gonnord_SAS11} to
+We apply the path-focusing \cite{Monniaux_Gonnord_SAS11} to
 the elements of $A$ until $A$ is empty. 
 When $A$ becomes empty, it means the
 invariant computation of the subgraph is finished. As proposed by
@@ -443,8 +442,8 @@ subgraph.
 \subsection{Ascending iterations by Path-focusing}
 \label{subsec:ascending}
 
-The algorithm for computing an inductive invariant over a subgraph is the
-Path-focused algorithm from \citet{Monniaux_Gonnord_SAS11} with special
+For computing an inductive invariant over a subgraph, we use the
+Path-focusing algorithm from \citet{Monniaux_Gonnord_SAS11} with special
 treatment for self loops (line~\ref{alg=pf} in algorithm~\ref{algo:combined}).
 
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
@@ -491,10 +490,10 @@ We distinguish two phases when analyzing a subgraph $P$:
 	are in $P$, i.e are included in the working subgraph. Each time we find a
 	path, we update the abstract value of the destination point of the path.
 	This is the phase explained in \ref{subsec:ascending}.
-\item  When the previous phase terminates, there is no more paths in
+\item  When the previous phase terminates, there are no more paths in
 $P$, starting at $p_i$, 
 that make the abstract values of the successors grow (otherwise, the SMT
-solver would not have answered ``\emph{unsat}''). Narrowing iterations preserves
+solver would not have answered ``\emph{unsat}''). Narrowing iterations preserve
 this property. 
 However, there may exist such paths in the entire multigraph, that are not in
 $P$. The second phase
@@ -502,7 +501,7 @@ computes these paths and adds them to $P'$ (line~\ref{alg=computeNewPaths} in
 algorithm~\ref{algo:combined}). We also use SMT solving to discover
 these new paths, but we slightly change the SMT formula given to the SMT solver:
 we now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
-P$. Since we already know that $f(p_i) \wedge P$ is \emph{unsatisfiable}, all
+P$. Since we already know that $f(p_i) \wedge P$ is unsatisfiable, all
 the paths given by the SMT solver won't be in $P$.
 \end{enumerate}
 
@@ -524,8 +523,7 @@ distinct from $X_j^s$, and initialized to $X_j^s$.
 Termination of this algorithm is guaranteed, because:
 \begin{itemize}
 \item 
-the subset of paths $P$ is
-strictly increasing at each loop iteration, and bounded by the finite set of
+the subset of paths $P$ strictly increases at each loop iteration, and bounded by the finite set of
 paths in the entire graph. 
 \item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
 which guarantees that $P'$
@@ -535,11 +533,11 @@ will eventually be empty after a finite number of loop iterations.
 \subsection{Example}
 
 We revise the rate limiter described in \ref{subsec:rate_lim}. In this example,
-\emph{Path-focused} technique works well because all the paths starting at the
+\emph{Path-focusing} works well because all the paths starting at the
 loop header are actually self loops. In such a case, the technique performs a
 widening/narrowing sequence or accelerates the loop, thus leading to a precise
-invariant. However, in real cases, there also exist paths that are not
-self loops, where \emph{Path-focusing} only performs a widening. 
+invariant. However, in some cases, there also exist paths that are not
+self loops, in which case \emph{Path-focusing} applies widening. 
 This widening may induce unrecoverable loss of precision.
 
 Suppose the main loop of the rate limiter contains a nested loop:
@@ -560,7 +558,7 @@ them being self loops, and the other half going to the header of the nested loop
 
 Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
 $\lstinline|x_old| \in~]-\infty,+\infty[$.
-Path-focused technique from \citet{Monniaux_Gonnord_SAS11} performs slightly
+Path-focusing \citep{Monniaux_Gonnord_SAS11} performs slightly
 better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
 
 Now, see how our technique performs on this example.
@@ -669,7 +667,7 @@ this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
 enumeration of an exponential number of paths.
 
-This technique is aimed at computing for a loop header $p_i$ a disjunctive invariant
+For a loop header $p_i$, this technique computes a disjunctive invariant
 $\bigvee_{1\leq j \leq m} X_{i,j}$. 
 To do so, one chooses an integer $\delta \in [1,m]$, and
 a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$, assuming there
@@ -689,13 +687,10 @@ Our method improves this technique in two ways :
 \begin{itemize}
 \item Instead of enumerating the whole set of paths, we keep them implicit and
 compute them only when needed.
-\item At each loop iteration of the algorithm explained in
-\cite{DBLP:conf/pldi/GulwaniZ10}, an image by a path and a union of abstract
-values are computed for each path and each disjunct. 
-Lots of these operations may be useless, in the sense that the resulting
-abstract value may not change.
-In our approach, we do this only for paths and disjuncts that makes the
-resulting abstract value grow.
+
+\item At each loop iteration of the original algorithm \citep{DBLP:conf/pldi/GulwaniZ10}, an image by each path inside the loop is computed for each disjunct of the invariant candidate.
+Yet, many of these images may be redundant: for instance, if our invariant candidate is $(0 \leq x \leq 10 \land 0 \leq y \leq 1000) \lor (x < -10 \land y < -10)$, then there is no point enumerating paths whose image is included in this invariant candidate.
+In our approach, we compute such an image only if it makes the resulting abstract value grow.
 \end{itemize}
 
 Our improvement consists in a modification of the SMT formula we solve in
@@ -861,8 +856,8 @@ over the classic Abstract interpretation algorithm.
 The $\subsetneq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
 $\supsetneq$ the percentage of invariants better with the right-side technique,
 and ``unc.'' gives the percentage of invariants that are uncomparable, i.e
-neither greater nor smaller.}
-% TODO: le reste c'est quand c'est egal? => OUI
+neither greater nor smaller;
+the code points where both invariants are equal make up the remaining percentage.}
 \label{tab:techniques}
 \end{table*}
 
