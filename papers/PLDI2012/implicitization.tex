@@ -791,7 +791,7 @@ abstract values at each control points in $P_R$.
 In this section, our experimental results come from the analysis of various
 open-source projects listed in Figure \ref{fig:projects}, written in C, C++ and
 Fortran.
-\begin{figure}[!h]
+\begin{table}[!h]
 	\centering
 \begin{tabular}{|l|r|r|} \hline
 	\multicolumn{1}{|c|}{Name} &
@@ -812,7 +812,7 @@ Fortran.
 \caption{List of analyzed open-source projects, with their respective number of
 lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
-\end{figure}
+\end{table}
 
 \subsection{Precision of the various techniques}
 
@@ -862,7 +862,7 @@ The $\subsetneq$ column gives the percentage of invariants more precise (smaller
 $\supsetneq$ the percentage of invariants better with the right-side technique,
 and ``unc.'' gives the percentage of invariants that are uncomparable, i.e
 neither greater nor smaller.}
-% TODO: le reste c'est quand c'est egal?
+% TODO: le reste c'est quand c'est egal? => OUI
 \label{tab:techniques}
 \end{table*}
 
@@ -896,6 +896,18 @@ of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 In such cases, such a technique should make the SMT-formula simpler to solve by using
 for instance \emph{linearization}. However, such transformations are not
 implemented in our analyzer.
+
+\begin{table}[!h]
+	\centering
+\begin{tabular}{|l|r|r|r|r|r|} \hline
+	Benchmark & \textbf{S} & \textbf{G} & \textbf{PF} & \textbf{G+PF} &
+	\textbf{DIS} \\ \hline
+	\input{table_time.tex} \hline
+\end{tabular}
+\caption{Execution time for each technique, expressed in seconds}
+\label{tab:time}
+\end{table}
+
 
 \subsection{Precision of Abstract Domains}
 
