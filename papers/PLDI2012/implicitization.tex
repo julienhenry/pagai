@@ -782,7 +782,6 @@ on the choice of the abstract domain.
 In order to compare the various techniques, we compare by inclusion the obtained
 abstract values at each control points in $P_R$.
 
-
 In this section, our experimental results come from the analysis of various
 open-source projects listed in Table \ref{fig:projects}, written in C, C++ and
 Fortran.
@@ -808,6 +807,23 @@ Fortran.
 lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{table}
+
+For the computation of disjunctive invariants, we experimented with a heuristic
+of dynamic construction of the $\sigma$ function, adapted from
+\cite{DBLP:conf/pldi/GulwaniZ10}.  We start with one sigle
+disjunct per control point ($m=1$), and we start with an empty map $\sigma$. We also
+define a maximal bound on the number of disjunct per control point, noted $M$.
+$\sigma(j,k)$ is then constructed on the fly only when needed.
+When $\sigma(j,k)$ needs to be computed, we first compute the image of the
+abstract value $X_k$ by the path indexed by $j$, and try to find an existing
+disjunct of index $k'$ so that the convex hull of the two abstract values is
+exactly the union of them. If such an index exists, then $\sigma(j,k) = k'$.
+Otherwise:
+\begin{itemize}
+	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
+	\item if $m = M$, we define $\sigma(j,k) = M$
+\end{itemize}
+
 
 \subsection{Precision of the various techniques}
 
@@ -878,7 +894,10 @@ statistically more precise than the other techniques.
 The analysis using disjunctive invariants seems not to be as efficient as
 expected, and often finds greater invariants than the combined technique
 ($11.64\%$). It probably means that our heuristic for the construction of
-$\sigma$ is not effective.
+$\sigma$ is not effective enough. Usually, disjunctive invariants computation
+finds precise loop invariants because they allow to distinguish for
+instance the first loop iterations. In our case, such benefits are not
+visible, since we have already unrolled every loops once.
 
 While experiencing with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
@@ -891,6 +910,12 @@ of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 In such cases, such a technique should make the SMT-formula simpler to solve by using
 for instance \emph{linearization}. However, such transformations are not
 implemented in our analyzer.
+
+Table \ref{tab:time} gives the execution time of the different analysis
+techniques. It is interesting to see that \emph{Guided Static Analysis} and
+\emph{Path-focusing} technique are sometimes faster than the classical
+algorithm. Our techniques are slower, but on the same order of magnitude than
+the previous techniques.
 
 \begin{table}[!h]
 	\centering
