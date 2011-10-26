@@ -18,7 +18,10 @@
 %\usepackage{graphicx}
 %\usepackage{color}
 
-\usepackage[load-configurations = version-1]{siunitx}
+%\usepackage[load-configurations = version-1]{siunitx}
+\usepackage{siunitx}
+% on ajoute cette ligne pour forcer siunitx a la version 1
+\sisetup{debug=3Dfalse}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
