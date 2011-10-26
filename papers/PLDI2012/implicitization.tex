@@ -305,7 +305,7 @@ Analyzing this loop using widening and narrowing on convex polyhedra or octagons
 More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body (left side of Fig.~\ref{fig:multigraph});
 for each subset, an inductive invariant is computed for the program restricted to it.
 The starting subset are the transitions reachable in one step from the loop initialization.
-If for a given subset $S$ in the sequence, no transitions outside of $S$ are reachable from the inductive invariant attached to $S$, then iterations stop;
+If for a given subset $S$ in the sequence, no transitions outside $S$ are reachable from the inductive invariant attached to $S$, then iterations stop;
 otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
 
@@ -349,8 +349,8 @@ points in $P_R$.
 
 In order to find focus paths, we solve an SMT formula which is satisfiable when
 there exist a path starting at a point $p_i \in P_R$ in a state included in the
-actual invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
-state outside of $X_j$. In this case, we construct this path using the model and
+current invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
+state outside $X_j$. In this case, we construct this path using the model and
 update $X_j$. When $p_i = p_j$, meaning that the path is actually a self-loop,
 we can apply a widening/narrowing sequence, or even compute the transitive
 closure of the loop using abstract acceleration. % TODO citation laure gonnord
@@ -449,7 +449,7 @@ treatment for self loops (line~\ref{alg=pf} in algorithm~\ref{algo:combined}).
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
 model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
 \in P_R$ of $p_i$, such that the image of $X_{i}^s$ by the path transformation
-is not included in the actual $X_{j}^s$.
+is not included in the current $X_{j}^s$.
 Intuitively, such a path makes the abstract value $X_{j}^s$ grow, and thus is
 an interesting path to focus on. We loop until the formula becomes unsatisfiable,
 meaning that the analysis of $p_i$ is finished.
@@ -585,7 +585,7 @@ loop.
 		\emph{if-then-else} at lines 7,8 and 9, is also 
 		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
 		new subgraph. Again, there is no new path that goes to $p_11$ with an
-		image outside of $-10 \leq \lstinline|x_old| \leq 10$.
+		image outside $-10 \leq \lstinline|x_old| \leq 10$.
 	\item
 		We apply Path Focusing on this new subgraph (\ref{fig:example-graph}
 		Step 2). When we have reached an inductive invariant, we narrow, and the
