@@ -817,7 +817,9 @@ A first benefit is to limit the number of dimensions in the abstract values, sin
 Note that this means that the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment.
 
 Our analysis tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
-The remaining memory accesses are treated as undefined values, as are the return values of function calls. For better precision, we also apply function inlining to the program.
+The remaining memory accesses are treated as undefined values, as are the return
+values of function calls. For better precision, we also apply function inlining
+to the program, and we unroll every loop once.
 
 For the computation of disjunctive invariants, we experimented with a heuristic
 of dynamic construction of the $\sigma$ function, adapted from
@@ -893,10 +895,15 @@ We compared the precision of the different techniques described in this article 
 \item For each program, we distinguished a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, we compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles.
 (More sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}).
 
-\item For each program and each pair $(T_1,T_2)$ of analysis techniques, we list the proportion of control points in $P_R$ where $T_1$ (resp.~$T_2$) gives a strictly stronger invariant, denoted by $\subsetneq$ (resp. $\supsetneq$), and the proportion of control points where the invariants given by $T_1$ and $T_2$ are uncomparable for the inclusion ordering (the remainder of the control points are thus those for which both techniques give the same invariant).
+\item For each program and each pair $(T_1,T_2)$ of analysis techniques, we list
+	the proportion of control points in $P_R$ where $T_1$ (resp.~$T_2$) gives a
+	strictly stronger invariant, denoted by $\subsetneq$ (resp. $\supsetneq$),
+	and the proportion of control points where the invariants given by $T_1$ and
+	$T_2$ are uncomparable for the inclusion ordering (the remainder of the
+	control points are thus those for which both techniques give the same
+	invariant). We use convex polyhedra as the abstract domain.
 \end{itemize}
 
-% TODO: avec quel domaine abstrait?
 % TODO: discuter du big step SSA?
 % TODO: cite SSA
 
