@@ -801,6 +801,24 @@ lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{table}
 
+\subsection{Analysis algorithm}
+Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}. LLVM bitcode is in \emph{single static assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
+LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
+One may see conversion to SSA form as a static precomputation of some of the symbolic propagations proposed by \citet{DBLP:conf/vmcai/Mine06} to enhance the precision of analyses.
+
+SSA introduces $\phi$-functions at the head of a control code to define variables whose value depends on which incoming edge to this control node was last taken. For instance, for \lstinline|if (...) { x = 2*x+1; } else { x= 0; }|, then $x_2$ is defined as $\phi(2x_1+1,0)$. In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves cannot be represented as affine linear functions, because they are defined using $\phi$-functions, bitwise arithmetic, loads from memory, or return values from function calls.
+
+This motivates a key implement decision of our tool: only those variables $v_1,\dots,v_n$ that are not defined by arithmetic operations are retained as coordinates in the abstract domain (e.g. as dimensions in polyhedra). A basic block of code therefore amounts to a \emph{parallel assignment} operation
+$(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
+(f_1(v_1,\dots,v_n), \allowbreak, \dots, \allowbreak
+ f_n(v_1,\dots,v_n))$;
+such operations are directly supported by APRON.
+A first benefit is to limit the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions. TODO
+Note that this means that the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment.
+
+Our analysis tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
+The remaining memory accesses are treated as undefined values, as are the return values of function calls. For better precision, we also apply function inlining to the program.
+
 For the computation of disjunctive invariants, we experimented with a heuristic
 of dynamic construction of the $\sigma$ function, adapted from
 \cite{DBLP:conf/pldi/GulwaniZ10}.  We start with one sigle
@@ -877,13 +895,6 @@ We compared the precision of the different techniques described in this article 
 
 \item For each program and each pair $(T_1,T_2)$ of analysis techniques, we list the proportion of control points in $P_R$ where $T_1$ (resp.~$T_2$) gives a strictly stronger invariant, denoted by $\subsetneq$ (resp. $\supsetneq$), and the proportion of control points where the invariants given by $T_1$ and $T_2$ are uncomparable for the inclusion ordering (the remainder of the control points are thus those for which both techniques give the same invariant).
 \end{itemize}
-
-Our analysis tool currently only operates over scalar variable and cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
-The remaining memory accesses are treated as undefined values, as are the return
-values of function calls. For better precision, we apply function inlining
-to the program, and we also unroll the loops once.
-
-The analyses are performed using convex polyhedra as abstract domain. Variables defined by linear expressions over other variables (e.g. $y=x+1$) are not retained as dimensions in the polyhedra; therefore the only variables appearing in the polyhedra are those defined by $\phi$ operators (join points) in the SSA representation, and those introduced by constructs we cannot model as linear operations, such as loads from memory, return values from function calls, or bitwise arithmetic.
 
 % TODO: avec quel domaine abstrait?
 % TODO: discuter du big step SSA?
