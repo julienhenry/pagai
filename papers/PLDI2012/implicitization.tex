@@ -879,7 +879,9 @@ We compared the precision of the different techniques described in this article 
 \end{itemize}
 
 Our analysis tool currently only operates over scalar variable and cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
-The remaining memory accesses are treated as undefined values, as are the return values of function calls. For better precision, we also apply function inlining to the program.
+The remaining memory accesses are treated as undefined values, as are the return
+values of function calls. For better precision, we apply function inlining
+to the program, and we also unroll the loops once.
 
 The analyses are performed using convex polyhedra as abstract domain. Variables defined by linear expressions over other variables (e.g. $y=x+1$) are not retained as dimensions in the polyhedra; therefore the only variables appearing in the polyhedra are those defined by $\phi$ operators (join points) in the SSA representation, and those introduced by constructs we cannot model as linear operations, such as loads from memory, return values from function calls, or bitwise arithmetic.
 
