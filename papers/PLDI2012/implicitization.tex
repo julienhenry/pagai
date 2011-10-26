@@ -89,7 +89,7 @@ SMT-solving, static analysis, abstract interpretation, disjunctions
 Static analysis by abstract interpretation is a fully automatic program analysis method. When applied to imperative programs, it computes an inductive invariant mapping each program location (or a subset thereof) to a set of states represented symbolically~\cite{CousotCousot_JLC92}.
 For instance, if we are only interested in scalar numerical program variables, such a set may be a convex polyhedron (the set of solutions of a system of linear inequalities)~\cite{CousotHalbwachs78,PPL,BagnaraHZ08SCP}.
 
-In such an analysis, information may flow forward (one computes the polyhedron after a program statement as the image, or a super-set thereof, of the polyhedron before by the semantics of the statement) or backward;
+In such an analysis, information may flow forward (one computes the polyhedron after a program statement as the image by the semantics of the statement, or a super-set thereof, of the polyhedron before) or backward;
 forward program analysis computes super-sets of the states reachable from the initialization of the program, backward program analysis computes super-sets of the states co-reachable from some property of interest (for instance, the violation of an assertion).
 In forward analysis, control-flow joins correspond to computation of convex hulls if using convex polyhedra (more generally, they correspond to least upper bounds in a lattice); in backward analysis, it is control-flow splits.
 
