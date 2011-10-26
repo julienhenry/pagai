@@ -18,8 +18,7 @@
 %\usepackage{graphicx}
 %\usepackage{color}
 
-%\usepackage[load-configurations = version-1]{siunitx}
-\usepackage{siunitx}
+\usepackage{dcolumn}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
@@ -834,11 +833,11 @@ lines of code, and their number of control points in $P_R$}
 \begin{center}
 \setlength{\tabcolsep}{1ex}
 \begin{tabular}{|l
-|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
-|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
-|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
-|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]%
-|S[tabnumalign=right,tabformat=2.2]S[tabnumalign=right,tabformat=1.2]S[tabnumalign=right,tabformat=1.2]|} \hline
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
 \multicolumn{1}{|c|}{\textbf{Benchmark}}
 & \multicolumn{3}{c|}{\textbf{G/S}}
 & \multicolumn{3}{c|}{\textbf{PF/S}}
