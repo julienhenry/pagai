@@ -365,7 +365,8 @@ current invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
 state outside $X_j$. In this case, we construct this path using the model and
 update $X_j$. When $p_i = p_j$, meaning that the path is actually a self-loop,
 we can apply a widening/narrowing sequence, or even compute the transitive
-closure of the loop using abstract acceleration. % TODO citation laure gonnord
+closure of the loop (or an approximation thereof, or its application to $X_i$)
+using abstract acceleration~\cite{DBLP:conf/sas/GonnordH06}.
 
 \section{Guided analysis over the paths}
 \label{sec:guided_multigraph}
