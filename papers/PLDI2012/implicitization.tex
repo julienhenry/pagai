@@ -20,6 +20,7 @@
 %\usepackage{graphicx}
 %\usepackage{color}
 
+\usepackage{enumitem}
 \usepackage{dcolumn}
 
 \usepackage{listings}
@@ -284,7 +285,7 @@ Consider the following program:
 
 \begin{figure}
 \begin{center}
-\includegraphics{figures/gopan_reps}
+\includegraphics[scale=0.75]{figures/gopan_reps}
 \end{center}
 \caption{The invariant for Prog.~\ref{lst:gopan_reps}: the piecewise linear, solid line is the strongest invariant, the grayed polyhedron is its convex hull.}
 \label{fig:gopan_reps_invariant} 
@@ -965,7 +966,7 @@ of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 \emph{Lapack/Blas} implements matrix computations, which use floating-point multiplications.
 
 In cases where the formula is expressed in too rich a logic for the SMT-solver to deal with, a number of workarounds are possible:
-\begin{itemize}
+\begin{itemize}[itemsep=-\parsep,topsep=0pt,partopsep=0pt]
 \item \emph{Linearization}, as per \citet{DBLP:conf/vmcai/Mine06}, which overapproximates nonlinear semantics by linear semantics.
 \item Replacing the results of nonlinear operations by ``unknown''.
 \end{itemize}
