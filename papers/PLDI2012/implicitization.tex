@@ -280,15 +280,23 @@ contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recas
 \label{sec:guided}
 \emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improvement over classical upward Kleene iterations with widening.
 Consider the following program:
-\lstinputlisting{gopan_reps.c}
+\lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
+
+\begin{figure}
+\begin{center}
+\includegraphics{figures/gopan_reps}
+\end{center}
+\caption{The invariant for Prog.~\ref{lst:gopan_reps}: the piecewise linear, solid line is the strongest invariant, the grayed polyhedron is its convex hull.}
+\label{fig:gopan_reps_invariant} 
+\end{figure}
 
 Classical iterations on the domain of convex polyhedra \cite{Halbwachs_PhD,CousotHalbwachs78} or octagons \cite{Mine_PhD,DBLP:journals/lisp/Mine06} start with $x = 0 \land x = 0$, then continue with $x = y \land 0 \leq x \leq 1$.
 The widening operator extrapolates from these two iterations and yields $x = y \land x \geq 0$.
 From there, the ``else'' branch at line 5 may be taken; with further widening, $0 \leq y \leq x$ is obtained as a loop invariant, and thus the postcondition computed at line 9 is $x \geq 0 \land y = 0$.
-Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron, is
+Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron (Fig.~\ref{fig:gopan_reps_invariant}), is
 \begin{equation}
 y \leq x \land y \leq 102-x \land y \geq 0.\label{eqn:triangle}
-\end{equation} % TODO fig
+\end{equation}
 Intuitively, this disappointing result is obtained because widening extrapolates from the first iterations of the loop, but the loop has two different phases ($x \leq 50$ and $x > 50$) with different behaviors, thus the extrapolation from the first phase is not valid for the second.
 
 \citeauthor{DBLP:conf/sas/GopanR07}' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~\ref{eqn:triangle}; each phase is identified by the tests taken or not taken.
