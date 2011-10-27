@@ -23,7 +23,7 @@
 \usepackage{dcolumn}
 
 \usepackage{listings}
-\lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
+\lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2,breaklines=true} % basicstyle={\rm\fontfamily{ppl}\selectfont} trop reconnaissable
 
 \usepackage{tikz}
 \usetikzlibrary{arrows,automata}
@@ -832,9 +832,11 @@ This motivates a key implement decision of our tool: only those variables $v_1,\
 $(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
 (f_1(v_1,\dots,v_n), \allowbreak, \dots, \allowbreak
  f_n(v_1,\dots,v_n))$;
-such operations are directly supported by APRON.
-A first benefit is to limit the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions.
-A second benefit is that the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment.
+such operations are directly supported by APRON. This has three benefits:
+(i) it limits the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions;
+(ii) the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment;
+(iii) as suggested by \citet{DBLP:conf/vmcai/Mine06}, this approach is more precise than running abstract operations for each program line separately:
+for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a line-by-line interval analysis obtains $y \in [0,1]$ and $z \in [-1,1]$ while our ``en bloc'' analysis symbolically simplifies $z = x - x = 0$ and thus $z \in [0,0]$.
 
 We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
 
