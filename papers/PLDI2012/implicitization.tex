@@ -376,8 +376,9 @@ compute an inductive invariant for this new subset, starting with the results
 from the previous analysis.
 In other words, our technique considers an ascending sequence of
 subsets of the paths between two points in $P_R$.
-We iterate the operations until we consider the whole program, i.e all the
-feasible paths. The result will then be an inductive invariant of the entire program.
+We iterate the operations until the whole program (i.e all the
+feasible paths) has been considered. The result will then be an
+inductive invariant of the entire program.
 
 \subsection{Algorithm}
 
@@ -421,13 +422,7 @@ We distinguish three phases in the main loop of the analysis:
   ``\emph{unsat}''). Narrowing iterations preserve this property.
   However, there may exist such paths in the entire multigraph, that
   are not in $P$. This phase computes these paths and adds them to
-  $P'$ (line~\ref{alg=computeNewPaths} in
-  algorithm~\ref{algo:combined}). We also use SMT solving to discover
-  these new paths, but we slightly change the SMT formula given to the
-  SMT solver: we now simply check for the satisfiability of $f(p_i)$
-  instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
-  \wedge P$ is unsatisfiable, all the paths given by the SMT solver
-  won't be in $P$. This phase is described in~\ref{subsec:addingpaths}
+  $P'$. This phase is described in~\ref{subsec:addingpaths}
   and corresponds to lines in~\ref{alg=start-add-paths} to
   \ref{alg=end-add-paths} algorithm~\ref{algo:combined}.
 \item \label{step:ascending} Given a new subset $P$, we search for paths starting at point
@@ -463,9 +458,19 @@ widening, \emph{before} computing and taking into account new feasible paths.
 Thus, our technique combines both the advantages of \emph{Guided Static
 Analysis} and \emph{Path-focusing}.
 
+\MM{Pas sûr que ça soit nécessaire, mais vu qu'on a eu une version
+  fausse avant, c'est peut-être bien de dire comment on est arrivés à
+  la meilleure version.}
+The order of steps is important: narrowing has to be performed before
+adding new paths, or some spurious new paths would be added to $P$,
+and starting with the addition of new paths avoids wasting time
+doing the ascending iterations on an empty graph.
 
 \subsection{Ascending iterations by Path-focusing}
 \label{subsec:ascending}
+
+\MM{Maintenant que l'ordre a changé dans l'algo, on peut peut-être
+  échanger cette section et la suivante ?}
 
 For computing an inductive invariant over a subgraph, we use the
 Path-focusing algorithm from \citet{Monniaux_Gonnord_SAS11} with special
@@ -502,20 +507,23 @@ to give us a path included in $P$.
 
 Our technique computes the fixpoint iterations on a ascending sequence of
 subgraphs, until the complete graph is reached.
-
 When the analysis of a subgraph is finished, meaning that the abstract values
 for each control points has converged to an inductive invariant for this subgraph,
 the next subgraph to work on has to be computed.
 
 This new subgraph is the union of the paths of the previous one with a set
 $P'$ of new paths that become feasible regarding the current abstract values.
+The paths in $P'$ are computed one after another, until no more path
+can make the invariant grow. This is line~\ref{alg=computeNewPaths} in
+Algorithm~\ref{algo:combined}, which corresponds to
+Algorithm~\ref{algo:computepaths}. We also use SMT solving to discover
+these new paths, but we subtly change the SMT formula given to the
+SMT solver: we now simply check for the satisfiability of $f(p_i)$
+instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
+\wedge P$ is unsatisfiable, none of the paths given by the SMT solver
+will be in $P$.
 
-\MM{Cette partie est devenue toute petite, il y avait un résumé global
-  de l'algo ici. Ça me parait suffisant comme ça}
-
-It is not necessary to add into $P'$ all the new feasible paths. We just have
-to add them one after another, until no more path can make the invariant grow,
-as proposed by Algorithm \ref{algo:computepaths}. For that, we use another
+We use another
 abstract value associated to a control point $p_j$, noted $X_j^d$, which is
 distinct from $X_j^s$, and initialized to $X_j^s$.
 
@@ -850,6 +858,8 @@ Otherwise:
 \subsection{Precision of the various techniques}
 
 \begin{figure}[h]
+  \MM{Y a-t-il moyen d'avoir un truc plus lisible en impression noir
+    et blanc, genre des hachures ?}
   \begin{center}
     \input{./techniques.tex}
   \end{center} 
