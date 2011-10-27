@@ -377,17 +377,37 @@ subsets of the paths between two points in $P_R$.
 We iterate the operations until we consider the whole program, i.e all the
 feasible paths. The result will then be an inductive invariant of the entire program.
 
-\begin{algorithm}
-  \begin{algorithmic}
-    \STATE \textit{Subset} $\gets \emptyset$
-    \WHILE{true}
-    \STATE Add new paths to \textit{Subset} (lines~\ref{alg=start-add-paths}-\ref{alg=end-add-paths} in algorithm~\ref{algo:combined})
-    \STATE Ascending iteration on \textit{Subset} (lines~\ref{alg=start-ascending}-\ref{alg=end-ascending} in algorithm~\ref{algo:combined})
-    \STATE Narrow (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined})
-    \ENDWHILE
-  \end{algorithmic}
-\end{algorithm}
 
+We distinguish three phases in the main loop of the analysis:
+\begin{enumerate}
+\item Whe start finding a relevant subset $P \cup P'$ of the graph.
+  Either the previous iteration or the initialization lead us to a
+  state where there are no more paths in the previous subset $P$,
+  starting at $p_i$, that make the abstract values of the successors
+  grow (otherwise, the SMT solver would not have answered
+  ``\emph{unsat}''). Narrowing iterations preserve this property.
+  However, there may exist such paths in the entire multigraph, that
+  are not in $P$. This phase computes these paths and adds them to
+  $P'$ (line~\ref{alg=computeNewPaths} in
+  algorithm~\ref{algo:combined}). We also use SMT solving to discover
+  these new paths, but we slightly change the SMT formula given to the
+  SMT solver: we now simply check for the satisfiability of $f(p_i)$
+  instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
+  \wedge P$ is unsatisfiable, all the paths given by the SMT solver
+  won't be in $P$. This phase is described in~\ref{subsec:addingpaths}
+  and corresponds to lines in~\ref{alg=start-add-paths} to
+  \ref{alg=end-add-paths} algorithm~\ref{algo:combined}.
+\item Given a new subset $P$, we search for paths starting at point
+  $p_i \in P_R$, such that these paths are in $P$, i.e are included in
+  the working subgraph. Each time we find a path, we update the
+  abstract value of the destination point of the path. This is the
+  phase explained in~\ref{subsec:ascending}, and corresponds to
+  lines~\ref{alg=start-ascending} to~\ref{alg=end-ascending} in
+  algorithm~\ref{algo:combined}.
+\item We perform narrowing iterations the usual way
+  (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined}) and
+  reiterate from step 1 unless there are no more states to explore.
+\end{enumerate}
 
 %\MM{Je trouve qu'il manque une vue de haut niveau quelque part par
 %  ici. Dire qu'en gros, l'algo, c'est (en pseudo-code ou en langue naturelle) :
@@ -462,7 +482,8 @@ $$f(p_i) = \rho \wedge b_i^s \wedge
 b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
 x \notin X_j^s)$$
 
-Since we do not work on the entire transition graph but on a subset of it, we
+The difference with~\citet{Monniaux_Gonnord_SAS11} is that we do not
+work on the entire transition graph but on a subset of it. Therefore we
 conjoin the formula $f(p_i)$ with the actual set of working paths,
 noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 \emph{reachability predicates} of the control points. We can easily construct
@@ -484,26 +505,8 @@ the next subgraph to work on has to be computed.
 This new subgraph is the union of the paths of the previous one with a set
 $P'$ of new paths that become feasible regarding the current abstract values.
 
-We distinguish two phases when analyzing a subgraph $P$:
-\begin{enumerate}
-\item We search for paths starting at point $p_i \in P_R$, such that these paths
-	are in $P$, i.e are included in the working subgraph. Each time we find a
-	path, we update the abstract value of the destination point of the path.
-	This is the phase explained in \ref{subsec:ascending}.
-\item  When the previous phase terminates, there are no more paths in
-$P$, starting at $p_i$, 
-that make the abstract values of the successors grow (otherwise, the SMT
-solver would not have answered ``\emph{unsat}''). Narrowing iterations preserve
-this property. 
-However, there may exist such paths in the entire multigraph, that are not in
-$P$. The second phase
-computes these paths and adds them to $P'$ (line~\ref{alg=computeNewPaths} in
-algorithm~\ref{algo:combined}). We also use SMT solving to discover
-these new paths, but we slightly change the SMT formula given to the SMT solver:
-we now simply check for the satisfiability of $f(p_i)$ instead of $f(p_i) \wedge
-P$. Since we already know that $f(p_i) \wedge P$ is unsatisfiable, all
-the paths given by the SMT solver won't be in $P$.
-\end{enumerate}
+\MM{Cette partie est devenue toute petite, il y avait un résumé global
+  de l'algo ici. Ça me parait suffisant comme ça}
 
 It is not necessary to add into $P'$ all the new feasible paths. We just have
 to add them one after another, until no more path can make the invariant grow,
