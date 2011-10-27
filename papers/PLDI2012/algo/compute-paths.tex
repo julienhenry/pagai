@@ -1,12 +1,12 @@
 \WHILE{true}
 	\STATE $res \gets SmtSolve\left[
-	 f(X_i)
+	 f(X_i^s) 
 	\right]$
 	\IF {$res = unsat$}
 		\STATE \textbf{break}
 	\ENDIF
 	\STATE Compute the path $e$ from the model
-	\STATE $X_j \gets X_j \cup e(X_i)$
+	\STATE Update $X^d_j$
 	\STATE $P' \gets P' \cup \{e\}$
 	\STATE $A \gets A \cup \{p_i\}$
 \ENDWHILE
