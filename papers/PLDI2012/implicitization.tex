@@ -364,9 +364,7 @@ Guided static analysis \cite{DBLP:conf/sas/GopanR07} applies to the transition
 graph of the program. We now present a new technique applying this analysis on the implicit
 multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
 unfeasible paths.
-In this section, we use the same notations as \ref{sec:path_focusing}, except
-that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
-another abstract value $X_i^d$ later in the algorithm.
+In this section, we use the same notations as \ref{sec:path_focusing}.
 
 The combination of these two techniques aims at first discovering a precise
 inductive invariant for a subset of paths between two points in $P_R$, 
@@ -478,19 +476,19 @@ treatment for self loops (line~\ref{alg=pf} in algorithm~\ref{algo:combined}).
 
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
 model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
-\in P_R$ of $p_i$, such that the image of $X_{i}^s$ by the path transformation
-is not included in the current $X_{j}^s$.
-Intuitively, such a path makes the abstract value $X_{j}^s$ grow, and thus is
+\in P_R$ of $p_i$, such that the image of $X_{i}$ by the path transformation
+is not included in the current $X_{j}$.
+Intuitively, such a path makes the abstract value $X_{j}$ grow, and thus is
 an interesting path to focus on. We loop until the formula becomes unsatisfiable,
 meaning that the analysis of $p_i$ is finished.
 
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
-successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
+successor of $p_i$ in the expanded multigraph, and $X_i$ the abstract value
 associated to $p_i$ :
 $$f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
-b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
-x \notin X_j^s)$$
+b_j^s \wedge x \in X_i \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+x \notin X_j)$$
 
 The difference with~\citet{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
@@ -522,10 +520,6 @@ SMT solver: we now simply check for the satisfiability of $f(p_i)$
 instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
 \wedge P$ is unsatisfiable, none of the paths given by the SMT solver
 will be in $P$.
-
-We use another
-abstract value associated to a control point $p_j$, noted $X_j^d$, which is
-distinct from $X_j^s$, and initialized to $X_j^s$.
 
 \begin{algorithm}
 	\caption{ComputeNewPaths}
