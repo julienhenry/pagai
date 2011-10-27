@@ -215,7 +215,7 @@ void AIdis::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
+			*Out << "COMPUTEPATHS------ NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		// creating the SMTpass formula we want to check
@@ -245,8 +245,6 @@ void AIdis::computeNewPaths(Node * n) {
 
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
 
-		Xdisj->change_environment(Xtemp->main->env,index);
-
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 		int Sigma = sigma(path,index,Xtemp,false);
 		Join.clear();
@@ -258,6 +256,10 @@ void AIdis::computeNewPaths(Node * n) {
 
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,true);
+		DEBUG(
+			*Out << "INSERTING INTO P THE PATH\n";
+			printPath(path);
+		);
 		A.push(n);
 	}
 }
@@ -350,7 +352,7 @@ void AIdis::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "COMPUTENODE------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
