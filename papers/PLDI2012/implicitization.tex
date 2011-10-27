@@ -109,6 +109,11 @@ used for enforcing convergence when searching for loop invariants by Kleene iter
 
 All these methods improve the precision of the analysis by keeping the same abstract domain (say, convex polyhedra) but changing the operations applied and their ordering. An alternative is to change the abstract domain, for instance by moving from intervals to octagons or convex polyhedra \cite{DBLP:journals/lisp/Mine06,Mine_PhD}, or the widening operator: for instance one may replace the classical widening on convex polyhedra \cite{CousotHalbwachs78,Halbwachs_PhD} by an improved version \cite{BagnaraHRZ05SCP}, or use widening ``up to'', that is, use linear inequalities syntactically present in the program source code as possible widening steps~\cite{Polka:FMSD:97}.
 
+\MM{Peut-être dire quelque part vers ici que le widening n'est en
+  général pas monotone, et que donc on ne peut jamais rien dire en
+  théorie sur la précision vu qu'être plus précis à une itération peut
+  faire perdre en précision la suivante ...}
+
 There are many possible combinations of the above techniques, and it is not evident which ones perform more or less precisely or more or less efficiency on real-life examples. One needs to experiment. Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.
 \medskip
 
