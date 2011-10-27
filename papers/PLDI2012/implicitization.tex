@@ -964,6 +964,36 @@ the previous techniques.
 
 \subsection{Precision of Abstract Domains}
 
+\begin{table*}
+\begin{center}
+\setlength{\tabcolsep}{1ex}
+\begin{tabular}{|l
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
+\multicolumn{1}{|c|}{\textbf{Benchmark}}
+& \multicolumn{3}{c|}{\textbf{PK/OCT}}
+& \multicolumn{3}{c|}{\textbf{PK/BOX}}
+& \multicolumn{3}{c|}{\textbf{OCT/BOX}}
+& \multicolumn{3}{c|}{\textbf{PK/PKEQ}}
+& \multicolumn{3}{c|}{\textbf{OCT/PKEQ}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
+ \hline
+ \input{table_domain.tex}
+\end{tabular}
+\end{center}
+\caption{Results of the comparison of the various abstract domains, when using
+the same technique (G+PF).}
+\label{tab:time}
+\end{table*}
+
+
 
 \section{Conclusion}
 
