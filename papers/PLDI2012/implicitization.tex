@@ -833,13 +833,17 @@ $(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
 (f_1(v_1,\dots,v_n), \allowbreak, \dots, \allowbreak
  f_n(v_1,\dots,v_n))$;
 such operations are directly supported by APRON.
-A first benefit is to limit the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions. TODO
-Note that this means that the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment.
+A first benefit is to limit the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions.
+A second benefit is that the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment.
+
+We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
 
 Our analysis tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
 The remaining memory accesses are treated as undefined values, as are the return
 values of function calls. For better precision, we also apply function inlining
 to the program, and we unroll every loop once.
+
+Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
 
 For the computation of disjunctive invariants, we experimented with a heuristic
 of dynamic construction of the $\sigma$ function, adapted from
