@@ -109,14 +109,8 @@ used for enforcing convergence when searching for loop invariants by Kleene iter
 
 All these methods improve the precision of the analysis by keeping the same abstract domain (say, convex polyhedra) but changing the operations applied and their ordering. An alternative is to change the abstract domain, for instance by moving from intervals to octagons or convex polyhedra \cite{DBLP:journals/lisp/Mine06,Mine_PhD}, or the widening operator: for instance one may replace the classical widening on convex polyhedra \cite{CousotHalbwachs78,Halbwachs_PhD} by an improved version \cite{BagnaraHRZ05SCP}, or use widening ``up to'', that is, use linear inequalities syntactically present in the program source code as possible widening steps~\cite{Polka:FMSD:97}.
 
-\MM{Peut-être dire quelque part vers ici que le widening n'est en
-  général pas monotone, et que donc on ne peut jamais rien dire en
-  théorie sur la précision vu qu'être plus précis à une itération peut
-  faire perdre en précision la suivante ...}
-
-There are many possible combinations of the above techniques, and it is not
-evident which ones perform more or less precisely or more or less efficiently on real-life examples. One needs to experiment. Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.
-\medskip
+There are many possible combinations of the above techniques, and it is not evident which ones perform more or less precisely or more or less efficiency on real-life examples. One needs to experiment.
+Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.
 
 This article makes the following contributions:
 \begin{enumerate}
@@ -125,8 +119,9 @@ This article makes the following contributions:
 \item We implemented these techniques, in addition to ``classical'' iterations and the original guided static analysis, inside a prototype static analyzer.
 This tool uses the LLVM bitcode format \cite{Lattner:2004:LCF:977395.977673,LLVM_langref} as input, which can be produced by compilation from C, C++ and Fortran, enabling it to be run on many real-life programs.
 With respect to abstract domains on numerical variables, it uses the APRON library \cite{DBLP:conf/cav/JeannetM09}, which supports a variety of abstract domains from which we can choose with minimal changes to our analyzer.
-This article summarizes our implementation decisions for analysis of SSA-form programs.
-\item We conducted extensive experiments with this tool, on real-life programs, thus obtaining experimental comparisons between the various combinations of techniques. (\S\ref{sec:experiments})
+Section~\ref{sec:analysis-algorithm} summarizes our implementation decisions for analysis of SSA-form programs.
+
+\item We conducted extensive experiments with this tool, on real-life programs: (i) fixing the abstract domain, varying the iteration technique (\S~\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains}).
 \end{enumerate}
 
 \section{Bases}
@@ -160,6 +155,12 @@ Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascendi
 Such iterations necessarily lead to a stationary limit $(\abstr{x}_p)_{p \in P}$, which defines an inductive invariant $(\gamma(\abstr{x}_p))_{p \in P}$. Note that this invariant is not, in general, the least one expressible in the abstract domain, and may depend on the iteration ordering (the successive choices~$p,p'$).
 
 Once an inductive invariant $\gamma((\abstr{x}_p)_{p \in P})$ has been obtained, one can attempt \emph{decreasing} or \emph{narrowing} iterations to reduce it. In their simplest form, this just means running the following operation until a fixpoint or a maximal number of iterations are reached: for any $p'$, replace $\abstr{x}_{p'}$ by $\abstr{x}_p \cap \left(\bigsqcup_{p \in P} \abstr{\tau}_{p,p'} (\abstr{x}_p)\right)$. The result also defines an inductive invariant. These decreasing iterations are indispensable to recover properties from guards (tests) in the program in most iteration settings; unfortunately, certain loops, particularly those involving identity (no-operation) transitions, may foil them: the iterations immediately reach a fixpoint and do not decrease further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and \ref{sec:path_focusing} describe techniques that work around this problem.
+
+Widening operations have a somewhat counterintuitive behavior: the result of an analysis (postcondition) is not necessarily monotonic with respect to the precondition. For instance, classical interval analysis with widening and decreasing iterations on the following loop yields a loop invariant $x \in [0,+\infty)$ if the precondition is $x \in [0,0]$ , but $x \in [0,10]$ (strictly stronger) if the precondition is $x \in [0,10]$ (strictly weaker):
+\lstinline|while (x != 10) x=x+1;|.
+This means that, when using widenings, being locally more precise (for instance, by using more expressive abstract domains, or widening operators that climb more slowly \cite{BagnaraHRZ05SCP}) does not necessarily translate into higher final precision.
+It is almost always possible to concoct examples where a supposedly more precise abstraction (e.g. polyhedra) yields less precise results than a less precise one (e.g. intervals), but are these examples representative of real programs?
+This justifies our recourse to evaluation on realistic examples~(\S~\ref{sec:compare_techniques}).
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
@@ -961,9 +962,6 @@ We compared the precision of the different techniques described in this article 
 	invariant). We use convex polyhedra as the abstract domain.
 \end{itemize}
 
-% TODO: discuter du big step SSA?
-% TODO: cite SSA
-
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
 result of the classical Abstract Interpretation in $2.33\%$ of the control points
@@ -1000,7 +998,7 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 \item Replacing the results of nonlinear operations by ``unknown''.
 \end{itemize}
 However, such transformations are not yet implemented in our tool.
-% TODO: c'est si dur de remplacer * non lineaire par undef?
+\DM{c'est si dur de remplacer * non lineaire par undef?}
 
 Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
@@ -1021,7 +1019,7 @@ the previous techniques.
 
 
 \subsection{Precision of Abstract Domains}
-
+\label{sec:compare_domains}
 \begin{table*}
 \begin{center}
 \setlength{\tabcolsep}{1ex}
