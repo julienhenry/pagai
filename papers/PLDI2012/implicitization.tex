@@ -1054,17 +1054,19 @@ is defined as in \ref{sec:compare_techniques}).
 The main results are given in Table \ref{tab:domain}.
 
 Statistically, the domain of convex polyhedra gives the better results, but
-regularly yields greater invariants than the domains of octagons/intervals.
-Experiences shows is it mostly due to the widening operator.
+commonly yields greater invariants than the domains of octagons/intervals;
+this is a known weakness of its widening operator.
+% DM Ici on pourrait citer Monniaux+Le Guen si c'etait publie!
 The Octagon domain appears to be much better than intervals.
 \JH{Commenter les resultats}
 
-Analysis of linear equalities (PKEQ) performs very fast compared
-to other abstract domains, but yields very unprecise invariants.
+The analysis of linear equalities (PKEQ) performs very fast compared
+to other abstract domains, but yields very imprecise invariants:
+it only detects relations of the form $\sum a_i x_i = C$ where $a_i$ and $C$ are constants.
 The comparison between the domain of convex polyhedra and linear congruences
 shows the percentage of points where the use of congruences refines the
 invariant. This is the case for $1.04\%$ of the control points in $P_R$.
-
+\DM{Je croyais qu'on ne pouvait pas utiliser PPLGRID?}
 
 \section{Conclusion}
 
