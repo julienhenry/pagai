@@ -1123,6 +1123,7 @@ It thus seems reasonable that techniques such as considering ``packs'' of relate
 
 We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
 
+We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
 
 % Cas a probleme:
 % Initialisation (x,y) à {(1,0), (0,1)}
