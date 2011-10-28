@@ -45,7 +45,11 @@ macro(add_cudd_library LIB)
     PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB}
     NO_DEFAULT_PATH)
   if("${CUDD_LIB${LIB}}" STREQUAL CUDD_LIB${LIB}-NOTFOUND)
-    message(FATAL_ERROR "Required CUDD library '${LIB}' (i.e lib${LIB}) not found.")
+    message(FATAL_ERROR
+      "Required CUDD library '${LIB}' (i.e lib${LIB}) not found  "
+      "(I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).  "
+      "Please, install CUDD if needed and set \$CUDD_PATH accordingly"
+      )
   endif()
   target_link_libraries(pagai ${CUDD_LIB${LIB}})
   unset(CUDD_LIB${LIB} CACHE)
