@@ -547,7 +547,7 @@ will be in $P$.
 
 \MM{À changer si on décide de ne plus distinguer $X^s$ et $X^d$}
 
-To prevent the algorithm from adding too many path at a time, we
+To prevent the algorithm from adding too many paths at a time, we
 use another abstract value associated to a control point $p_j$, noted
 $X_j^d$, which is distinct from $X_j^s$, and initialized to $X_j^s$.
 This value is updated when a point $p_j$ is the target of a new path,
@@ -601,12 +601,11 @@ if (wait()) {
 The main loop in the expanded multigraph has then 24 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
-Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
+Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields, at line 5,
 $\lstinline|x_old| \in (-\infty,+\infty)$.
 Path-focusing \citep{Monniaux_Gonnord_SAS11} performs slightly
 better, and finds $\lstinline|x_old| \in (-\infty,10000]$.
-
-Now, see how our technique performs on this example.
+Now, let us see how our technique performs on this example.
 
 Figure \ref{fig:example-graph} shows the sequence of subset of paths during the
 analysis. The points in $P_R$ are noted $p_i$, where $i$ is the corresponding
@@ -643,7 +642,7 @@ loop.
 
 Our technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
-Here, only 3 paths over the 25 have been computed during the analysis. In
+Here, only 3 paths out of the 25 have been computed during the analysis. In
 practice, depending on the order the SMT-solver returns the paths, other
 feasible paths could have been added during the analysis.
 
