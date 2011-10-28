@@ -990,11 +990,10 @@ This limitation occurred very rarely in our experiments, except for the analysis
 of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 \emph{Lapack/Blas} implements matrix computations, which use floating-point multiplications.
 
-In cases where the formula is expressed in too rich a logic for the SMT-solver to deal with, a number of workarounds are possible:
-\begin{itemize}[itemsep=-\parsep,topsep=0pt,partopsep=0pt]
-\item \emph{Linearization}, as per \citet{DBLP:conf/vmcai/Mine06}, which overapproximates nonlinear semantics by linear semantics. However, such transformations are not implemented in our tool.
-\item Replacing the results of nonlinear operations by ``unknown''.
-\end{itemize}
+In cases where the formula is expressed in too rich a logic for the SMT-solver to deal with, a number of workarounds are possible, including:
+(i) \emph{Linearization}, as per \citet{DBLP:conf/vmcai/Mine06}, which overapproximates nonlinear semantics by linear semantics.
+(ii) Replacing the results of nonlinear operations by ``unknown''.
+Neither is currently implemented in our tool.
 
 Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
