@@ -1053,9 +1053,20 @@ Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
 For each program and each pair $(D_1,D_2)$ of abstract domains, we compare by
 inclusion the invariants of the different control points in $P_R$ (where $P_R$
 is defined as in \ref{sec:compare_techniques}).
-The detailed results are given in Table \ref{tab:domain}.
+The main results are given in Table \ref{tab:domain}.
 
+Statistically, the domain of convex polyhedra gives the better results, but
+regularly yields greater invariants than the domains of octagons/intervals.
+Experiences shows is it mostly due to the widening operator.
+The Octagon domain appears to be much better than intervals.
 \JH{Commenter les resultats}
+
+Analysis of linear equalities (PKEQ) performs very fast compared
+to other abstract domains, but yields very unprecise invariants.
+The comparison between the domain of convex polyhedra and linear congruences
+shows the percentage of points where the use of congruences refines the
+invariant. This is the case for $1.04\%$ of the control points in $P_R$.
+
 
 \section{Conclusion}
 
