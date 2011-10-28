@@ -196,7 +196,7 @@ $\lstinline|x| \in (-\infty,\allowbreak 100000)$, and the same after union with 
 
 We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
 The guided static analysis of \citet{DBLP:conf/sas/GopanR07} does not perform
-better, and also obtains $\verb|x_old| \in (-\infty,+\infty)$.
+better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 
 In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
@@ -603,9 +603,9 @@ The main loop in the expanded multigraph has then 24 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
 Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
-$\lstinline|x_old| \in~]-\infty,+\infty[$.
+$\lstinline|x_old| \in (-\infty,+\infty)$.
 Path-focusing \citep{Monniaux_Gonnord_SAS11} performs slightly
-better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
+better, and finds $\lstinline|x_old| \in (-\infty,10000]$.
 
 Now, see how our technique performs on this example.
 
