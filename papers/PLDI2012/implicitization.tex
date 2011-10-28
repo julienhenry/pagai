@@ -189,6 +189,9 @@ Let us briefly see why.
 
 \JH{$99990)$, ca designe bien une borne d'intervalle ouvert ? J'ai plus
 l'habitude a la notation $99990[$}
+\MM{Je crois que les anglophones utilisent plutôt $99990)$, mais
+  d'après Wikipedia ``Interval (mathematics)'', les deux sont acceptés
+  par le standard ISO}
 Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant.
 The \lstinline|x > x_old+10| test at line~6, if taken, yields $\lstinline|x_old|
 \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain
@@ -714,10 +717,20 @@ interesting paths, the objective being to avoid an explicit exhaustive
 enumeration of an exponential number of paths.
 
 For a loop header $p_i$, this technique computes a disjunctive invariant
-$\bigvee_{1\leq j \leq m} X_{i,j}$. 
-To do so, one chooses an integer $\delta \in [1,m]$, and
-a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$, assuming there
-are $n$ distinct paths in the loop.  For each
+$\bigvee_{1\leq j \leq m} X_{i,j}$. We denote by $n$ the number of
+distinct paths in the loop.
+To perform the analysis, one chooses an integer $\delta \in [1,m]$, and
+a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$.
+\MM{C'est moi ou le $\tau_{i,k}$ ne correspond pas exactement à la
+  notation du début ? Au début, $\tau_{i,k}$ est la transition de $i$
+  à $k$, alors que là, on est dans le multigraphe donc il y a
+  plusieurs arrêtes entre deux points. Si je comprends bien,
+  $\tau_{i,k}$ est le $k$-ième chemin partant de $i$, c'est ça ?
+  Je mettrais bien ``... and for the $k$-th path starting from $i$,
+  denoted $\tau_{i,k}$, the image...'' si c'est bien ça. D'ailleurs,
+  faut-il forcément parler de boucle ici ? La technique ne s'applique
+  pas à des chemins quelconques ?}
+  For each
 abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
 image of $X_{i,j}$ by the path is joined with
 $X_{i,\sigma(j,k)}$.
@@ -742,8 +755,9 @@ In our approach, we compute such an image only if it makes the resulting abstrac
 Our improvement consists in a modification of the SMT formula we solve in
 \ref{sec:guided_multigraph}.
 We introduce in this formula Boolean variables $\{d_j, 1 \leq j \leq m\}$, so
-that we can easily find in the model which abstract value of the disjunction has
-to be chosen to make the invariant grow.
+that we can easily find in the model which abstract value of the
+disjunction of the source point has
+to be chosen to make the invariant of the destination grow.
 The resulting formula that is given to the SMT solver is defined
 by $g(p_i)$.
 When the formula is satisfiable, we know that the index $j$ of the starting
@@ -806,6 +820,13 @@ during the analysis, we should store the results of the $\sigma$ function into a
 compact representation, such as Algebraic Decision Diagrams.
 Note that $\sigma(j,k)$ will be computed only if needed.
 
+\MM{Je trouve ça assez frustrant d'arriver ici et de ne toujours pas
+  savoir quel $\sigma$ est choisi. A mon avis, on peut remonter la
+  description du $\sigma$ dynamique de la section suivante à ici. Ça
+  évite de le présenter comme un petit détail d'implémentation alors
+  que c'est quand même une vraie contrib par rapport au papier
+  original.}
+
 \section{Experimental comparisons}
 \label{sec:experiments}
 
@@ -848,7 +869,7 @@ lines of code, and their number of control points in $P_R$}
 
 \subsection{Analysis algorithm}
 \label{sec:analysis-algorithm}
-LLVM bitcode is in \emph{single static assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
+LLVM bitcode is in \emph{static single assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
 LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
 One may see conversion to SSA form as a static precomputation of some of the symbolic propagations proposed by \citet{DBLP:conf/vmcai/Mine06} to enhance the precision of analyses.
 
@@ -875,6 +896,8 @@ Our tool currently assumes that integer variables are unbounded mathematical int
 
 Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
 
+\MM{cf. ci-dessus, j'aurais mis ça dans la section invariants
+  disjonctifs}
 For the computation of disjunctive invariants, we experimented with a heuristic
 of dynamic construction of the $\sigma$ function, adapted from
 \cite{DBLP:conf/pldi/GulwaniZ10}.  We start with one single
@@ -884,7 +907,7 @@ $\sigma(j,k)$ is then constructed on the fly only when needed.
 When $\sigma(j,k)$ needs to be computed, we first compute the image of the
 abstract value $X_k$ by the path indexed by $j$, and try to find an existing
 disjunct of index $k'$ so that the least upper bound of the two abstract values is
-exactly the union of them. If such an index exists, then $\sigma(j,k) = k'$.
+exactly the union of them. If such an index exists, then we set $\sigma(j,k) = k'$.
 Otherwise:
 \begin{itemize}
 	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
