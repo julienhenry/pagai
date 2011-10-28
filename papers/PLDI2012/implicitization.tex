@@ -849,7 +849,7 @@ techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 
 Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
-Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra, octagons, intervals, and linear congruences.
+Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}.
 
@@ -899,7 +899,7 @@ for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a lin
 
 We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
 
-Our analysis tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
+Our tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
 The remaining memory accesses are treated as undefined values, as are the return
 values of function calls. For better precision, we also apply function inlining
 to the program, and we unroll every loop once.
