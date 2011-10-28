@@ -324,7 +324,7 @@ The analysis starts by identifying the test taken and not taken during the first
   }
 \end{lstlisting}
 
-Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~\ref{eqn:triangle}.
+Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~(\ref{eqn:triangle}).
 
 More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body (left side of Fig.~\ref{fig:multigraph});
 for each subset, an inductive invariant is computed for the program restricted to it.
