@@ -916,7 +916,7 @@ to the program, and we unroll every loop once.
 Our tool currently assumes that integer variables are unbounded mathematical integers ($\ZZ$) and floating-point variables are real (or rational) numbers. Techniques for sound analysis of bounded integers, including with wraparound, and of floating-point operations have been developed in e.g. the Astr\'ee system \citep{ASTREE_ESOP05,ASTREE_PLDI03}, but porting these techniques to our iteration schemes using SMT-solving requires supplemental work.
 
 Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
-
+The analysis is currently only forward, even though nothing in what we describe in this article is specific to forward analysis.
 
 \subsection{Precision of the various techniques}
 \label{sec:compare_techniques}
@@ -1106,7 +1106,23 @@ shows the percentage of points where the use of congruences refines the
 invariant. This is the case for $1.04\%$ of the control points in $P_R$.
 \DM{Je croyais qu'on ne pouvait pas utiliser PPLGRID?}
 
-\section{Conclusion}
+\section{Conclusion and future prospects}
+Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
+
+A common criticism of analysis techniques based on SMT-solving is that they
+do not scale up. Yet, our experiments show that, for numerical properties,
+they scale up to the size of typical functions and loops.
+It is however
+quite certain that, naively applied, they cannot scale to the kind of
+programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
+of thousands of lines of code in a single loop operating over similar numbers
+of remanent variables.
+Actually, for such applications, only (quasi-)linear
+algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
+It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
+
+We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
+
 
 % Cas a probleme:
 % Initialisation (x,y) à {(1,0), (0,1)}
@@ -1123,8 +1139,6 @@ invariant. This is the case for $1.04\%$ of the control points in $P_R$.
 % Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
-
-\DM{Garde-t-on la these en francais de Nicolas?}
 
 \phantomsection\addcontentsline{toc}{section}{References} 
 \bibliographystyle{dmabbrvnat}
