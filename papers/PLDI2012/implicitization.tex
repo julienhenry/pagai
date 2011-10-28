@@ -547,7 +547,7 @@ will be in $P$.
 
 \MM{À changer si on décide de ne plus distinguer $X^s$ et $X^d$}
 
-To prevent the algorithm from adding too many path at a time, we
+To prevent the algorithm from adding too many paths at a time, we
 use another abstract value associated to a control point $p_j$, noted
 $X_j^d$, which is distinct from $X_j^s$, and initialized to $X_j^s$.
 This value is updated when a point $p_j$ is the target of a new path,
@@ -601,12 +601,11 @@ if (wait()) {
 The main loop in the expanded multigraph has then 24 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
-Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
+Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields, at line 5,
 $\lstinline|x_old| \in (-\infty,+\infty)$.
 Path-focusing \citep{Monniaux_Gonnord_SAS11} performs slightly
 better, and finds $\lstinline|x_old| \in (-\infty,10000]$.
-
-Now, see how our technique performs on this example.
+Now, let us see how our technique performs on this example.
 
 Figure \ref{fig:example-graph} shows the sequence of subset of paths during the
 analysis. The points in $P_R$ are noted $p_i$, where $i$ is the corresponding
@@ -643,7 +642,7 @@ loop.
 
 Our technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
-Here, only 3 paths over the 25 have been computed during the analysis. In
+Here, only 3 paths out of the 25 have been computed during the analysis. In
 practice, depending on the order the SMT-solver returns the paths, other
 feasible paths could have been added during the analysis.
 
@@ -706,7 +705,7 @@ graph transformations.
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
-\citet{DBLP:conf/pldi/GulwaniZ10} propose a technique for computing disjunctive invariants, by
+\citet{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
 distinguishing all the paths inside a loop. In
 this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
@@ -720,8 +719,8 @@ are $n$ distinct paths in the loop.  For each
 abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
 image of $X_{i,j}$ by the path is joined with
 $X_{i,\sigma(j,k)}$.
-Initially, the $\delta$-th abstract value is assigned to the initial states of
-$p_i$, and each other abstract value is assigned to bottom.
+Initially, the $\delta$-th abstract value contains the initial states of
+$p_i$, and all other abstract values contain~$\emptyset$.
 
 $m$, $\delta$ and $\sigma$ can be defined heuristically.
 For instance, one could define $\sigma$ so that $\sigma(j,k)$ only depends on the
@@ -801,10 +800,10 @@ acceleration.
 
 The $\sigma$ function takes as parameters the index of the starting abstract
 value, and the path we focus on. If we dynamically construct this function
-during the analysis, we should store the results of the sigma function into a
-compact representation, such as Algebraic Decision Diagrams. Notice that the
-image of a couple $(j,k)$ by the function $\sigma$ will be computed only if
-needed.
+during the analysis, we should store the results of the $\sigma$ function into a
+compact representation, such as Algebraic Decision Diagrams.
+\DM{Pourquoi des ADD et pas des BDD?}
+Note that $\sigma(j,k)$ will be computed only if needed.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
