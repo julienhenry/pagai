@@ -869,6 +869,8 @@ The remaining memory accesses are treated as undefined values, as are the return
 values of function calls. For better precision, we also apply function inlining
 to the program, and we unroll every loop once.
 
+Our tool currently assumes that integer variables are unbounded mathematical integers ($\ZZ$) and floating-point variables are real (or rational) numbers. Techniques for sound analysis of bounded integers, including with wraparound, and of floating-point operations have been developed in e.g. the Astr\'ee system \citep{ASTREE_ESOP05,ASTREE_PLDI03}, but porting these techniques to our iteration schemes using SMT-solving requires supplemental work.
+
 Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
 
 For the computation of disjunctive invariants, we experimented with a heuristic
@@ -1059,6 +1061,8 @@ this is a known weakness of its widening operator.
 % DM Ici on pourrait citer Monniaux+Le Guen si c'etait publie!
 The Octagon domain appears to be much better than intervals.
 \JH{Commenter les resultats}
+
+The Lapack/Blas benchmarks are unusual compared to the other programs. These libraries perform matrix computations, using nested loops over indices; such programs are the prime target for polyhedral loop optimization techniques and it is therefore unsurprising that polyhedra perform very well over them.
 
 The analysis of linear equalities (PKEQ) performs very fast compared
 to other abstract domains, but yields very imprecise invariants:
