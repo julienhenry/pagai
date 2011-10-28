@@ -899,7 +899,12 @@ Otherwise:
   \caption{Comparison of the abstract values obtained by classical abstract
   interpretation (S), \emph{Guided Static
   Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
-  (G+PF), and its version with disjunctive invariants (DIS).}
+  (G+PF), and its version with disjunctive invariants (DIS).
+  The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
+$\supsetneq$ the percentage of invariants stronger with the right-side technique,
+and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
+neither greater nor smaller;
+the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
   \label{fig:techniques}
 \end {figure}
 
@@ -937,11 +942,7 @@ paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
 disjunctive invariants (DIS). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
-The $\subsetneq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
-$\supsetneq$ the percentage of invariants better with the right-side technique,
-and ``unc.'' gives the percentage of invariants that are uncomparable, i.e
-neither greater nor smaller;
-the code points where both invariants are equal make up the remaining percentage.}
+$\subsetneq$, $\supsetneq$ and ``unc.'' defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:techniques}
 \end{table*}
 
