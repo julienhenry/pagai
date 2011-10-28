@@ -184,7 +184,7 @@ Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, wher
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
 
-The expected inductive invariant is $\verb|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\verb|x_old| \in (-\infty,+\infty)$~\citep{ASTREE_ESOP05}.
+The expected inductive invariant is $\lstinline|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\lstinline|x_old| \in (-\infty,+\infty)$~\citep{ASTREE_ESOP05}.
 Let us briefly see why.
 
 \JH{$99990)$, ca designe bien une borne d'intervalle ouvert ? J'ai plus
@@ -194,7 +194,7 @@ The \lstinline|x > x_old+10| test at line~6, if taken, yields $\lstinline|x_old|
 \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain
 $\lstinline|x| \in (-\infty,\allowbreak 100000)$, and the same after union with the no-operation ``else'' branch. Line~7 yields $\lstinline|x| \in (-\infty,+\infty)$.
 
-We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
+We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into \mbox{\lstinline|x_old|,} but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
 The guided static analysis of \citet{DBLP:conf/sas/GopanR07} does not perform
 better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 
@@ -324,7 +324,7 @@ The analysis starts by identifying the test taken and not taken during the first
   }
 \end{lstlisting}
 
-Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~\ref{eqn:triangle}.
+Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~(\ref{eqn:triangle}).
 
 More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body (left side of Fig.~\ref{fig:multigraph});
 for each subset, an inductive invariant is computed for the program restricted to it.
