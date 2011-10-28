@@ -170,10 +170,10 @@ SAT was extended to \emph{satisfiability modulo theory} (SMT): in addition to pr
 For instance, the theories of linear integer arithmetic (LIA) and linear real arithmetic (LRA) have atoms of the form $a_1 x_1 + \dots + a_n x_n \bowtie C$ where $a_1,\dots,a_n,C$ are integer constants, $x_1,\dots,x_n$ are variables (interpreted over $\ZZ$ for LIA and $\RR$ or $\QQ$ for LRA), and $\bowtie$ is a comparison operator $=,\neq,<,\leq,>,\geq$.
 Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approach \cite{Kroening_Strichman_08,Handbook_SAT} solve many useful SMT problems in practice. All these tools provide a \emph{satisfying assignment} if the problem is satisfiable.
 
-Most SMT solvers, including Z3,%
-\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
+Most SMT solvers, including Z3,
+%\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
 Yices,%
-\footnote{\url{http://yices.csl.sri.com/}}
+%\footnote{\url{http://yices.csl.sri.com/}}
 and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
 offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
 it may then backtrack some of the constraints and add other ones without restarting from scratch.
@@ -802,7 +802,6 @@ The $\sigma$ function takes as parameters the index of the starting abstract
 value, and the path we focus on. If we dynamically construct this function
 during the analysis, we should store the results of the $\sigma$ function into a
 compact representation, such as Algebraic Decision Diagrams.
-\DM{Pourquoi des ADD et pas des BDD?}
 Note that $\sigma(j,k)$ will be computed only if needed.
 
 \section{Experimental comparisons}
@@ -813,11 +812,11 @@ static analyzer,
 as well as the classical abstract interpretation algorithm, and the state-of-the-art
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
-We also can choose among different abstract domains: convex polyhedra, octagons,
-intervals, grids (convex polyhedra and linear congruences).
+
+Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
+Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra, octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
-\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
-as SMT-solver.
+\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}.
 
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
@@ -847,7 +846,7 @@ lines of code, and their number of control points in $P_R$}
 
 \subsection{Analysis algorithm}
 \label{sec:analysis-algorithm}
-Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}. LLVM bitcode is in \emph{single static assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
+LLVM bitcode is in \emph{single static assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
 LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
 One may see conversion to SSA form as a static precomputation of some of the symbolic propagations proposed by \citet{DBLP:conf/vmcai/Mine06} to enhance the precision of analyses.
 
