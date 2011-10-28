@@ -1026,13 +1026,16 @@ the previous techniques.
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
 \multicolumn{1}{|c|}{\textbf{Benchmark}}
 & \multicolumn{3}{c|}{\textbf{PK/OCT}}
 & \multicolumn{3}{c|}{\textbf{PK/BOX}}
 & \multicolumn{3}{c|}{\textbf{OCT/BOX}}
 & \multicolumn{3}{c|}{\textbf{PK/PKEQ}}
-& \multicolumn{3}{c|}{\textbf{OCT/PKEQ}} \\ %\cline{2-16}
+& \multicolumn{3}{c|}{\textbf{OCT/PKEQ}}
+& \multicolumn{3}{c|}{\textbf{PK/GRID}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
@@ -1044,7 +1047,8 @@ the previous techniques.
 \end{center}
 \caption{Results of the comparison of the various abstract domains, when using
 the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK),
-Octagons (OCT), intervals (BOX) and linear equalities (PKEQ).}
+Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
+(GRID).}
 \label{tab:domain}
 \end{table*}
 
