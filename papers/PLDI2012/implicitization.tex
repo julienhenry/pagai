@@ -705,7 +705,7 @@ graph transformations.
 \section{Disjunctive invariants}
 \label{sec:disjunctive}
 
-\citet{DBLP:conf/pldi/GulwaniZ10} propose a technique for computing disjunctive invariants, by
+\citet{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
 distinguishing all the paths inside a loop. In
 this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
@@ -719,8 +719,8 @@ are $n$ distinct paths in the loop.  For each
 abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
 image of $X_{i,j}$ by the path is joined with
 $X_{i,\sigma(j,k)}$.
-Initially, the $\delta$-th abstract value is assigned to the initial states of
-$p_i$, and each other abstract value is assigned to bottom.
+Initially, the $\delta$-th abstract value contains the initial states of
+$p_i$, and all other abstract values contain~$\emptyset$.
 
 $m$, $\delta$ and $\sigma$ can be defined heuristically.
 For instance, one could define $\sigma$ so that $\sigma(j,k)$ only depends on the
