@@ -187,11 +187,16 @@ This program implements a construct commonly found in control programs (in e.g. 
 The expected inductive invariant is $\verb|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\verb|x_old| \in (-\infty,+\infty)$~\citep{ASTREE_ESOP05}.
 Let us briefly see why.
 
+\JH{$99990)$, ca designe bien une borne d'intervalle ouvert ? J'ai plus
+l'habitude a la notation $99990[$}
 Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant.
-The \lstinline|x >= x_old+10| test at line~6, if taken, yields $\lstinline|x_old| \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain $\lstinline|x| \in (-\infty,\allowbreak 100000]$, and the same after union with the no-operation ``else'' branch. Line~7 yields $\lstinline|x| \in (-\infty,+\infty)$.
+The \lstinline|x > x_old+10| test at line~6, if taken, yields $\lstinline|x_old|
+\in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain
+$\lstinline|x| \in (-\infty,\allowbreak 100000)$, and the same after union with the no-operation ``else'' branch. Line~7 yields $\lstinline|x| \in (-\infty,+\infty)$.
 
 We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
-The guided static analysis of \citet{DBLP:conf/sas/GopanR07} performs slightly better, and obtains $\verb|x_old| \in (-\infty,100000]$.
+The guided static analysis of \citet{DBLP:conf/sas/GopanR07} does not perform
+better, and also obtains $\verb|x_old| \in (-\infty,+\infty)$.
 
 In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
