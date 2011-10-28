@@ -46,8 +46,19 @@ endmacro()
 
 # configuration
 option(STATIC_LINK "Whether to build executables as static" OFF)
+
+# Compiler choice: clang++ by default
 find_program(CLANG_PATH "clang++")
-set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
+  message(WARNING "clang++ executable not found, falling back to g++")
+  find_program(CLANG_PATH "g++")
+endif()
+
+if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
+  message(WARNING "g++ executable not found either. Falling back to CMake's default")
+else()
+  set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+endif()
 
 option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
