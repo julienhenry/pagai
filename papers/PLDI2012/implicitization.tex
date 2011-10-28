@@ -1081,8 +1081,10 @@ The main results are given in Table \ref{tab:domain}.
 Statistically, the domain of convex polyhedra gives the better results, but
 commonly yields greater invariants than the domains of octagons/intervals;
 this is a known weakness of its widening operator.
-% DM Ici on pourrait citer Monniaux+Le Guen si c'etait publie!
-The Octagon domain appears to be much better than intervals.
+\DM{Ici on pourrait citer Monniaux+Le Guen si c'etait publie!}
+The Octagon domain appears to be much better than intervals; this is
+unsurprising since in most programs and libraries, bounds on loop indices are
+non constant: they depend on some parameters (array sizes etc.).
 \JH{Commenter les resultats}
 
 The Lapack/Blas benchmarks are unusual compared to the other programs. These libraries perform matrix computations, using nested loops over indices; such programs are the prime target for polyhedral loop optimization techniques and it is therefore unsurprising that polyhedra perform very well over them.
