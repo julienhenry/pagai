@@ -101,7 +101,7 @@ of the lattice, but the number of terms in the union may grow exponentially with
 The exponential growth of the number of terms in the union may be controlled by heuristics that judiciously apply least upper bound operations, as in the \emph{trace partitioning domain} \cite{Rival_Mauborgne_TOPLAS07} implemented in the Astr\'ee analyzer~\cite{ASTREE_PLDI03,ASTREE_ESOP05}.
 
 Assuming we are  interested in a loop-free program fragment, the above approach of keeping symbolic unions gives the same results as performing the analysis separately over every path in the fragment.
-A recent method for finding inductive loop invariants \cite{DBLP:conf/pldi/GulwaniZ10} is based on this idea: each path inside the loop body is considered separately.
+A recent method for finding disjunctive loop invariants \cite{DBLP:conf/pldi/GulwaniZ10} is based on this idea: each path inside the loop body is considered separately.
 Two recent proposals use SMT-solving \cite{Kroening_Strichman_08} as a decision procedure for the satisfiability of first-order arithmetic formulas in order to enumerate only paths that are needed for the progress of the analysis \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}. They can equivalently be seen as analyses over a multigraph of transitions between some distinguished control nodes. This multigraph has an exponential number of edges, but is never explicitly represented in memory; instead, this graph is \emph{implicitly} or \emph{succinctly} represented: its edges are enumerated as needed as solutions to SMT problems.
 
 An additional claim of the methods that distinguish paths inside the loop body \cite{DBLP:conf/pldi/GulwaniZ10,Monniaux_Gonnord_SAS11} is that they tend to generate better invariants that methods that do not, by behaving better with respect to the \emph{widening operators} \cite{CousotCousot_JLC92}
@@ -196,7 +196,7 @@ $\lstinline|x| \in (-\infty,\allowbreak 100000)$, and the same after union with 
 
 We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
 The guided static analysis of \citet{DBLP:conf/sas/GopanR07} does not perform
-better, and also obtains $\verb|x_old| \in (-\infty,+\infty)$.
+better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 
 In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
@@ -603,9 +603,9 @@ The main loop in the expanded multigraph has then 24 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
 Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields at line 5
-$\lstinline|x_old| \in~]-\infty,+\infty[$.
+$\lstinline|x_old| \in (-\infty,+\infty)$.
 Path-focusing \citep{Monniaux_Gonnord_SAS11} performs slightly
-better, and finds $\lstinline|x_old| \in~]-\infty,10000]$.
+better, and finds $\lstinline|x_old| \in (-\infty,10000]$.
 
 Now, see how our technique performs on this example.
 
