@@ -123,7 +123,9 @@ This article makes the following contributions:
 \item We implemented these techniques, in addition to ``classical'' iterations and the original guided static analysis, inside a prototype static analyzer.
 This tool uses the LLVM bitcode format \cite{Lattner:2004:LCF:977395.977673,LLVM_langref} as input, which can be produced by compilation from C, C++ and Fortran, enabling it to be run on many real-life programs.
 With respect to abstract domains on numerical variables, it uses the APRON library \cite{DBLP:conf/cav/JeannetM09}, which supports a variety of abstract domains from which we can choose with minimal changes to our analyzer.
-Section~\ref{sec:analysis-algorithm} summarizes our implementation decisions for analysis of SSA-form programs.
+
+Our tool uses a \emph{single static assignment} (SSA) intermediate representation, which allows us to perform cheap symbolic propagations and simplifications,
+described in Section~\ref{sec:analysis-algorithm}.
 
 \item We conducted extensive experiments with this tool, on real-life programs: (i) fixing the abstract domain, varying the iteration technique (\S~\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains}).
 \end{enumerate}
