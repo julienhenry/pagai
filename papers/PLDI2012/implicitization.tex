@@ -909,13 +909,16 @@ Otherwise:
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
 |D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
 \multicolumn{1}{|c|}{\textbf{Benchmark}}
 & \multicolumn{3}{c|}{\textbf{G/S}}
 & \multicolumn{3}{c|}{\textbf{PF/S}}
 & \multicolumn{3}{c|}{\textbf{PF/G}}
 & \multicolumn{3}{c|}{\textbf{G+PF/PF}}
-& \multicolumn{3}{c|}{\textbf{G+PF/G}} \\ %\cline{2-16}
+& \multicolumn{3}{c|}{\textbf{G+PF/G}}
+& \multicolumn{3}{c|}{\textbf{DIS/G+PF}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
@@ -957,15 +960,16 @@ We compared the precision of the different techniques described in this article 
 
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
-result of the classical Abstract Interpretation in $2.37\%$ of the control points
+result of the classical Abstract Interpretation in $2.33\%$ of the control points
 in $P_R$.
 \emph{Path-focusing} from \citet{Monniaux_Gonnord_SAS11} gives
 statistically better results, and finds better invariants than \emph{Guided
-Static Analysis} in $7.28\%$ of the cases. However, it also loses precision in an
-important number ($2.93\%$) of control points.
+Static Analysis} in $8.58\%$ of the cases. However, it also loses precision in an
+important number ($2.87\%$) of control points.
 Finally, our combined technique gives the most promising results, since it is
 statistically more precise than the other techniques.
 
+\JH{Paragraphe a reecrire:}
 The analysis using disjunctive invariants seems not to be as efficient as
 expected, and often finds greater invariants than the combined technique
 ($11.64\%$). It probably means that our heuristic for the construction of
