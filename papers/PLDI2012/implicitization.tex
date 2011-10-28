@@ -820,12 +820,24 @@ during the analysis, we should store the results of the $\sigma$ function into a
 compact representation, such as Algebraic Decision Diagrams.
 Note that $\sigma(j,k)$ will be computed only if needed.
 
-\MM{Je trouve ça assez frustrant d'arriver ici et de ne toujours pas
-  savoir quel $\sigma$ est choisi. A mon avis, on peut remonter la
-  description du $\sigma$ dynamique de la section suivante à ici. Ça
-  évite de le présenter comme un petit détail d'implémentation alors
-  que c'est quand même une vraie contrib par rapport au papier
-  original.}
+We experimented with a heuristic
+of dynamic construction of the $\sigma$ function, adapted from
+\citet{DBLP:conf/pldi/GulwaniZ10}. 
+\DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
+et qu'elle n'était pas dans Gulwani?}
+We start with one single
+disjunct per control point ($m=1$) and an empty map $\sigma$.
+$M$ denotes an upper bound on the number of disjuncts per control point.
+$\sigma(j,k)$ is then constructed on the fly only when needed.
+When $\sigma(j,k)$ needs to be computed, we first compute the image of the
+abstract value $X_k$ by the path indexed by $j$, and try to find an existing
+disjunct of index $k'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
+If such an index exists, then we set $\sigma(j,k) = k'$.
+Otherwise:
+\begin{itemize}[itemsep=-1\parsep,topsep=0pt]
+	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
+	\item if $m = M$, we define $\sigma(j,k) = M$
+\end{itemize}
 
 \section{Experimental comparisons}
 \label{sec:experiments}
@@ -895,24 +907,6 @@ to the program, and we unroll every loop once.
 Our tool currently assumes that integer variables are unbounded mathematical integers ($\ZZ$) and floating-point variables are real (or rational) numbers. Techniques for sound analysis of bounded integers, including with wraparound, and of floating-point operations have been developed in e.g. the Astr\'ee system \citep{ASTREE_ESOP05,ASTREE_PLDI03}, but porting these techniques to our iteration schemes using SMT-solving requires supplemental work.
 
 Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
-
-\MM{cf. ci-dessus, j'aurais mis ça dans la section invariants
-  disjonctifs}
-For the computation of disjunctive invariants, we experimented with a heuristic
-of dynamic construction of the $\sigma$ function, adapted from
-\cite{DBLP:conf/pldi/GulwaniZ10}.  We start with one single
-disjunct per control point ($m=1$), and we start with an empty map $\sigma$. We also
-define a maximal bound on the number of disjunct per control point, noted $M$.
-$\sigma(j,k)$ is then constructed on the fly only when needed.
-When $\sigma(j,k)$ needs to be computed, we first compute the image of the
-abstract value $X_k$ by the path indexed by $j$, and try to find an existing
-disjunct of index $k'$ so that the least upper bound of the two abstract values is
-exactly the union of them. If such an index exists, then we set $\sigma(j,k) = k'$.
-Otherwise:
-\begin{itemize}
-	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
-	\item if $m = M$, we define $\sigma(j,k) = M$
-\end{itemize}
 
 
 \subsection{Precision of the various techniques}
