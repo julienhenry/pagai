@@ -194,7 +194,7 @@ The \lstinline|x > x_old+10| test at line~6, if taken, yields $\lstinline|x_old|
 \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain
 $\lstinline|x| \in (-\infty,\allowbreak 100000)$, and the same after union with the no-operation ``else'' branch. Line~7 yields $\lstinline|x| \in (-\infty,+\infty)$.
 
-We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into~\lstinline|x_old|, but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
+We could use ``widening up to'' or ``widening with thresholds'', propagating the ``magic values'' $\pm 100000$ associated to \lstinline|x| into \mbox{\lstinline|x_old|,} but these syntactic approaches cannot directly cope with programs for which $\lstinline|x|  \in [-100000,+100000]$ is itself obtained by analysis.
 The guided static analysis of \citet{DBLP:conf/sas/GopanR07} does not perform
 better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 
