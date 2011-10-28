@@ -998,10 +998,6 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 \item Replacing the results of nonlinear operations by ``unknown''.
 \end{itemize}
 However, such transformations are not yet implemented in our tool.
-\DM{c'est si dur de remplacer * non lineaire par undef?}
-\JH{Si on le remplace dans SMT, il faut aussi le remplacer du c\^ot\'e apron. Ca
-me semble juste au niveau du temps, sachant qu'il faudra relancer tous les
-benchmarks (environ 2 jours de calcul)}
 
 Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
