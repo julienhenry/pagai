@@ -58,20 +58,24 @@ color=blue]
 \copyrightyear{2012} 
 \copyrightdata{[to be supplied]} 
 
-\titlebanner{banner above paper title}        % These are ignored unless
-\preprintfooter{short description of paper}   % 'preprint' option specified.
+%\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{Succinct representations for abstract interpretation}   % 'preprint' option specified.
 
-\title{Implicit yaddayadda}
-\subtitle{Subtitle Text, if any}
+\title{Succinct representations for abstract interpretation}
+%\subtitle{Subtitle Text, if any}
 
 \authorinfo{Anonymous}
-           {anonymous}
+           {The Internet}
            {anonymous.gal@gmail.com}
 
 \maketitle
 
 \begin{abstract}
-This is the text of the abstract.
+Abstract interpretation techniques can be made more precise by distinguishing paths inside loops, at the expensive of possibly exponential complexity. SMT-solving techniques and sparse representations of paths and sets of paths avoid this pitfall.
+
+We improve previously proposed techniques for guided static analysis and the generation of disjunctive invariants by combining them with techniques for succinct representations of paths and symbolic representations for transitions based on static single assignment.
+
+Because of the non-monotonicity of the results of abstract interpretation with widening operators, it is difficult to conclude that some abstraction is more precise than another based on theoretical local precision results. We thus conducted extensive comparisons between our new techniques and previous ones, on a variety of open-source packages. We also took the opportunity to compare the precision of various classical abstract domains (convex polyhedra, octagons, intervals).
 \end{abstract}
 
 % \category{CR-number}{subcategory}{third-level}
@@ -896,6 +900,9 @@ such operations are directly supported by APRON. This has three benefits:
 (ii) the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment;
 (iii) as suggested by \citet{DBLP:conf/vmcai/Mine06}, this approach is more precise than running abstract operations for each program line separately:
 for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a line-by-line interval analysis obtains $y \in [0,1]$ and $z \in [-1,1]$ while our ``en bloc'' analysis symbolically simplifies $z = x - x = 0$ and thus $z \in [0,0]$.
+
+\DM{Julien: pour la guided analysis, a priori ça arrive souvent cette histoire d'edge pas prise car non encore prenable?}
+In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
 We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
 
