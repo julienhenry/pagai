@@ -885,6 +885,7 @@ Otherwise:
 
 
 \subsection{Precision of the various techniques}
+\label{sec:compare_techniques}
 
 \begin{figure}[h]
   \MM{Y a-t-il moyen d'avoir un truc plus lisible en impression noir
@@ -930,7 +931,8 @@ Otherwise:
 \end{center}
 \caption{Result of the comparison of the various techniques described in this
 paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
-\emph{Path-focusing} (PF), and our combined technique (G+PF). For
+\emph{Path-focusing} (PF), our combined technique (G+PF), and its version using
+disjunctive invariants (DIS). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
 The $\subsetneq$ column gives the percentage of invariants more precise (smaller with respect to inclusion) with the left-side technique,
@@ -1041,11 +1043,15 @@ the previous techniques.
 \end{tabular}
 \end{center}
 \caption{Results of the comparison of the various abstract domains, when using
-the same technique (G+PF).}
-\label{tab:time}
+the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK),
+Octagons (OCT), intervals (BOX) and linear equalities (PKEQ).}
+\label{tab:domain}
 \end{table*}
 
-
+For each program and each pair $(D_1,D_2)$ of abstract domains, we compare by
+inclusion the invariants of the different control points in $P_R$ (where $P_R$
+is defined as in \ref{sec:compare_techniques}).
+The detailed results are given in Table \ref{tab:domain}.
 
 \section{Conclusion}
 
