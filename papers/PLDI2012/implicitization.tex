@@ -957,9 +957,6 @@ We compared the precision of the different techniques described in this article 
 	invariant). We use convex polyhedra as the abstract domain.
 \end{itemize}
 
-% TODO: discuter du big step SSA?
-% TODO: cite SSA
-
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
 result of the classical Abstract Interpretation in $2.33\%$ of the control points
@@ -996,7 +993,7 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 \item Replacing the results of nonlinear operations by ``unknown''.
 \end{itemize}
 However, such transformations are not yet implemented in our tool.
-% TODO: c'est si dur de remplacer * non lineaire par undef?
+\DM{c'est si dur de remplacer * non lineaire par undef?}
 
 Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
