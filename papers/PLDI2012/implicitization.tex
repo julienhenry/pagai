@@ -109,11 +109,6 @@ used for enforcing convergence when searching for loop invariants by Kleene iter
 
 All these methods improve the precision of the analysis by keeping the same abstract domain (say, convex polyhedra) but changing the operations applied and their ordering. An alternative is to change the abstract domain, for instance by moving from intervals to octagons or convex polyhedra \cite{DBLP:journals/lisp/Mine06,Mine_PhD}, or the widening operator: for instance one may replace the classical widening on convex polyhedra \cite{CousotHalbwachs78,Halbwachs_PhD} by an improved version \cite{BagnaraHRZ05SCP}, or use widening ``up to'', that is, use linear inequalities syntactically present in the program source code as possible widening steps~\cite{Polka:FMSD:97}.
 
-\MM{Peut-être dire quelque part vers ici que le widening n'est en
-  général pas monotone, et que donc on ne peut jamais rien dire en
-  théorie sur la précision vu qu'être plus précis à une itération peut
-  faire perdre en précision la suivante ...}
-
 There are many possible combinations of the above techniques, and it is not evident which ones perform more or less precisely or more or less efficiency on real-life examples. One needs to experiment. Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.
 \medskip
 
@@ -159,6 +154,12 @@ Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascendi
 Such iterations necessarily lead to a stationary limit $(\abstr{x}_p)_{p \in P}$, which defines an inductive invariant $(\gamma(\abstr{x}_p))_{p \in P}$. Note that this invariant is not, in general, the least one expressible in the abstract domain, and may depend on the iteration ordering (the successive choices~$p,p'$).
 
 Once an inductive invariant $\gamma((\abstr{x}_p)_{p \in P})$ has been obtained, one can attempt \emph{decreasing} or \emph{narrowing} iterations to reduce it. In their simplest form, this just means running the following operation until a fixpoint or a maximal number of iterations are reached: for any $p'$, replace $\abstr{x}_{p'}$ by $\abstr{x}_p \cap \left(\bigsqcup_{p \in P} \abstr{\tau}_{p,p'} (\abstr{x}_p)\right)$. The result also defines an inductive invariant. These decreasing iterations are indispensable to recover properties from guards (tests) in the program in most iteration settings; unfortunately, certain loops, particularly those involving identity (no-operation) transitions, may foil them: the iterations immediately reach a fixpoint and do not decrease further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and \ref{sec:path_focusing} describe techniques that work around this problem.
+
+Widening operations have a somewhat counterintuitive behavior: the result of an analysis (postcondition) is not necessarily monotonic with respect to the precondition. For instance, classical interval analysis with widening and decreasing iterations on the following loop yields a loop invariant $x \in [0,+\infty)$ if the precondition is $x \in [0,0]$ , but $x \in [0,10]$ (strictly stronger) if the precondition is $x \in [0,10]$ (strictly weaker):
+\lstinline|while (x != 10) x=x+1;|.
+This means that, when using widenings, being locally more precise (for instance, by using more expressive abstract domains, or widening operators that climb more slowly \cite{BagnaraHRZ05SCP}) does not necessarily translate into higher final precision.
+It is almost always possible to concoct examples where a supposedly more precise abstraction (e.g. polyhedra) yields less precise results than a less precise one (e.g. intervals), but are these examples representative of real programs?
+This justifies our recourse to evaluation on realistic examples~(\S~\ref{sec:compare_techniques}).
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
