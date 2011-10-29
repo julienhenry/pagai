@@ -835,6 +835,8 @@ of dynamic construction of the $\sigma$ function, adapted from
 \citet{DBLP:conf/pldi/GulwaniZ10}. 
 \DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
 et qu'elle n'était pas dans Gulwani?}
+\JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
+suivant)}
 We start with one single
 disjunct per control point ($m=1$) and an empty map $\sigma$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
@@ -846,7 +848,9 @@ If such an index exists, then we set $\sigma(j,k) = k'$.
 Otherwise:
 \begin{itemize}[itemsep=-1\parsep,topsep=0pt]
 	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
-	\item if $m = M$, we define $\sigma(j,k) = M$
+	\item if $m = M$, we define $\sigma(j,k) = M$ 
+		\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
+		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
 
 \section{Experimental comparisons}
@@ -908,6 +912,7 @@ such operations are directly supported by APRON. This has three benefits:
 for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a line-by-line interval analysis obtains $y \in [0,1]$ and $z \in [-1,1]$ while our ``en bloc'' analysis symbolically simplifies $z = x - x = 0$ and thus $z \in [0,0]$.
 
 \DM{Julien: pour la guided analysis, a priori ça arrive souvent cette histoire d'edge pas prise car non encore prenable?}
+\JH{Oui, ca arrive regulierement}
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
 We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
@@ -1098,7 +1103,6 @@ this is a known weakness of its widening operator.
 The Octagon domain appears to be much better than intervals; this is
 unsurprising since in most programs and libraries, bounds on loop indices are
 non constant: they depend on some parameters (array sizes etc.).
-\JH{Commenter les resultats}
 
 The Lapack/Blas benchmarks are unusual compared to the other programs. These libraries perform matrix computations, using nested loops over indices; such programs are the prime target for polyhedral loop optimization techniques and it is therefore unsurprising that polyhedra perform very well over them.
 
@@ -1109,6 +1113,7 @@ The comparison between the domain of convex polyhedra and linear congruences
 shows the percentage of points where the use of congruences refines the
 invariant. This is the case for $1.04\%$ of the control points in $P_R$.
 \DM{Je croyais qu'on ne pouvait pas utiliser PPLGRID?}
+\JH{On peut. C'est PKGRID qui ne fonctionne pas}
 
 \section{Conclusion and future prospects}
 Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
