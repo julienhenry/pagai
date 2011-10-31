@@ -197,11 +197,6 @@ This program implements a construct commonly found in control programs (in e.g. 
 The expected inductive invariant is $\lstinline|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\lstinline|x_old| \in (-\infty,+\infty)$~\citep{ASTREE_ESOP05}.
 Let us briefly see why.
 
-\JH{$99990)$, ca designe bien une borne d'intervalle ouvert ? J'ai plus
-l'habitude a la notation $99990[$}
-\MM{Je crois que les anglophones utilisent plutôt $99990)$, mais
-  d'après Wikipedia ``Interval (mathematics)'', les deux sont acceptés
-  par le standard ISO}
 Widening iterations converge to $\lstinline|x_old| \in (-\infty,+\infty)$; let us now see why decreasing iterations fail to recover the desired invariant.
 The \lstinline|x > x_old+10| test at line~6, if taken, yields $\lstinline|x_old|
 \in (-\infty,99990)$; followed by \lstinline|x = x_old+10|, we obtain
@@ -305,7 +300,7 @@ contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recas
 \subsection{Guided static analysis}
 \label{sec:guided}
 \emph{Guided static analysis} was proposed by \citet{DBLP:conf/sas/GopanR07} as an improvement over classical upward Kleene iterations with widening.
-Consider the following program:
+Consider the following program, taken from \cite{DBLP:conf/sas/GopanR07}:
 \lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
 
 \begin{figure}
