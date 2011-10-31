@@ -18,7 +18,9 @@ class Sigma {
 
 		int Max_Disj;
 
-		void init();
+		void init(BasicBlock * Start);
+
+		void createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map);
 
 		/// @{
 		/// variables needed by some methods
@@ -70,8 +72,8 @@ class Sigma {
 
 	public:
 		
-		Sigma(int _Max_Disj);
-		Sigma();
+		Sigma(BasicBlock * Start, int _Max_Disj);
+		Sigma(BasicBlock * Start);
 		~Sigma();
 
 		/// clear the Add. The result will be an empty Add
