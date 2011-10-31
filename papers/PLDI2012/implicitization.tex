@@ -721,11 +721,11 @@ this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
 enumeration of an exponential number of paths.
 
-For a loop header $p_i$, this technique computes a disjunctive invariant
-$\bigvee_{1\leq j \leq m} X_{i,j}$. We denote by $n$ the number of
-distinct paths in the loop.
-To perform the analysis, one chooses an integer $\delta \in [1,m]$, and
-a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$.
+For each control point $p_i$, we compute a disjunctive invariant
+$\bigvee_{1\leq j \leq m_i} X_{i,j}$. We denote by $n_i$ the number of
+distinct paths starting at $p_i$.
+To perform the analysis, one chooses an integer $\delta_i \in [1,m_i]$, and
+a mapping function $\sigma_i: [1,m_i] \times [1,n_i] \mapsto [1,m_i]$.
 \MM{C'est moi ou le $\tau_{i,k}$ ne correspond pas exactement à la
   notation du début ? Au début, $\tau_{i,k}$ est la transition de $i$
   à $k$, alors que là, on est dans le multigraphe donc il y a
@@ -735,15 +735,15 @@ a mapping function $\sigma: [1,m] \times [1,n] \mapsto [1,m]$.
   denoted $\tau_{i,k}$, the image...'' si c'est bien ça. D'ailleurs,
   faut-il forcément parler de boucle ici ? La technique ne s'applique
   pas à des chemins quelconques ?}
-  For each
-abstract value of the disjunctive invariant, and for each path $\tau_{i,k}$ in the loop, the
-image of $X_{i,j}$ by the path is joined with
-$X_{i,\sigma(j,k)}$.
-Initially, the $\delta$-th abstract value contains the initial states of
+  \JH{J'ai corrige\dots}
+  The $k$-th path starting fom $p_i$ is denoted $\tau_{i,k}$.
+  The image of the $j$-th disjunct $X_{i,j}$ by the path $\tau_{i,k}$ is then
+  joined with $X_{i,\sigma(j,k)}$.
+Initially, the $\delta_i$-th abstract value contains the initial states of
 $p_i$, and all other abstract values contain~$\emptyset$.
 
-$m$, $\delta$ and $\sigma$ can be defined heuristically.
-For instance, one could define $\sigma$ so that $\sigma(j,k)$ only depends on the
+For each control point $p_i \in P_R$, $m_i$, $\delta_i$ and $\sigma_i$ can be defined heuristically.
+For instance, one could define $\sigma_i$ so that $\sigma_i(j,k)$ only depends on the
 last transition of the path, or else construct it dynamically during the
 analysis.
 
@@ -768,7 +768,7 @@ by $g(p_i)$.
 When the formula is satisfiable, we know that the index $j$ of the starting
 disjunct that has to be chosen is the one for which the associate Boolean value
 $d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
-$\sigma(j,k)$, thus know the index of the disjunct to join with.
+$\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 
 \begin{eqnarray*}
 g(p_i) = & \rho \wedge b_i^s \wedge 
@@ -786,10 +786,10 @@ algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
 initialize each disjunct. Line~\ref{alg=X-init} is then replaced by:
 \begin{algorithm}[!h]
 \begin{algorithmic}[1] 
-\FORALL {$k \in \{1,..,m\} \setminus \{\delta\}$}
+\FORALL {$k \in \{1,..,m_i\} \setminus \{\delta_i\}$}
 	\STATE $X_{i,k} \gets \perp$
 \ENDFOR
-\STATE $X_{i,\delta} \gets I_{p_i}$
+\STATE $X_{i,\delta_i} \gets I_{p_i}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -797,8 +797,8 @@ Furthermore, the Path-focused algorithm (line~\ref{alg=pf} from algorithm
 \ref{algo:combined}) is enhanced to deal with disjunctive invariants, and
 is detailed in algorithm \ref{algo:disjunctive}.
 
-The \emph{Update} function can classically assign to $X_{i,\sigma(j,k)}$ the
-value $X_{i,\sigma(j,k)} \widening (X_{i,\sigma(j,k)} \sqcup
+The \emph{Update} function can classically assign to $X_{i,\sigma_i(j,k)}$ the
+value $X_{i,\sigma_i(j,k)} \widening (X_{i,\sigma_i(j,k)} \sqcup
 \tau_{i,k}(X_{i,j}))$, or can integrate the special treatment for self loops
 proposed by \citet{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
 acceleration.
@@ -814,36 +814,37 @@ acceleration.
 	\ENDIF
 	\STATE Compute the path $\tau_{i,k}$ from $res$ 
 	\STATE Take $j \in \{ l | d_l = true\}$ 
-	\STATE Update($X_{i,\sigma(j,k)})$
+	\STATE Update($X_{i,\sigma_i(j,k)})$
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
 
-The $\sigma$ function takes as parameters the index of the starting abstract
-value, and the path we focus on. If we dynamically construct this function
-during the analysis, we should store the results of the $\sigma$ function into a
+The $\sigma_i$ functions take as parameters the index of the starting abstract
+value, and the path we focus on. If we dynamically construct these functions
+during the analysis, we should store the results of the $\sigma_i$ functions into a
 compact representation, such as Algebraic Decision Diagrams.
-Note that $\sigma(j,k)$ will be computed only if needed.
+Note that $\sigma_i(j,k)$ will be computed only if needed.
 
 We experimented with a heuristic
-of dynamic construction of the $\sigma$ function, adapted from
+of dynamic construction of the $\sigma_i$ functions, adapted from
 \citet{DBLP:conf/pldi/GulwaniZ10}. 
 \DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
 et qu'elle n'était pas dans Gulwani?}
 \JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
 suivant)}
 We start with one single
-disjunct per control point ($m=1$) and an empty map $\sigma$.
+disjunct per control point ($m_i=1$ for each $i, p_i \in P_R$) 
+and empty maps $\sigma_i$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
-$\sigma(j,k)$ is then constructed on the fly only when needed.
-When $\sigma(j,k)$ needs to be computed, we first compute the image of the
-abstract value $X_k$ by the path indexed by $j$, and try to find an existing
-disjunct of index $k'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
-If such an index exists, then we set $\sigma(j,k) = k'$.
+$\sigma_i(j,k)$ is then constructed on the fly only when needed.
+When $\sigma_i(j,k)$ needs to be computed, we first compute the image of the
+abstract value $X_{i,j}$ by the path indexed by $k$, and try to find an existing
+disjunct of index $j'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
+If such an index exists, then we set $\sigma_i(j,k) = j'$.
 Otherwise:
 \begin{itemize}[itemsep=-1\parsep,topsep=0pt]
-	\item if $m < M$, we increase $m$ by $1$ and define $\sigma(j,k) = m$
-	\item if $m = M$, we define $\sigma(j,k) = M$ 
+	\item if $m_i < M$, we increase $m_i$ by $1$ and define $\sigma_i(j,k) = m_i$
+	\item if $m_i = M$, we define $\sigma_i(j,k) = M$ 
 		\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
 		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
