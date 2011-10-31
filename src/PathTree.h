@@ -33,6 +33,8 @@ class PathTree {
 
 		std::map<int, BasicBlock*> levels;
 
+		BDD computef(std::list<BasicBlock*> path);
+
 		/// Bdd that stores the various seen paths
 		BDD * Bdd;
 
@@ -43,10 +45,11 @@ class PathTree {
 		/// number of levels in the BDD
 		int BddIndex;
 
+		BDD getBDDfromBddIndex(int n);
 		/// returns the BDD node associated to a specific
 		/// BasicBlock. When considering the source BasicBlock, the map is
 		/// BddVarStart, else it is BddVar
-		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
+		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map, int &n);
 
 		/// returns the name of the basicBlock associated
 		/// to the level i of the Bdd.
@@ -57,6 +60,10 @@ class PathTree {
 			SMTpass * smt = NULL);
 
 		void createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map);
+
+		/// dump the BDD "graph" in a .dot file. Name of the .dot
+		/// file is given by the filename argument.
+		void DumpDotBDD(BDD graph, std::string filename);
 
 	public:
 		PathTree(BasicBlock * Start);
@@ -80,9 +87,8 @@ class PathTree {
 
 		bool isZero(bool primed = false);
 
-		/// dump the BDD "graph" in a .dot file. Name of the .dot
-		/// file is given by the filename argument.
-		void DumpDotBDD(BDD graph, std::string filename);
+		/// dump the graph
+		void DumpDotBDD(std::string filename, bool prime);
 
 		/// generate the SMTpass formula associated to the Bdd
 		SMT_expr generateSMTformula(

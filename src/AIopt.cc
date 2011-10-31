@@ -1,4 +1,5 @@
 #include <vector>
+#include <sstream>
 #include <list>
 
 #include "AIopt.h"
@@ -207,7 +208,7 @@ void AIopt::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE2 -------------------------\n";
+			*Out << "COMPUTENEWPATHS-------------- SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		// creating the SMTpass formula we want to check
@@ -274,7 +275,7 @@ void AIopt::computeNode(Node * n) {
 		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "-------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "COMPUTENODE-------------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();
@@ -365,7 +366,7 @@ void AIopt::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING----------- NEW SMTpass SOLVE -------------------------\n";
+			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();

@@ -72,7 +72,7 @@ bool AIdis::runOnModule(Module &M) {
 			it != et;
 			it++) {
 			pathtree[*it] = new PathTree(*it);
-			S[*it] = new Sigma(Max_Disj);
+			S[*it] = new Sigma(*it,Max_Disj);
 		}
 
 		computeFunction(F);

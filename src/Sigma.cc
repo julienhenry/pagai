@@ -5,24 +5,42 @@
 #include "Analyzer.h"
 #include "AIpass.h"
 #include "Sigma.h"
+#include "Pr.h"
 #include "SMTpass.h"
 #include "Debug.h"
 
-#define DUMP_ADD	
+//#define DUMP_ADD	
 
-void Sigma::init() {
+
+void Sigma::createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map) {
+	int n;
+	getADDfromBasicBlock(Start,map,n);
+	if (!Pr->count(Start)) {
+		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
+			BasicBlock *Succ = *PI;
+			createADDVars(Succ,Pr,AddVar);
+		}
+	}
+}
+
+void Sigma::init(BasicBlock * Start) {
 	mgr = new Cudd(0,0);
 	AddIndex=0;
 	background = mgr->addZero().getNode();
 	zero = mgr->addZero().getNode();
+
+	// we compute all the levels of the ADD
+	Function * F = Start->getParent();
+	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	createADDVars(Start,Pr,AddVarSource);
 }
 
-Sigma::Sigma(int _Max_Disj): Max_Disj(_Max_Disj) {
-	init();
+Sigma::Sigma(BasicBlock * Start, int _Max_Disj): Max_Disj(_Max_Disj) {
+	init(Start);
 }
 
-Sigma::Sigma() {
-	init();
+Sigma::Sigma(BasicBlock * Start) {
+	init(Start);
 	Max_Disj = 5;
 }
 
@@ -114,7 +132,7 @@ bool Sigma::exist(std::list<BasicBlock*> path, int start) {
 	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
-	return (f <= *Add[start]);
+	return (f <= *Add[start] * f);
 }
 
 bool Sigma::isZero(int start) {
@@ -149,9 +167,7 @@ int Sigma::getActualValue(std::list<BasicBlock*> path, int start) {
 
 		if (Cudd_IsConstant(N)) {
 			if (node != zero) {
-				int R = Cudd_V(N);
-				*Out << "R = " << R << "\n";
-				return R;
+				return Cudd_V(N);
 			}
 		}
 	}
@@ -167,9 +183,12 @@ int Sigma::getSigma(
 		bool source) {
 
 	int res = -1;
-	if (exist(path,start)) {
-		res = getActualValue(path,start);
+		
+	res = getActualValue(path,start);
+	if (res != -1) {
+		DEBUG(
 		*Out << start << " is already assigned to " << res-1 << "\n";
+		);
 	} else {
 
 		AbstractDisj * D  = dynamic_cast<AbstractDisj*>(Nodes[path.back()]->X_d[pass->passID]);
