@@ -5,8 +5,18 @@
 
 #include "PathTree.h"
 #include "Analyzer.h"
+#include "Pr.h"
 
-PathTree::PathTree() {
+void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map) {
+	for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
+		BasicBlock *Succ = *PI;
+		getBDDfromBasicBlock(Succ,map);
+		if (!Pr->count(Succ))
+			createBDDVars(Succ,Pr,BddVar);
+	}
+}
+
+PathTree::PathTree(BasicBlock * Start) {
 	mgr = new Cudd(0,0);
 	//mgr->makeVerbose();
 	Bdd = new BDD(mgr->bddZero());
@@ -14,6 +24,11 @@ PathTree::PathTree() {
 	BddIndex=0;
 	background = mgr->bddZero().getNode();
 	zero = mgr->bddZero().getNode();
+
+	// we compute all the levels of the BDD
+	Function * F = Start->getParent();
+	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	createBDDVars(Start,Pr,BddVarStart);
 }
 
 PathTree::~PathTree() {

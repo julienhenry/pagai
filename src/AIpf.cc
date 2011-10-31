@@ -150,7 +150,7 @@ void AIpf::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	PathTree * const pathtree = new PathTree();
+	PathTree * const pathtree = new PathTree(n->bb);
 
 	while (true) {
 		is_computed[n] = true;

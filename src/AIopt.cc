@@ -71,7 +71,7 @@ bool AIopt::runOnModule(Module &M) {
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
-			pathtree[*it] = new PathTree();
+			pathtree[*it] = new PathTree(*it);
 		}
 
 		computeFunction(F);
@@ -260,7 +260,7 @@ void AIopt::computeNode(Node * n) {
 		return;
 	}
 	
-	PathTree * const U = new PathTree();
+	PathTree * const U = new PathTree(n->bb);
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);

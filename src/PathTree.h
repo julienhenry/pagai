@@ -56,8 +56,10 @@ class PathTree {
 			int i,
 			SMTpass * smt = NULL);
 
+		void createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map);
+
 	public:
-		PathTree();
+		PathTree(BasicBlock * Start);
 
 		~PathTree();
 
