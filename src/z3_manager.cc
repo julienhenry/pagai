@@ -123,6 +123,12 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 	return Z3_mk_int(ctx, n, (Z3_sort)int_type);
 }
 
+SMT_expr z3_manager::SMT_mk_num_mpq (mpq_t mpq) {
+	double d = mpq_get_d(mpq);
+	__int64 x = (__int64) d;
+	return Z3_mk_int64(ctx,x,(Z3_sort)int_type);
+}
+
 SMT_expr z3_manager::SMT_mk_real (double x) {
 
 	mpq_t val;

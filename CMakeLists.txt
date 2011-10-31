@@ -40,14 +40,32 @@ set(Z3_PATH "/home/jhenry/local/z3" CACHE PATH "Path to the Z3 SMT solver librar
 set(CUDD_PATH "/home/jhenry/local/cudd-2.4.2" CACHE PATH "Path to the CUDD BDD library")
 
 macro(add_cudd_library LIB)
-  find_library(CUDD_LIB${LIB} NAMES ${LIB} PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB} NO_DEFAULT_PATH)
+  find_library(CUDD_LIB${LIB} 
+    NAMES ${LIB}
+    PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB}
+    NO_DEFAULT_PATH)
+  if("${CUDD_LIB${LIB}}" STREQUAL CUDD_LIB${LIB}-NOTFOUND)
+    message(FATAL_ERROR "Required CUDD library '${LIB}' (i.e lib${LIB}) not found.")
+  endif()
   target_link_libraries(pagai ${CUDD_LIB${LIB}})
+  unset(CUDD_LIB${LIB} CACHE)
 endmacro()
 
 # configuration
 option(STATIC_LINK "Whether to build executables as static" OFF)
+
+# Compiler choice: clang++ by default
 find_program(CLANG_PATH "clang++")
-set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
+  message(WARNING "clang++ executable not found, falling back to g++")
+  find_program(CLANG_PATH "g++")
+endif()
+
+if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
+  message(WARNING "g++ executable not found either. Falling back to CMake's default")
+else()
+  set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+endif()
 
 option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <set>
+#include "gmp.h"
+#include "mpfr.h"
 
 typedef void* SMT_expr;
 typedef void* SMT_type;
@@ -32,6 +34,7 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e) = 0;
 		virtual SMT_expr SMT_mk_not (SMT_expr a) = 0;
 		virtual SMT_expr SMT_mk_num (int n) = 0;
+		virtual SMT_expr SMT_mk_num_mpq (mpq_t mpq) = 0;
 		virtual SMT_expr SMT_mk_real (double x) = 0;
 		virtual SMT_expr SMT_mk_sum (std::vector<SMT_expr> args) = 0;
 		virtual SMT_expr SMT_mk_sub (std::vector<SMT_expr> args) = 0;

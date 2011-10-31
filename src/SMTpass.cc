@@ -113,7 +113,11 @@ SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value)
 	mp_rnd_t round = GMP_RNDN;
 	ap_double_set_scalar(&value,scalar,round);
 	if (integer) {
-		return man->SMT_mk_num((int)value);
+		mpq_t mpq;
+		mpq_init(mpq);
+		ap_mpq_set_scalar(mpq,scalar,round);
+		//return man->SMT_mk_num((int)value);
+		return man->SMT_mk_num_mpq(mpq);
 	} else {
 		return man->SMT_mk_real(value);
 	}
@@ -182,13 +186,21 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 	std::vector<SMT_expr> disj;
 	int N = A->getMaxIndex();
 	if (insert_booleans) {
+		SMT_expr D[N+1];
+		// we create a boolean predicate for each disjunct
+		for (int index = 0;index <= N; index++) {
+			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
+			D[index] = man->SMT_mk_expr_from_bool_var(dvar);
+		}
 		for (int index = 0;index <= N; index++) {
 			std::vector<SMT_expr> cunj;
 			cunj.push_back(AbstractToSmt(b,A->getDisjunct(index)));
-			// we create a boolean predicate for each disjunct
-			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
-			SMT_expr dexpr = man->SMT_mk_expr_from_bool_var(dvar);
-			cunj.push_back(dexpr);
+			for (int j = 0;j <= N; j++) {
+				if (index == j)
+					cunj.push_back(D[j]);
+				else
+					cunj.push_back(man->SMT_mk_not(D[j]));
+			}
 			disj.push_back(man->SMT_mk_and(cunj));
 		}
 	} else {
