@@ -391,7 +391,7 @@ using abstract acceleration~\cite{DBLP:conf/sas/GonnordH06}.
 \section{Guided analysis over the paths}
 \label{sec:guided_multigraph}
 
-Guided static analysis, as proposed by \citet{DBLP:conf/sas/GopanR07}, applied to the transition
+Guided static analysis, as proposed by \citet{DBLP:conf/sas/GopanR07}, applies to the transition
 graph of the program. We now present a new technique applying this analysis on the implicit
 multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
 unfeasible paths.
@@ -454,14 +454,14 @@ We distinguish three phases in the main loop of the analysis:
   are not in $P$. This phase computes these paths and adds them to
   $P'$. This phase is described in~\ref{subsec:addingpaths}
   and corresponds to lines in~\ref{alg=start-add-paths} to
-  \ref{alg=end-add-paths} algorithm~\ref{algo:combined}.
+  \ref{alg=end-add-paths} in Algorithm~\ref{algo:combined}.
 \item \label{step:ascending} Given a new subset $P$, we search for paths starting at point
   $p_i \in P_R$, such that these paths are in $P$, i.e are included in
   the working subgraph. Each time we find a path, we update the
   abstract value of the destination point of the path. This is the
   phase explained in~\ref{subsec:ascending}, and corresponds to
   lines~\ref{alg=start-ascending} to~\ref{alg=end-ascending} in
-  algorithm~\ref{algo:combined}.
+  Algorithm~\ref{algo:combined}.
 \item  \label{step:narrowing} We perform narrowing iterations the usual way
   (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined}) and
   reiterate from step 1 unless there are no more points to explore,
@@ -608,7 +608,7 @@ if (wait()) {
 }
 \end{lstlisting}
 
-The main loop in the expanded multigraph has then 24 distinct paths, half of
+The main loop in the expanded multigraph has then 8 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
 
 Guided static analysis from \citet{DBLP:conf/sas/GopanR07} yields, at line 5,
@@ -635,15 +635,15 @@ loop.
 		is then added to our subgraph. Moreover, there is no other path whose
 		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
 		Additionally, the path that goes from $p_5$ to
-		$p_11$, that goes through the \emph{else} branch of each 
+		$p_{10}$, that goes through the \emph{else} branch of each 
 		\emph{if-then-else} at lines 7,8 and 9, is also 
 		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
-		new subgraph. Again, there is no new path that goes to $p_11$ with an
+		new subgraph. Again, there is no new path that goes to $p_{10}$ with an
 		image outside $-10 \leq \lstinline|x_old| \leq 10$.
 	\item
 		We apply Path Focusing on this new subgraph (\ref{fig:example-graph}
 		Step 2). When we have reached an inductive invariant, we narrow, and the
-		result for both $p_5$ and $p_11$ is the polyhedron 
+		result for both $p_5$ and $p_{10}$ is the polyhedron 
 		$-10000 \leq \lstinline|x_old| \leq 10000$.
 	\item Finally, we compute the new subgraph. The SMT-solver does not find any
 		new path that makes the abstract values grow, and the algorithm
@@ -652,7 +652,7 @@ loop.
 
 Our technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
-Here, only 3 paths out of the 25 have been computed during the analysis. In
+Here, only 3 paths out of the 8 have been computed during the analysis. In
 practice, depending on the order the SMT-solver returns the paths, other
 feasible paths could have been added during the analysis.
 
@@ -666,7 +666,7 @@ feasible paths could have been added during the analysis.
 
 	\node[PRstate] (n00) {$p_4$};
 	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
-	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
+	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
 	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
 
   \path [transition] 
@@ -679,7 +679,7 @@ feasible paths could have been added during the analysis.
 
 	\node[PRstate] (n00) {$p_4$};
 	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
-	\node[PRstate] (n1) [below of=n0] {$p_{11}$};
+	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
 	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
 
   \path [transition] 
