@@ -786,10 +786,10 @@ algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
 initialize each disjunct. Line~\ref{alg=X-init} is then replaced by:
 \begin{algorithm}[!h]
 \begin{algorithmic}[1] 
-\FORALL {$k \in \{1,..,m\} \setminus \{\delta\}$}
+\FORALL {$k \in \{1,..,m_i\} \setminus \{\delta_i\}$}
 	\STATE $X_{i,k} \gets \perp$
 \ENDFOR
-\STATE $X_{i,\delta} \gets I_{p_i}$
+\STATE $X_{i,\delta_i} \gets I_{p_i}$
 \end{algorithmic}
 \end{algorithm}
 
