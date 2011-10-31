@@ -34,10 +34,15 @@ class Sigma {
 		/// number of levels in the ADD
 		int AddIndex;
 
+		ADD getADDfromAddIndex(int n);
+
 		/// get the ADD node associated to a specific basicblock	
 		/// the map should be AddVar or AddVarSource, depending if we consider
 		/// the starting point or not
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
+		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map, int &n);
+
+		ADD computef(std::list<BasicBlock*> path, int start);
 
 		/// Add that stores the various seen paths
 		std::map<int,ADD*> Add;

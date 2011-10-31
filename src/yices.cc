@@ -107,6 +107,10 @@ SMT_expr yices::SMT_mk_not (SMT_expr a) {
 SMT_expr yices::SMT_mk_num (int n) {
 	return yices_mk_num(ctx,n);
 }
+		
+SMT_expr yices::SMT_mk_num_mpq (mpq_t mpq) {
+	return yices_mk_num_from_mpq(ctx,mpq);
+}
 
 SMT_expr yices::SMT_mk_real (double x) {
 	mpq_t val;
