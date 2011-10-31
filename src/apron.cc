@@ -84,7 +84,6 @@ void init_apron() {
 
 ap_manager_t * create_manager(Apron_Manager_Type man) {
 	ap_manager_t * ap_man;
-	if (useBagnaraWidening()) man = PPL_POLY;
 	switch (man) {
 	case BOX:
 		return box_manager_alloc(); // Apron boxes
