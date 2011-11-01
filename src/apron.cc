@@ -94,13 +94,13 @@ ap_manager_t * create_manager(Apron_Manager_Type man) {
 	case PKEQ: 
 		return pkeq_manager_alloc(); // NewPolka linear equalities
 	case PPL_POLY: 
+		return ap_ppl_poly_manager_alloc(true); // PPL strict polyhedra
+	case PPL_POLY_BAGNARA: 
 		ap_man = ap_ppl_poly_manager_alloc(true); // PPL strict polyhedra
-		if (useBagnaraWidening()) {
-			ap_funopt_t funopt;
-			ap_funopt_init(&funopt);
-			funopt.algorithm = 1;
-			ap_manager_set_funopt(ap_man,AP_FUNID_WIDENING,&funopt);
-		}
+		ap_funopt_t funopt;
+		ap_funopt_init(&funopt);
+		funopt.algorithm = 1;
+		ap_manager_set_funopt(ap_man,AP_FUNID_WIDENING,&funopt);
 		return ap_man;
 	case PPL_GRID: 
 		return ap_ppl_grid_manager_alloc(); // PPL grids

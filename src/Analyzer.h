@@ -18,6 +18,7 @@ enum Apron_Manager_Type {
 	PK,
 	PKEQ,
 	PPL_POLY,
+	PPL_POLY_BAGNARA,
 	PPL_GRID,
 	PKGRID
 };
@@ -43,8 +44,6 @@ bool compareTechniques();
 bool compareDomain();
 
 bool onlyOutputsRho();
-
-bool useBagnaraWidening();
 
 char* getFilename();
 

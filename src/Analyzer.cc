@@ -67,10 +67,6 @@ bool compareDomain() {
 	return compare_Domain;
 }
 
-bool useBagnaraWidening() {
-	return bagnara_widening;
-}
-
 bool onlyOutputsRho() {
 	return onlyrho;
 }
@@ -116,6 +112,8 @@ bool setApronManager(char * domain, int i) {
 		ap_manager[i] = PK;
 	} else if (!d.compare("pkeq")) {
 		ap_manager[i] = PKEQ;
+	} else if (!d.compare("ppl_poly_bagnara")) {
+		ap_manager[i] = PPL_POLY_BAGNARA;
 	} else if (!d.compare("ppl_poly")) {
 		ap_manager[i] = PPL_POLY;
 	} else if (!d.compare("ppl_grid")) {
@@ -141,6 +139,8 @@ std::string ApronManagerToString(Apron_Manager_Type D) {
 			return "PKEQ";
 		case PPL_POLY:
 			return "PPL_POLY";
+		case PPL_POLY_BAGNARA:
+			return "PPL_POLY_BAGNARA";
 		case PPL_GRID:
 			return "PPL_GRID";
 		case PKGRID:
@@ -188,7 +188,6 @@ int main(int argc, char* argv[]) {
 	compare = false;
 	compare_Domain = false;
 	onlyrho = false;
-	bagnara_widening = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	n_iterations = 0;
@@ -211,13 +210,12 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"yices",    no_argument, 0, 'y'},
 			{"printformula",    no_argument, 0, 'f'},
-			{"bagnara",    no_argument, 0, 'b'},
 			{0, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:bd:e:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -260,9 +258,6 @@ int main(int argc, char* argv[]) {
             break;
         case 'f':
             onlyrho = true;
-            break;
-        case 'b':
-            bagnara_widening = true;
             break;
         case '?':
             std::cout << "Error : Unknown option" << optopt << "\n";
