@@ -519,8 +519,8 @@ successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
 associated to $p_i$ :
 $$f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
-b_j^s \wedge x \in X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
-x \notin X_j^s)$$
+b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+ \neg X_j^s)$$
 
 The difference with~\citet{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
@@ -561,7 +561,14 @@ same path infinitely many times, we use another abstract value
 associated to a control point $p_j$, noted $X_j^d$, which is distinct
 from $X_j^s$, and initialized to $X_j^s$. This value is updated when a
 point $p_j$ is the target of a new path, and is used instead of
-$X_j^s$ in the SMT formula. This way, further SMT queries do not
+$X_j^s$ in the SMT formula. We thus check the satisfiability of the formula
+$f'(p_i)$, where:
+$$f'(p_i) = \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
+b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+\neg X_j^d)$$
+
+This way, further SMT queries do not
 compute other paths with the same source and destination if it is not
 needed (because these new paths would not make $X_j^d$ grow, hence
 would not be returned by the SMT solver).
@@ -774,11 +781,11 @@ $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 g(p_i) = & \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
  & \wedge 
-\displaystyle\bigvee_{1 \leq k \leq m} (d_k \wedge x \in X_{i,k} \wedge \bigwedge_{l \neq k}
+\displaystyle\bigvee_{1 \leq k \leq m} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
 \neg d_l) \\
  & \wedge
 \displaystyle\bigvee_{j \in Succ(i)} 
-(b_j^d \wedge \bigwedge_{1 \leq k \leq m} (x \notin X_{j,k}))
+(b_j^d \wedge \bigwedge_{1 \leq k \leq m} (\neg X_{j,k}))
 \end{eqnarray*}
 
 In our algorithm, the initialization of the abstract values slightly differs from
