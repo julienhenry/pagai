@@ -18,6 +18,8 @@ yices::yices() {
 	ctx = yices_mk_context();
 	int_type = yices_mk_type(ctx,const_cast<char*>(intname));
 	float_type = yices_mk_type(ctx,const_cast<char*>(floatname));
+	int0 = yices_mk_num(ctx, 0);
+	real0 = SMT_mk_real(0.0);
 }
 
 yices::~yices() {
@@ -188,6 +190,26 @@ SMT_expr yices::SMT_mk_gt (SMT_expr a1, SMT_expr a2) {
 
 SMT_expr yices::SMT_mk_ge (SMT_expr a1, SMT_expr a2) {
 	return yices_mk_ge(ctx,(yices_expr)a1,(yices_expr)a2);
+}
+
+SMT_expr yices::SMT_mk_int2real(SMT_expr a) {
+  return NULL;
+}
+
+SMT_expr yices::SMT_mk_real2int(SMT_expr a) {
+  return NULL;
+}
+
+SMT_expr yices::SMT_mk_is_int(SMT_expr a) {
+  return NULL;
+}
+
+SMT_expr yices::SMT_mk_int0() {
+  return int0;
+}
+
+SMT_expr yices::SMT_mk_real0() {
+  return real0;
 }
 
 void yices::SMT_print(SMT_expr a) {

@@ -20,6 +20,8 @@ z3_manager::z3_manager() {
 	int_type = Z3_mk_int_sort(ctx);
 	float_type = Z3_mk_real_sort(ctx);
 	bool_type = Z3_mk_bool_sort(ctx);
+	int0 = SMT_mk_num(0);
+	real0 = SMT_mk_real(0.0);
 }
 
 z3_manager::~z3_manager() {
@@ -229,6 +231,27 @@ SMT_expr z3_manager::SMT_mk_gt (SMT_expr a1, SMT_expr a2){
 
 SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 	return Z3_mk_ge(ctx,(Z3_ast)a1,(Z3_ast)a2);
+}
+
+SMT_expr z3_manager::SMT_mk_int2real(SMT_expr a) {
+  return Z3_mk_int2real(ctx, (Z3_ast) a);
+}
+
+SMT_expr z3_manager::SMT_mk_real2int(SMT_expr a) {
+  return Z3_mk_real2int(ctx, (Z3_ast) a);
+}
+
+SMT_expr z3_manager::SMT_mk_is_int(SMT_expr a) {
+  assert(Z3_get_sort_kind(ctx, Z3_get_sort(ctx, (Z3_ast) a)) == Z3_REAL_SORT);
+  return Z3_mk_is_int(ctx, (Z3_ast) a);
+}
+
+SMT_expr z3_manager::SMT_mk_int0() {
+  return int0;
+}
+
+SMT_expr z3_manager::SMT_mk_real0() {
+  return real0;
 }
 
 void z3_manager::SMT_print(SMT_expr a){
