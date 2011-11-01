@@ -150,7 +150,7 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  // DM: la partie actuellement active ne fonctionne
 			  // pas si la linexpr est réelle.
 			  // La seconde partie, désactivée, segfaulte.
-#if 1
+#if 0
 			  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
 #else
 			  if (integer) {
