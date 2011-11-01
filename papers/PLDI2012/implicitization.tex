@@ -846,6 +846,8 @@ Otherwise:
 		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
 
+\MM{Et que prend-t-on pour $\delta$ ? C'est 1 tout le temps ?}
+
 \section{Experimental comparisons}
 \label{sec:experiments}
 
@@ -854,6 +856,11 @@ static analyzer,
 as well as the classical abstract interpretation algorithm, and the state-of-the-art
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
+
+\MM{On peut peut-être citer le nom de l'outil (on garde PAGAI ?) ici.
+  L'intérêt d'avoir un nom, c'est que les gens peuvent en parler plus
+  facilement, et c'est plus facile de retrouver le papier origine d'un
+  outil quand il cite son nom}
 
 Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
 Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
@@ -892,7 +899,7 @@ LLVM bitcode is in \emph{static single assignment} (SSA) form: a given scalar va
 LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
 One may see conversion to SSA form as a static precomputation of some of the symbolic propagations proposed by \citet{DBLP:conf/vmcai/Mine06} to enhance the precision of analyses.
 
-SSA introduces $\phi$-functions at the head of a control code to define variables whose value depends on which incoming edge to this control node was last taken. For instance, for \lstinline|if (...) { x = 2*x+1; } else { x= 0; }|, then $x_2$ is defined as $\phi(2x_1+1,0)$. In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves cannot be represented as affine linear functions, because they are defined using $\phi$-functions, bitwise arithmetic, loads from memory, or return values from function calls.
+SSA introduces $\phi$-functions at the head of a control code to define variables whose value depends on which incoming edge to this control node was last taken. For instance, for \lstinline|if (...) { x = 2*x+1; } else { x= 0; }|, then $x_2$ is defined as $\phi(2x_1+1,0)$. In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves may not be representable as affine linear functions, because they are defined using $\phi$-functions, bitwise arithmetic, loads from memory, or return values from function calls.
 
 This motivates a key implement decision of our tool: only those variables $v_1,\dots,v_n$ that are not defined by arithmetic operations are retained as coordinates in the abstract domain (e.g. as dimensions in polyhedra). A basic block of code therefore amounts to a \emph{parallel assignment} operation
 $(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
@@ -924,6 +931,11 @@ The analysis is currently only forward, even though nothing in what we describe 
 \label{sec:compare_techniques}
 
 \begin{figure}[h]
+  \MM{Je trouve que les zéro-virgule-quelque-chose comme .17 font
+    moches à côté des zéros, vu que les tableaux sont alignés sur le
+    ., les ``0'' sont tout à gauche et les ``.17'' tout à droite. Je
+    vote pour des 0.17 pour que l'alignement soit bon, ça rendrait la
+    lecture plus facile je trouve}
   \begin{center}
     \input{./techniques.tex}
   \end{center} 
@@ -980,8 +992,11 @@ $\subsetneq$, $\supsetneq$ and ``unc.'' defined as in Fig.~\ref{fig:techniques}.
 
 We compared the precision of the different techniques described in this article as follows:
 \begin{itemize}
-\item For each program, we distinguished a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, we compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles.
-(More sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.)
+\item For each program, we distinguished a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, we compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles
+(More sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}).
+\MM{Pourquoi cet item se trouve dans la section ``Precision of the
+  various techniques'' et pas dans la section précédente sur
+  l'implem ?}
 
 \item For each program and each pair $(T_1,T_2)$ of analysis techniques, we list
 	the proportion of control points in $P_R$ where $T_1$ (resp.~$T_2$) gives a
@@ -1025,7 +1040,12 @@ Neither is currently implemented in our tool.
 Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
 \emph{Path-focusing} are sometimes faster than the classical
-algorithm. The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
+algorithm.
+\MM{Si y'a la place, on peut dire un truc du style: ``This can be
+  explained by the fact that these algorithms start on a small subset
+  of the graph, and then may need fewer iterations on the complete
+  graph.''}
+The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
 
 \begin{table}[!h]
 	\centering
@@ -1087,9 +1107,10 @@ is defined as in \ref{sec:compare_techniques}).
 The main results are given in Table \ref{tab:domain}.
 
 Statistically, the domain of convex polyhedra gives the better results, but
-commonly yields greater invariants than the domains of octagons/intervals;
+commonly yields weaker invariants than the domains of octagons/intervals;
 this is a known weakness of its widening operator.
 \DM{Ici on pourrait citer Monniaux+Le Guen si c'etait publie!}
+\MM{Oui, ça fait un peu [citation needed] comme phrase ;-)}
 The Octagon domain appears to be much better than intervals; this is
 unsurprising since in most programs and libraries, bounds on loop indices are
 non constant: they depend on some parameters (array sizes etc.).
