@@ -113,7 +113,11 @@ SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value)
 	mp_rnd_t round = GMP_RNDN;
 	ap_double_set_scalar(&value,scalar,round);
 	if (integer) {
-		return man->SMT_mk_num((int)value);
+		mpq_t mpq;
+		mpq_init(mpq);
+		ap_mpq_set_scalar(mpq,scalar,round);
+		//return man->SMT_mk_num((int)value);
+		return man->SMT_mk_num_mpq(mpq);
 	} else {
 		return man->SMT_mk_real(value);
 	}
@@ -126,10 +130,10 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 	SMT_expr scalar_smt = NULL;
 	bool integer;
 	SMT_expr linexpr_smt = linexpr1ToSmt(b, linexpr, integer);
-	if (integer)
-		scalar_smt = man->SMT_mk_num(0);
+	if (integer || *constyp == AP_CONS_EQMOD)
+	  scalar_smt = man-> SMT_mk_int0();
 	else
-		scalar_smt = man->SMT_mk_real(0);
+	  scalar_smt = man-> SMT_mk_real0();
 
 	switch (*constyp) {
 		case AP_CONS_EQ:
@@ -140,10 +144,29 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			return man->SMT_mk_gt(linexpr_smt,scalar_smt);
 		case AP_CONS_EQMOD:
 			{
-				double value;
-		   		SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
-		   		assert(!(value == 0));
-		   		return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			  double value; // TODO double bof
+			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
+			  assert(!(value == 0));
+
+			  if (integer) {
+				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			  } else {
+#if 1
+			    return man->SMT_mk_true();
+#else
+			    // This segfaults. Perhaps bug in Z3.
+			    SMT_expr test = man->SMT_mk_is_int(linexpr_smt);
+			    if (value == 1) {
+			      return test;
+			    } else {
+			      SMT_expr intexpr = man->SMT_mk_real2int(linexpr_smt);
+			      std::vector<SMT_expr> args;
+			      args.push_back(test);
+			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(intexpr,modulo),scalar_smt));
+			      return man->SMT_mk_and(args);
+			    }
+#endif
+			  }
             }
 		case AP_CONS_DISEQ:
 			return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
@@ -182,13 +205,21 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 	std::vector<SMT_expr> disj;
 	int N = A->getMaxIndex();
 	if (insert_booleans) {
+		SMT_expr D[N+1];
+		// we create a boolean predicate for each disjunct
+		for (int index = 0;index <= N; index++) {
+			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
+			D[index] = man->SMT_mk_expr_from_bool_var(dvar);
+		}
 		for (int index = 0;index <= N; index++) {
 			std::vector<SMT_expr> cunj;
 			cunj.push_back(AbstractToSmt(b,A->getDisjunct(index)));
-			// we create a boolean predicate for each disjunct
-			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
-			SMT_expr dexpr = man->SMT_mk_expr_from_bool_var(dvar);
-			cunj.push_back(dexpr);
+			for (int j = 0;j <= N; j++) {
+				if (index == j)
+					cunj.push_back(D[j]);
+				else
+					cunj.push_back(man->SMT_mk_not(D[j]));
+			}
 			disj.push_back(man->SMT_mk_and(cunj));
 		}
 	} else {

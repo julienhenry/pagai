@@ -71,8 +71,8 @@ bool AIdis::runOnModule(Module &M) {
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
-			pathtree[*it] = new PathTree();
-			S[*it] = new Sigma(Max_Disj);
+			pathtree[*it] = new PathTree(*it);
+			S[*it] = new Sigma(*it,Max_Disj);
 		}
 
 		computeFunction(F);
@@ -394,7 +394,7 @@ void AIdis::computeNode(Node * n) {
 		SuccDisj->change_environment(Xtemp->main->env,Sigma);
 
 		if (!U.count(index))
-			U[index] = new PathTree();
+			U[index] = new PathTree(n->bb);
 
 		if (!U[index]->exist(path)) {
 			n_paths++;

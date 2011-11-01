@@ -5,8 +5,20 @@
 
 #include "PathTree.h"
 #include "Analyzer.h"
+#include "Pr.h"
 
-PathTree::PathTree() {
+void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map) {
+	int n;
+	getBDDfromBasicBlock(Start,map,n);
+	if (!Pr->count(Start)) {
+		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
+			BasicBlock *Succ = *PI;
+			createBDDVars(Succ,Pr,BddVar);
+		}
+	}
+}
+
+PathTree::PathTree(BasicBlock * Start) {
 	mgr = new Cudd(0,0);
 	//mgr->makeVerbose();
 	Bdd = new BDD(mgr->bddZero());
@@ -14,6 +26,11 @@ PathTree::PathTree() {
 	BddIndex=0;
 	background = mgr->bddZero().getNode();
 	zero = mgr->bddZero().getNode();
+
+	// we compute all the levels of the BDD
+	Function * F = Start->getParent();
+	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	createBDDVars(Start,Pr,BddVarStart);
 }
 
 PathTree::~PathTree() {
@@ -22,8 +39,11 @@ PathTree::~PathTree() {
 	delete mgr;	
 }
 
-BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) {
-	int n;
+BDD PathTree::getBDDfromBddIndex(int n) {
+	return mgr->bddVar(n);
+}
+
+BDD PathTree::getBDDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map, int &n) {
 	if (!map.count(b)) {
 		n = BddIndex;
 		levels[n] = b;
@@ -41,6 +61,13 @@ const std::string PathTree::getStringFromLevel(int const i, SMTpass * smt) {
 		return SMTpass::getNodeName(bb,true);
 	else
 		return SMTpass::getNodeName(bb,false);
+}
+
+void PathTree::DumpDotBDD(std::string filename, bool prime) {
+	if (prime)
+		DumpDotBDD(*Bdd_prime,filename);
+	else
+		DumpDotBDD(*Bdd,filename);
 }
 
 void PathTree::DumpDotBDD(BDD graph, std::string filename) {
@@ -141,22 +168,36 @@ SMT_expr PathTree::generateSMTformula(SMTpass * smt) {
 	return smt->man->SMT_mk_and(formula);
 } 
 
-void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
+BDD PathTree::computef(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*> workingpath;
 	BasicBlock * current;
+	int n;
 
 	workingpath.assign(path.begin(), path.end());
-	
+
+	std::set<int> seen;
 	current = workingpath.front();
 	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
+	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart, n));
+	seen.insert(n);
 
 	while (workingpath.size() > 0) {
 		current = workingpath.front();
 		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
+		BDD block = BDD(getBDDfromBasicBlock(current, BddVar, n));
+		seen.insert(n);
 		f = f * block;
 	}
+	// we now have to * with the negations of the other BDD indexes
+	for (int i = 0; i < BddIndex; i++) {
+		if (!seen.count(i)) {
+			f = f * !getBDDfromBddIndex(i);
+		}
+	}
+	return f;
+}
+void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
+	BDD f = computef(path);
 	if (primed) {
 		*Bdd_prime = *Bdd_prime + f;
 	} else {
@@ -165,22 +206,7 @@ void PathTree::insert(std::list<BasicBlock*> path, bool primed) {
 }
 
 void PathTree::remove(std::list<BasicBlock*> path, bool primed) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
-		f = f * block;
-	}
-
+	BDD f = computef(path);
 	if (primed) {
 		*Bdd_prime = *Bdd_prime * !f;
 	} else {
@@ -197,21 +223,7 @@ void PathTree::clear(bool primed) {
 }
 
 bool PathTree::exist(std::list<BasicBlock*> path, bool primed) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-	
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	BDD f = BDD(getBDDfromBasicBlock(current, BddVarStart));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		BDD block = BDD(getBDDfromBasicBlock(current, BddVar));
-		f = f * block;
-	}
+	BDD f = computef(path);
 	bool res;
 	if (primed) {
 		res = f <= *Bdd_prime;

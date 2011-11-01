@@ -49,12 +49,14 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	std::string ErrorMessage;
 	std::auto_ptr<Module> M;
 	{
-		OwningPtr<MemoryBuffer> BufferPtr;
+	        OwningPtr<MemoryBuffer> BufferPtr;
+
 		if (error_code ec = MemoryBuffer::getFileOrSTDIN(InputFilename, BufferPtr))
 			ErrorMessage = ec.message();
 		else
 			M.reset(ParseBitcodeFile(BufferPtr.get(), Context, &ErrorMessage));
 	}
+
 	if (M.get() == 0) {
 		errs() << ": ";
 		if (ErrorMessage.size())
@@ -63,6 +65,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			errs() << "failed to read the bitcode file.\n";
 		return;
 	}
+
+
 
 	TargetData * TD = 0;
 	const std::string &ModuleDataLayout = M.get()->getDataLayout();

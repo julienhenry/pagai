@@ -18,7 +18,9 @@ class Sigma {
 
 		int Max_Disj;
 
-		void init();
+		void init(BasicBlock * Start);
+
+		void createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map);
 
 		/// @{
 		/// variables needed by some methods
@@ -34,10 +36,15 @@ class Sigma {
 		/// number of levels in the ADD
 		int AddIndex;
 
+		ADD getADDfromAddIndex(int n);
+
 		/// get the ADD node associated to a specific basicblock	
 		/// the map should be AddVar or AddVarSource, depending if we consider
 		/// the starting point or not
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
+		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map, int &n);
+
+		ADD computef(std::list<BasicBlock*> path, int start);
 
 		/// Add that stores the various seen paths
 		std::map<int,ADD*> Add;
@@ -65,8 +72,8 @@ class Sigma {
 
 	public:
 		
-		Sigma(int _Max_Disj);
-		Sigma();
+		Sigma(BasicBlock * Start, int _Max_Disj);
+		Sigma(BasicBlock * Start);
 		~Sigma();
 
 		/// clear the Add. The result will be an empty Add

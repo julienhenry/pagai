@@ -5,24 +5,42 @@
 #include "Analyzer.h"
 #include "AIpass.h"
 #include "Sigma.h"
+#include "Pr.h"
 #include "SMTpass.h"
 #include "Debug.h"
 
-//#DEFINE DUMP_ADD
+//#define DUMP_ADD	
 
-void Sigma::init() {
+
+void Sigma::createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map) {
+	int n;
+	getADDfromBasicBlock(Start,map,n);
+	if (!Pr->count(Start)) {
+		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
+			BasicBlock *Succ = *PI;
+			createADDVars(Succ,Pr,AddVar);
+		}
+	}
+}
+
+void Sigma::init(BasicBlock * Start) {
 	mgr = new Cudd(0,0);
 	AddIndex=0;
 	background = mgr->addZero().getNode();
 	zero = mgr->addZero().getNode();
+
+	// we compute all the levels of the ADD
+	Function * F = Start->getParent();
+	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	createADDVars(Start,Pr,AddVarSource);
 }
 
-Sigma::Sigma(int _Max_Disj): Max_Disj(_Max_Disj) {
-	init();
+Sigma::Sigma(BasicBlock * Start, int _Max_Disj): Max_Disj(_Max_Disj) {
+	init(Start);
 }
 
-Sigma::Sigma() {
-	init();
+Sigma::Sigma(BasicBlock * Start) {
+	init(Start);
 	Max_Disj = 5;
 }
 
@@ -35,55 +53,41 @@ Sigma::~Sigma() {
 
 ADD Sigma::getADDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map) {
 	int n;
+	return getADDfromBasicBlock(b,map,n);
+}
+
+ADD Sigma::getADDfromBasicBlock(BasicBlock * b, std::map<BasicBlock*,int> &map, int &n) {
+	ADD res;
 	if (!map.count(b)) {
 		n = AddIndex;
 		AddIndex++;
 		map[b] = n;
+		res = mgr->addVar(n);
+		std::map<int,ADD*>::iterator it = Add.begin(), et = Add.end();
+		for (;it != et; it++) {
+			ADD* A = (*it).second;
+			*A = *A * ~res;
+		}
 	} else {
 		n = map[b];	
+		res = mgr->addVar(n);
 	}
+	return res;
+}
+
+ADD Sigma::getADDfromAddIndex(int n) {
 	return mgr->addVar(n);
 }
 
 void Sigma::insert(std::list<BasicBlock*> path, int start) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-
-	workingpath.assign(path.begin(), path.end());
-	
-	current = workingpath.front();
-	workingpath.pop_front();
-	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		ADD block = ADD(getADDfromBasicBlock(current, AddVar));
-		f = f * block;
-	}
-	
+	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
 	*Add[start] = *Add[start] + f;
 }
 
 void Sigma::remove(std::list<BasicBlock*> path, int start) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		ADD block = ADD(getADDfromBasicBlock(current, AddVar));
-		f = f * block;
-	}
-
+	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
 	*Add[start] = *Add[start] * ~f;
@@ -95,25 +99,40 @@ void Sigma::clear() {
 	}
 }
 
-bool Sigma::exist(std::list<BasicBlock*> path, int start) {
+ADD Sigma::computef(std::list<BasicBlock*> path, int start) {
 	std::list<BasicBlock*> workingpath;
 	BasicBlock * current;
+	int n;
 
 	workingpath.assign(path.begin(), path.end());
 
+	std::set<int> seen;
 	current = workingpath.front();
 	workingpath.pop_front();
-	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource));
+	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource, n));
+	seen.insert(n);
 
 	while (workingpath.size() > 0) {
 		current = workingpath.front();
 		workingpath.pop_front();
-		ADD block = ADD(getADDfromBasicBlock(current, AddVar));
+		ADD block = ADD(getADDfromBasicBlock(current, AddVar, n));
+		seen.insert(n);
 		f = f * block;
 	}
+	// we now have to * with the negations of the other ADD indexes
+	for (int i = 0; i < AddIndex; i++) {
+		if (!seen.count(i)) {
+			f = f * ~getADDfromAddIndex(i);
+		}
+	}
+	return f;
+}
+
+bool Sigma::exist(std::list<BasicBlock*> path, int start) {
+	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
-	return (f <= *Add[start]);
+	return (f <= *Add[start] * f);
 }
 
 bool Sigma::isZero(int start) {
@@ -121,22 +140,7 @@ bool Sigma::isZero(int start) {
 }
 
 void Sigma::setActualValue(std::list<BasicBlock*> path, int start, int value) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-	
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		ADD block = ADD(getADDfromBasicBlock(current, AddVar));
-		f = f * block;
-	}
-	
+	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
 	// f corresponds to (start,path)
@@ -146,23 +150,7 @@ void Sigma::setActualValue(std::list<BasicBlock*> path, int start, int value) {
 }
 
 int Sigma::getActualValue(std::list<BasicBlock*> path, int start) {
-	std::list<BasicBlock*> workingpath;
-	BasicBlock * current;
-	
-
-	workingpath.assign(path.begin(), path.end());
-
-	current = workingpath.front();
-	workingpath.pop_front();
-	ADD f = ADD(getADDfromBasicBlock(current, AddVarSource));
-
-	while (workingpath.size() > 0) {
-		current = workingpath.front();
-		workingpath.pop_front();
-		ADD block = ADD(getADDfromBasicBlock(current, AddVar));
-		f = f * block;
-	}
-	
+	ADD f = computef(path,start);
 	if (!Add.count(start))
 		Add[start] = new ADD(mgr->addZero());
 	// f corresponds to (start,path)
@@ -171,7 +159,7 @@ int Sigma::getActualValue(std::list<BasicBlock*> path, int start) {
 	DdNode *node;
 	DdGen *gen;
 	DdNode *N;
-	
+
 	for (gen = Cudd_FirstNode (mgr->getManager(), res.getNode(), &node);
 	!Cudd_IsGenEmpty(gen);
 	(void) Cudd_NextNode(gen,&node)) {
@@ -179,8 +167,7 @@ int Sigma::getActualValue(std::list<BasicBlock*> path, int start) {
 
 		if (Cudd_IsConstant(N)) {
 			if (node != zero) {
-				int R = Cudd_V(N);
-				return R;
+				return Cudd_V(N);
 			}
 		}
 	}
@@ -195,8 +182,14 @@ int Sigma::getSigma(
 		AIPass * pass,
 		bool source) {
 
-	int res = getActualValue(path,start);
-	if (res == -1) {
+	int res = -1;
+		
+	res = getActualValue(path,start);
+	if (res != -1) {
+		DEBUG(
+		*Out << start << " is already assigned to " << res-1 << "\n";
+		);
+	} else {
 
 		AbstractDisj * D  = dynamic_cast<AbstractDisj*>(Nodes[path.back()]->X_d[pass->passID]);
 		// we iterate on the already existing abstract values of the disjunct
@@ -226,14 +219,11 @@ int Sigma::getSigma(
 			AIPass::printPath(path);
 			*Out << start << " is assigned to " << res-1 << "\n";
 		);
-	} else {
-		//AIPass::printPath(path);
-		//*Out << start << " is already assigned to " << res-1 << "\n";
 	}
-	
 #ifdef DUMP_ADD
 	std::ostringstream filename;
 	filename << "ADD_" << path.front() << "_" << start;
+	*Out << "ADD IS "<< filename.str() << "\n";
 	DumpDotADD(*Add[start],filename.str());
 #endif
 	return res -1;
