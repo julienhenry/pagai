@@ -130,7 +130,7 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 	SMT_expr scalar_smt = NULL;
 	bool integer;
 	SMT_expr linexpr_smt = linexpr1ToSmt(b, linexpr, integer);
-	if (integer)
+	if (integer || *constyp == AP_CONS_EQMOD)
 	  scalar_smt = man-> SMT_mk_int0();
 	else
 	  scalar_smt = man-> SMT_mk_real0();
@@ -145,15 +145,21 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 		case AP_CONS_EQMOD:
 			{
 			  double value; // TODO double bof
-			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,integer,value);
+			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
 			  assert(!(value == 0));
 			  // DM: la partie actuellement active ne fonctionne
 			  // pas si la linexpr est réelle.
 			  // La seconde partie, désactivée, segfaulte.
-			  if (integer)
+			  if (integer) {
 				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
-			  else
-				  return man->SMT_mk_true(); // we can't do better, since rem does not work with real numbers.
+			  } else {
+				  SMT_expr test = man->SMT_mk_not(man->SMT_mk_is_int(linexpr_smt));
+				  SMT_expr intexpr = man->SMT_mk_real2int(linexpr_smt);
+			      std::vector<SMT_expr> args;
+			      args.push_back(test);
+			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(intexpr,modulo),scalar_smt));
+			      return man->SMT_mk_or(args);
+			  }
 			  //if (integer) {
 			  //  assert(!(value == 1));
 			  //  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
