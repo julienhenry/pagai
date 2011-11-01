@@ -994,23 +994,18 @@ We compared the precision of the different techniques described in this article 
 
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
-result of the classical Abstract Interpretation in $2.33\%$ of the control points
+result of the classical Abstract Interpretation in $2.72\%$ of the control points
 in $P_R$.
 \emph{Path-focusing} from \citet{Monniaux_Gonnord_SAS11} gives
 statistically better results, and finds better invariants than \emph{Guided
-Static Analysis} in $8.58\%$ of the cases. However, it also loses precision in an
-important number ($2.87\%$) of control points.
+Static Analysis} in $9.89\%$ of the cases. However, it also loses precision in an
+important number ($2.68\%$) of control points.
 Finally, our combined technique gives the most promising results, since it is
 statistically more precise than the other techniques.
 
-\JH{Paragraphe a reecrire:}
-The analysis using disjunctive invariants seems not to be as efficient as
-expected, and often finds greater invariants than the combined technique
-($11.64\%$). It probably means that our heuristic for the construction of
-$\sigma$ is not effective enough. Usually, disjunctive invariants computation
-finds precise loop invariants because they allow to distinguish for
-instance the first loop iterations. In our case, such benefits are not
-visible, since we have already unrolled every loops once.
+The analysis using disjunctive invariants greatly improves the
+precision of the analysis (for $12.06\%$ of the control points in $P_R$), at an
+acceptable time cost (see Table \ref{tab:time}).
 
 While experiencing with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
