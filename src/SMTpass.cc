@@ -150,16 +150,13 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  // DM: la partie actuellement active ne fonctionne
 			  // pas si la linexpr est réelle.
 			  // La seconde partie, désactivée, segfaulte.
-#if 0
-			  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
-#elif 1
-			  return man->SMT_mk_true();
-#else
 			  if (integer) {
 			    assert(!(value == 1));
 			    return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
 			  } else {
-			    std::cerr << "eqmod mod " << value << std::endl;
+#if 1
+			    return man->SMT_mk_true();
+#else
 			    if (value == 1) {
 			      return man->SMT_mk_is_int(linexpr_smt);
 			    } else {
@@ -168,9 +165,9 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),man->SMT_mk_int0()));
 			      return man->SMT_mk_and(args);
 			    }
-			  }
 #endif
-            }
+			 }
+			}
 		case AP_CONS_DISEQ:
 			return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
 	}
