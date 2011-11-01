@@ -1060,8 +1060,8 @@ algorithm. The techniques we introduce in this article are slower, but speed is 
 & \multicolumn{3}{c|}{\textbf{PK/BOX}}
 & \multicolumn{3}{c|}{\textbf{OCT/BOX}}
 & \multicolumn{3}{c|}{\textbf{PK/PKEQ}}
-& \multicolumn{3}{c|}{\textbf{OCT/PKEQ}}
-& \multicolumn{3}{c|}{\textbf{PK/GRID}} \\ %\cline{2-16}
+& \multicolumn{3}{c|}{\textbf{PK/GRID}}
+& \multicolumn{3}{c|}{\textbf{POLY*/POLY}} \\ %\cline{2-16}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
@@ -1075,7 +1075,9 @@ algorithm. The techniques we introduce in this article are slower, but speed is 
 \caption{Results of the comparison of the various abstract domains, when using
 the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK),
 Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
-(GRID).}
+(GRID). The last column compares the domain of Convex Polyhedra with the
+improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
+using the classical widening operator (POLY).}
 \label{tab:domain}
 \end{table*}
 
@@ -1100,6 +1102,12 @@ it only detects relations of the form $\sum_i a_i x_i = C$ where $a_i$ and $C$ a
 The comparison between the domain of convex polyhedra and linear congruences
 shows the percentage of points where the use of congruences refines the
 invariant. This is the case for $1.04\%$ of the control points in $P_R$.
+
+Finally, we evaluated the benefits of the improved version of the widening
+operator for convex polyhedra from \citet{BagnaraHRZ05SCP}, compared to the
+classical widening. We found that the improved version from
+\citet{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
+control points in $P_R$.
 
 \section{Conclusion and future prospects}
 Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
