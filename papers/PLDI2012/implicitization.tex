@@ -733,16 +733,6 @@ $\bigvee_{1\leq j \leq m_i} X_{i,j}$. We denote by $n_i$ the number of
 distinct paths starting at $p_i$.
 To perform the analysis, one chooses an integer $\delta_i \in [1,m_i]$, and
 a mapping function $\sigma_i: [1,m_i] \times [1,n_i] \mapsto [1,m_i]$.
-\MM{C'est moi ou le $\tau_{i,k}$ ne correspond pas exactement à la
-  notation du début ? Au début, $\tau_{i,k}$ est la transition de $i$
-  à $k$, alors que là, on est dans le multigraphe donc il y a
-  plusieurs arrêtes entre deux points. Si je comprends bien,
-  $\tau_{i,k}$ est le $k$-ième chemin partant de $i$, c'est ça ?
-  Je mettrais bien ``... and for the $k$-th path starting from $i$,
-  denoted $\tau_{i,k}$, the image...'' si c'est bien ça. D'ailleurs,
-  faut-il forcément parler de boucle ici ? La technique ne s'applique
-  pas à des chemins quelconques ?}
-  \JH{J'ai corrige\dots}
   The $k$-th path starting fom $p_i$ is denoted $\tau_{i,k}$.
   The image of the $j$-th disjunct $X_{i,j}$ by the path $\tau_{i,k}$ is then
   joined with $X_{i,\sigma(j,k)}$.
@@ -781,11 +771,11 @@ $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 g(p_i) = & \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
  & \wedge 
-\displaystyle\bigvee_{1 \leq k \leq m} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
+\displaystyle\bigvee_{1 \leq k \leq m_i} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
 \neg d_l) \\
  & \wedge
 \displaystyle\bigvee_{j \in Succ(i)} 
-(b_j^d \wedge \bigwedge_{1 \leq k \leq m} (\neg X_{j,k}))
+(b_j^d \wedge \bigwedge_{1 \leq k \leq m_i} (\neg X_{j,k}))
 \end{eqnarray*}
 
 In our algorithm, the initialization of the abstract values slightly differs from
@@ -1115,8 +1105,6 @@ it only detects relations of the form $\sum_i a_i x_i = C$ where $a_i$ and $C$ a
 The comparison between the domain of convex polyhedra and linear congruences
 shows the percentage of points where the use of congruences refines the
 invariant. This is the case for $1.04\%$ of the control points in $P_R$.
-\DM{Je croyais qu'on ne pouvait pas utiliser PPLGRID?}
-\JH{On peut. C'est PKGRID qui ne fonctionne pas}
 
 \section{Conclusion and future prospects}
 Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
