@@ -553,8 +553,7 @@ instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
 \wedge P$ is unsatisfiable, none of the paths given by the SMT solver
 will be in $P$.
 
-\MM{À changer si on décide de ne plus distinguer $X^s$ et $X^d$}
-
+% À changer si on décide de ne plus distinguer $X^s$ et $X^d$
 Also, to prevent the algorithm from adding too many paths at a time,
 and in particular to prevent the algorithm from trying to re-add the
 same path infinitely many times, we use another abstract value
@@ -805,7 +804,7 @@ acceleration.
 \label{algo:disjunctive}
 \begin{algorithmic}[1] 
 \WHILE {true}
-		\STATE $res \gets SmtSolve\left[g(p_i)\right]$
+	\STATE $res \gets SmtSolve\left[g(p_i)\right]$
 	\IF {$res = unsat$}
 		\STATE \textbf{break}
 	\ENDIF
@@ -819,7 +818,9 @@ acceleration.
 The $\sigma_i$ functions take as parameters the index of the starting abstract
 value, and the path we focus on. If we dynamically construct these functions
 during the analysis, we should store the results of the $\sigma_i$ functions into a
-compact representation, such as Algebraic Decision Diagrams.
+compact representation, such as Algebraic Decision Diagrams.\MM{Du
+  coup, j'aurais intégré cette phrase au paragraphe suivant. C'est des
+  ADD que tu utilises finalement ?}
 Note that $\sigma_i(j,k)$ will be computed only if needed.
 
 We experimented with a heuristic
@@ -829,6 +830,8 @@ of dynamic construction of the $\sigma_i$ functions, adapted from
 et qu'elle n'était pas dans Gulwani?}
 \JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
 suivant)}
+\MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
+  affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
 We start with one single
 disjunct per control point ($m_i=1$ for each $i, p_i \in P_R$) 
 and empty maps $\sigma_i$.
