@@ -916,8 +916,6 @@ such operations are directly supported by APRON. This has three benefits:
 (iii) as suggested by \citet{DBLP:conf/vmcai/Mine06}, this approach is more precise than running abstract operations for each program line separately:
 for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a line-by-line interval analysis obtains $y \in [0,1]$ and $z \in [-1,1]$ while our ``en bloc'' analysis symbolically simplifies $z = x - x = 0$ and thus $z \in [0,0]$.
 
-\DM{Julien: pour la guided analysis, a priori ça arrive souvent cette histoire d'edge pas prise car non encore prenable?}
-\JH{Oui, ca arrive regulierement}
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
 We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
@@ -1037,10 +1035,8 @@ Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
 \emph{Path-focusing} are sometimes faster than the classical
 algorithm.
-\MM{Si y'a la place, on peut dire un truc du style: ``This can be
-  explained by the fact that these algorithms start on a small subset
-  of the graph, and then may need fewer iterations on the complete
-  graph.''}
+This seems due to the fact that these algorithms start on a small subset
+of the graph, and then may need fewer iterations on the complete graph.
 The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
 
 \begin{table}[!h]
@@ -1104,9 +1100,7 @@ The main results are given in Table \ref{tab:domain}.
 
 Statistically, the domain of convex polyhedra gives the better results, but
 commonly yields weaker invariants than the domains of octagons/intervals;
-this is a known weakness of its widening operator.
-\DM{Ici on pourrait citer Monniaux+Le Guen si c'etait publie!}
-\MM{Oui, ça fait un peu [citation needed] comme phrase ;-)}
+this is a known weakness of its widening operator~\cite{Monniaux_LeGuen2011}.
 The Octagon domain appears to be much better than intervals; this is
 unsurprising since in most programs and libraries, bounds on loop indices are
 non constant: they depend on some parameters (array sizes etc.).
