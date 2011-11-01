@@ -145,32 +145,32 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 		case AP_CONS_EQMOD:
 			{
 			  double value; // TODO double bof
-			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
+			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,integer,value);
 			  assert(!(value == 0));
 			  // DM: la partie actuellement active ne fonctionne
 			  // pas si la linexpr est réelle.
 			  // La seconde partie, désactivée, segfaulte.
-#if 1
-			  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
-#else
-			  if (integer) {
-			    assert(!(value == 1));
-			    return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
-			  } else {
-			    std::cerr << "eqmod mod " << value << std::endl;
-			    if (value == 1) {
-			      return man->SMT_mk_is_int(linexpr_smt);
-			    } else {
-			      SMT_expr out = man->SMT_mk_is_int(linexpr_smt);
-			      std::cerr << "out " << out << std::endl;
-			      return out;
-			      //std::vector<SMT_expr> args;
-			      //args.push_back(man->SMT_mk_is_int(linexpr_smt));
-			      //args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),man->SMT_mk_int0()));
-			      //return man->SMT_mk_and(args);
-			    }
-			  }
-#endif
+			  if (integer)
+				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			  else
+				  return man->SMT_mk_true(); // we can't do better, since rem does not work with real numbers.
+			  //if (integer) {
+			  //  assert(!(value == 1));
+			  //  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			  //} else {
+			  //  std::cerr << "eqmod mod " << value << std::endl;
+			  //  if (value == 1) {
+			  //    return man->SMT_mk_is_int(linexpr_smt);
+			  //  } else {
+			  //    SMT_expr out = man->SMT_mk_is_int(linexpr_smt);
+			  //    std::cerr << "out " << out << std::endl;
+			  //    return out;
+			  //    //std::vector<SMT_expr> args;
+			  //    //args.push_back(man->SMT_mk_is_int(linexpr_smt));
+			  //    //args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),man->SMT_mk_int0()));
+			  //    //return man->SMT_mk_and(args);
+			  //  }
+			  //}
             }
 		case AP_CONS_DISEQ:
 			return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
