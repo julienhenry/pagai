@@ -1,8 +1,10 @@
-#! /bin/sh
+#! /bin/bash
 
 # Simple script to install PAGAI's dependencies, and then to compile
 # it.
 
-cd external/ && make
+set -e
+
+(cd external/ && make)
 cmake .
 make
