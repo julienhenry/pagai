@@ -767,12 +767,12 @@ $d_j$ is \emph{true} in the model. Then, we can easily compute the value of
 $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 
 \begin{eqnarray*}
-g(p_i) = & \rho \wedge b_i^s \wedge 
+g(p_i) & = & \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
- & \wedge 
+ & & \wedge 
 \displaystyle\bigvee_{1 \leq k \leq m_i} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
 \neg d_l) \\
- & \wedge
+ & & \wedge
 \displaystyle\bigvee_{j \in Succ(i)} 
 (b_j^d \wedge \bigwedge_{1 \leq k \leq m_i} (\neg X_{j,k}))
 \end{eqnarray*}
@@ -835,7 +835,8 @@ suivant)}
 \DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
 We start with one single
 disjunct per control point ($m_i=1$ for each $i, p_i \in P_R$) 
-and empty maps $\sigma_i$.
+and empty maps $\sigma_i$. We also define $\delta_i = 1$ for each $i, p_i \in
+P_R$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
 $\sigma_i(j,k)$ is then constructed on the fly only when needed.
 When $\sigma_i(j,k)$ needs to be computed, we first compute the image of the
@@ -849,8 +850,6 @@ Otherwise:
 		\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
 		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
-
-\MM{Et que prend-t-on pour $\delta$ ? C'est 1 tout le temps ?}
 
 \section{Experimental comparisons}
 \label{sec:experiments}
