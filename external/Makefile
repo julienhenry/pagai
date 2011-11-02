@@ -1,17 +1,24 @@
 CUDD_VERSION=2.4.2
 YICES_VERSION=1.0.31
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
+Z3_VERSION=2.19
 
-all: install-cudd install-yices
+all: install-cudd install-yices install-z3
 
 install-cudd: cudd-$(CUDD_VERSION)/cudd/libcudd.a cudd
 install-yices: yices-$(YICES_VERSION)/lib/libyices.a yices
+install-z3: z3-$(Z3_VERSION)/lib/libz3-gmp.so z3
 
+# Symlinks
 cudd: $(MAKEFILE_LIST)
 	ln -sf cudd-$(CUDD_VERSION) cudd
 yices: $(MAKEFILE_LIST)
 	ln -sf yices-$(YICES_VERSION) yices
+z3: $(MAKEFILE_LIST)
+	ln -sf z3-$(Z3_VERSION) z3
 
+
+#### CUDD Installation
 cudd-$(CUDD_VERSION).tar.gz:
 	curl -o "$@" "ftp://vlsi.colorado.edu/pub/cudd-$(CUDD_VERSION).tar.gz"
 
@@ -27,6 +34,8 @@ cudd-$(CUDD_VERSION)/cudd/libcudd.a: cudd-$(CUDD_VERSION)/Makefile
 # Just check that the build went OK, its fast
 	cd cudd-$(CUDD_VERSION)/ && ./obj/testobj
 
+
+#### Yices Installation
 yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz:
 # TODO: find a clean way to have the user accept the licence
 	curl -o "$@" "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz&accept=I+accept"
@@ -34,4 +43,19 @@ yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz:
 yices-$(YICES_VERSION)/lib/libyices.a: yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 	tar xzvf "$<"
 # override the timestamp set by tar
+	test -f "$@"
 	touch "$@"
+
+#### Z3 Installation
+z3-$(Z3_VERSION).tar.gz:
+	curl -L -o "$@" "http://research.microsoft.com/projects/z3/z3-$(Z3_VERSION).tar.gz"
+
+z3-$(Z3_VERSION)/lib/libz3-gmp.so:
+	mkdir -p z3-$(Z3_VERSION)
+# z3-V.tar.gz expands itself into a directory without version but in
+# case we need to experiment with different versions, force a
+# directory name including a version number and use the same symlink
+# trick as for others.
+	cd z3-$(Z3_VERSION) && tar --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
+	test -f z3-$(Z3_VERSION)/lib/libz3-gmp.so
+	touch z3-$(Z3_VERSION)/lib/libz3-gmp.so

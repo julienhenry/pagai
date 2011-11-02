@@ -45,7 +45,7 @@ set(APRON_PREFIX "/usr" CACHE PATH "Path to the APRON abstract domains library")
 set(PPL_PREFIX "/usr" CACHE PATH "Path to the PPL Polyhedra library")
 set(CAMLIDL_PREFIX "/usr" CACHE PATH "Path to the CAMLIDL library")
 set(YICES_PATH "${CMAKE_HOME_DIRECTORY}/external/yices" CACHE PATH "Path to the YICES SMT solver library")
-set(Z3_PATH "/home/jhenry/local/z3" CACHE PATH "Path to the Z3 SMT solver library")
+set(Z3_PATH "${CMAKE_HOME_DIRECTORY}/external/z3" CACHE PATH "Path to the Z3 SMT solver library")
 set(CUDD_PATH "${CMAKE_HOME_DIRECTORY}/external/cudd" CACHE PATH "Path to the CUDD BDD library")
 
 macro(add_cudd_library LIB)
