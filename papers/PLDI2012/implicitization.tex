@@ -416,11 +416,6 @@ inductive invariant of the entire program.
 
 Algorithm~ \ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
 
-\MM{Il faudra peut-être une section ``détails d'implem'' où mettre
-  l'histoire des BDDs pour P. Je laisse ici faute de mieux (peut-être
-  que la section~\ref{sec:analysis-algorithm} ferait l'affaire ?),
-  mais ça distrait un peu le lecteur}
-
 The current working subset of paths, noted $P$ and initially empty, is
 stored using a compact representation, such as binary decision
 diagrams. We also maintain two sets of control points:
@@ -488,9 +483,6 @@ widening, \emph{before} computing and taking into account new feasible paths.
 Thus, our technique combines both the advantages of \emph{Guided Static
 Analysis} and \emph{Path-focusing}.
 
-\MM{Pas sûr que ça soit nécessaire, mais vu qu'on a eu une version
-  fausse avant, c'est peut-être bien de dire comment on est arrivés à
-  la meilleure version.}
 The order of steps is important: narrowing has to be performed before
 adding new paths, or some spurious new paths would be added to $P$,
 and starting with the addition of new paths avoids wasting time
@@ -557,16 +549,18 @@ will be in $P$.
 Also, to prevent the algorithm from adding too many paths at a time,
 and in particular to prevent the algorithm from trying to re-add the
 same path infinitely many times, we use another abstract value
-associated to a control point $p_j$, noted $X_j^d$, which is distinct
-from $X_j^s$, and initialized to $X_j^s$. This value is updated when a
-point $p_j$ is the target of a new path, and is used instead of
-$X_j^s$ in the SMT formula. We thus check the satisfiability of the formula
+associated to the control point $p_j$, noted $X_j^d$, which is distinct
+from $X_j^s$, and initialized to $X_j^s$ right before computing new paths. 
+In the SMT formula, we associate to $p_j$ the abstract value $X_j^s$ when $p_j$
+is the starting point of the path, and $X_j^d$ when it is its destination point.
+We thus check the satisfiability of the formula
 $f'(p_i)$, where:
 $$f'(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
 \neg X_j^d)$$
 
+$X_j^d$ is updated when the point $p_j$ is the target of a new path.
 This way, further SMT queries do not
 compute other paths with the same source and destination if it is not
 needed (because these new paths would not make $X_j^d$ grow, hence
@@ -767,12 +761,12 @@ $d_j$ is \emph{true} in the model. Then, we can easily compute the value of
 $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 
 \begin{eqnarray*}
-g(p_i) = & \rho \wedge b_i^s \wedge 
+g(p_i) & = & \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
- & \wedge 
+ & & \wedge 
 \displaystyle\bigvee_{1 \leq k \leq m_i} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
 \neg d_l) \\
- & \wedge
+ & & \wedge
 \displaystyle\bigvee_{j \in Succ(i)} 
 (b_j^d \wedge \bigwedge_{1 \leq k \leq m_i} (\neg X_{j,k}))
 \end{eqnarray*}
@@ -815,14 +809,6 @@ acceleration.
 \end{algorithmic}
 \end{algorithm}
 
-The $\sigma_i$ functions take as parameters the index of the starting abstract
-value, and the path we focus on. If we dynamically construct these functions
-during the analysis, we should store the results of the $\sigma_i$ functions into a
-compact representation, such as Algebraic Decision Diagrams.\MM{Du
-  coup, j'aurais intégré cette phrase au paragraphe suivant. C'est des
-  ADD que tu utilises finalement ?}
-Note that $\sigma_i(j,k)$ will be computed only if needed.
-
 We experimented with a heuristic
 of dynamic construction of the $\sigma_i$ functions, adapted from
 \citet{DBLP:conf/pldi/GulwaniZ10}. 
@@ -833,12 +819,21 @@ suivant)}
 \MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
   affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
 \DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
-We start with one single
-disjunct per control point ($m_i=1$ for each $i, p_i \in P_R$) 
-and empty maps $\sigma_i$.
+\MM{OK, du coup j'ai ajouté une phrase à la fin de la section pour
+  rappeler notre contrib}
+For each control point $p_i \in P_R$, we start with one single disjunct
+($m_i = 1$) and define $\delta_i = 1$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
-$\sigma_i(j,k)$ is then constructed on the fly only when needed.
-When $\sigma_i(j,k)$ needs to be computed, we first compute the image of the
+
+The $\sigma_i$ functions take as parameters the index of the starting abstract
+value, and the path we focus on. 
+Since we dynamically construct these functions
+during the analysis, we store their already computed image into a
+compact representation, such as Algebraic Decision Diagrams.
+$\sigma_i(j,k)$ is then constructed on the fly only when needed, and computed
+only once.
+When the value of $\sigma_i(j,k)$ is required but undefined, we first compute
+the image of the
 abstract value $X_{i,j}$ by the path indexed by $k$, and try to find an existing
 disjunct of index $j'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
 If such an index exists, then we set $\sigma_i(j,k) = j'$.
@@ -846,11 +841,13 @@ Otherwise:
 \begin{itemize}[itemsep=-1\parsep,topsep=0pt]
 	\item if $m_i < M$, we increase $m_i$ by $1$ and define $\sigma_i(j,k) = m_i$
 	\item if $m_i = M$, we define $\sigma_i(j,k) = M$ 
-		\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
-		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
+		%\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
+		%d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
-
-\MM{Et que prend-t-on pour $\delta$ ? C'est 1 tout le temps ?}
+The main difference with the original
+algorithm~\cite{DBLP:conf/pldi/GulwaniZ10} is that we construct
+$\sigma_i(j,k)$ using SMT queries instead of enumerating a possibly
+exponential number of paths to find a solution.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
@@ -861,12 +858,12 @@ as well as the classical abstract interpretation algorithm, and the state-of-the
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 
-\MM{On peut peut-être citer le nom de l'outil (on garde PAGAI ?) ici.
-  L'intérêt d'avoir un nom, c'est que les gens peuvent en parler plus
-  facilement, et c'est plus facile de retrouver le papier origine d'un
-  outil quand il cite son nom}
-\DM{Dans la version finale, oui, mais pas dans une soumission anonymisée... suffit de Googlifier pagai sur imag.fr}
-
+%\MM{On peut peut-être citer le nom de l'outil (on garde PAGAI ?) ici.
+%  L'intérêt d'avoir un nom, c'est que les gens peuvent en parler plus
+%  facilement, et c'est plus facile de retrouver le papier origine d'un
+%  outil quand il cite son nom}
+%\DM{Dans la version finale, oui, mais pas dans une soumission anonymisée... suffit de Googlifier pagai sur imag.fr}
+%
 Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
 Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
@@ -936,11 +933,6 @@ The analysis is currently only forward, even though nothing in what we describe 
 \label{sec:compare_techniques}
 
 \begin{figure}[h]
-  \MM{Je trouve que les zéro-virgule-quelque-chose comme .17 font
-    moches à côté des zéros, vu que les tableaux sont alignés sur le
-    ., les ``0'' sont tout à gauche et les ``.17'' tout à droite. Je
-    vote pour des 0.17 pour que l'alignement soit bon, ça rendrait la
-    lecture plus facile je trouve}
   \begin{center}
     \input{./techniques.tex}
   \end{center} 
@@ -991,7 +983,7 @@ paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
 disjunctive invariants (DIS). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
-$\subsetneq$, $\supsetneq$ and ``unc.'' defined as in Fig.~\ref{fig:techniques}.}
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:techniques}
 \end{table*}
 
@@ -1087,11 +1079,14 @@ The techniques we introduce in this article are slower, but speed is still on th
 \end{tabular}
 \end{center}
 \caption{Results of the comparison of the various abstract domains, when using
-the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK),
+the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK and
+POLY),
 Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
 (GRID). The last column compares the domain of Convex Polyhedra with the
 improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
-using the classical widening operator (POLY).}
+using the classical widening operator (POLY). POLY and POLY* use the Parma
+Polyhedral Library \cite{PPL}.
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:domain}
 \end{table*}
 
@@ -1102,7 +1097,7 @@ The main results are given in Table \ref{tab:domain}.
 
 Statistically, the domain of convex polyhedra gives the better results, but
 commonly yields weaker invariants than the domains of octagons/intervals;
-this is a known weakness of its widening operator~\cite{Monniaux_LeGuen2011}.
+this is a known weakness of its widening operator~\cite{Monniaux_LeGuen2011}. 
 The Octagon domain appears to be much better than intervals; this is
 unsurprising since in most programs and libraries, bounds on loop indices are
 non constant: they depend on some parameters (array sizes etc.).
