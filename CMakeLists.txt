@@ -40,23 +40,29 @@ set(Z3_PATH "/home/jhenry/local/z3" CACHE PATH "Path to the Z3 SMT solver librar
 set(CUDD_PATH "/home/jhenry/local/cudd-2.4.2" CACHE PATH "Path to the CUDD BDD library")
 
 macro(add_cudd_library LIB)
-  find_library(CUDD_LIB${LIB} 
+  find_library(CUDD_LIB_${LIB} 
     NAMES ${LIB}
     PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB}
     NO_DEFAULT_PATH)
-  if("${CUDD_LIB${LIB}}" STREQUAL CUDD_LIB${LIB}-NOTFOUND)
-    message(FATAL_ERROR
+  if("${CUDD_LIB_${LIB}}" STREQUAL CUDD_LIB_${LIB}-NOTFOUND)
+    message(WARNING
       "Required CUDD library '${LIB}' (i.e lib${LIB}) not found  "
       "(I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).  "
-      "Please, install CUDD if needed and set \$CUDD_PATH accordingly"
+      "Please, install CUDD if needed and set \$CUDD_PATH accordingly."
       )
+    set(ERROR_OCCURED ON PARENT_SCOPE)
+    # We didn't find the absolute path, but if the user wants to try
+    # anyway, we can try with just the library name.
+    target_link_libraries(pagai ${LIB})
+  else()
+    target_link_libraries(pagai ${CUDD_LIB_${LIB}})
   endif()
-  target_link_libraries(pagai ${CUDD_LIB${LIB}})
-  unset(CUDD_LIB${LIB} CACHE)
+  unset(CUDD_LIB_${LIB} CACHE)
 endmacro()
 
 # configuration
 option(STATIC_LINK "Whether to build executables as static" OFF)
+option(CHECK_EXTERNALS "Whether to check that external dependancies are OK before compiling" ON)
 
 # Compiler choice: clang++ by default
 find_program(CLANG_PATH "clang++")
@@ -75,3 +81,12 @@ option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
 
 add_subdirectory(src)
+
+if(${CHECK_EXTERNALS})
+  message(WARNING ${ERROR_OCCURED})
+  if(${ERROR_OCCURED})
+    message(FATAL_ERROR
+      "Some errors occured during configuration (see above). Aborting."
+      )
+  endif()
+endif()
