@@ -810,14 +810,15 @@ acceleration.
 We experimented with a heuristic
 of dynamic construction of the $\sigma_i$ functions, adapted from
 \citet{DBLP:conf/pldi/GulwaniZ10}. 
-%\DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
-%et qu'elle n'était pas dans Gulwani?}
-%\JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
-%suivant)}
-%\MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
-%  affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
-%\DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
-
+\DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
+et qu'elle n'était pas dans Gulwani?}
+\JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
+suivant)}
+\MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
+  affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
+\DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
+\MM{OK, du coup j'ai ajouté une phrase à la fin de la section pour
+  rappeler notre contrib}
 For each control point $p_i \in P_R$, we start with one single disjunct
 ($m_i = 1$) and define $\delta_i = 1$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
@@ -841,6 +842,10 @@ Otherwise:
 		%\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
 		%d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
+The main difference with the original
+algorithm~\cite{DBLP:conf/pldi/GulwaniZ10} is that we construct
+$\sigma_i(j,k)$ using SMT queries instead of enumerating a possibly
+exponential number of paths to find a solution.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
