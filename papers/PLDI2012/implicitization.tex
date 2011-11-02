@@ -833,6 +833,8 @@ suivant)}
 \MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
   affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
 \DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
+\MM{OK, du coup j'ai ajouté une phrase à la fin de la section pour
+  rappeler notre contrib}
 We start with one single
 disjunct per control point ($m_i=1$ for each $i, p_i \in P_R$) 
 and empty maps $\sigma_i$. We also define $\delta_i = 1$ for each $i, p_i \in
@@ -850,6 +852,10 @@ Otherwise:
 		\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
 		d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
 \end{itemize}
+The main difference with the original
+algorithm~\cite{DBLP:conf/pldi/GulwaniZ10} is that we construct
+$\sigma_i(j,k)$ using SMT queries instead of enumerating a possibly
+exponential number of paths to find a solution.
 
 \section{Experimental comparisons}
 \label{sec:experiments}
