@@ -53,7 +53,7 @@ yices-$(YICES_VERSION)/lib/libyices.a: yices-$(YICES_VERSION)-$(YICES_ARCH).tar.
 z3-$(Z3_VERSION).tar.gz:
 	curl -L -o "$@" "http://research.microsoft.com/projects/z3/z3-$(Z3_VERSION).tar.gz"
 
-z3-$(Z3_VERSION)/lib/libz3-gmp.so:
+z3-$(Z3_VERSION)/lib/libz3-gmp.so: z3-$(Z3_VERSION).tar.gz
 	mkdir -p z3-$(Z3_VERSION)
 # z3-V.tar.gz expands itself into a directory without version but in
 # case we need to experiment with different versions, force a
