@@ -59,8 +59,7 @@ z3-$(Z3_VERSION)/lib/libz3-gmp.so:
 # case we need to experiment with different versions, force a
 # directory name including a version number and use the same symlink
 # trick as for others.
-	cd z3-$(Z3_VERSION) && tar --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
-	touch --no-create "$@"
+	cd z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
 
 #### LLVM Installation
 llvm-$(LLVM_VERSION).tar.gz:
