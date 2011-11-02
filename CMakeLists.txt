@@ -24,6 +24,15 @@ STRING(REGEX REPLACE "\n" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
 execute_process(COMMAND llvm-config --libs jit interpreter nativecodegen bitreader selectiondag
                 OUTPUT_VARIABLE LLVM_LIBS)
 
+execute_process(COMMAND llvm-config --version
+                OUTPUT_VARIABLE LLVM_VERSION)
+STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
+
+if(NOT "${LLVM_VERSION}" STREQUAL "2.9")
+  message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed")
+  set(ERROR_OCCURED ON)
+endif()
+
 # turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
 STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
 STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
@@ -35,9 +44,9 @@ set(MPFR_PREFIX "/usr" CACHE PATH "Path to the MPFR library")
 set(APRON_PREFIX "/usr" CACHE PATH "Path to the APRON abstract domains library")
 set(PPL_PREFIX "/usr" CACHE PATH "Path to the PPL Polyhedra library")
 set(CAMLIDL_PREFIX "/usr" CACHE PATH "Path to the CAMLIDL library")
-set(YICES_PATH "/home/jhenry/local/yices" CACHE PATH "Path to the YICES SMT solver library")
+set(YICES_PATH "${CMAKE_HOME_DIRECTORY}/external/yices" CACHE PATH "Path to the YICES SMT solver library")
 set(Z3_PATH "/home/jhenry/local/z3" CACHE PATH "Path to the Z3 SMT solver library")
-set(CUDD_PATH "/home/jhenry/local/cudd-2.4.2" CACHE PATH "Path to the CUDD BDD library")
+set(CUDD_PATH "${CMAKE_HOME_DIRECTORY}/external/cudd" CACHE PATH "Path to the CUDD BDD library")
 
 macro(add_cudd_library LIB)
   find_library(CUDD_LIB_${LIB} 
@@ -83,10 +92,11 @@ option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
 add_subdirectory(src)
 
 if(${CHECK_EXTERNALS})
-  message(WARNING ${ERROR_OCCURED})
   if(${ERROR_OCCURED})
     message(FATAL_ERROR
-      "Some errors occured during configuration (see above). Aborting."
+      "Some errors occured during configuration (see above). Aborting.  "
+      "Many errors about missing dependencies can be solved by typing "
+      "simply \"make\" from the external/ directory."
       )
   endif()
 endif()
