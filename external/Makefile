@@ -2,12 +2,14 @@ CUDD_VERSION=2.4.2
 YICES_VERSION=1.0.31
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=2.19
+LLVM_VERSION=2.9
 
-all: install-cudd install-yices install-z3
+all: install-cudd install-yices install-z3 install-llvm
 
 install-cudd: cudd-$(CUDD_VERSION)/cudd/libcudd.a cudd
 install-yices: yices-$(YICES_VERSION)/lib/libyices.a yices
 install-z3: z3-$(Z3_VERSION)/lib/libz3-gmp.so z3
+install-llvm: llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a llvm
 
 # Symlinks
 cudd: $(MAKEFILE_LIST)
@@ -16,6 +18,8 @@ yices: $(MAKEFILE_LIST)
 	ln -sf yices-$(YICES_VERSION) yices
 z3: $(MAKEFILE_LIST)
 	ln -sf z3-$(Z3_VERSION) z3
+llvm: $(MAKEFILE_LIST)
+	ln -sf llvm-$(LLVM_VERSION)/install llvm
 
 
 #### CUDD Installation
@@ -43,8 +47,7 @@ yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz:
 yices-$(YICES_VERSION)/lib/libyices.a: yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 	tar xzvf "$<"
 # override the timestamp set by tar
-	test -f "$@"
-	touch "$@"
+	touch --no-create "$@"
 
 #### Z3 Installation
 z3-$(Z3_VERSION).tar.gz:
@@ -57,5 +60,17 @@ z3-$(Z3_VERSION)/lib/libz3-gmp.so:
 # directory name including a version number and use the same symlink
 # trick as for others.
 	cd z3-$(Z3_VERSION) && tar --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
-	test -f z3-$(Z3_VERSION)/lib/libz3-gmp.so
-	touch z3-$(Z3_VERSION)/lib/libz3-gmp.so
+	touch --no-create "$@"
+
+#### LLVM Installation
+llvm-$(LLVM_VERSION).tar.gz:
+	curl -o "$@" "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz"
+
+llvm-$(LLVM_VERSION)/README.txt: llvm-$(LLVM_VERSION).tar.gz
+	tar xzvf "$<"
+	touch --no-create "$@"
+
+llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: llvm-$(LLVM_VERSION)/README.txt
+	cd llvm-$(LLVM_VERSION) && \
+		./configure --prefix=$(PWD)/llvm-$(LLVM_VERSION)/install/ && \
+		make && make install

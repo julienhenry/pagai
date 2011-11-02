@@ -7,3 +7,6 @@
 /z3
 /z3-*/
 /z3-*.tar.gz
+/llvm
+/llvm-*/
+/llvm-*.tar.gz
