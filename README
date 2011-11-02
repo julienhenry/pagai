@@ -1,3 +1,11 @@
+PAGAI needs :
+
+- Apron: on Debian systems, install packages
+
+  libapron libapron-dev libapron-ocaml-dev
+
+- Yices, Z3, CUDD, LLVM (can be automatically installed for you)
+
 To compile PAGAI, run
 
 cmake .
