@@ -983,7 +983,7 @@ paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
 disjunctive invariants (DIS). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
-$\subsetneq$, $\supsetneq$ and ``unc.'' defined as in Fig.~\ref{fig:techniques}.}
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:techniques}
 \end{table*}
 
@@ -1079,12 +1079,14 @@ The techniques we introduce in this article are slower, but speed is still on th
 \end{tabular}
 \end{center}
 \caption{Results of the comparison of the various abstract domains, when using
-the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK),
+the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK and
+POLY),
 Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
 (GRID). The last column compares the domain of Convex Polyhedra with the
 improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
 using the classical widening operator (POLY). POLY and POLY* use the Parma
-Polyhedral Library \cite{PPL}.}
+Polyhedral Library \cite{PPL}.
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:domain}
 \end{table*}
 
