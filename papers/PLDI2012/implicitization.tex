@@ -549,16 +549,18 @@ will be in $P$.
 Also, to prevent the algorithm from adding too many paths at a time,
 and in particular to prevent the algorithm from trying to re-add the
 same path infinitely many times, we use another abstract value
-associated to a control point $p_j$, noted $X_j^d$, which is distinct
-from $X_j^s$, and initialized to $X_j^s$. This value is updated when a
-point $p_j$ is the target of a new path, and is used instead of
-$X_j^s$ in the SMT formula. We thus check the satisfiability of the formula
+associated to the control point $p_j$, noted $X_j^d$, which is distinct
+from $X_j^s$, and initialized to $X_j^s$ right before computing new paths. 
+In the SMT formula, we associate to $p_j$ the abstract value $X_j^s$ when $p_j$
+is the starting point of the path, and $X_j^d$ when it is its destination point.
+We thus check the satisfiability of the formula
 $f'(p_i)$, where:
 $$f'(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
 \neg X_j^d)$$
 
+$X_j^d$ is updated when the point $p_j$ is the target of a new path.
 This way, further SMT queries do not
 compute other paths with the same source and destination if it is not
 needed (because these new paths would not make $X_j^d$ grow, hence
