@@ -1,12 +1,5 @@
 /cudd
-/cudd-*.tar.gz
-/cudd-*/
 /yices
-/yices-*/
-/yices-*.tar.gz
 /z3
-/z3-*/
-/z3-*.tar.gz
 /llvm
-/llvm-*/
-/llvm-*.tar.gz
+/build
