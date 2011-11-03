@@ -48,7 +48,9 @@ ap_texpr1_t * get_ap_expr_rec(Node * n, Value * val, std::set<Node*> * seen) {
 	ap_texpr1_t * res = NULL;
 	if (n->Exprs.count(val) > 0) {
 		res = n->Exprs[val];
-	} else if (!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb)) {
+	} else if (
+			!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,true) &&
+			!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,false)) {
 		res = NULL;
 	} else if (seen->count(n) == 0) {
 		seen->insert(n);
@@ -163,10 +165,7 @@ int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 		ap_type = AP_RTYPE_REAL;
 		break;
 	default:
-		DEBUG(
-		*Out << "Warning: Unknown type for " << *val << "\n";
-		Out->flush();
-		);
+		// unknown type
 		ap_type = AP_RTYPE_REAL;
 		return 1;
 	}
