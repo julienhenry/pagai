@@ -124,7 +124,10 @@ macro(add_apron_library PROG LIB)
   add_library_maybe("${PROG}" "${LIB}"
     "Required APRON library '${LIB}' (i.e lib${LIB}) not found
 (I've searched in ${APRON_PREFIX} and ${APRON_PREFIX}/lib).
-Please, install APRON if needed and set \$APRON_PREFIX accordingly."
+Please, install APRON if needed (it is included in Debian
+and Ubuntu Universe, so if you are using one of these systems,
+just install the packages libapron libapron-dev libapron-ocaml-dev)
+and set \$APRON_PREFIX accordingly."
     "${APRON_PREFIX}/lib" "${APRON_PREFIX}"
     "${CAMLIDL_PREFIX}/lib/ocaml/apron"
     )
