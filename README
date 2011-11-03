@@ -6,23 +6,35 @@ PAGAI needs :
 
 - Yices, Z3, CUDD, LLVM (can be automatically installed for you)
 
-To compile PAGAI, run
+The simplest way to compile PAGAI is to run:
 
-cmake .
-make
+  ./autoinstall.sh
 
+from the toplevel. This will download and compile most dependencies
+for you (it takes time, and ~550Mb of disk space).
+
+If you don't want the dependencies to be installed for you, run:
+
+  cmake .
+  make
+  
 from the toplevel.
 
-Alternatively, one can use an out-of-tree build with
+Alternatively, one can use an out-of-tree build with:
 
-mkdir build
-cd build
-cmake ..
-make
+  mkdir build
+  ../autoinstall-out-of-tree.sh
+
+or, without the external dependency installation:
+
+  mkdir build
+  cd build
+  cmake ..
+  make
 
 Variables (path to libraries, build options, ...) can be set for each
 build with e.g.
 
-cmake -DSTATIC_LINK=ON .
-cmake -i .
-cmake-gui .
+  cmake -DSTATIC_LINK=ON .
+  cmake -i .
+  cmake-gui .
