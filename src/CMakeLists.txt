@@ -2,9 +2,6 @@ SET(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 file(GLOB TOP_SRC *.cc)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
-
 if(${STATIC_LINK})
   # probably not the cleanest way to do (-static won't exist for all
   # compilers). Using find_library and putting .a at the front of
@@ -34,6 +31,7 @@ include_directories(
 # tries to link against libgmp.so.3 which doesn't exist. It seems to
 # be linked to the version of libutils chosen by the linker.
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib ${CMAKE_EXE_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "-pthread ${CMAKE_EXE_LINKER_FLAGS}")
 link_directories(
   ${GMP_PREFIX}/lib
   ${MPFR_PREFIX}/lib 
@@ -44,13 +42,14 @@ link_directories(
   ${Z3_PATH}/lib 
 )
 
-
 add_executable(pagai ${TOP_SRC})
-target_link_libraries(pagai ${LLVM_LIBS})
+
+configure_llvm(pagai bitreader selectiondag)
+
 # Apron and dependancies
 target_link_libraries(pagai polkaMPQ octD boxMPFR ap_ppl ap_pkgrid apron ppl)
 # SMT solvers
-target_link_libraries(pagai yices z3)
+target_link_libraries(pagai yices z3-gmp)
 target_link_libraries(pagai mpfr gmpxx gmp)
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,

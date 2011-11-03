@@ -17,43 +17,59 @@ set(YICES_PATH "${CMAKE_HOME_DIRECTORY}/external/yices" CACHE PATH "Path to the 
 set(Z3_PATH "${CMAKE_HOME_DIRECTORY}/external/z3" CACHE PATH "Path to the Z3 SMT solver library")
 set(CUDD_PATH "${CMAKE_HOME_DIRECTORY}/external/cudd" CACHE PATH "Path to the CUDD BDD library")
 
-# In theory, we could use the package discovery like this:
-# SET(CMAKE_MODULE_PATH "${LLVM_DIR}")
-# find_package(LLVM)
-# (see http://llvm.org/docs/CMake.html#embedding )
-# In practice, I didn't manage to get llvm_map_components_to_libraries
-# to work, hence we do it by calling llvm-config ourselves instead.
-find_program(LLVM_CONFIG_PROG llvm-config-2.9 NAMES llvm-config-2.9 llvm-config HINTS "${LLVM_PATH}/bin")
+macro(configure_llvm PROG)
+  # In theory, we could use the package discovery like this:
+  # SET(CMAKE_MODULE_PATH "${LLVM_DIR}")
+  # find_package(LLVM)
+  # (see http://llvm.org/docs/CMake.html#embedding )
+  # In practice, I didn't manage to get llvm_map_components_to_libraries
+  # to work, hence we do it by calling llvm-config ourselves instead.
+  find_program(LLVM_CONFIG_PROG llvm-config-2.9 NAMES llvm-config-2.9 llvm-config HINTS "${LLVM_PATH}/bin")
+  
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN}
+    OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  # CMake doesn't like newline in CXXFLAGS, and there's at least a
+  # trailing \n in llvm-config's output.
+  STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+  # llvm-config has a -fno-rtti -fno-exception by default, uncomment this if needed.
+  STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+  STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
 
-execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags jit interpreter nativecodegen bitreader selectiondag
-                OUTPUT_VARIABLE LLVM_CXXFLAGS)
-# CMake doesn't like newline in CXXFLAGS, and there's at least a
-# trailing \n in llvm-config's output.
-STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
-# llvm-config has a -fno-rtti -fno-exception by default, uncomment this if needed.
-STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
-STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --ldflags
+    OUTPUT_VARIABLE LLVM_LDFLAGS)
+  STRING(REGEX REPLACE "\n" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+  
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --libs ${ARGN}
+    OUTPUT_VARIABLE LLVM_LIBS)
+  
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
+    OUTPUT_VARIABLE LLVM_VERSION)
+  STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
+  
+  if(NOT "${LLVM_VERSION}" STREQUAL "2.9")
+    message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed")
+    set(ERROR_OCCURED ON)
+  endif()
+  
+  # turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
+  STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
+  STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
+  STRING(REGEX REPLACE " -l" ";" LLVM_LIBS "${LLVM_LIBS}")
 
-execute_process(COMMAND "${LLVM_CONFIG_PROG}" --ldflags
-                OUTPUT_VARIABLE LLVM_LDFLAGS)
-STRING(REGEX REPLACE "\n" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+  target_link_libraries(pagai ${LLVM_LIBS})
 
-execute_process(COMMAND "${LLVM_CONFIG_PROG}" --libs jit interpreter nativecodegen bitreader selectiondag
-                OUTPUT_VARIABLE LLVM_LIBS)
+  # llvm-config --ldflags was hardcoding -lfoo, but the order of
+  # libraries is, and we don't have control on the ordering between
+  # LDFLAGS and CMake use of target_link_libraries => remove -lfoo and
+  # use target_link_libraries() instead.
+  STRING(REGEX REPLACE " *-lpthread *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+  STRING(REGEX REPLACE " *-ldl *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+  target_link_libraries("${PROG}" dl)
+  target_link_libraries("${PROG}" pthread)
 
-execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
-                OUTPUT_VARIABLE LLVM_VERSION)
-STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
-
-if(NOT "${LLVM_VERSION}" STREQUAL "2.9")
-  message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed")
-  set(ERROR_OCCURED ON)
-endif()
-
-# turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
-STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
-STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
-STRING(REGEX REPLACE " -l" ";" LLVM_LIBS "${LLVM_LIBS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+endmacro()
 
 macro(add_cudd_library LIB)
   find_library(CUDD_LIB_${LIB} 
