@@ -17,16 +17,17 @@ install-z3: $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so $(DEST_LINKS)/z3
 install-llvm: $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a $(DEST_LINKS)/llvm
 
 MKDIR_DEST=mkdir -p "$(DEST)"
+DEST_ABS=${shell $(MKDIR_DEST) && cd $(DEST) && pwd}
 
 # Symlinks
 $(DEST_LINKS)/cudd: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/cudd-$(CUDD_VERSION) $@
+	ln -sf $(DEST_ABS)/cudd-$(CUDD_VERSION) $@
 $(DEST_LINKS)/yices: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/yices-$(YICES_VERSION) $@
+	ln -sf $(DEST_ABS)/yices-$(YICES_VERSION) $@
 $(DEST_LINKS)/z3: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/z3-$(Z3_VERSION) $@
+	ln -sf $(DEST_ABS)/z3-$(Z3_VERSION) $@
 $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/llvm-$(LLVM_VERSION)/install $@
+	ln -sf $(DEST_ABS)/llvm-$(LLVM_VERSION)/install $@
 
 
 #### CUDD Installation
@@ -82,5 +83,5 @@ $(DEST)/llvm-$(LLVM_VERSION)/README.txt: $(DEST)/llvm-$(LLVM_VERSION).tar.gz
 
 $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM_VERSION)/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
-		./configure --prefix=$(PWD)/llvm-$(LLVM_VERSION)/install/ && \
+		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/ && \
 		make && make install
