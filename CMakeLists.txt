@@ -8,7 +8,7 @@ option(CHECK_EXTERNALS "Whether to check that external dependancies are OK befor
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
-set(LLVM_PATH "${EXTERNAL_PATH}/llvm" CACHE PATH "Path to LLVM installation")
+set(LLVM_PATH "${EXTERNAL_PATH}/llvm" CACHE PATH "Path to LLVM installation, used to find llvm-config.")
 set(GMP_PREFIX "/usr" CACHE PATH "Path to the GMP multiprecision library")
 set(MPFR_PREFIX "/usr" CACHE PATH "Path to the MPFR library")
 set(APRON_PREFIX "/usr" CACHE PATH "Path to the APRON abstract domains library")
@@ -26,13 +26,26 @@ macro(configure_llvm PROG)
   # In practice, I didn't manage to get llvm_map_components_to_libraries
   # to work, hence we do it by calling llvm-config ourselves instead.
   find_program(LLVM_CONFIG_PROG llvm-config-2.9 NAMES llvm-config-2.9 llvm-config HINTS "${LLVM_PATH}/bin")
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
+    OUTPUT_VARIABLE LLVM_VERSION)
+  STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
   
+  if("${LLVM_CONFIG_PROG}" STREQUAL LLVM_CONFIG_PROG-NOTFOUND)
+    message(WARNING "llvm-config not found. Please set \$LLVM_PATH "
+      "so that I can find it in \$LLVM_PATH/bin/")
+    set(ERROR_OCCURED ON PARENT_SCOPE)
+  elseif(NOT "${LLVM_VERSION}" STREQUAL "2.9")
+    message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed for ${PROG}.")
+    unset(LLVM_CONFIG_PROG CACHE)
+    set(ERROR_OCCURED ON PARENT_SCOPE)
+  endif()
+
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN}
     OUTPUT_VARIABLE LLVM_CXXFLAGS)
   # CMake doesn't like newline in CXXFLAGS, and there's at least a
   # trailing \n in llvm-config's output.
   STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
-  # llvm-config has a -fno-rtti -fno-exception by default, uncomment this if needed.
+  # llvm-config has a -fno-rtti -fno-exception by default, but we use dynamic_cast<>
   STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
   STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
 
@@ -43,15 +56,6 @@ macro(configure_llvm PROG)
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --libs ${ARGN}
     OUTPUT_VARIABLE LLVM_LIBS)
   
-  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
-    OUTPUT_VARIABLE LLVM_VERSION)
-  STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
-  
-  if(NOT "${LLVM_VERSION}" STREQUAL "2.9")
-    message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed")
-    set(ERROR_OCCURED ON)
-  endif()
-  
   # turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
   STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
@@ -60,9 +64,9 @@ macro(configure_llvm PROG)
   target_link_libraries(pagai ${LLVM_LIBS})
 
   # llvm-config --ldflags was hardcoding -lfoo, but the order of
-  # libraries is, and we don't have control on the ordering between
-  # LDFLAGS and CMake use of target_link_libraries => remove -lfoo and
-  # use target_link_libraries() instead.
+  # libraries is important, and we don't have control on the ordering
+  # between LDFLAGS and CMake use of target_link_libraries => remove
+  # -lfoo and use target_link_libraries() instead.
   STRING(REGEX REPLACE " *-lpthread *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
   STRING(REGEX REPLACE " *-ldl *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
   target_link_libraries("${PROG}" dl)
