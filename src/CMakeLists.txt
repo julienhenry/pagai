@@ -52,7 +52,7 @@ add_apron_library(pagai apron)
 add_apron_library(pagai ppl)
 # SMT solvers
 add_yices_library(pagai)
-add_z3_library(pagai z3-gmp)
+add_z3_library(pagai)
 target_link_libraries(pagai mpfr gmpxx gmp)
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,

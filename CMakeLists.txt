@@ -76,9 +76,9 @@ macro(configure_llvm PROG)
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 endmacro()
 
-macro(add_library_maybe PROG LIB MSG)
+macro(add_library_maybe_names PROG LIB NAMES MSG)
   find_library(TEMP_LIB_${LIB} 
-    NAMES ${LIB}
+    NAMES ${NAMES}
     PATHS ${ARGN}
     NO_DEFAULT_PATH)
   if("${TEMP_LIB_${LIB}}" STREQUAL TEMP_LIB_${LIB}-NOTFOUND)
@@ -91,6 +91,10 @@ macro(add_library_maybe PROG LIB MSG)
     target_link_libraries("${PROG}" ${TEMP_LIB_${LIB}})
   endif()
   unset(TEMP_LIB_${LIB} CACHE)
+endmacro()
+
+macro(add_library_maybe PROG LIB MSG)
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "${MSG}" ${ARGN})
 endmacro()
 
 macro(add_cudd_library PROG LIB)
@@ -111,9 +115,12 @@ Please, install Yices if needed and set \$YICES_PATH accordingly."
     )
 endmacro()
 
-macro(add_z3_library PROG LIB)
-  add_library_maybe("${PROG}" "${LIB}"
-    "Required Z3 library '${LIB}' (i.e lib${LIB}) not found
+macro(add_z3_library PROG)
+  # Preferably link against z3-gmp to avoid library version issues
+  # with gmp, but fall-back to z3 if z3-gmp is not found (this is the
+  # case on 64bits distributions of z3).
+  add_library_maybe_names("${PROG}" z3 "z3-gmp;z3"
+    "Required Z3 library 'z3-gmp' (i.e libz3-gmp) not found
 (I've searched in ${Z3_PATH} and ${Z3_PATH}/lib).
 Please, install Z3 if needed and set \$Z3_PATH accordingly."
     "${Z3_PATH}/lib" "${Z3_PATH}"
