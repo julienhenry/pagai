@@ -18,6 +18,12 @@ set(YICES_PATH "${EXTERNAL_PATH}/yices" CACHE PATH "Path to the YICES SMT solver
 set(Z3_PATH "${EXTERNAL_PATH}/z3" CACHE PATH "Path to the Z3 SMT solver library")
 set(CUDD_PATH "${EXTERNAL_PATH}/cudd" CACHE PATH "Path to the CUDD BDD library")
 
+if(NOT DEFINED ENV{LIB})
+  # CMake considers that the system environment variable for libraries
+  # is $LIB, but most people just have $LD_LIBRARY_PATH set for this.
+  set(ENV{LIB} $ENV{LD_LIBRARY_PATH})
+endif()
+
 macro(configure_llvm PROG)
   # In theory, we could use the package discovery like this:
   # SET(CMAKE_MODULE_PATH "${LLVM_DIR}")
@@ -76,11 +82,11 @@ macro(configure_llvm PROG)
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 endmacro()
 
-macro(add_library_maybe_names PROG LIB NAMES MSG)
+macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
   find_library(TEMP_LIB_${LIB} 
     NAMES ${NAMES}
     PATHS ${ARGN}
-    NO_DEFAULT_PATH)
+    ${OPTS})
   if("${TEMP_LIB_${LIB}}" STREQUAL TEMP_LIB_${LIB}-NOTFOUND)
     message(WARNING "${MSG}")
     set(ERROR_OCCURED ON PARENT_SCOPE)
@@ -94,11 +100,11 @@ macro(add_library_maybe_names PROG LIB NAMES MSG)
 endmacro()
 
 macro(add_library_maybe PROG LIB MSG)
-  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "${MSG}" ${ARGN})
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" NO_DEFAULT_PATH "${MSG}" ${ARGN})
 endmacro()
 
 macro(add_cudd_library PROG LIB)
-  add_library_maybe("${PROG}" "${LIB}"
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" ""
     "Required CUDD library '${LIB}' (i.e lib${LIB}) not found
 (I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).
 Please, install CUDD if needed and set \$CUDD_PATH accordingly."
