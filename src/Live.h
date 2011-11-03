@@ -32,11 +32,7 @@ class Live : public FunctionPass {
 		/// value are reachable.
 		///
 		SmallPtrSet< BasicBlock *, 4> LiveThrough;
-
-		/// Killed - the set of blocks in which
-		/// the value is not live-out.
-		///
-		SmallPtrSet< BasicBlock *, 4> Killed;
+		SmallPtrSet< BasicBlock *, 4> LiveThroughPHI;
 	};
 
 	/// Memos - Remembers the Memo for each Value. This is populated on
@@ -67,20 +63,14 @@ class Live : public FunctionPass {
 	bool isUsedInBlock( Value *V,  BasicBlock *BB);
 	bool isUsedInPHIBlock( Value *V,  BasicBlock *BB);
 
-	bool isLiveByLinearityInBlock(Value *V, BasicBlock *BB);
+	bool isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock);
 
 	/// isLiveThroughBlock - Test if the given value is known to be
 	/// live-through the given block, meaning that the block is properly
 	/// dominated by the value's definition, and there exists a block
 	/// reachable from it that contains a use. 	
 	///
-	bool isLiveThroughBlock( Value *V,  BasicBlock *BB);
-
-	/// isKilledInBlock - Test if the given value is known to be killed in
-	/// the given block, meaning that the block contains a use of the value,
-	/// and no blocks reachable from the block contain a use.
-	///
-	bool isKilledInBlock( Value *V,  BasicBlock *BB);
+	bool isLiveThroughBlock( Value *V,  BasicBlock *BB, bool PHIblock);
 };
 
 

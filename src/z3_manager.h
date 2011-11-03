@@ -17,6 +17,8 @@ class z3_manager: public SMT_manager {
 		std::map<std::string,SMT_var> vars;
 		std::map<SMT_var,SMT_type> types;
 		Z3_sort bool_type;
+		SMT_expr int0, real0;
+
 	public:
 		
 		z3_manager();
@@ -30,25 +32,37 @@ class z3_manager: public SMT_manager {
 		SMT_var SMT_mk_var(std::string name,SMT_type type);
 		SMT_expr SMT_mk_expr_from_bool_var(SMT_var var);
 		SMT_expr SMT_mk_expr_from_var(SMT_var var);
+
 		SMT_expr SMT_mk_or (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_and (std::vector<SMT_expr> args);
-		SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2);
-		SMT_expr SMT_mk_diseq (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_xor (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e);
 		SMT_expr SMT_mk_not (SMT_expr a);
+
 		SMT_expr SMT_mk_num (int n);
 		SMT_expr SMT_mk_num_mpq (mpq_t mpq);
 		SMT_expr SMT_mk_real (double x);
+
 		SMT_expr SMT_mk_sum (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_sub (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_mul (std::vector<SMT_expr> args);
+
+		SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_diseq (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_lt (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_le (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2);
+
 		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2);
-		SMT_expr SMT_mk_xor (SMT_expr a1, SMT_expr a2);
+
+		SMT_expr SMT_mk_int2real(SMT_expr a);
+		SMT_expr SMT_mk_real2int(SMT_expr a);
+		SMT_expr SMT_mk_is_int(SMT_expr a);
+
+		SMT_expr SMT_mk_int0();
+	        SMT_expr SMT_mk_real0();
 
 		void push_context();
 		void pop_context();

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for FILENAME in `ls *.{c,cpp}` ; do
+for FILENAME in `ls bin` ; do
 	echo "Running $FILENAME..."
-	./analyzer.sh -i $FILENAME -u  > results/$FILENAME.result
+	../src/pagai -i bin/$FILENAME --domain pkgrid  > results/$FILENAME.result
 done
