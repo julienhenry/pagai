@@ -1,0 +1,46 @@
+diff --git a/Makefile b/Makefile
+index d931d8c..ba704ab 100644
+--- a/Makefile
++++ b/Makefile
+@@ -62,7 +62,7 @@ ICFLAGS	= -g -O6
+ #  Linux
+ #
+ # Gcc 3.2.2 or higher on i686.
+-XCFLAGS	= -mtune=pentium4 -malign-double -DHAVE_IEEE_754 -DBSD
++XCFLAGS	= -mtune=core2 -malign-double -DHAVE_IEEE_754 -DBSD
+ # Gcc 2.8.1 on i686.
+ #XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DBSD
+ # Gcc 4.2.4 or higher on x86_64 (64-bit compilation)
+diff --git a/util/stub.c b/util/stub.c
+index 93f57e6..7a96325 100644
+--- a/util/stub.c
++++ b/util/stub.c
+@@ -1,5 +1,6 @@
+ /* LINTLIBRARY */
+ 
++#ifdef OLD_SCHOOL_SYSTEM
+ #ifdef LACK_SYS5
+ 
+ char *
+@@ -80,3 +81,4 @@ util_do_nothing()
+ {
+     return 1;
+ }
++#endif
+diff --git a/util/tmpfile.c b/util/tmpfile.c
+index 35b6fbb..c6c0b48 100644
+--- a/util/tmpfile.c
++++ b/util/tmpfile.c
+@@ -12,6 +12,7 @@
+ #include "util.h"
+ 
+ 
++#ifdef OLD_SCHOOL_SYSTEM
+ #ifdef UNIX
+ 
+ FILE *
+@@ -40,3 +41,4 @@ tmpfile()
+ }
+ 
+ #endif
++#endif

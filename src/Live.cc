@@ -4,6 +4,7 @@
 #include "llvm/Support/FormattedStream.h"
 
 #include "Live.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -47,9 +48,8 @@ bool Live::isUsedInPHIBlock(Value *V, BasicBlock *BB) {
 }
 
 
-bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
-
-	if (isLiveThroughBlock(V,BB)) {
+bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock) {
+	if (isLiveThroughBlock(V,BB,PHIblock)) {
 		return true;
 	} else {
 		for (Value::use_iterator I = V->use_begin(), E = V->use_end();
@@ -61,7 +61,7 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
 					case Instruction::FAdd: 
 					case Instruction::Sub : 
 					case Instruction::FSub: 
-						if (isLiveByLinearityInBlock(binop,BB)) 
+						if (isLiveByLinearityInBlock(binop,BB,PHIblock)) 
 							return true;
 						break;
 					default:
@@ -70,6 +70,7 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
 			}
 		}
 	}
+	//*Out << *V << "is NOT Live Through " << BB << "\n";
 	return false;
 }
 
@@ -79,19 +80,14 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB) {
 /// reachable from it that contains a use. 
 ///
 bool Live::isLiveThroughBlock( Value *V,
-		BasicBlock *BB) {
+		BasicBlock *BB, bool PHIblock) {
 	Memo &M = getMemo(V);
-	return M.LiveThrough.count(BB);
+	if (PHIblock)
+		return M.LiveThroughPHI.count(BB);
+	else
+		return M.LiveThrough.count(BB);
 }
 
-/// isKilledInBlock - Test if the given value is known to be killed in
-/// the given block, meaning that the block contains a use of the value,
-/// and no blocks reachable from the block contain a use.
-///
-bool Live::isKilledInBlock( Value *V,  BasicBlock *BB) {
-	Memo &M = getMemo(V);
-	return M.Killed.count(BB);
-}
 
 /// getMemo - Retrieve an existing Memo for the given value if one
 /// is available, otherwise compute a new one.
@@ -103,10 +99,21 @@ Live::Memo &Live::getMemo( Value *V) {
 	return compute(V);
 }
 
+
+struct Block {
+	BasicBlock * b;
+	bool PHIblock;
+
+	Block(BasicBlock * _b, bool _PHIblock) {b = _b; PHIblock = _PHIblock;}
+};
+
 /// compute - Compute a new Memo for the given value.
 ///
 Live::Memo &Live::compute( Value *V) {
 	Memo &M = Memos[V];
+
+	// if V is a PHINode, it is defined in the PHI block of DefBB
+	bool PHIblock = isa<PHINode>(V);
 
 	// Determine the block containing the definition.
 	BasicBlock *DefBB;
@@ -123,17 +130,10 @@ Live::Memo &Live::compute( Value *V) {
 	else
 		return M;
 
-	// Determine if the value is defined inside a loop. This is used
-	// to track whether the value is ever used outside the loop, so
-	// it'll be set to null if the value is either not defined in a
-	// loop or used outside the loop in which it is defined.
-	Loop *L = LI->getLoopFor(DefBB);
-
-	// Track whether the value is used anywhere outside of the block
-	// in which it is defined.
-	bool LiveOutOfDefBB = false;
+	Block DefB(DefBB,PHIblock);
 
 	// Examine each use of the value.
+	std::stack<Block> S;
 	for (Value::use_iterator I = V->use_begin(), E = V->use_end();
 			I != E; ++I) {
 		User *U = *I;
@@ -146,72 +146,51 @@ Live::Memo &Live::compute( Value *V) {
 			M.Used.insert(UseBB);
 		}
 
-		// Observe whether the value is used outside of the loop in which
-		// it is defined. Switch to an enclosing loop if necessary.
-		for (; L; L = L->getParentLoop())
-			if (L->contains(UseBB))
-				break;
-
-		std::stack< BasicBlock *> S;
-		
 		if (PHINode * phi = dyn_cast<PHINode>(U)) {
 			// The value is used by a PHI, so it is live-out of the defining block.
-			LiveOutOfDefBB = true;
 
 			// we should add to LiveThrough Block the predecessors of the block,
 			// which comes to the right path (phi-variable)
 			
 			//M.LiveThrough.insert(UseBB);
 			
-			BasicBlock * Pred = phi->getIncomingBlock(I);
+			Block Pred(phi->getIncomingBlock(I),false);
 			S.push(Pred);
 
-		} else if (UseBB != DefBB) {
-			// A use outside the defining block has been found.
-			LiveOutOfDefBB = true;
+		} else if (UseBB != DefB.b || DefB.PHIblock) {
 
 			// We add to LiveThrough blocks all the blocks that are located
 			// between the definition of the value and its use.
-			S.push(UseBB);
+			Block B(UseBB,false);
+			S.push(B);
 		}
+	}
 
 		while (!S.empty()) {
-			BasicBlock * BB = S.top();
+			Block BB = S.top();
 			S.pop();
-			if (!M.LiveThrough.count(BB)) {
-				M.LiveThrough.insert(BB);
-				if (BB != DefBB) {
-					for (pred_iterator p = pred_begin(BB), e = pred_end(BB); 
-							p != e; 
-							++p){
-						BasicBlock * Pred = *p;
+			if (BB.PHIblock == true) {
+				if (!M.LiveThroughPHI.count(BB.b)) {
+					M.LiveThroughPHI.insert(BB.b);
+					if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
+						for (pred_iterator p = pred_begin(BB.b), e = pred_end(BB.b); 
+								p != e; 
+								++p){
+							Block Pred(*p,false);
+							S.push(Pred);
+						}
+					}
+				}
+			} else {
+				if (!M.LiveThrough.count(BB.b)) {
+					M.LiveThrough.insert(BB.b);
+					if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
+						Block Pred(BB.b,true);
 						S.push(Pred);
 					}
 				}
 			}
 		}
-	}
-
-	// If the value is defined inside a loop and is not live outside
-	// the the successors of exiting blocks that are outside the loop are Killed
-	// blocks
-	if (L) {
-		SmallVector<BasicBlock *, 4> ExitingBlocks;
-		L->getExitingBlocks(ExitingBlocks);
-		for (unsigned i = 0, e = ExitingBlocks.size(); i != e; ++i) {
-			BasicBlock *Exit = ExitingBlocks[i];
-			for (succ_iterator SI = succ_begin(Exit), E = succ_end(Exit) ; SI != E; ++SI) {
-				BasicBlock *Succ = *SI;
-				if (!L->contains(Succ))
-					M.Killed.insert(Succ);
-			}
-		}
-	}
-
-	// If the value was never used outside the the block in which it was
-	// defined, it's killed in that block.
-	if (!LiveOutOfDefBB)
-		M.Killed.insert(DefBB);
 
 	return M;
 }

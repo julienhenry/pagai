@@ -59,6 +59,7 @@ void AIPass::initFunction(Function * F) {
 				n = Nodes[i];
 				n->intVar.clear();
 				n->realVar.clear();
+				n->Exprs.clear();
 				n->env = ap_environment_alloc_empty();
 			}
 			// creating an X and an Y abstract value for this node
@@ -227,20 +228,20 @@ void AIPass::computeEnv(Node * n) {
 		pred = Nodes[pb];
 		if (pred->X_s[passID]->main != NULL) {
 			for (i = pred->intVar.begin(), e = pred->intVar.end(); i != e; ++i) {
-				if (LV->isLiveByLinearityInBlock((*i).first,b)) {
+				if (LV->isLiveByLinearityInBlock((*i).first,b,true)) {
 					intVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
 			}
 
 			for (i = pred->realVar.begin(), e = pred->realVar.end(); i != e; ++i) {
-				if (LV->isLiveByLinearityInBlock((*i).first,b)) {
+				if (LV->isLiveByLinearityInBlock((*i).first,b,true)) {
 					realVars[(*i).first].insert((*i).second.begin(),(*i).second.end());
 				}
 			}
 		}
 	}
-	//n->intVar.clear();
-	//n->realVar.clear();
+	n->intVar.clear();
+	n->realVar.clear();
 	n->intVar.insert(intVars.begin(), intVars.end());
 	n->realVar.insert(realVars.begin(), realVars.end());
 }
@@ -277,9 +278,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	focuspath.assign(path.begin(), path.end());
 	Node * succ = Nodes[focuspath.back()];
 	focusblock = 0;
-	
-	computeEnv(succ);
 
+	computeEnv(succ);
+	
 	std::list<BasicBlock*>::iterator B = path.begin(), E = path.end();
 	for (; B != E; ++B) {
 		// visit instructions
@@ -309,6 +310,30 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
 
+	//////////
+	//
+
+	ap_var_t var;
+	Value * val;
+	std::vector<ap_var_t> intdims;
+	std::vector<ap_var_t> realdims;
+	for (size_t i = 0; i < env->intdim; i++) {
+		var = ap_environment_var_of_dim(env,i);
+		val = (Value*)var;
+		if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
+			intdims.push_back(var);
+		}
+	}
+	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
+		var = ap_environment_var_of_dim(env,i);
+		val = (Value*)var;
+		if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
+			realdims.push_back(var);
+		}
+	}
+	ap_environment_t * env2 = ap_environment_alloc(&intdims[0], intdims.size(), &realdims[0], realdims.size());
+	/////////
+	
 	std::vector<ap_lincons1_t> cons;
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
@@ -319,7 +344,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			);
 			Xtemp.meet_tcons_array((*i)->front());
 		
-			computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env);
+			computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env2);
 
 			ap_tcons1_array_clear((*i)->front());
 		} else {
@@ -333,7 +358,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
 				
-				computeThreshold(*it,&cons,ConstraintsAbstract,env);
+				computeThreshold(*it,&cons,ConstraintsAbstract,env2);
 				
 				ap_tcons1_array_clear(*it);
 			}
@@ -343,14 +368,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	}
 	Xtemp.change_environment(env);
 
-	// we transform the abstract value of constraints into an array of lincons
-	// for a future widening with threshold
-	ap_lincons1_array_clear(&threshold);
-	threshold = ap_lincons1_array_make(env,cons.size());
-	for (unsigned k = 0; k < cons.size(); k++) {
-		if (!ap_lincons1_extend_environment_with(&cons[k],env))
-			ap_lincons1_array_set(&threshold,k,&cons[k]);
-	}
 
 	Xtemp.assign_texpr_array(&PHIvars_prime.name[0],&PHIvars_prime.expr[0],PHIvars_prime.name.size(),NULL);
 
@@ -363,6 +380,22 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			*Out << "\n";
 		}
 	);
+
+	/////////
+	succ->env = env2;
+	Xtemp.change_environment(env2);
+	env = env2;
+	////////
+
+
+	// we transform the abstract value of constraints into an array of lincons
+	// for a future widening with threshold
+	ap_lincons1_array_clear(&threshold);
+	threshold = ap_lincons1_array_make(env,cons.size());
+	for (unsigned k = 0; k < cons.size(); k++) {
+		if (!ap_lincons1_extend_environment_with(&cons[k],env))
+			ap_lincons1_array_set(&threshold,k,&cons[k]);
+	}
 	delete ConstraintsAbstract;
 }
 
@@ -773,7 +806,7 @@ void AIPass::visitPHINode (PHINode &I){
 			ap_texpr1_t * expr = get_ap_expr(n,pv);
 
 			if (focusblock == focuspath.size()-1) {
-				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
+				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					PHIvars_prime.name.push_back((ap_var_t)&I);
 					PHIvars_prime.expr.push_back(*expr);
@@ -792,7 +825,7 @@ void AIPass::visitPHINode (PHINode &I){
 					texpr1_print(expr);
 					*Out << "\n";
 				);
-				if (LV->isLiveByLinearityInBlock(&I,n->bb)) {
+				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(*expr);
@@ -999,7 +1032,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	if (!LV->isLiveByLinearityInBlock(&I,I.getParent())) 
+	if (!LV->isLiveByLinearityInBlock(&I,I.getParent(),false)) 
 		return;
 
 	if (ap_type == AP_RTYPE_INT) { 
@@ -1009,7 +1042,8 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	set_ap_expr(&I,exp,n);
-	n->add_var((Value*)var);
+	if (!LV->isLiveByLinearityInBlock(&I,n->bb,true)) 
+		n->add_var((Value*)var);
 }
 
 
