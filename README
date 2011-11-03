@@ -3,6 +3,7 @@ PAGAI needs :
 - Apron: on Debian systems, install packages
 
   libapron libapron-dev libapron-ocaml-dev
+  libmpfr-dev libgmp3-dev
 
 - Yices, Z3, CUDD, LLVM (can be automatically installed for you)
 
