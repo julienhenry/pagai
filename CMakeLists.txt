@@ -76,25 +76,58 @@ macro(configure_llvm PROG)
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 endmacro()
 
-macro(add_cudd_library LIB)
-  find_library(CUDD_LIB_${LIB} 
+macro(add_library_maybe PROG LIB MSG)
+  find_library(TEMP_LIB_${LIB} 
     NAMES ${LIB}
-    PATHS ${CUDD_PATH} ${CUDD_PATH}/${LIB}
+    PATHS ${ARGN}
     NO_DEFAULT_PATH)
-  if("${CUDD_LIB_${LIB}}" STREQUAL CUDD_LIB_${LIB}-NOTFOUND)
-    message(WARNING
-      "Required CUDD library '${LIB}' (i.e lib${LIB}) not found  "
-      "(I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).  "
-      "Please, install CUDD if needed and set \$CUDD_PATH accordingly."
-      )
+  if("${TEMP_LIB_${LIB}}" STREQUAL TEMP_LIB_${LIB}-NOTFOUND)
+    message(WARNING "${MSG}")
     set(ERROR_OCCURED ON PARENT_SCOPE)
     # We didn't find the absolute path, but if the user wants to try
     # anyway, we can try with just the library name.
-    target_link_libraries(pagai ${LIB})
+    target_link_libraries("${PROG}" ${LIB})
   else()
-    target_link_libraries(pagai ${CUDD_LIB_${LIB}})
+    target_link_libraries("${PROG}" ${TEMP_LIB_${LIB}})
   endif()
-  unset(CUDD_LIB_${LIB} CACHE)
+  unset(TEMP_LIB_${LIB} CACHE)
+endmacro()
+
+macro(add_cudd_library PROG LIB)
+  add_library_maybe("${PROG}" "${LIB}"
+    "Required CUDD library '${LIB}' (i.e lib${LIB}) not found
+(I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).
+Please, install CUDD if needed and set \$CUDD_PATH accordingly."
+    "${CUDD_PATH}" "${CUDD_PATH}/${LIB}"
+    )
+endmacro()
+
+macro(add_yices_library PROG)
+  add_library_maybe("${PROG}" yices
+    "Required Yices library (i.e libyices) not found
+(I've searched in ${YICES_PATH} and ${YICES_PATH}/lib).
+Please, install Yices if needed and set \$YICES_PATH accordingly."
+    "${YICES_PATH}/lib" "${YICES_PATH}"
+    )
+endmacro()
+
+macro(add_z3_library PROG LIB)
+  add_library_maybe("${PROG}" "${LIB}"
+    "Required Z3 library '${LIB}' (i.e lib${LIB}) not found
+(I've searched in ${Z3_PATH} and ${Z3_PATH}/lib).
+Please, install Z3 if needed and set \$Z3_PATH accordingly."
+    "${Z3_PATH}/lib" "${Z3_PATH}"
+    )
+endmacro()
+
+macro(add_apron_library PROG LIB)
+  add_library_maybe("${PROG}" "${LIB}"
+    "Required APRON library '${LIB}' (i.e lib${LIB}) not found
+(I've searched in ${APRON_PREFIX} and ${APRON_PREFIX}/lib).
+Please, install APRON if needed and set \$APRON_PREFIX accordingly."
+    "${APRON_PREFIX}/lib" "${APRON_PREFIX}"
+    "${CAMLIDL_PREFIX}/lib/ocaml/apron"
+    )
 endmacro()
 
 # Compiler choice: clang++ by default
