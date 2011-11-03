@@ -246,6 +246,10 @@ void AIopt::computeNewPaths(Node * n) {
 
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,true);
+		DEBUG(
+			*Out << "THE FOLLOWING PATH IS INSERTED INTO P'\n";	
+			printPath(path);
+		);
 		A.push(n);
 	}
 }
