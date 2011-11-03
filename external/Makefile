@@ -80,6 +80,6 @@ $(DEST)/llvm-$(LLVM_VERSION)/README.txt: $(DEST)/llvm-$(LLVM_VERSION).tar.gz
 	touch --no-create "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM_VERSION)/README.txt
-	cd llvm-$(LLVM_VERSION) && \
+	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(PWD)/llvm-$(LLVM_VERSION)/install/ && \
 		make && make install
