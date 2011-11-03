@@ -1,6 +1,7 @@
 .SUFFIXES:
 
 DEST=build
+DEST_LINKS=.
 
 CUDD_VERSION=2.4.2
 YICES_VERSION=1.0.31
@@ -10,22 +11,22 @@ LLVM_VERSION=2.9
 
 all: install-cudd install-yices install-z3 install-llvm
 
-install-cudd: $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a cudd
-install-yices: $(DEST)/yices-$(YICES_VERSION)/lib/libyices.a yices
-install-z3: $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so z3
-install-llvm: $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a llvm
+install-cudd: $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a $(DEST_LINKS)/cudd
+install-yices: $(DEST)/yices-$(YICES_VERSION)/lib/libyices.a $(DEST_LINKS)/yices
+install-z3: $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so $(DEST_LINKS)/z3
+install-llvm: $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a $(DEST_LINKS)/llvm
 
 MKDIR_DEST=mkdir -p "$(DEST)"
 
 # Symlinks
-cudd: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/cudd-$(CUDD_VERSION) cudd
-yices: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/yices-$(YICES_VERSION) yices
-z3: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/z3-$(Z3_VERSION) z3
-llvm: $(MAKEFILE_LIST)
-	ln -sf $(DEST)/llvm-$(LLVM_VERSION)/install llvm
+$(DEST_LINKS)/cudd: $(MAKEFILE_LIST)
+	ln -sf $(DEST)/cudd-$(CUDD_VERSION) $@
+$(DEST_LINKS)/yices: $(MAKEFILE_LIST)
+	ln -sf $(DEST)/yices-$(YICES_VERSION) $@
+$(DEST_LINKS)/z3: $(MAKEFILE_LIST)
+	ln -sf $(DEST)/z3-$(Z3_VERSION) $@
+$(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
+	ln -sf $(DEST)/llvm-$(LLVM_VERSION)/install $@
 
 
 #### CUDD Installation
