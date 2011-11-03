@@ -42,17 +42,17 @@ add_executable(pagai ${TOP_SRC})
 
 configure_llvm(pagai bitreader selectiondag)
 
-# Apron and dependancies
+# Apron and dependencies
 add_apron_library(pagai polkaMPQ)
 add_apron_library(pagai octD)
 add_apron_library(pagai boxMPFR)
 add_apron_library(pagai ap_ppl)
 add_apron_library(pagai ap_pkgrid)
 add_apron_library(pagai apron)
-add_apron_library(pagai ppl)
+target_link_libraries(pagai ppl)
 # SMT solvers
 add_yices_library(pagai)
-add_z3_library(pagai z3-gmp)
+add_z3_library(pagai)
 target_link_libraries(pagai mpfr gmpxx gmp)
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,
