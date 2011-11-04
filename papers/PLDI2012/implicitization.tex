@@ -9,12 +9,15 @@
 %\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
 %\newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
 %\newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
-\newcommand{\MM}[1]{}
-\newcommand{\JH}[1]{}
-\newcommand{\DM}[1]{}
+%\newcommand{\MM}[1]{}
+%\newcommand{\JH}[1]{}
+%\newcommand{\DM}[1]{}
 
-% Pour les commentaires
+\usepackage{ifxetex}
+\ifxetex
+\else
 \usepackage[utf8]{inputenc}
+\fi
 
 \usepackage{amsmath}
 \usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
@@ -505,8 +508,8 @@ doing the ascending iterations on an empty graph.
 \subsection{Ascending iterations by Path-focusing}
 \label{subsec:ascending}
 
-\MM{Maintenant que l'ordre a changé dans l'algo, on peut peut-être
-  échanger cette section et la suivante ?}
+%\MM{Maintenant que l'ordre a changé dans l'algo, on peut peut-être
+%  échanger cette section et la suivante ?}
 
 For computing an inductive invariant over a subgraph, we use the
 Path-focusing algorithm from \citet{Monniaux_Gonnord_SAS11} with special
@@ -826,15 +829,15 @@ acceleration.
 We experimented with a heuristic
 of dynamic construction of the $\sigma_i$ functions, adapted from
 \citet{DBLP:conf/pldi/GulwaniZ10}. 
-\DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
-et qu'elle n'était pas dans Gulwani?}
-\JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
-suivant)}
-\MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
-  affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
-\DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
-\MM{OK, du coup j'ai ajouté une phrase à la fin de la section pour
-  rappeler notre contrib}
+%\DM{Cette heuristique, je croyais que c'était nous qui l'avions trouvée,
+%et qu'elle n'était pas dans Gulwani?}
+%\JH{Non. Gulwani fait la même chose en un peu plus complique (voir commentaire
+%suivant)}
+%\MM{Du coup, la contribution~\ref{contr:disjunctive} devrait être
+%  affaiblie un peu je suppose. Gulwani fait aussi du SMT-solving ?}
+%\DM{Non, Gulwani énumère tous les chemins un par un à tous les coups.}
+%\MM{OK, du coup j'ai ajouté une phrase à la fin de la section pour
+%  rappeler notre contrib}
 For each control point $p_i \in P_R$, we start with one single disjunct
 ($m_i = 1$) and define $\delta_i = 1$.
 $M$ denotes an upper bound on the number of disjuncts per control point.
@@ -950,7 +953,7 @@ The analysis is currently only forward, even though nothing in what we describe 
   \begin{center}
     \input{./techniques.tex}
   \end{center} 
-  \vspace{-20px}
+  \vspace{-20pt}
   \caption{Comparison of the abstract values obtained by classical abstract
   interpretation (S), \emph{Guided Static
   Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
