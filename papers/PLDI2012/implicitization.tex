@@ -6,12 +6,12 @@
 % 11pt          To set in 11-point type instead of 9-point.
 % authoryear    To obtain author/year citation style instead of numeric.
 
-\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
-\newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
-\newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
-%\newcommand{\MM}[1]{}
-%\newcommand{\JH}[1]{}
-%\newcommand{\DM}[1]{}
+%\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+%\newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
+%\newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
+\newcommand{\MM}[1]{}
+\newcommand{\JH}[1]{}
+\newcommand{\DM}[1]{}
 
 % Pour les commentaires
 \usepackage[utf8]{inputenc}
@@ -65,7 +65,7 @@ color=blue]
 %\titlebanner{banner above paper title}        % These are ignored unless
 \preprintfooter{Succinct representations for abstract interpretation}   % 'preprint' option specified.
 
-\title{Succinct representations for abstract interpretation}
+\title{Succinct Representations for Abstract Interpretation}
 \subtitle{Combined analysis algorithms and experimental evaluation}
 
 \authorinfo{Anonymous}
@@ -75,7 +75,8 @@ color=blue]
 \maketitle
 
 \begin{abstract}
-Abstract interpretation techniques can be made more precise by distinguishing paths inside loops, at the expensive of possibly exponential complexity. SMT-solving techniques and sparse representations of paths and sets of paths avoid this pitfall.
+Abstract interpretation techniques can be made more precise by distinguishing
+paths inside loops, at the expense of possibly exponential complexity. SMT-solving techniques and sparse representations of paths and sets of paths avoid this pitfall.
 
 We improve previously proposed techniques for guided static analysis and the generation of disjunctive invariants by combining them with techniques for succinct representations of paths and symbolic representations for transitions based on static single assignment.
 
@@ -117,7 +118,8 @@ used for enforcing convergence when searching for loop invariants by Kleene iter
 
 All these methods improve the precision of the analysis by keeping the same abstract domain (say, convex polyhedra) but changing the operations applied and their ordering. An alternative is to change the abstract domain, for instance by moving from intervals to octagons or convex polyhedra \cite{DBLP:journals/lisp/Mine06}, or the widening operator: for instance one may replace the classical widening on convex polyhedra \cite{CousotHalbwachs78,Halbwachs_PhD} by an improved version \cite{BagnaraHRZ05SCP}, or use widening ``up to'', that is, use linear inequalities syntactically present in the program source code as possible widening steps~\cite{Polka:FMSD:97}.
 
-There are many possible combinations of the above techniques, and it is not evident which ones perform more or less precisely or more or less efficiency on real-life examples. One needs to experiment.
+There are many possible combinations of the above techniques, and it is not
+evident which ones perform more or less precisely or more or less efficiently on real-life examples. One needs to experiment.
 Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.
 
 This article makes the following contributions:
@@ -164,7 +166,18 @@ Such a stationary limit is bound to exist if $\abstr{X}$ has no infinite ascendi
 \emph{Widening-accelerated Kleene iterations} proceed by replacing $\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p)$ by $\abstr{x}_{p'} \widening (\abstr{x}_{p'} \sqcup \abstr{\tau}_{p,p'} (\abstr{x}_p))$ where $\widening$ is a \emph{widening operator}: for all $\abstr{x},\abstr{y}$, $\gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \widening \abstr{y})$, and there exists no sequence $\abstr{u}_1,\abstr{u}_2,\dots$ of the form $\abstr{u}_{n+1} = \abstr{u}_n \widening \abstr{v}_n$ where $\abstr{v}_n$ is another sequence.
 Such iterations necessarily lead to a stationary limit $(\abstr{x}_p)_{p \in P}$, which defines an inductive invariant $(\gamma(\abstr{x}_p))_{p \in P}$. Note that this invariant is not, in general, the least one expressible in the abstract domain, and may depend on the iteration ordering (the successive choices~$p,p'$).
 
-Once an inductive invariant $\gamma((\abstr{x}_p)_{p \in P})$ has been obtained, one can attempt \emph{decreasing} or \emph{narrowing} iterations to reduce it. In their simplest form, this just means running the following operation until a fixpoint or a maximal number of iterations are reached: for any $p'$, replace $\abstr{x}_{p'}$ by $\abstr{x}_p \cap \left(\bigsqcup_{p \in P} \abstr{\tau}_{p,p'} (\abstr{x}_p)\right)$. The result also defines an inductive invariant. These decreasing iterations are indispensable to recover properties from guards (tests) in the program in most iteration settings; unfortunately, certain loops, particularly those involving identity (no-operation) transitions, may foil them: the iterations immediately reach a fixpoint and do not decrease further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and \ref{sec:path_focusing} describe techniques that work around this problem.
+Once an inductive invariant $\gamma((\abstr{x}_p)_{p \in P})$ has been obtained,
+one can attempt \emph{decreasing} or \emph{narrowing} iterations to reduce it.
+In their simplest form, this just means running the following operation until a
+fixpoint or a maximal number of iterations are reached: for any $p'$, replace
+$\abstr{x}_{p'}$ by $\abstr{x}_{p'} \cap \left(\bigsqcup_{p \in P}
+\abstr{\tau}_{p,p'} (\abstr{x}_p)\right)$. The result also defines an inductive
+invariant. These decreasing iterations are indispensable to recover properties
+from guards (tests) in the program in most iteration settings; unfortunately,
+certain loops, particularly those involving identity (no-operation) transitions,
+may foil them: the iterations immediately reach a fixpoint and do not decrease
+further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and
+\ref{sec:path_focusing} describe techniques that work around this problem.
 
 Widening operations have a somewhat counterintuitive behavior: the result of an analysis (postcondition) is not necessarily monotonic with respect to the precondition. For instance, classical interval analysis with widening and decreasing iterations on the following loop yields a loop invariant $x \in [0,+\infty)$ if the precondition is $x \in [0,0]$ , but $x \in [0,10]$ (strictly stronger) if the precondition is $x \in [0,10]$ (strictly weaker):
 \lstinline|while (x != 10) x=x+1;|.
@@ -210,7 +223,6 @@ In contrast, let us distinguish all four possible execution paths through the te
 \lstinputlisting{rlim_int2.c}
 
 \begin{figure}
-\label{fig:multigraph}
 \centering
 \begin{minipage}[c]{.19\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
@@ -288,14 +300,16 @@ $\Longrightarrow$
 \end{tikzpicture}
 \end{minipage}
 \caption{Expansion of the transition graph into a multigraph.}
+\label{fig:multigraph}
 \end{figure}
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
 We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first (as in Fig.~\ref{fig:multigraph}), even though not all feasible paths are needed to compute the invariant.
-Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph (Fig.~\ref{fig:multigraph}); its compact representation is given by the transition graph of the first program.
 
-Contribution \ref{contr:disjunctive} (\S\ref{sec:disjunctive}) replaces the exponential expansion of disjunctive invariant generation from \citet{DBLP:conf/pldi/GulwaniZ10} by an implicit representation;
-contribution \ref{contr:guided_multigraph} (\S\ref{sec:guided_multigraph}) recasts the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on an implicit representation of the paths in lieu of the individual transitions.
+Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph (Fig.~\ref{fig:multigraph}); it is succinctly representated by the transition graph of the first program.
+Our first contribution (\S\ref{sec:guided_multigraph}) is to recast the ``guided analysis'' from \citet{DBLP:conf/sas/GopanR07} on such a succinct representation of the paths in lieu of the individual transitions.
+A similar explosion occurs in disjunctive invariant generation, following \citet{DBLP:conf/pldi/GulwaniZ10}; our second contribution (\S\ref{sec:disjunctive}) applies our implicit representation to their method.
+
 
 \subsection{Guided static analysis}
 \label{sec:guided}
