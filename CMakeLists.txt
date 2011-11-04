@@ -100,11 +100,11 @@ macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
 endmacro()
 
 macro(add_library_maybe PROG LIB MSG)
-  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" NO_DEFAULT_PATH "${MSG}" ${ARGN})
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "" "${MSG}" ${ARGN})
 endmacro()
 
 macro(add_cudd_library PROG LIB)
-  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" ""
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "NO_DEFAULT_PATH"
     "Required CUDD library '${LIB}' (i.e lib${LIB}) not found
 (I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).
 Please, install CUDD if needed and set \$CUDD_PATH accordingly."
@@ -125,7 +125,7 @@ macro(add_z3_library PROG)
   # Preferably link against z3-gmp to avoid library version issues
   # with gmp, but fall-back to z3 if z3-gmp is not found (this is the
   # case on 64bits distributions of z3).
-  add_library_maybe_names("${PROG}" z3 "z3-gmp;z3"
+  add_library_maybe_names("${PROG}" z3 "z3-gmp;z3" ""
     "Required Z3 library 'z3-gmp' (i.e libz3-gmp) not found
 (I've searched in ${Z3_PATH} and ${Z3_PATH}/lib).
 Please, install Z3 if needed and set \$Z3_PATH accordingly."
