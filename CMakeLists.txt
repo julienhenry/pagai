@@ -100,11 +100,11 @@ macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
 endmacro()
 
 macro(add_library_maybe PROG LIB MSG)
-  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" NO_DEFAULT_PATH "${MSG}" ${ARGN})
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "" "${MSG}" ${ARGN})
 endmacro()
 
 macro(add_cudd_library PROG LIB)
-  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" ""
+  add_library_maybe_names("${PROG}" "${LIB}" "${LIB}" "NO_DEFAULT_PATH"
     "Required CUDD library '${LIB}' (i.e lib${LIB}) not found
 (I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).
 Please, install CUDD if needed and set \$CUDD_PATH accordingly."
