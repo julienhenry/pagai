@@ -313,25 +313,26 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	//////////
 	//
 
-	ap_var_t var;
-	Value * val;
-	std::vector<ap_var_t> intdims;
-	std::vector<ap_var_t> realdims;
-	for (size_t i = 0; i < env->intdim; i++) {
-		var = ap_environment_var_of_dim(env,i);
-		val = (Value*)var;
-		if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
-			intdims.push_back(var);
-		}
-	}
-	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
-		var = ap_environment_var_of_dim(env,i);
-		val = (Value*)var;
-		if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
-			realdims.push_back(var);
-		}
-	}
-	ap_environment_t * env2 = ap_environment_alloc(&intdims[0], intdims.size(), &realdims[0], realdims.size());
+	//ap_var_t var;
+	//Value * val;
+	//std::vector<ap_var_t> intdims;
+	//std::vector<ap_var_t> realdims;
+	//for (size_t i = 0; i < env->intdim; i++) {
+	//	var = ap_environment_var_of_dim(env,i);
+	//	val = (Value*)var;
+	//	if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
+	//		intdims.push_back(var);
+	//	}
+	//}
+	//for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
+	//	var = ap_environment_var_of_dim(env,i);
+	//	val = (Value*)var;
+	//	if (LV->isLiveByLinearityInBlock(val,succ->bb,true)) {
+	//		realdims.push_back(var);
+	//	}
+	//}
+	//ap_environment_t * env2 = ap_environment_alloc(&intdims[0], intdims.size(), &realdims[0], realdims.size());
+	ap_environment_t * env2 = env;
 	/////////
 	
 	std::vector<ap_lincons1_t> cons;
@@ -382,9 +383,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	);
 
 	/////////
-	succ->env = env2;
-	Xtemp.change_environment(env2);
-	env = env2;
+	//succ->env = env2;
+	//Xtemp.change_environment(env2);
+	//env = env2;
 	////////
 
 
