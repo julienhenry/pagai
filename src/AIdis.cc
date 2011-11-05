@@ -243,8 +243,15 @@ void AIdis::computeNewPaths(Node * n) {
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 
+		DEBUG(
+			*Out << "START\n";
+			Xtemp->print();
+		);
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
-
+		DEBUG(
+			*Out << "XTEMP\n";
+			Xtemp->print();
+		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 		int Sigma = sigma(path,index,Xtemp,false);
 		Join.clear();
@@ -259,6 +266,8 @@ void AIdis::computeNewPaths(Node * n) {
 		DEBUG(
 			*Out << "INSERTING INTO P THE PATH\n";
 			printPath(path);
+			*Out << "RESULT\n";
+			Succ->X_d[passID]->print();
 		);
 		A.push(n);
 	}
