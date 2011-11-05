@@ -116,7 +116,7 @@ Assuming we are  interested in a loop-free program fragment, the above approach 
 A recent method for finding disjunctive loop invariants \cite{DBLP:conf/pldi/GulwaniZ10} is based on this idea: each path inside the loop body is considered separately.
 Two recent proposals use SMT-solving \cite{Kroening_Strichman_08} as a decision procedure for the satisfiability of first-order arithmetic formulas in order to enumerate only paths that are needed for the progress of the analysis \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}. They can equivalently be seen as analyses over a multigraph of transitions between some distinguished control nodes. This multigraph has an exponential number of edges, but is never explicitly represented in memory; instead, this graph is \emph{implicitly} or \emph{succinctly} represented: its edges are enumerated as needed as solutions to SMT problems.
 
-An additional claim of the methods that distinguish paths inside the loop body \cite{DBLP:conf/pldi/GulwaniZ10,Monniaux_Gonnord_SAS11} is that they tend to generate better invariants that methods that do not, by behaving better with respect to the \emph{widening operators} \cite{CousotCousot_JLC92}
+An additional claim of the methods that distinguish paths inside the loop body \cite{DBLP:conf/pldi/GulwaniZ10,Monniaux_Gonnord_SAS11} is that they tend to generate better invariants than methods that do not, by behaving better with respect to the \emph{widening operators} \cite{CousotCousot_JLC92}
 used for enforcing convergence when searching for loop invariants by Kleene iterations. A related technique, \emph{guided static analysis} \cite{DBLP:conf/sas/GopanR07}, computes successive loop invariants for increasing subsets of the transitions taken into account, until all transitions are considered; again, the claim is that this approach avoids some gross over-approximation introduced by widenings.
 
 All these methods improve the precision of the analysis by keeping the same abstract domain (say, convex polyhedra) but changing the operations applied and their ordering. An alternative is to change the abstract domain, for instance by moving from intervals to octagons or convex polyhedra \cite{DBLP:journals/lisp/Mine06}, or the widening operator: for instance one may replace the classical widening on convex polyhedra \cite{CousotHalbwachs78,Halbwachs_PhD} by an improved version \cite{BagnaraHRZ05SCP}, or use widening ``up to'', that is, use linear inequalities syntactically present in the program source code as possible widening steps~\cite{Polka:FMSD:97}.
@@ -208,7 +208,9 @@ it may then backtrack some of the constraints and add other ones without restart
 \label{subsec:rate_lim}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$:
 \lstinputlisting{rlim_int.c}
-This program implements a construct commonly found in control programs (in e.g. automotive or avionics): a rate limiter. For the sake of simplicity, we chose it to be fed a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
+This program implements a construct commonly found in control programs (in e.g.
+automotive or avionics): a rate limiter. For the sake of simplicity, we chose it
+to be fed on a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
 
 The expected inductive invariant is $\lstinline|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\lstinline|x_old| \in (-\infty,+\infty)$~\citep{ASTREE_ESOP05}.
 Let us briefly see why.
@@ -339,7 +341,7 @@ Intuitively, this disappointing result is obtained because widening extrapolates
 
 \citeauthor{DBLP:conf/sas/GopanR07}' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~\ref{eqn:triangle}; each phase is identified by the tests taken or not taken.
 
-The analysis starts by identifying the test taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
+The analysis starts by identifying the tests taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
 \begin{lstlisting}[numbers=none]
   while(1) {
     if(x <= 50) y++;
@@ -431,7 +433,7 @@ inductive invariant of the entire program.
 \subsection{Algorithm}
 
 
-Algorithm~ \ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
+Algorithm~\ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
 
 The current working subset of paths, noted $P$ and initially empty, is
 stored using a compact representation, such as binary decision
@@ -869,7 +871,7 @@ exponential number of paths to find a solution.
 \section{Experimental comparisons}
 \label{sec:experiments}
 
-We have implemented our proposed solutions inside a prototype intraprocedural
+We have implemented our proposed solutions inside a prototype of intraprocedural
 static analyzer,
 as well as the classical abstract interpretation algorithm, and the state-of-the-art
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
