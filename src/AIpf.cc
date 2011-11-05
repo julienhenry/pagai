@@ -71,11 +71,11 @@ bool AIpf::runOnModule(Module &M) {
 		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 	}
 
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
 
-	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-	*Out << N_Pr << " PR_SIZE\n";
+	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	//*Out << N_Pr << " PR_SIZE\n";
 	return false;
 }
 

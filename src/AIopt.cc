@@ -93,11 +93,11 @@ bool AIopt::runOnModule(Module &M) {
 		//*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
 	}
 
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
 
-	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-	*Out << N_Pr << " PR_SIZE\n";
+	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	//*Out << N_Pr << " PR_SIZE\n";
 	return 0;
 }
 
