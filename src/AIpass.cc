@@ -313,6 +313,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	//////////
 	//
 
+#if 1
 	ap_var_t var;
 	Value * val;
 	std::vector<ap_var_t> intdims;
@@ -332,6 +333,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 	}
 	ap_environment_t * env2 = ap_environment_alloc(&intdims[0], intdims.size(), &realdims[0], realdims.size());
+#else
+	ap_environment_t * env2 = env;
+#endif
 	/////////
 	
 	std::vector<ap_lincons1_t> cons;
