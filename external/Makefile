@@ -7,9 +7,18 @@ CUDD_VERSION=2.4.2
 YICES_VERSION=1.0.31
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=2.19
+Z3_ARCH=
 LLVM_VERSION=2.9
 APRON_VERSION=0.9.10
 PPL_VERSION=0.11.2
+CUDD_XCFLAGS=
+
+ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
+ifeq ($(ARCH), x86_64)
+YICES_ARCH=x86_64-pc-linux-gnu-static-gmp
+Z3_ARCH=-x64
+CUDD_XCFLAGS='XCFLAGS=-mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8'
+endif
 
 .PHONY: all install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
 all: install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
@@ -32,7 +41,7 @@ install-ppl: $(PPL_COMPILED) $(DEST_LINKS)/ppl
 
 CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
-Z3_ARCHIVE=z3-$(Z3_VERSION).tar.gz
+Z3_ARCHIVE=z3$(Z3_ARCH)-$(Z3_VERSION).tar.gz
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).tar.gz
 CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
 APRON_ARCHIVE=apron-$(APRON_VERSION).tgz
@@ -74,15 +83,16 @@ $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
-$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
+$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
 	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
 	(cd $(DEST)/"cudd-$(CUDD_VERSION)" && patch -p1) < ./cudd.patch
+	touch --no-create "$@"
 
-$(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/Makefile
-	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE)
+$(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
+	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE) $(CUDD_XCFLAGS)
 # call "make testobj" from obj, otherwise it tries using -O6 and fails
 # to generate symbols for inline functions.
-	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && $(MAKE) testobj
+	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && $(MAKE) $(CUDD_XCFLAGS) testobj
 # Just check that the build went OK, its fast
 	cd $(DEST)/cudd-$(CUDD_VERSION)/ && ./obj/testobj
 
