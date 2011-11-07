@@ -17,6 +17,12 @@ install-z3: $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so $(DEST_LINKS)/z3
 install-llvm: $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a $(DEST_LINKS)/llvm
 install-clang: $(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 
+CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
+YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
+Z3_ARCHIVE=z3-$(Z3_VERSION).tar.gz
+LLVM_ARCHIVE=llvm-$(LLVM_VERSION).tar.gz
+CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
+
 MKDIR_DEST=mkdir -p "$(DEST)"
 DEST_ABS=${shell $(MKDIR_DEST) && cd $(DEST) && pwd}
 
@@ -32,12 +38,12 @@ $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 
 
 #### CUDD Installation
-$(DEST)/cudd-$(CUDD_VERSION).tar.gz:
+$(DEST)/$(CUDD_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -o "$@" "ftp://vlsi.colorado.edu/pub/cudd-$(CUDD_VERSION).tar.gz"
+	curl -o "$@" "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)"
 
-$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/cudd-$(CUDD_VERSION).tar.gz cudd.patch
-	cd $(DEST) && tar xzvf "cudd-$(CUDD_VERSION).tar.gz"
+$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
+	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
 	(cd $(DEST)/"cudd-$(CUDD_VERSION)" && patch -p1) < ./cudd.patch
 
 $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a: $(DEST)/cudd-$(CUDD_VERSION)/Makefile
@@ -50,39 +56,39 @@ $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a: $(DEST)/cudd-$(CUDD_VERSION)/Makefi
 
 
 #### Yices Installation
-$(DEST)/yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz:
+$(DEST)/$(YICES_ARCHIVE):
 	$(MKDIR_DEST)
 # TODO: find a clean way to have the user accept the licence
-	curl -o "$@" "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz&accept=I+accept"
+	curl -o "$@" "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=$(YICES_ARCHIVE)&accept=I+accept"
 
-$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a: $(DEST)/yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
-	cd $(DEST) && tar xzvf "yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz"
+$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a: $(DEST)/$(YICES_ARCHIVE)
+	cd $(DEST) && tar xzvf "$(YICES_ARCHIVE)"
 # override the timestamp set by tar
 	touch --no-create "$@"
 
 #### Z3 Installation
-$(DEST)/z3-$(Z3_VERSION).tar.gz:
+$(DEST)/$(Z3_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -L -o "$@" "http://research.microsoft.com/projects/z3/z3-$(Z3_VERSION).tar.gz"
+	curl -L -o "$@" "http://research.microsoft.com/projects/z3/$(Z3_ARCHIVE)"
 
-$(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so: $(DEST)/z3-$(Z3_VERSION).tar.gz
+$(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so: $(DEST)/$(Z3_ARCHIVE)
 	mkdir -p $(DEST)/z3-$(Z3_VERSION)
 # z3-V.tar.gz expands itself into a directory without version but in
 # case we need to experiment with different versions, force a
 # directory name including a version number and use the same symlink
 # trick as for others.
-	cd $(DEST)/z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
+	cd $(DEST)/z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../$(Z3_ARCHIVE)
 
 #### LLVM Installation
 CONFIGURE_LLVM=cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/
 
-$(DEST)/llvm-$(LLVM_VERSION).tar.gz:
+$(DEST)/$(LLVM_ARCHIVE):
 	$(MKDIR_DEST)
 	curl -o "$@" "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz"
 
-$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/llvm-$(LLVM_VERSION).tar.gz
-	cd $(DEST) && tar xzvf "llvm-$(LLVM_VERSION).tar.gz"
+$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
+	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)"
 	touch --no-create "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
@@ -90,14 +96,14 @@ $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM
 	cd $(DEST)/llvm-$(LLVM_VERSION) && make && make install
 
 # clang
-$(DEST)/clang-$(LLVM_VERSION).tar.gz:
+$(DEST)/$(CLANG_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -o "$@" 'http://llvm.org/releases/2.9/clang-2.9.tgz'
+	curl -o "$@" 'http://llvm.org/releases/$(LLVM_VERSION)/$(CLANG_ARCHIVE)'
 
-$(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/clang-$(LLVM_VERSION).tar.gz \
+$(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/clang-$(LLVM_VERSION).tar.gz" && mv clang-2.9 clang
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION) clang
 	touch --no-create "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang: $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
