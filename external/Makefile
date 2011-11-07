@@ -109,10 +109,7 @@ $(Z3_COMPILED): $(DEST)/$(Z3_ARCHIVE)
 # trick as for others.
 	cd $(DEST)/z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../$(Z3_ARCHIVE)
 
-#### LLVM Installation
-CONFIGURE_LLVM=cd $(DEST)/llvm-$(LLVM_VERSION) && \
-		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/
-
+#### LLVM + Clang Installation
 $(DEST)/$(LLVM_ARCHIVE):
 	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz" "$@"
 
@@ -120,9 +117,10 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)"
 	touch --no-create "$@"
 
-$(LLVM_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
-	$(CONFIGURE_LLVM)
-	cd $(DEST)/llvm-$(LLVM_VERSION) && make && make install
+$(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
+	cd $(DEST)/llvm-$(LLVM_VERSION) && \
+		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
+		make && make install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
@@ -133,13 +131,6 @@ $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
 	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION) clang
 	touch --no-create "$@"
-
-$(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
-# The last configuration may have been done without clang as a subdirectory
-# => rerun configure in case.
-	$(CONFIGURE_LLVM)
-	cd $(DEST)/llvm-$(LLVM_VERSION) && ./config.status --recheck && \
-		make && make install
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
