@@ -20,6 +20,8 @@ Z3_ARCH=-x64
 CUDD_XCFLAGS='XCFLAGS=-mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8'
 endif
 
+GMP_PREFIX=/usr
+
 .PHONY: all install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
 all: install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
 
@@ -170,5 +172,7 @@ $(DEST)/ppl-$(PPL_VERSION)/README: $(DEST)/$(PPL_ARCHIVE)
 
 $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 	cd $(DEST)/ppl-$(PPL_VERSION)/ && \
-		./configure --prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/install/ && \
+		./configure \
+			--prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/install/ \
+			--with-gmp-prefix=$(GMP_PREFIX) && \
 		$(MAKE) && $(MAKE) install
