@@ -38,8 +38,7 @@ CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
 APRON_ARCHIVE=apron-$(APRON_VERSION).tgz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
-MKDIR_DEST=mkdir -p "$(DEST)"
-DEST_ABS=${shell $(MKDIR_DEST) && cd $(DEST) && pwd}
+DEST_ABS=${shell mkdir -p "$(DEST)" && cd $(DEST) && pwd}
 
 # Small shell function to download using curl or wget if curl is not
 # installed or doesn't work.
@@ -73,7 +72,6 @@ $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 
 #### CUDD Installation
 $(DEST)/$(CUDD_ARCHIVE):
-	$(MKDIR_DEST)
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
@@ -91,7 +89,6 @@ $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/Makefile
 
 #### Yices Installation
 $(DEST)/$(YICES_ARCHIVE):
-	$(MKDIR_DEST)
 # TODO: find a clean way to have the user accept the licence
 	$(DOWNLOAD) "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=$(YICES_ARCHIVE)&accept=I+accept" "$@"
 
@@ -102,7 +99,6 @@ $(YICES_COMPILED): $(DEST)/$(YICES_ARCHIVE)
 
 #### Z3 Installation
 $(DEST)/$(Z3_ARCHIVE):
-	$(MKDIR_DEST)
 	$(DOWNLOAD) "http://research.microsoft.com/projects/z3/$(Z3_ARCHIVE)" "$@"
 
 $(Z3_COMPILED): $(DEST)/$(Z3_ARCHIVE)
@@ -118,7 +114,6 @@ CONFIGURE_LLVM=cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/
 
 $(DEST)/$(LLVM_ARCHIVE):
-	$(MKDIR_DEST)
 	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
@@ -131,7 +126,6 @@ $(LLVM_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
-	$(MKDIR_DEST)
 	$(DOWNLOAD) 'http://llvm.org/releases/$(LLVM_VERSION)/$(CLANG_ARCHIVE)' "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
@@ -149,7 +143,6 @@ $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
-	$(MKDIR_DEST) 
 	$(DOWNLOAD) 'http://apron.cri.ensmp.fr/library/$(APRON_ARCHIVE)' "$@"
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
@@ -168,7 +161,6 @@ $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 
 #### PPL Library
 $(DEST)/$(PPL_ARCHIVE):
-	$(MKDIR_DEST) 
 	$(DOWNLOAD) 'ftp://ftp.cs.unipr.it/pub/ppl/releases/$(PPL_VERSION)/$(PPL_ARCHIVE)' "$@"
 
 $(DEST)/ppl-$(PPL_VERSION)/README: $(DEST)/$(PPL_ARCHIVE)
