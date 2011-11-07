@@ -9,12 +9,13 @@ YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=2.19
 LLVM_VERSION=2.9
 
-all: install-cudd install-yices install-z3 install-llvm
+all: install-cudd install-yices install-z3 install-llvm install-clang
 
 install-cudd: $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a $(DEST_LINKS)/cudd
 install-yices: $(DEST)/yices-$(YICES_VERSION)/lib/libyices.a $(DEST_LINKS)/yices
 install-z3: $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so $(DEST_LINKS)/z3
 install-llvm: $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a $(DEST_LINKS)/llvm
+install-clang: $(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 
 MKDIR_DEST=mkdir -p "$(DEST)"
 DEST_ABS=${shell $(MKDIR_DEST) && cd $(DEST) && pwd}
@@ -73,15 +74,36 @@ $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so: $(DEST)/z3-$(Z3_VERSION).tar.gz
 	cd $(DEST)/z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../z3-$(Z3_VERSION).tar.gz
 
 #### LLVM Installation
+CONFIGURE_LLVM=cd $(DEST)/llvm-$(LLVM_VERSION) && \
+		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/
+
 $(DEST)/llvm-$(LLVM_VERSION).tar.gz:
 	$(MKDIR_DEST)
 	curl -o "$@" "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz"
 
-$(DEST)/llvm-$(LLVM_VERSION)/README.txt: $(DEST)/llvm-$(LLVM_VERSION).tar.gz
+$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/llvm-$(LLVM_VERSION).tar.gz
 	cd $(DEST) && tar xzvf "llvm-$(LLVM_VERSION).tar.gz"
 	touch --no-create "$@"
 
-$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM_VERSION)/README.txt
-	cd $(DEST)/llvm-$(LLVM_VERSION) && \
-		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install/ && \
+$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
+	$(CONFIGURE_LLVM)
+	cd $(DEST)/llvm-$(LLVM_VERSION) && make && make install
+
+# clang
+$(DEST)/clang-$(LLVM_VERSION).tar.gz:
+	$(MKDIR_DEST)
+	curl -o "$@" 'http://llvm.org/releases/2.9/clang-2.9.tgz'
+
+$(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/clang-$(LLVM_VERSION).tar.gz \
+		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
+	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/clang-$(LLVM_VERSION).tar.gz" && mv clang-2.9 clang
+	touch --no-create "$@"
+
+$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang: $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
+# The last configuration may have been done without clang as a subdirectory
+# => rerun configure in case.
+	$(CONFIGURE_LLVM)
+	cd $(DEST)/llvm-$(LLVM_VERSION) && ./config.status --recheck && \
 		make && make install
+
