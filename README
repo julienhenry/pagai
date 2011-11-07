@@ -14,7 +14,7 @@ PAGAI needs:
 
 - Yices, Z3, CUDD, LLVM (can be automatically installed for you)
 
-- curl, if you want automatic dependencies installation.
+- curl or wget, if you want automatic dependencies installation.
 
 The simplest way to compile PAGAI is to run:
 

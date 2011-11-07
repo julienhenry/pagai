@@ -26,6 +26,19 @@ CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
 MKDIR_DEST=mkdir -p "$(DEST)"
 DEST_ABS=${shell $(MKDIR_DEST) && cd $(DEST) && pwd}
 
+# Small shell function to download using curl or wget if curl is not
+# installed or doesn't work.
+DOWNLOAD=download () { \
+	url=$$1 ;\
+	output=$$2 ;\
+	curl -L --fail -o "$$output" "$$url" || \
+	wget "$$url" -O "$$output" || { \
+		echo "Neither curl nor wget could get the document, sorry." ;\
+		exit 1 ;\
+	} ;\
+}; download
+
+
 # Symlinks
 $(DEST_LINKS)/cudd: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/cudd-$(CUDD_VERSION) $@
@@ -40,7 +53,7 @@ $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 #### CUDD Installation
 $(DEST)/$(CUDD_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -o "$@" "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)"
+	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
 	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
@@ -59,7 +72,7 @@ $(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a: $(DEST)/cudd-$(CUDD_VERSION)/Makefi
 $(DEST)/$(YICES_ARCHIVE):
 	$(MKDIR_DEST)
 # TODO: find a clean way to have the user accept the licence
-	curl -o "$@" "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=$(YICES_ARCHIVE)&accept=I+accept"
+	$(DOWNLOAD) "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=$(YICES_ARCHIVE)&accept=I+accept" "$@"
 
 $(DEST)/yices-$(YICES_VERSION)/lib/libyices.a: $(DEST)/$(YICES_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(YICES_ARCHIVE)"
@@ -69,7 +82,7 @@ $(DEST)/yices-$(YICES_VERSION)/lib/libyices.a: $(DEST)/$(YICES_ARCHIVE)
 #### Z3 Installation
 $(DEST)/$(Z3_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -L -o "$@" "http://research.microsoft.com/projects/z3/$(Z3_ARCHIVE)"
+	$(DOWNLOAD) "http://research.microsoft.com/projects/z3/$(Z3_ARCHIVE)" "$@"
 
 $(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so: $(DEST)/$(Z3_ARCHIVE)
 	mkdir -p $(DEST)/z3-$(Z3_VERSION)
@@ -85,7 +98,7 @@ CONFIGURE_LLVM=cd $(DEST)/llvm-$(LLVM_VERSION) && \
 
 $(DEST)/$(LLVM_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -o "$@" "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz"
+	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)"
@@ -98,7 +111,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a: $(DEST)/llvm-$(LLVM
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
 	$(MKDIR_DEST)
-	curl -o "$@" 'http://llvm.org/releases/$(LLVM_VERSION)/$(CLANG_ARCHIVE)'
+	$(DOWNLOAD) 'http://llvm.org/releases/$(LLVM_VERSION)/$(CLANG_ARCHIVE)' "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
