@@ -79,10 +79,10 @@ $(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
 	(cd $(DEST)/"cudd-$(CUDD_VERSION)" && patch -p1) < ./cudd.patch
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/Makefile
-	cd $(DEST)/cudd-$(CUDD_VERSION)/ && make
+	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE)
 # call "make testobj" from obj, otherwise it tries using -O6 and fails
 # to generate symbols for inline functions.
-	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && make testobj
+	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && $(MAKE) testobj
 # Just check that the build went OK, its fast
 	cd $(DEST)/cudd-$(CUDD_VERSION)/ && ./obj/testobj
 
@@ -120,7 +120,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		make && make install
+		$(MAKE) && $(MAKE) install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
@@ -148,7 +148,7 @@ $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	    -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
 		> $(DEST)/apron-$(APRON_VERSION)/Makefile.config
-	cd $(DEST)/apron-$(APRON_VERSION) && make && make install		
+	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) && $(MAKE) install		
 
 #### PPL Library
 $(DEST)/$(PPL_ARCHIVE):
@@ -161,4 +161,4 @@ $(DEST)/ppl-$(PPL_VERSION)/README: $(DEST)/$(PPL_ARCHIVE)
 $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 	cd $(DEST)/ppl-$(PPL_VERSION)/ && \
 		./configure --prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/install/ && \
-		make && make install
+		$(MAKE) && $(MAKE) install
