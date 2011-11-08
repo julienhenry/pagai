@@ -1,8 +1,7 @@
 PAGAI needs:
 
-- Apron, GMP and MPFR. On Debian systems, install packages:
+- GMP and MPFR. On Debian systems, install packages:
 
-  libapron libapron-dev libapron-ocaml-dev
   libmpfr-dev libgmp3-dev
 
 - CMake, for the compilation. On Debian systems, install packages:
@@ -12,7 +11,8 @@ PAGAI needs:
   (you may want to install cmake-gui too for a graphical configuration
   tool)
 
-- Yices, Z3, CUDD, LLVM (can be automatically installed for you)
+- Yices, Z3, CUDD, LLVM, Apron and the PPL (can be automatically
+  installed for you)
 
 - curl or wget, if you want automatic dependencies installation.
 
