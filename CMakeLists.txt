@@ -86,7 +86,7 @@ endmacro()
 macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
   find_library(TEMP_LIB_${LIB} 
     NAMES ${NAMES}
-    PATHS ${ARGN}
+    HINTS ${ARGN}
     ${OPTS})
   if("${TEMP_LIB_${LIB}}" STREQUAL TEMP_LIB_${LIB}-NOTFOUND)
     message(WARNING "${MSG}")
