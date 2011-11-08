@@ -147,6 +147,17 @@ and set \$APRON_PREFIX accordingly."
     )
 endmacro()
 
+macro(add_ppl_library PROG LIB)
+  add_library_maybe("${PROG}" "${LIB}"
+    "Required PPL library '${LIB}' (i.e lib${LIB}) not found
+(I've searched in ${PPL_PREFIX} and ${PPL_PREFIX}/lib).
+Please, install PPL if needed (it is included in Debian
+and Ubuntu Universe, so if you are using one of these systems,
+just install the package libppl-dev) and set \$PPL_PREFIX accordingly."
+    "${PPL_PREFIX}/lib" "${PPL_PREFIX}"
+    )
+endmacro()
+
 # Compiler choice: clang++ by default
 find_program(CLANG_PATH "clang++")
 if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
@@ -165,10 +176,6 @@ option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
 
 add_subdirectory(src)
 
-# TODO: configure-time checks for
-# - Z3
-# - Yices
-# - Apron
 if(${CHECK_EXTERNALS})
   if(${ERROR_OCCURED})
     message(FATAL_ERROR
