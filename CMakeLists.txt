@@ -8,11 +8,12 @@ option(CHECK_EXTERNALS "Whether to check that external dependancies are OK befor
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
-set(LLVM_PATH "${EXTERNAL_PATH}/llvm" CACHE PATH "Path to LLVM installation, used to find llvm-config.")
+
 set(GMP_PREFIX "/usr" CACHE PATH "Path to the GMP multiprecision library")
 set(MPFR_PREFIX "/usr" CACHE PATH "Path to the MPFR library")
-set(APRON_PREFIX "/usr" CACHE PATH "Path to the APRON abstract domains library")
-set(PPL_PREFIX "/usr" CACHE PATH "Path to the PPL Polyhedra library")
+set(LLVM_PATH "${EXTERNAL_PATH}/llvm" CACHE PATH "Path to LLVM installation, used to find llvm-config.")
+set(APRON_PREFIX "${EXTERNAL_PATH}/apron" CACHE PATH "Path to the APRON abstract domains library")
+set(PPL_PREFIX "${EXTERNAL_PATH}/ppl" CACHE PATH "Path to the PPL Polyhedra library")
 set(CAMLIDL_PREFIX "/usr" CACHE PATH "Path to the CAMLIDL library")
 set(YICES_PATH "${EXTERNAL_PATH}/yices" CACHE PATH "Path to the YICES SMT solver library")
 set(Z3_PATH "${EXTERNAL_PATH}/z3" CACHE PATH "Path to the Z3 SMT solver library")
@@ -85,7 +86,7 @@ endmacro()
 macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
   find_library(TEMP_LIB_${LIB} 
     NAMES ${NAMES}
-    PATHS ${ARGN}
+    HINTS ${ARGN}
     ${OPTS})
   if("${TEMP_LIB_${LIB}}" STREQUAL TEMP_LIB_${LIB}-NOTFOUND)
     message(WARNING "${MSG}")
@@ -146,6 +147,17 @@ and set \$APRON_PREFIX accordingly."
     )
 endmacro()
 
+macro(add_ppl_library PROG LIB)
+  add_library_maybe("${PROG}" "${LIB}"
+    "Required PPL library '${LIB}' (i.e lib${LIB}) not found
+(I've searched in ${PPL_PREFIX} and ${PPL_PREFIX}/lib).
+Please, install PPL if needed (it is included in Debian
+and Ubuntu Universe, so if you are using one of these systems,
+just install the package libppl-dev) and set \$PPL_PREFIX accordingly."
+    "${PPL_PREFIX}/lib" "${PPL_PREFIX}"
+    )
+endmacro()
+
 # Compiler choice: clang++ by default
 find_program(CLANG_PATH "clang++")
 if("${CLANG_PATH}" STREQUAL CLANG_PATH-NOTFOUND)
@@ -164,10 +176,6 @@ option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
 
 add_subdirectory(src)
 
-# TODO: configure-time checks for
-# - Z3
-# - Yices
-# - Apron
 if(${CHECK_EXTERNALS})
   if(${ERROR_OCCURED})
     message(FATAL_ERROR
