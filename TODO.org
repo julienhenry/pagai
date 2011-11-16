@@ -1,0 +1,54 @@
+* Liste de points à creuser :
+
+-variables de type énuméré
+- rajouter invariants dans SMT
+- variables non modifiées
+- relations i/o boucles
+- pointeurs / tableaux
+- analyse interprocédurale
+- structure de données
+- boucles imbriquées
+
+* Sur la structure du programme
+** Ordre d'itération si boucles imbriquées
+
+** Analyse modulaire des boucles internes et des fonctions?
+(produit une formule I/O); cf "abstraction d'une boucle..."
+
+* Raffinements de l'analyse scalaire
+** Abstraction d'une boucle ou d'une fonction comme une formule SMT
+prélude de boucle -> boucle -> conclusion
+
+Si boucle simple avec un seul point d'entrée qui est aussi point de widening, c'est simple:
+(formule prelude) /\ (invariant de boucle) /\ (formule conclusion)
+
+Sans SSA, il faut faire attention à bien renommer les variables qui sont modifiées dans la boucle. J'ai peur qu'il n'y ait des problèmes s'il y a plusieurs points d'entrée ou si le point d'entrée n'est pas un point d'élargissement.
+
+** Traitement de plusieurs chemins à la fois
+Actuellement: on teste la satisfiabilité de
+(invariant) /\ (formule T de trace) /\ (négation de l'invariant primé)
+et on obtient un modèle qui désigne un chemin.
+
+Finalement, un chemin donne une conjonction C de contraintes, donc (en cas linéaire) un polyèdre. Le point important est que C implique T, et que
+(invariant) /\ C /\ (négation de l'invariant primé) est simplifiable.
+
+On pourrait essayer de minimiser la conjonction C (mettre moins de termes dans la conjonction, donc augmenter l'ensemble d'états, donc traiter plusieurs "chemins syntaxiques" à la fois).
+
+** Itération de politiques?
+
+** En cas de 'unknown', que faire?
+
+* Techniques SMT
+** Minimisation des conjonctions
+On a deux formules D et T, on cherche une conjonction C telle que C => T et C /\ D est satisfiable.
+
+Remarquons: C => T si et seulement si C /\ (non T) est non satisfiable.
+
+Première méthode: demander un "unsat core" au SMT-solver. Il s'agit d'une liste de contraintes qui suffisent à garantir l'insatisfiabilité (celles dont il s'est servi). Cette liste n'est pas garantie minimale.
+
+Seconde méthode: minimiser (pour ordre d'inclusion) l'ensemble des arguments de la conjonction.
+On a un ensemble initial C0 qui satisfait C0 => T, autrement dit une propriété P(C0). P est monotone: si P(C) vrai, alors P(C union autre chose) reste vrai (rajouter des termes dans une conjonction ne peut pas faire perdre la propriété qu'elle implique une autre formule).
+
+Problème de minimiser C pour ordre d'inclusion tel que P(C) vrai.
+Méthode simple: retirer des termes tant que ça marche.
+Méthode plus "astucieuse" mais pas forcément plus efficace: une variante de diviser pour régner, cf réf dans (Monniaux, CAV 2010, §3.1).
