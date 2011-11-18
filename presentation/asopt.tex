@@ -14,6 +14,8 @@ Moy}
 % - Use the \inst{?} command only if the authors have different
 %   affiliation.
 
+\newcommand{\important}[1]{\color{trefle}{#1}}
+
 \institute[Verimag]{
 \includegraphics[height=1.1cm]{../report/images/logoverimag}}
 
@@ -623,7 +625,7 @@ Exponential number of paths:
 \begin{frame}
   \frametitle{using SMT-solving to find new paths}
 \begin{itemize}
-\item SMT formula $\rho$ expressing the semantic of the program
+\item SMT formula $\rho$ expressing the semantics of the program
 \begin{itemize}
 \item SMT: boolean + linear arithmetic
 \end{itemize}
@@ -631,16 +633,19 @@ Exponential number of paths:
 \end{itemize}
 \bigskip
 ``Does it exists a path starting in the invariant candidate, that arrives in a
-state outside of the invariant {?}`` 
+state outside the invariant {?}`` 
 \bigskip
-%To find a path from $p_1$ to $p_2$, ($p_1,p_2 \in P_R$) :
-$$\rho  \wedge b_{p_1} \wedge x_1 \in X_{p_1} \wedge \bigvee_{p_2 \in succ(p_1)}
- (b_{p_2} \wedge x_2 \notin X_{p_2})$$
+
+$$f(p_i) = \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
+b_j^s \wedge X_i \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+ \neg X_j)$$
+
 
 \footnotesize{
-$b_{p_i}$: reachability predicate for $p_i$
+$b_{i}$: reachability predicate for $p_i$
 
-$X_{p_i}$: abstract domain of node $p_i$
+$X_{i}$: abstract domain of node $p_i$
 }
 \end{frame}
 
@@ -792,7 +797,7 @@ $X_{p_i}$: abstract domain of node $p_i$
 	\frametitle{Principle}
 	
 	\begin{center}
-	We apply Guided Static Analysis on the Reduced Multigraph
+	We apply Guided Static Analysis over the Reduced Multigraph
 	\end{center}
 	\vspace{1cm}
 	3 phases:
@@ -822,14 +827,81 @@ $X_{p_i}$: abstract domain of node $p_i$
 	\frametitle{Ascending iterations}
 
 	Path Focusing algorithm on the multigraph
-
-	$$SmtSolve [f(p_i) \wedge P]$$
+	
+	But the formula is cunjunct with $P$: 
+	$$f(p_i) \wedge P$$
 \end{frame}
 
 
 \section{Computing Disjunctive Invariants}
 \begin{frame}
-	\frametitle{Extending Gulwani et al's technique}
+	\frametitle{Extending Gulwani et al's technique (1)}
+
+Disjunctive invariant for $p_i$ : $\bigvee_{1\leq j \leq m_i} X_{i,j}$
+
+\begin{itemize}
+	\item $\delta_i \in [1,m_i]$
+	\item mapping function $\sigma_i: [1,m_i] \times [1,n_i] \mapsto [1,m_i]$
+\end{itemize}
+
+\vspace{1cm}
+
+$X_{i,\delta_i} \gets$ initial states
+
+\vspace{0.4cm}
+
+The image of the $j$-th disjunct $X_{i,j}$ by the $k$-th path $\tau_{i,k}$ is
+joined with $X_{i,\sigma_i(j,k)}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Extending Gulwani et al's technique (2)}
+
+We extend our SMT formula to handle disjunctive invariants:
+
+\begin{eqnarray*}
+g(p_i) & = & \rho \wedge b_i^s \wedge 
+\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s  \\
+ & & \wedge 
+\important{\displaystyle\bigvee_{1 \leq k \leq m_i} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
+\neg d_l)} \\
+ & & \wedge
+\displaystyle\bigvee_{j \in Succ(i)} 
+(b_j^d \wedge \important{\bigwedge_{1 \leq k \leq m_i} (\neg X_{j,k})})
+\end{eqnarray*}
+
+In the model, $d_k = true \implies$ we use $X_{i,k}$ as the starting disjunct.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Dynamic construction of $\sigma$}
+
+	$M$: maximum number of disjunct
+
+	$m_i$: current number of disjunct
+
+	\vspace{1cm}
+When $\sigma_i(j,k)$ is undefined:
+\begin{enumerate}
+	\item if $\exists j', \tau_{i,k}(X_{i,j}) \sqcup X_{i',j'} =
+		\tau_{i,k}(X_{i,j}) \cup X_{i',j'}$, we assign $\sigma_i(j,k)$ to $j'$
+	\item else:
+	\begin{itemize}
+		\item if $m_i < M$, we increment $m_i$ and define $\sigma_i(j,k) = m_i$
+		\item if $m_i = M$, we define $\sigma_i(j,k) = M$ 
+	\end{itemize}
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Experiments}
+	These techniques are implemented in a prototype of static analyzer:
+	\begin{itemize}
+		\item LLVM IR as input
+		\item Apron Library
+		\item Microsoft Z3, Yices
+	\end{itemize}
 \end{frame}
 
 \begin{frame}
