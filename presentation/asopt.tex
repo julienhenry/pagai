@@ -632,7 +632,7 @@ Exponential number of paths:
 \item $\rho$ contains reachability predicates
 \end{itemize}
 \bigskip
-``Does it exists a path starting in the invariant candidate, that arrives in a
+``Does it exist a path starting in the invariant candidate, that arrives in a
 state outside the invariant {?}`` 
 \bigskip
 
@@ -800,6 +800,11 @@ $X_{i}$: abstract domain of node $p_i$
 	We apply Guided Static Analysis over the Reduced Multigraph
 	\end{center}
 	\vspace{1cm}
+	
+	Ascending sequence of subset of paths
+	
+	\vspace{1cm}
+
 	3 phases:
 	\begin{enumerate}
 		\item Compute new feasible paths
@@ -821,15 +826,66 @@ $X_{i}$: abstract domain of node $p_i$
 
 \begin{frame}
 	\frametitle{Computing New Paths}
+
+New feasible paths starting from $p_1$:
+\tikzstyle{NewPath}=[rectangle,thick,draw=black!75,
+  			  fill=black!20,minimum size=4mm,dash pattern=on 3pt off 3pt]
+\tikzstyle{TakenPath}=[rectangle,thick,draw=blue!75,
+  			  fill=blue,minimum size=4mm,blue]
+\begin{figure}[!h]
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$p_1$};
+	\node[PRstate] (n2) [below left of=n0] {$p_2$};
+	\node[PRstate] (n3) [below right of=n0] {$p_3$};
+
+	\path [NewPath] 
+		(n0) edge  [out=-90, in=40]            node {$\tau_3$} (n2);
+
+	\path<-3> [NewPath] 
+		(n0) edge  [out=-120, in=100]            node {$\tau_2$} (n2);
+	\path<4> [TakenPath] 
+		(n0) edge  [out=-120, in=100]            node {$\tau_2$} (n2);
+	\path<5-> [transition] 
+		(n0) edge  [out=-120, in=100]            node {$\tau_2$} (n2);
+  
+	\path<1> [NewPath] 
+		(n0) edge  [out=180, in=140]            node {$\tau_1$} (n2);
+	\path<2> [TakenPath] 
+		(n0) edge  [out=180, in=140]            node {$\tau_1$} (n2);
+	\path<3-> [transition] 
+		(n0) edge  [out=180, in=140]            node {$\tau_1$} (n2);
+  
+	\path<-2> [NewPath] 
+		(n0) edge  [out=-5, in=120]            node {$\tau_4$} (n3);
+	\path<3> [TakenPath] 
+		(n0) edge  [out=-5, in=120]            node {$\tau_4$} (n3);
+	\path<4-> [transition] 
+		(n0) edge  [out=-5, in=120]            node {$\tau_4$} (n3);
+\end{tikzpicture}
+\end{figure}
+$p_2 : X_2 \visible<2->{\sqcup \tau_1(X_1)} \visible<4->{\sqcup \tau_2(X_1)}$
+\hfill 
+$p_3 : X_3 \visible<3->{\sqcup \tau_4(X_1)}$
+
+\vspace{0.5cm}
+\visible<5->{
+$\tau_3$ feasible, but:
+$$\tau_3(p_1) \subset X_2 \sqcup \tau_1(X_1) \sqcup \tau_2(X_1)$$
+}
 \end{frame}
 
 \begin{frame}
 	\frametitle{Ascending iterations}
 
 	Path Focusing algorithm on the multigraph
-	
+
+	\vspace{1cm}	
+
 	But the formula is cunjunct with $P$: 
 	$$f(p_i) \wedge P$$
+
 \end{frame}
 
 
@@ -902,6 +958,14 @@ When $\sigma_i(j,k)$ is undefined:
 		\item Apron Library
 		\item Microsoft Z3, Yices
 	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \begin{center}
+    \input{./techniques.tex}
+  \end{center} 
+  \end{figure}
 \end{frame}
 
 \begin{frame}
