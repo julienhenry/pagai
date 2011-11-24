@@ -331,8 +331,8 @@ void AIopt::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-				//Xtemp->widening(Succ->X_s[passID]);
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening(Succ->X_s[passID]);
+				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);

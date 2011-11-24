@@ -167,7 +167,8 @@ void AIPass::loopiter(
 			ap_lincons1_array_fprint(stdout,&threshold);
 			fflush(stdout);
 		);
-		Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+		//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+		Xtemp->widening(Succ->X_s[passID]);
 		DEBUG(
 			*Out << "MINIWIDENING!\n";	
 		);
