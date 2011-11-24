@@ -63,7 +63,7 @@ bool AIpf::runOnModule(Module &M) {
 				Out->changeColor(raw_ostream::MAGENTA,true);
 				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 				Out->resetColor();
-				n->X_d[passID]->print(true);
+				n->X_s[passID]->print(true);
 				N_Pr++;
 			}
 			//delete Nodes[b];
@@ -71,11 +71,11 @@ bool AIpf::runOnModule(Module &M) {
 		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 	}
 
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
 
-	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-	*Out << N_Pr << " PR_SIZE\n";
+	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	//*Out << N_Pr << " PR_SIZE\n";
 	return false;
 }
 
@@ -125,7 +125,17 @@ void AIpf::computeFunction(Function * F) {
 		*Out << "#######################################################\n";
 		Out->resetColor();
 	);
+
+	// we set X_d abstract values to bottom for narrowing
+	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+	//	b = i;
+	//	if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
+	//		Nodes[b]->X_d[passID]->set_bottom(env);
+	//	}
+	//}
 	narrowingIter(n);
+	// then we move X_d abstract values to X_s abstract values
+	copy_Xd_to_Xs(F);
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
@@ -220,8 +230,8 @@ void AIpf::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
-				//Xtemp->widening(Succ->X_s[passID]);
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening(Succ->X_s[passID]);
+				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 				DEBUG(
 					*Out << "WIDENING! \n";
 				);

@@ -1,4 +1,5 @@
 
+extern int toto(int x);
 
 int f () {
 	int x = 0;
@@ -10,5 +11,6 @@ int f () {
 		x++;	
 	}
 
+	toto (x);
 	return x;
 }

@@ -49,11 +49,17 @@ add_apron_library(pagai boxMPFR)
 add_apron_library(pagai ap_ppl)
 add_apron_library(pagai ap_pkgrid)
 add_apron_library(pagai apron)
-target_link_libraries(pagai ppl)
+add_ppl_library(pagai ppl)
 # SMT solvers
 add_yices_library(pagai)
 add_z3_library(pagai)
 target_link_libraries(pagai mpfr gmpxx gmp)
+
+# TODO: these libraries are not always needed
+# (it seems they are by libz3.a but not libz3.so ...),
+# we should detect and adapt...
+target_link_libraries(pagai rt gomp)
+
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,
 # hence we need to add CUDD one by its full name (If we don't do this,

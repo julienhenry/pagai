@@ -93,11 +93,11 @@ bool AIdis::runOnModule(Module &M) {
 		//*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
 	}
 
-	*Out << "Number of iterations: " << n_iterations << "\n";
-	*Out << "Number of paths computed: " << n_paths << "\n";
+	//*Out << "Number of iterations: " << n_iterations << "\n";
+	//*Out << "Number of paths computed: " << n_paths << "\n";
 
-	*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-	*Out << N_Pr << " PR_SIZE\n";
+	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	//*Out << N_Pr << " PR_SIZE\n";
 	return 0;
 }
 
@@ -243,8 +243,15 @@ void AIdis::computeNewPaths(Node * n) {
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 
+		DEBUG(
+			*Out << "START\n";
+			Xtemp->print();
+		);
 		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
-
+		DEBUG(
+			*Out << "XTEMP\n";
+			Xtemp->print();
+		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
 		int Sigma = sigma(path,index,Xtemp,false);
 		Join.clear();
@@ -259,6 +266,8 @@ void AIdis::computeNewPaths(Node * n) {
 		DEBUG(
 			*Out << "INSERTING INTO P THE PATH\n";
 			printPath(path);
+			*Out << "RESULT\n";
+			Succ->X_d[passID]->print();
 		);
 		A.push(n);
 	}
