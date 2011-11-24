@@ -57,9 +57,9 @@ fi
 
 clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT
 #opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
-#opt -mem2reg -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
-opt -mem2reg -lowerswitch -inline -loop-rotate $OUTPUT -o $OUTPUT
-#opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
+#opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
+#opt -mem2reg -lowerswitch -inline -loop-rotate $OUTPUT -o $OUTPUT
+opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT
