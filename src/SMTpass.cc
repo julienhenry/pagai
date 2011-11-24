@@ -151,8 +151,10 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  if (integer) {
 				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
 			  } else {
-#if 1
+#if 0
 			    return man->SMT_mk_true();
+#elif 1
+			    return man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),scalar_smt);
 #else
 			    // This segfaults. Perhaps bug in Z3.
 			    SMT_expr test = man->SMT_mk_is_int(linexpr_smt);
