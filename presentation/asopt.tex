@@ -51,14 +51,14 @@ color=blue]
 \begin{frame}
 \frametitle{Sources of imprecision in Abstract Interpretation}
 \begin{itemize}
-\item transformation that can't be expressed in the abstract domain
-\item \alert<2>{widening operator}
+\item Abstract domain
+\item \alert<2>{Widening operator}
 \begin{itemize}
-\item ensure fast convergence
+\item ensures fast convergence
 \item BUT: may induce huge imprecisions
 \item Narrowing tends to recover some precision\ldots
 \end{itemize}
-\item \alert<2>{consider paths that are unfeasible in reality}
+\item \alert<2>{Consider paths that are unfeasible in reality}
 \end{itemize}
 \end{frame}
 
@@ -892,32 +892,32 @@ $$\tau_3(p_1) \subset X_2 \sqcup \tau_1(X_1) \sqcup \tau_2(X_1)$$
 	}
 \end{frame}
 
-\begin{frame}
-	\frametitle{Example}
-
-\begin{figure}[!h]
-\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
-                    semithick,font=\footnotesize]
-	\node[PRstate] (n0) {$n_0$};
-	\node[PRstate] (n1) [below of=n0] {$n_1$};
-	\node[PRstate] (n9) [below of=n1,yshift=-4cm] {$n_9$};
-
-  \path [transition] 
-		(n0) edge              node  {$\begin{array}{l}
-		x \leftarrow 0 \\
-		d \leftarrow 1 
-		\end{array}$} (n1);
-  \path<4-> [transition] 
-        (n1)  edge [out=-160,in=160]  node [left,xshift=0.2cm] {$\begin{array}{l} 0< x < 1000/\end{array}$} (n9);
-  \path<2-> [transition] 
-        (n1)  edge [out=-90,in=90]  node [xshift=-0.2cm] {$\begin{array}{l} x = 0/ \\ d \gets 1\end{array}$} (n9);
-  \path<5-> [transition] 
-        (n1)  edge [out=-20,in=20]  node [right,xshift=-0.2cm] {$\begin{array}{l}  x = 1000/ \\ d \gets -1\end{array}$} (n9);
-  \path<3-> [transition] 
-        (n9) edge [out=0, in=0, distance=4.3cm] node [right] {$x \leftarrow x+d$} (n1);
-\end{tikzpicture}
-\end{figure}
-\end{frame}
+%\begin{frame}
+%	\frametitle{Example}
+%
+%\begin{figure}[!h]
+%\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+%                    semithick,font=\footnotesize]
+%	\node[PRstate] (n0) {$n_0$};
+%	\node[PRstate] (n1) [below of=n0] {$n_1$};
+%	\node[PRstate] (n9) [below of=n1,yshift=-4cm] {$n_9$};
+%
+%  \path [transition] 
+%		(n0) edge              node  {$\begin{array}{l}
+%		x \leftarrow 0 \\
+%		d \leftarrow 1 
+%		\end{array}$} (n1);
+%  \path<4-> [transition] 
+%        (n1)  edge [out=-160,in=160]  node [left,xshift=0.2cm] {$\begin{array}{l} 0< x < 1000/\end{array}$} (n9);
+%  \path<2-> [transition] 
+%        (n1)  edge [out=-90,in=90]  node [xshift=-0.2cm] {$\begin{array}{l} x = 0/ \\ d \gets 1\end{array}$} (n9);
+%  \path<5-> [transition] 
+%        (n1)  edge [out=-20,in=20]  node [right,xshift=-0.2cm] {$\begin{array}{l}  x = 1000/ \\ d \gets -1\end{array}$} (n9);
+%  \path<3-> [transition] 
+%        (n9) edge [out=0, in=0, distance=4.3cm] node [right] {$x \leftarrow x+d$} (n1);
+%\end{tikzpicture}
+%\end{figure}
+%\end{frame}
 
 \section{Computing Disjunctive Invariants}
 
@@ -1062,7 +1062,25 @@ When $\sigma_i(j,k)$ is undefined:
 		\item if $m_i = M$, we define $\sigma_i(j,k) = M$ 
 	\end{itemize}
 \end{enumerate}
+\end{frame}
 
+\begin{frame}[containsverbatim]
+	\frametitle{Example}
+\begin{center}
+\begin{lstlisting}
+	int x = 0;
+	int d = 1;
+	
+	while (true) {
+		if (x == 0) d=1;
+		if (x == 1000) d=-1;
+		x +=d;
+	}
+\end{lstlisting}
+\end{center}
+We find:
+$$(d = 1 \wedge 0 \leq x \leq 1000) \vee
+(d = -1 \wedge 0 \leq x \leq 999)$$
 \end{frame}
 
 \begin{frame}
@@ -1084,8 +1102,37 @@ When $\sigma_i(j,k)$ is undefined:
 \end{frame}
 
 \begin{frame}
+	\frametitle{Time}
+\begin{table}[!h]
+	\centering
+\begin{tabular}{|l|r|r|r|r|r|} \hline
+	\multicolumn{1}{|c|}{Benchmark} &
+		\multicolumn{1}{c|}{\textbf{S}} &
+		\multicolumn{1}{c|}{\textbf{G}} &
+		\multicolumn{1}{c|}{\textbf{PF}} &
+		\multicolumn{1}{c|}{\textbf{G+PF}} &
+	\multicolumn{1}{c|}{\textbf{DIS}} \\ \hline
+a2ps-4.14 & 64 & 17 & 66 & 175 & 512 \\
+gawk-4.0.0 & 59 & 8 & 18 & 43 & 129 \\
+gnuchess-6.0.0 & 112 & 21 & 122 & 374 & 866 \\
+gnugo-3.8 & 155 & 31 & 128 & 382 & 1403 \\
+grep-2.9 & 50 & 12 & 21 & 58 & 307 \\
+gzip-1.4 & 63 & 12 & 36 & 97 & 617 \\
+lapack-3.3.1 & 721 & 246 & 2690 & 6052 & 22222 \\
+make-3.82 & 22 & 7 & 32 & 83 & 255 \\
+sed-4.2 & 35 & 7 & 23 & 69 & 521 \\
+tar-1.26 & 270 & 39 & 110 & 304 & 1164 \\
+	\hline
+\end{tabular}
+\caption{Execution time for each technique, expressed in seconds}
+\label{tab:time}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
 \begin{center}
-Thank you!
+Thank you.
 \end{center}
 \end{frame}
 
