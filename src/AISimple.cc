@@ -40,10 +40,10 @@ void AISimple::computeFunc(Function * F) {
 
 	ascendingIter(n, F);
 
-	narrowingIter(n);
+	//narrowingIter(n);
 
 	// then we move X_d abstract values to X_s abstract values
-	copy_Xd_to_Xs(F);
+	//copy_Xd_to_Xs(F);
 }
 
 std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
@@ -184,7 +184,20 @@ void AISimple::narrowNode(Node * n) {
 		return;
 	}
 
+	DEBUG (
+		Out->changeColor(raw_ostream::GREEN,true);
+		*Out << "#######################################################\n";
+		*Out << "narrowing node: " << n->bb << "\n";
+		Out->resetColor();
+		*Out << *(n->bb) << "\n";
+	);
+
 	is_computed[n] = true;
+
+	DEBUG(
+		*Out << "STARTING POLYHEDRON\n";
+		n->X_s[passID]->print();
+	);
 
 	for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
 		path.clear();

@@ -301,15 +301,24 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 		focusblock++;
 	}
+
 	ap_environment_t * env = NULL;
 	succ->create_env(&env,LV);
-	Xtemp.change_environment(env);
+
+	// tmpenv contains all the environment of the starting invariant, plus the
+	// new environment variables that have been added along the path
+	ap_environment_t * tmpenv = common_environment(env,Xtemp.main->env);
+
+	Xtemp.change_environment(tmpenv);
 
 	// first, we assign the Phi variables defined during the path to the right expressions
 	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
 
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
+
+	//*Out << "STEP 1:\n";
+	//Xtemp.print();
 
 	//////////
 	//
@@ -353,12 +362,18 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 			ap_tcons1_array_clear((*i)->front());
 		} else {
+			DEBUG(
+				*Out << "multiple contraints:\n";
+			);
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
 			std::vector<Abstract*> A_Constraints;
 			std::vector<ap_tcons1_array_t*>::iterator it, et;
 			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
+				DEBUG(
+					tcons1_array_print(*it);
+				);
 				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
@@ -371,9 +386,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 		delete *i;
 	}
-	Xtemp.change_environment(env);
-
-
+	
 	Xtemp.assign_texpr_array(&PHIvars_prime.name[0],&PHIvars_prime.expr[0],PHIvars_prime.name.size(),NULL);
 
 	DEBUG(
@@ -391,7 +404,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	Xtemp.change_environment(env2);
 	env = env2;
 	////////
-
 
 	// we transform the abstract value of constraints into an array of lincons
 	// for a future widening with threshold
