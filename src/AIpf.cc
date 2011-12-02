@@ -127,6 +127,7 @@ void AIpf::computeFunction(Function * F) {
 	);
 
 	// we set X_d abstract values to bottom for narrowing
+	// USELESS : they are already at bottom !
 	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 	//	b = i;
 	//	if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {

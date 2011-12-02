@@ -161,12 +161,13 @@ void AIPass::loopiter(
 			Xtemp->print();
 		);
 
-		DEBUG(
-			*Out << "THRESHOLD:\n";
-			fflush(stdout);
-			ap_lincons1_array_fprint(stdout,&threshold);
-			fflush(stdout);
-		);
+		//DEBUG(
+		//	*Out << "THRESHOLD:\n";
+		//	fflush(stdout);
+		//	ap_lincons1_array_fprint(stdout,&threshold);
+		//	fflush(stdout);
+		//);
+		
 		//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 		Xtemp->widening(Succ->X_s[passID]);
 		DEBUG(
