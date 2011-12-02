@@ -44,12 +44,8 @@ void AISimple::computeFunc(Function * F) {
 
 	// then we move X_d abstract values to X_s abstract values
 	
-	while (copy_Xd_to_Xs(F)) {
-		DEBUG(
-			*Out << "NARROWING AGAIN !\n";
-		);
+	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
-	}
 }
 
 std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {

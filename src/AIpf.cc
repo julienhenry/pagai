@@ -136,7 +136,8 @@ void AIpf::computeFunction(Function * F) {
 	//}
 	narrowingIter(n);
 	// then we move X_d abstract values to X_s abstract values
-	copy_Xd_to_Xs(F);
+	while (copy_Xd_to_Xs(F))
+		narrowingIter(n);
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
