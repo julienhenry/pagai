@@ -935,6 +935,12 @@ void AIPass::visitSelectInst (SelectInst &I){
 // type int or float, depending on the return type
 void AIPass::visitCallInst(CallInst &I){
 	//*Out << "CallInst\n" << I << "\n";	
+	
+	Function * F = I.getCalledFunction();
+	std::string fname = F->getName();
+
+	*Out << "FOUND FUNCTION " << fname << "\n";
+	
 	visitInstAndAddVarIfNecessary(I);
 }
 

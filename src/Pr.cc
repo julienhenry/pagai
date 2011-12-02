@@ -1,7 +1,9 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Instructions.h"
+#include "llvm/Support/CFG.h"
 
 #include "Pr.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -60,6 +62,13 @@ void Pr::computePr(Function &F) {
 
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
 			if (isa<ReturnInst>(*it)) {
+				FPr->insert(b);
+			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
+				Function * cF = c->getCalledFunction();
+				std::string fname = cF->getName();
+				std::string assert_fail ("__assert_fail");
+				if (fname.compare(assert_fail) == 0)
+					*Out << "FOUND ASSERT\n";
 				FPr->insert(b);
 			}
 		}

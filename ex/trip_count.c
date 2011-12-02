@@ -1,11 +1,11 @@
+#include <assert.h>
+
 extern void print(int x);
 
 void trip_counts() {
   int a=0, b=0, c=0, d=0, e=0, i;
   for(i=0; i<100; i++) {
-    if (4*b > a) { // essai pour forcer 4b<=a
-      while(1) {}
-    }
+    assert (4*b <= a);
     a++;
     if (i%4 == 0) b++;
     else c++;
