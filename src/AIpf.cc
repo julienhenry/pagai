@@ -299,6 +299,10 @@ void AIpf::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
+		DEBUG(
+			*Out << "STARTING POLYHEDRON\n";
+			Xtemp->print();
+		);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(
