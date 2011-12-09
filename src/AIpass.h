@@ -6,6 +6,7 @@
 
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
+#include "llvm/Constants.h"
 
 #include "Analyzer.h"
 #include "apron.h"

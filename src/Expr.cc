@@ -1,5 +1,8 @@
 #include <map>
 
+#include "llvm/Support/CFG.h"
+#include "llvm/Constants.h"
+
 #include "Expr.h"
 #include "apron.h"
 #include "Debug.h"
