@@ -1,0 +1,55 @@
+"the title is fairly vague and non optimal -- perhaps
+"succinct" should be replaced by "disjunctive"?"
+Path Focusing technique and our combined technique (with or without disjunctive
+invariants) do not work on the classical control flow graph, but on a multigraph
+where all the paths inside loops are distinguished. The term "succint" refers to
+the fact we actually do not compute all the paths of this multigraph, but work
+on an succint representation thereof (using an SMT formula), thus avoiding the
+enumeration of an exponential number of paths in a huge number of cases.
+
+"The results are unsurprising"
+The experimental results show that techniques that distinguish paths inside a
+program give more precise results, but, more importantly, at a reasonable cost
+(which was not evident).
+It is also interesting to see that more complex technique perform sometimes
+faster that more naive approaches.
+
+"The problem with path focusing is that (1) it will process all
+executable paths at once, including potentially many redundant paths
+that don't contribute to the solution; and (2) its widening operation
+lacks the precision conferred by guided static analysis."
+
+This is not exactly the point. The problem with path focusing is that it will compute
+the fixpoint iterations on the whole graph at once, using classical widening
+operations in order to guarantee the convergence.
+When the fixpoint has been reached, it finally apply some narrowing iterations
+to recover precision.
+The idea here is to apply some narrowing iterations during the analysis, in
+order to recover some precision before continuing.
+To clarify, widening is the same, but we perform regularly narrowing iterations,
+and not only at the end of the ascending iterations.
+
+"how much benefit this technique confers to other types of abstract
+domains, including those that don't require widening"
+Intuitively, Guided Static Analysis technique performs better because it
+recovers precision lost by widening. It will probably not increase the precision
+when using domains without widening/narrowing. However, the iteration strategy
+will be changed, so the computation time may differ compared to a classical
+abstract interpretation. We can do the same remarks on our combined technique
+compared to Path Focusing.
+
+"I'd like to know more about how applicable the technique
+is to other kinds of abstract domains"
+The general idea does not depend on the abstract domain. However, we have to
+transform an abstract value into an SMT formula. Such transformation is easy in
+our case, since it is a cunjunction of linear inequalities, but may still
+require some research for other abstract domains that could require other
+theories (for instance, arrays could be
+encoded in SMT using uninterpreted functions, etc.)
+
+"2 to 5% difference, does it make a difference at all?"
+Our prototype of analyzer performs many over-approximations (no memory model,
+etc.), thus leading to invariants that are often very unprecise.
+Intuitively, I would say we could have obtained more difference between the
+different techniques by reducing the number of over-approximation we do for the
+time being.
