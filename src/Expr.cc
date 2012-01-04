@@ -1,5 +1,8 @@
 #include <map>
 
+#include "llvm/Support/CFG.h"
+#include "llvm/Constants.h"
+
 #include "Expr.h"
 #include "apron.h"
 #include "Debug.h"
@@ -46,12 +49,13 @@ void clear_all_exprs(Node * n) {
 
 ap_texpr1_t * get_ap_expr_rec(Node * n, Value * val, std::set<Node*> * seen) {
 	ap_texpr1_t * res = NULL;
+	//*Out << "Search for expression " << *val << " in the basicblock " << *(n->bb) << "\n";
 	if (n->Exprs.count(val) > 0) {
 		res = n->Exprs[val];
-	} else if (
-			!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,true) &&
-			!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,false)) {
-		res = NULL;
+	//} else if (
+	//		!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,true) &&
+	//		!CurrentAIpass->LV->isLiveByLinearityInBlock(val,n->bb,false)) {
+	//	res = NULL;
 	} else if (seen->count(n) == 0) {
 		seen->insert(n);
 		std::set<BasicBlock*> preds = CurrentAIpass->getPredecessors(n->bb);
@@ -77,6 +81,7 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (res == NULL) {
 		// val is not yet in the Expr map
 		// We have to create it
+		*Out << "Expression " << *val << "does not exist! \n";
 		n->add_var(val);
 		return n->Exprs[val];
 	}

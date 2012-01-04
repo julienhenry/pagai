@@ -4,6 +4,7 @@
 #include <string>
 
 #include "llvm/Support/CFG.h"
+#include "llvm/Constants.h"
 
 #include "Pr.h"
 #include "SMTpass.h"

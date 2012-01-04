@@ -127,6 +127,7 @@ void AIpf::computeFunction(Function * F) {
 	);
 
 	// we set X_d abstract values to bottom for narrowing
+	// USELESS : they are already at bottom !
 	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 	//	b = i;
 	//	if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
@@ -135,7 +136,8 @@ void AIpf::computeFunction(Function * F) {
 	//}
 	narrowingIter(n);
 	// then we move X_d abstract values to X_s abstract values
-	copy_Xd_to_Xs(F);
+	while (copy_Xd_to_Xs(F))
+		narrowingIter(n);
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
@@ -299,6 +301,10 @@ void AIpf::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
+		DEBUG(
+			*Out << "STARTING POLYHEDRON\n";
+			Xtemp->print();
+		);
 		computeTransform(aman,n,path,*Xtemp);
 
 		DEBUG(

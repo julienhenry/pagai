@@ -6,6 +6,7 @@
 
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
+#include "llvm/Constants.h"
 
 #include "Analyzer.h"
 #include "apron.h"
@@ -125,7 +126,8 @@ class AIPass : public InstVisitor<AIPass> {
 		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
 
 		/// copy the elements in X_d into X_s abstract values
-		void copy_Xd_to_Xs(Function * F);
+		/// return true iff there there some Xd values that were not equal to Xs
+		bool copy_Xd_to_Xs(Function * F);
 
 		/// computeTransform - computes in Xtemp the polyhedra resulting from
 		/// the transformation  of n->X through the path

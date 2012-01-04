@@ -5,6 +5,7 @@
 #include "llvm/BasicBlock.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Constants.h"
 
 #include "Node.h"
 #include "Live.h"
