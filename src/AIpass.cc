@@ -50,28 +50,28 @@ void AIPass::initFunction(Function * F) {
 
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			if (Nodes.count(i) == 0) {
-				n = new Node(i);
-				Nodes[i] = n;
-			} else {
-				//resetting parameters
-				already_seen = true;
-				n = Nodes[i];
-				n->intVar.clear();
-				n->realVar.clear();
-				n->Exprs.clear();
-				n->env = ap_environment_alloc_empty();
-			}
-			// creating an X and an Y abstract value for this node
-			if (LSMT == NULL
+		if (Nodes.count(i) == 0) {
+			n = new Node(i);
+			Nodes[i] = n;
+		} else {
+			//resetting parameters
+			already_seen = true;
+			n = Nodes[i];
+			n->intVar.clear();
+			n->realVar.clear();
+			n->Exprs.clear();
+			n->env = ap_environment_alloc_empty();
+		}
+		// creating an X and an Y abstract value for this node
+		if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
 				|| Pr::getPr(*F)->count(i)) {
-				n->X_s[passID] = aman->NewAbstract(man,n->env);
-				n->X_d[passID] = aman->NewAbstract(man,n->env);
-			} else {
-				n->X_s[passID] = NULL;
-				n->X_d[passID] = NULL;
-			}
+			n->X_s[passID] = aman->NewAbstract(man,n->env);
+			n->X_d[passID] = aman->NewAbstract(man,n->env);
+		} else {
+			n->X_s[passID] = NULL;
+			n->X_d[passID] = NULL;
+		}
 	}
 	if (F->size() > 0 && !already_seen) {
 		// we find the Strongly Connected Components
@@ -86,35 +86,43 @@ void AIPass::initFunction(Function * F) {
 void AIPass::printResult(Function * F) {
 	BasicBlock * b;
 	Node * n;
-		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			b = i;
-			n = Nodes[b];
-			if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
-				Out->changeColor(raw_ostream::MAGENTA,true);
-				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
+			Out->changeColor(raw_ostream::MAGENTA,true);
+			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+			Out->resetColor();
+			n->X_s[passID]->print(true);
+			if (Pr::getAssert(*b->getParent())->count(b)) {
+				if (n->X_s[passID]->is_bottom()) {
+					Out->changeColor(raw_ostream::GREEN,true);
+					*Out << "ASSERT OK\n";
+				} else {
+					Out->changeColor(raw_ostream::RED,true);
+					*Out << "ASSERT FAILED\n";
+				}
 				Out->resetColor();
-				n->X_s[passID]->print(true);
 			}
-			//delete Nodes[b];
 		}
-		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
-		*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
 	}
+	Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
+	*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
 	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
-
+}
 
 void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	//	*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	//} else {
-		*Out << b << ": SCC=" << n->sccId << ":\n" << *b;
+	*Out << b << ": SCC=" << n->sccId << ":\n" << *b;
 	//}
 	//for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 	//	Instruction * I = i;
 	//	*Out << "\t\t" << I << "\t" << *I << "\n";
 	//}
 
-}
+	}
 
 void AIPass::printPath(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
@@ -145,7 +153,7 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
-			|| Pr::getPr(*F)->count(i)) {
+				|| Pr::getPr(*F)->count(i)) {
 
 			if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
 				res = true;
@@ -163,11 +171,11 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 }
 
 void AIPass::loopiter(
-	Node * n, 
-	Abstract * &Xtemp, 
-	std::list<BasicBlock*> * path,
-	bool &only_join, 
-	PathTree * const U) {
+		Node * n, 
+		Abstract * &Xtemp, 
+		std::list<BasicBlock*> * path,
+		bool &only_join, 
+		PathTree * const U) {
 	Node * Succ = n;
 	std::vector<Abstract*> Join;
 
@@ -181,12 +189,12 @@ void AIPass::loopiter(
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		DEBUG(
-			*Out << "BEFORE MINIWIDENING\n";	
-			*Out << "Succ->X:\n";
-			Succ->X_s[passID]->print();
-			*Out << "Xtemp:\n";
-			Xtemp->print();
-		);
+				*Out << "BEFORE MINIWIDENING\n";	
+				*Out << "Succ->X:\n";
+				Succ->X_s[passID]->print();
+				*Out << "Xtemp:\n";
+				Xtemp->print();
+			 );
 
 		//DEBUG(
 		//	*Out << "THRESHOLD:\n";
@@ -194,28 +202,28 @@ void AIPass::loopiter(
 		//	ap_lincons1_array_fprint(stdout,&threshold);
 		//	fflush(stdout);
 		//);
-		
+
 		//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 		Xtemp->widening(Succ->X_s[passID]);
 		DEBUG(
-			*Out << "MINIWIDENING!\n";	
-		);
+				*Out << "MINIWIDENING!\n";	
+			 );
 		delete Succ->X_s[passID];
 		Succ->X_s[passID] = Xtemp;
 		DEBUG(
-			*Out << "AFTER MINIWIDENING\n";	
-			Xtemp->print();
-		);
+				*Out << "AFTER MINIWIDENING\n";	
+				Xtemp->print();
+			 );
 
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,*path,*Xtemp);
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
-			Xtemp->print();
-		);
-		
+				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+				n->X_s[passID]->print();
+				*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+				Xtemp->print();
+			 );
+
 		delete Succ->X_s[passID];
 		Succ->X_s[passID] = Xpred;
 		only_join = true;
@@ -276,10 +284,10 @@ void AIPass::computeEnv(Node * n) {
 }
 
 void computeThreshold(
-	ap_tcons1_array_t* C,
-	std::vector<ap_lincons1_t> * cons,
-	Abstract * A,
-	ap_environment_t * env) {
+		ap_tcons1_array_t* C,
+		std::vector<ap_lincons1_t> * cons,
+		Abstract * A,
+		ap_environment_t * env) {
 	A->set_top(env);
 	A->meet_tcons_array(C);
 	ap_lincons1_array_t cs = A->to_lincons_array();
@@ -295,7 +303,7 @@ void computeThreshold(
 }
 
 void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBlock*> path, Abstract &Xtemp) {
-	
+
 	// setting the focus path, such that the instructions can be correctly
 	// handled
 	focuspath.clear();
@@ -309,7 +317,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	focusblock = 0;
 
 	computeEnv(succ);
-	
+
 	std::list<BasicBlock*>::iterator B = path.begin(), E = path.end();
 	for (; B != E; ++B) {
 		// visit instructions
@@ -375,24 +383,24 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	ap_environment_t * env2 = env;
 #endif
 	/////////
-	
+
 	std::vector<ap_lincons1_t> cons;
 
 	std::list<std::vector<ap_tcons1_array_t*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 			DEBUG(
-				tcons1_array_print((*i)->front());
-			);
+					tcons1_array_print((*i)->front());
+				 );
 			Xtemp.meet_tcons_array((*i)->front());
-		
+
 			computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env2);
 
 			ap_tcons1_array_clear((*i)->front());
 		} else {
 			DEBUG(
-				*Out << "multiple contraints:\n";
-			);
+					*Out << "multiple contraints:\n";
+				 );
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
 			std::vector<Abstract*> A_Constraints;
@@ -400,32 +408,32 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
 				DEBUG(
-					tcons1_array_print(*it);
-				);
+						tcons1_array_print(*it);
+					 );
 				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
 				A.push_back(X2);
-				
+
 				computeThreshold(*it,&cons,ConstraintsAbstract,env2);
-				
+
 				ap_tcons1_array_clear(*it);
 			}
 			Xtemp.join_array(env,A);
 		}
 		delete *i;
 	}
-	
+
 	Xtemp.assign_texpr_array(&PHIvars_prime.name[0],&PHIvars_prime.expr[0],PHIvars_prime.name.size(),NULL);
 
 	DEBUG(
-		for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
+			for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
 			ap_var_t name = PHIvars_prime.name[i];
 			ap_texpr1_t expr = PHIvars_prime.expr[i];
 			*Out << "Assigning " << ap_var_to_string(name) << " = ";
 			texpr1_print(&expr);
 			*Out << "\n";
-		}
-	);
+			}
+		 );
 
 	/////////
 	succ->env = env2;
@@ -478,14 +486,14 @@ void AIPass::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Va
 // create_constraints - this function is called by computeCondition
 // it creates the constraint from its arguments and insert it into t_cons
 void AIPass::create_constraints(
-	ap_constyp_t constyp,
-	ap_texpr1_t * expr,
-	ap_texpr1_t * nexpr,
-	std::vector<ap_tcons1_array_t*> * t_cons) {
-	
+		ap_constyp_t constyp,
+		ap_texpr1_t * expr,
+		ap_texpr1_t * nexpr,
+		std::vector<ap_tcons1_array_t*> * t_cons) {
+
 	ap_tcons1_t cons;
 	ap_tcons1_array_t * consarray;
-	
+
 	if (constyp == AP_CONS_DISEQ) {
 		// we have a disequality constraint. We tranform it into 2 different
 		// constraints: < and >, in order to create further 2 abstract domain
@@ -528,7 +536,7 @@ bool AIPass::computeCondition(	CmpInst * inst,
 	Node * n = Nodes[focuspath.back()];
 	ap_constyp_t constyp;
 	ap_constyp_t nconstyp;
-	
+
 	Value * op1 = inst->getOperand(0);
 	Value * op2 = inst->getOperand(1);
 
@@ -634,8 +642,8 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
-		// this is always true
-		return false;
+	// this is always true
+	return false;
 
 	//	if (result) {
 	//		// always true
@@ -829,19 +837,19 @@ void AIPass::visitPHINode (PHINode &I){
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type((Value*)&I, ap_type)) return;
 	DEBUG(
-		*Out << I << "\n";
-	);
+			*Out << I << "\n";
+		 );
 
 	// if the PHINode has actually one single incoming edge, we just say the
 	// value is equal to its associated expression
 	// There is no need to introduce PHIvars...
 	if (I.getNumIncomingValues() == 1) {
-			pv = I.getIncomingValue(0);
-			ap_texpr1_t * expr = get_ap_expr(n,pv);
-			set_ap_expr(&I,expr,n);
-			ap_environment_t * env = expr->env;
-			insert_env_vars_into_node_vars(env,n,(Value*)&I);
-			return;
+		pv = I.getIncomingValue(0);
+		ap_texpr1_t * expr = get_ap_expr(n,pv);
+		set_ap_expr(&I,expr,n);
+		ap_environment_t * env = expr->env;
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
+		return;
 	}
 
 	for (unsigned i = 0; i < I.getNumIncomingValues(); i++) {
@@ -858,18 +866,18 @@ void AIPass::visitPHINode (PHINode &I){
 					ap_environment_t * env = expr->env;
 					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					DEBUG(
-						*Out << I << " is equal to ";
-						texpr1_print(expr);
-						*Out << "\n";
-					);
+							*Out << I << " is equal to ";
+							texpr1_print(expr);
+							*Out << "\n";
+						 );
 				}
 			} else {
 				if (expr == NULL) continue;
 				DEBUG(
-					*Out << I << " is equal to ";
-					texpr1_print(expr);
-					*Out << "\n";
-				);
+						*Out << I << " is equal to ";
+						texpr1_print(expr);
+						*Out << "\n";
+					 );
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
@@ -955,12 +963,12 @@ void AIPass::visitSelectInst (SelectInst &I){
 // type int or float, depending on the return type
 void AIPass::visitCallInst(CallInst &I){
 	//*Out << "CallInst\n" << I << "\n";	
-	
+
 	Function * F = I.getCalledFunction();
 	std::string fname = F->getName();
 
 	*Out << "FOUND FUNCTION " << fname << "\n";
-	
+
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -1080,7 +1088,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	ap_var_t var = (Value *) &I; 
 
 	ap_texpr_rtype_t ap_type;
-	
+
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
 	if (!LV->isLiveByLinearityInBlock(&I,I.getParent(),false)) 

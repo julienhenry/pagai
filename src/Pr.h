@@ -17,6 +17,7 @@ class Pr : public ModulePass {
 		/// associate to each formula its set of Pr nodes
 		static std::map<Function*,std::set<BasicBlock*>*> Pr_set;
 
+		static std::map<Function*,std::set<BasicBlock*>*> Assert_set;
 
 		/// compute the set Pr for a function
 		void computePr(Function &F);
@@ -42,6 +43,8 @@ class Pr : public ModulePass {
 
 		/// getPr - get the set Pr. The set Pr is computed only once
 		static std::set<BasicBlock*>* getPr(Function &F);
+
+		static std::set<BasicBlock*>* getAssert(Function &F);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of
 		/// b in Pr
