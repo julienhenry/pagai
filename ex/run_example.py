@@ -1,7 +1,7 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 
 #get library (modules)
-import TAP
+#import TAP
 import os
 from multiprocessing import Process, Lock, Queue, Value
 
