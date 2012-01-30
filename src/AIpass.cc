@@ -83,6 +83,26 @@ void AIPass::initFunction(Function * F) {
 	*Out << *F;
 }
 
+void AIPass::printResult(Function * F) {
+	BasicBlock * b;
+	Node * n;
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			n = Nodes[b];
+			if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
+				Out->changeColor(raw_ostream::MAGENTA,true);
+				*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
+				Out->resetColor();
+				n->X_s[passID]->print(true);
+			}
+			//delete Nodes[b];
+		}
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
+		*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
+	}
+	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+
+
 void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	//	*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
