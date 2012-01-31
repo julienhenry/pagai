@@ -70,12 +70,16 @@ void Pr::computePr(Function &F) {
 			if (isa<ReturnInst>(*it)) {
 				FPr->insert(b);
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
+				*Out << *c << "\n";
 				Function * cF = c->getCalledFunction();
-				std::string fname = cF->getName();
-				std::string assert_fail ("__assert_fail");
-				if (fname.compare(assert_fail) == 0) {
-					FPr->insert(b);
-					FAssert->insert(b);
+				if (cF != NULL) {
+					std::string fname = cF->getName();
+					*Out << "OK\n";
+					std::string assert_fail ("__assert_fail");
+					if (fname.compare(assert_fail) == 0) {
+						FPr->insert(b);
+						FAssert->insert(b);
+					}
 				}
 			}
 		}

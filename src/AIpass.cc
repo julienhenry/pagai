@@ -964,10 +964,9 @@ void AIPass::visitSelectInst (SelectInst &I){
 void AIPass::visitCallInst(CallInst &I){
 	//*Out << "CallInst\n" << I << "\n";	
 
-	Function * F = I.getCalledFunction();
-	std::string fname = F->getName();
-
-	*Out << "FOUND FUNCTION " << fname << "\n";
+	//Function * F = I.getCalledFunction();
+	//std::string fname = F->getName();
+	//*Out << "FOUND FUNCTION " << fname << "\n";
 
 	visitInstAndAddVarIfNecessary(I);
 }
