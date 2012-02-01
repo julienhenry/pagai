@@ -52,3 +52,10 @@ On a un ensemble initial C0 qui satisfait C0 => T, autrement dit une propriété
 Problème de minimiser C pour ordre d'inclusion tel que P(C) vrai.
 Méthode simple: retirer des termes tant que ça marche.
 Méthode plus "astucieuse" mais pas forcément plus efficace: une variante de diviser pour régner, cf réf dans (Monniaux, CAV 2010, §3.1).
+
+* Applications
+** Remontée de formules en tête de programme
+
+** but WCET
+*** optimisation locale dans les itérations / dichotomie
+*** ajout de contraintes intermédiaires
