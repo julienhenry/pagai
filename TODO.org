@@ -59,3 +59,7 @@ Méthode plus "astucieuse" mais pas forcément plus efficace: une variante de di
 ** but WCET
 *** optimisation locale dans les itérations / dichotomie
 *** ajout de contraintes intermédiaires
+
+* Implémentation
+** options de ligne de commande: nombre d'unions
+** ajout du assume
