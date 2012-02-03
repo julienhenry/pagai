@@ -15,6 +15,7 @@ OPTIONS :
 	-G        : generate the .dot CFG
 	-g        : use Lookahead Widening instead of Path Focusing
 	-y        : use Yices instead of Microsoft Z3
+	-b        : use the Bagnara Widening operator
 "
 }
 
@@ -24,9 +25,10 @@ GOPAN=0
 YICES=0
 UNROLL=0
 COMPARE=0
+BAGNARA=0
 RESULT=
 
-while getopts “hpygruGi:o:c” opt ; do
+while getopts "hpygrbuGi:o:c" opt ; do
 	case $opt in
 		h)
 			usage
@@ -43,6 +45,9 @@ while getopts “hpygruGi:o:c” opt ; do
 			;;
 		c)
 			COMPARE=1
+			;;
+		b)
+			BAGNARA=1
 			;;
 		G)
 			GRAPH=1
@@ -72,7 +77,11 @@ NAME=${BASENAME%%.*}
 DIR=`dirname $FILENAME`
 
 if [ -z $OUTPUT ] ; then 
-	OUTPUT=/tmp/${NAME}.bc
+	if [ $UNROLL -eq 0 ] ; then
+		OUTPUT=/tmp/${NAME}_nounroll.bc
+	else
+		OUTPUT=/tmp/${NAME}.bc
+	fi
 fi
 
 if [ $UNROLL -eq 1 ] ; then
@@ -98,16 +107,15 @@ NAME=`basename $OUTPUT`
 RESULT=/tmp/${NAME%%.*}.result
 echo "running Pagai on $NAME"
 if [ $COMPARE -eq 1 ] ; then
-	pagai_2 -c -i $OUTPUT
-	#pagai_2 -c -b -i $OUTPUT
+		pagai_2 -c -i $OUTPUT
 else
 	if [ $GOPAN -eq 1 ] ; then
-		pagai_2 -g -b -i $OUTPUT
+			pagai_2 -i $OUTPUT
 	else
 		if [ $YICES -eq 1 ] ; then
-			pagai_2 -y -b -i $OUTPUT
+			pagai_2 -y -i $OUTPUT
 		else
-			pagai_2 -b -i $OUTPUT
+			pagai_2 -i $OUTPUT
 		fi
 	fi
 fi

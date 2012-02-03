@@ -81,7 +81,7 @@ ap_texpr1_t * get_ap_expr(Node * n, Value * val) {
 	if (res == NULL) {
 		// val is not yet in the Expr map
 		// We have to create it
-		*Out << "Expression " << *val << "does not exist! \n";
+		//*Out << "Expression " << *val << "does not exist! \n";
 		n->add_var(val);
 		return n->Exprs[val];
 	}

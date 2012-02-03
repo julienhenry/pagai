@@ -16,6 +16,7 @@ const char * Pr::getPassName() const {
 }
 		
 std::map<Function*,std::set<BasicBlock*>*> Pr::Pr_set;
+std::map<Function*,std::set<BasicBlock*>*> Pr::Assert_set;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_succ;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_pred;
 
@@ -34,6 +35,10 @@ std::set<BasicBlock*>* Pr::getPr(Function &F) {
 	return Pr_set[&F];
 }
 
+std::set<BasicBlock*>* Pr::getAssert(Function &F) {
+	return Assert_set[&F];
+}
+
 bool Pr::runOnModule(Module &M) {
 	Function * F;
 
@@ -49,6 +54,7 @@ bool Pr::runOnModule(Module &M) {
 // for the moment - Pr = Pw + blocks with a ret inst
 void Pr::computePr(Function &F) {
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
+	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
 	BasicBlock * b;
 	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
 
@@ -65,16 +71,20 @@ void Pr::computePr(Function &F) {
 				FPr->insert(b);
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
-				std::string fname = cF->getName();
-				std::string assert_fail ("__assert_fail");
-				if (fname.compare(assert_fail) == 0)
-					*Out << "FOUND ASSERT\n";
-				FPr->insert(b);
+				if (cF != NULL) {
+					std::string fname = cF->getName();
+					std::string assert_fail ("__assert_fail");
+					if (fname.compare(assert_fail) == 0) {
+						FPr->insert(b);
+						FAssert->insert(b);
+					}
+				}
 			}
 		}
 
 	}
 	Pr_set[&F] = FPr;
+	Assert_set[&F] = FAssert;
 }
 
 std::set<BasicBlock*> Pr::getPrPredecessors(BasicBlock * b) {

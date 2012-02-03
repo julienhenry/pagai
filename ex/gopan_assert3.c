@@ -15,5 +15,5 @@ int main() {
 		x++;
 	}
 	
-	assert(x <= 102);
+	assert(x == 102);
 }

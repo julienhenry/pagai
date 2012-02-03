@@ -94,6 +94,8 @@ class AIPass : public InstVisitor<AIPass> {
 		/// objects, and computing the strongly connected components.
 		void initFunction(Function * F);
 		
+		void printResult(Function * F);
+
 		/// printBasicBlock - print a basicBlock on standard output
 		static void printBasicBlock(BasicBlock * b);
 
