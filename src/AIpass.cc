@@ -353,8 +353,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
 
-	//*Out << "STEP 1:\n";
-	//Xtemp.print();
 
 	//////////
 	//
@@ -1090,7 +1088,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 
 	if (get_ap_type((Value*)&I, ap_type)) return;
 
-	if (!LV->isLiveByLinearityInBlock(&I,I.getParent(),false)) 
+	if (!LV->isLiveByLinearityInBlock(&I,I.getParent(),false))
 		return;
 
 	if (ap_type == AP_RTYPE_INT) { 
@@ -1100,7 +1098,7 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	set_ap_expr(&I,exp,n);
-	if (!LV->isLiveByLinearityInBlock(&I,n->bb,true)) 
+	if (LV->isLiveByLinearityInBlock(&I,n->bb,true))
 		n->add_var((Value*)var);
 }
 
