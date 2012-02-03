@@ -41,7 +41,7 @@ macro(configure_llvm PROG)
     message(WARNING "llvm-config not found. Please set \$LLVM_PATH "
       "so that I can find it in \$LLVM_PATH/bin/")
     set(ERROR_OCCURED ON PARENT_SCOPE)
-  elseif(NOT "${LLVM_VERSION}" STRGREATER "2.9")
+  elseif("${LLVM_VERSION}" STRLESS "2.9")
     message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed for ${PROG}.")
     unset(LLVM_CONFIG_PROG CACHE)
     set(ERROR_OCCURED ON PARENT_SCOPE)
