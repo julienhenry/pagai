@@ -353,7 +353,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
 
-
 	//////////
 	//
 
