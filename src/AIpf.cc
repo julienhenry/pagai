@@ -199,6 +199,7 @@ void AIpf::computeNode(Node * n) {
 		if (!pathtree->exist(path)) {
 			n_paths++;
 			only_join = true;
+			//pathtree->insert(path);
 		} else {
 			only_join = false;
 		}
@@ -221,7 +222,7 @@ void AIpf::computeNode(Node * n) {
 				);
 		} else {
 			DEBUG(
-				*Out << "PATH NEVER SEEN BEFORE !!\n";
+				*Out << "NO WIDENING\n";
 			);
 		}
 		

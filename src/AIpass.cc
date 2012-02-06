@@ -1077,7 +1077,6 @@ void AIPass::visitCastInst (CastInst &I){
 	visitInstAndAddVarIfNecessary(I);
 }
 
-
 void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	Node * n = Nodes[focuspath.back()];
 	ap_environment_t* env = NULL;

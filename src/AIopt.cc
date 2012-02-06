@@ -301,8 +301,10 @@ void AIopt::computeNode(Node * n) {
 		if (!U->exist(path)) {
 			n_paths++;
 			only_join = true;
+			DEBUG(*Out << "ONLY JOIN IS TRUE\n";);
 		} else {
 			only_join = false;
+			DEBUG(*Out << "ONLY JOIN IS FALSE\n";);
 		}
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
@@ -318,7 +320,7 @@ void AIopt::computeNode(Node * n) {
 				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
 		} else {
-			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
+			DEBUG(*Out << "NO WIDENING\n";);
 		}
 		DEBUG(
 			*Out << "BEFORE:\n";
@@ -384,6 +386,8 @@ void AIopt::narrowNode(Node * n) {
 		DEBUG(
 			*Out << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
+			*Out << "POLYHEDRON TO JOIN WITH\n";
+			Succ->X_d[passID]->print();
 		);
 
 		if (Succ->X_d[passID]->is_bottom()) {
@@ -395,6 +399,10 @@ void AIopt::narrowNode(Node * n) {
 			Join.push_back(Xtemp);
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
 		}
+		DEBUG(
+			*Out << "RESULT\n";
+			Succ->X_d[passID]->print();
+		);
 		Xtemp = NULL;
 		A.push(Succ);
 		is_computed[Succ] = false;
