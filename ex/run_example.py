@@ -9,11 +9,11 @@ N = 2
 bindir = "./bin/"
 resdir = "./results/"
 srcdir = "../src/"
-timeout = 1
+timeout = 20
 
 def run_bc(bitcode):
 	cmd = srcdir + "pagai"
-	args = ["-i",bindir+bitcode, "-c", "-o", resdir+bitcode+".res"]
+	args = ["-i",bindir+bitcode, "-o", resdir+bitcode+".res"]
 	os.execv(cmd, [cmd] + args[0:])
 
 def run_benchs(l,q,I):

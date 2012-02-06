@@ -111,7 +111,7 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 }
 
 SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
-	mp_rnd_t round = GMP_RNDN;
+	mp_rnd_t round = GMP_RNDU;
 	ap_double_set_scalar(&value,scalar,round);
 	if (integer) {
 		mpq_t mpq;

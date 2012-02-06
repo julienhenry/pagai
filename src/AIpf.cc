@@ -100,13 +100,6 @@ void AIpf::computeFunction(Function * F) {
 	A.push(n);
 
 	ascendingIter(n, F);
-	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "NARROWING ITERATIONS\n";
-		*Out << "#######################################################\n";
-		Out->resetColor();
-	);
 
 	// we set X_d abstract values to bottom for narrowing
 	// USELESS : they are already at bottom !
