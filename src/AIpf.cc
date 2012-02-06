@@ -118,8 +118,11 @@ void AIpf::computeFunction(Function * F) {
 	//}
 	narrowingIter(n);
 	// then we move X_d abstract values to X_s abstract values
-	while (copy_Xd_to_Xs(F))
+	int step = 0;
+	while (copy_Xd_to_Xs(F) && step <= 10) {
 		narrowingIter(n);
+		step++;
+	}
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
@@ -144,7 +147,8 @@ void AIpf::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	PathTree * const pathtree = new PathTree(n->bb);
+	PathTree * const U = new PathTree(n->bb);
+	PathTree * const V = new PathTree(n->bb);
 
 	while (true) {
 		is_computed[n] = true;
@@ -171,7 +175,8 @@ void AIpf::computeNode(Node * n) {
 			if (res == -1) {
 				unknown = true;
 			}
-			delete pathtree;
+			delete U;
+			delete V;
 			return;
 		}
 	
@@ -196,17 +201,9 @@ void AIpf::computeNode(Node * n) {
 
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
-		if (!pathtree->exist(path)) {
-			n_paths++;
-			only_join = true;
-			//pathtree->insert(path);
-		} else {
-			only_join = false;
-		}
-
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,Xtemp,&path,only_join,pathtree);
+			loopiter(n,Xtemp,&path,only_join,U,V);
 		} 
 		
 		Join.clear();
@@ -241,7 +238,8 @@ void AIpf::computeNode(Node * n) {
 		A.push(Succ);
 		is_computed[Succ] = false;
 	}
-	delete pathtree;
+	delete U;
+	delete V;
 }
 
 void AIpf::narrowNode(Node * n) {
@@ -257,7 +255,7 @@ void AIpf::narrowNode(Node * n) {
 
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
+			*Out << "NARROWING------ NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		LSMT->push_context();

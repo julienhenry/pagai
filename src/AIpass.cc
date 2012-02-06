@@ -175,60 +175,68 @@ void AIPass::loopiter(
 		Abstract * &Xtemp, 
 		std::list<BasicBlock*> * path,
 		bool &only_join, 
-		PathTree * const U) {
+		PathTree * const U,
+		PathTree * const V
+		) {
 	Node * Succ = n;
 	std::vector<Abstract*> Join;
 
 	if (U->exist(*path)) {
-		// backup the previous abstract value
-		Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
+		if (V->exist(*path)) {
+			only_join = false;
+		} else {
+			// backup the previous abstract value
+			Abstract * Xpred = aman->NewAbstract(Succ->X_s[passID]);
 
-		Join.clear();
-		Join.push_back(aman->NewAbstract(Xpred));
-		Join.push_back(aman->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+			Join.clear();
+			Join.push_back(aman->NewAbstract(Xpred));
+			Join.push_back(aman->NewAbstract(Xtemp));
+			Xtemp->join_array(Xtemp->main->env,Join);
 
-		DEBUG(
-				*Out << "BEFORE MINIWIDENING\n";	
-				*Out << "Succ->X:\n";
-				Succ->X_s[passID]->print();
-				*Out << "Xtemp:\n";
-				Xtemp->print();
-			 );
+			DEBUG(
+					*Out << "BEFORE MINIWIDENING\n";	
+					*Out << "Succ->X:\n";
+					Succ->X_s[passID]->print();
+					*Out << "Xtemp:\n";
+					Xtemp->print();
+				 );
 
-		//DEBUG(
-		//	*Out << "THRESHOLD:\n";
-		//	fflush(stdout);
-		//	ap_lincons1_array_fprint(stdout,&threshold);
-		//	fflush(stdout);
-		//);
+			//DEBUG(
+			//	*Out << "THRESHOLD:\n";
+			//	fflush(stdout);
+			//	ap_lincons1_array_fprint(stdout,&threshold);
+			//	fflush(stdout);
+			//);
 
-		//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
-		Xtemp->widening(Succ->X_s[passID]);
-		DEBUG(
-				*Out << "MINIWIDENING!\n";	
-			 );
-		delete Succ->X_s[passID];
-		Succ->X_s[passID] = Xtemp;
-		DEBUG(
-				*Out << "AFTER MINIWIDENING\n";	
-				Xtemp->print();
-			 );
+			//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+			Xtemp->widening(Succ->X_s[passID]);
+			DEBUG(
+					*Out << "MINIWIDENING!\n";	
+				 );
+			delete Succ->X_s[passID];
+			Succ->X_s[passID] = Xtemp;
+			DEBUG(
+					*Out << "AFTER MINIWIDENING\n";	
+					Xtemp->print();
+				 );
 
-		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,*path,*Xtemp);
-		DEBUG(
-				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-				n->X_s[passID]->print();
-				*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
-				Xtemp->print();
-			 );
+			Xtemp = aman->NewAbstract(n->X_s[passID]);
+			computeTransform(aman,n,*path,*Xtemp);
+			DEBUG(
+					*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+					n->X_s[passID]->print();
+					*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+					Xtemp->print();
+				 );
 
-		delete Succ->X_s[passID];
-		Succ->X_s[passID] = Xpred;
-		only_join = true;
-		U->remove(*path);
+			delete Succ->X_s[passID];
+			Succ->X_s[passID] = Xpred;
+			only_join = true;
+			//U->remove(*path);
+			V->insert(*path);
+		}
 	} else {
+		only_join = true;
 		U->insert(*path);
 	}
 }

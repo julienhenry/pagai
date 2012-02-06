@@ -162,8 +162,11 @@ void AIopt::computeFunction(Function * F) {
 		narrowingIter(n);
 
 		// then we move X_d abstract values to X_s abstract values
-		while (copy_Xd_to_Xs(F))
+		int step = 0;
+		while (copy_Xd_to_Xs(F) && step <= 10) {
 			narrowingIter(n);
+			step++;
+		}
 
 	}
 }
@@ -249,6 +252,7 @@ void AIopt::computeNode(Node * n) {
 	}
 	
 	PathTree * const U = new PathTree(n->bb);
+	PathTree * const V = new PathTree(n->bb);
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -279,6 +283,8 @@ void AIopt::computeNode(Node * n) {
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
 				unknown = true;
+				delete U;
+				delete V;
 				return;
 			}
 			break;
@@ -297,18 +303,12 @@ void AIopt::computeNode(Node * n) {
 			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
+		
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
-		if (!U->exist(path)) {
-			n_paths++;
-			only_join = true;
-			DEBUG(*Out << "ONLY JOIN IS TRUE\n";);
-		} else {
-			only_join = false;
-			DEBUG(*Out << "ONLY JOIN IS FALSE\n";);
-		}
+
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,Xtemp,&path,only_join,U);
+			loopiter(n,Xtemp,&path,only_join,U,V);
 		} 
 		Join.clear();
 		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
@@ -340,6 +340,7 @@ void AIopt::computeNode(Node * n) {
 		A_prime.insert(Succ);
 	}
 	delete U;
+	delete V;
 }
 
 void AIopt::narrowNode(Node * n) {
