@@ -96,7 +96,7 @@ void AIPass::printResult(Function * F) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
-			n->X_i[passID]->print(true);
+			//n->X_i[passID]->print(true);
 			n->X_s[passID]->print(true);
 			if (Pr::getAssert(*b->getParent())->count(b)) {
 				if (n->X_s[passID]->is_bottom()) {
