@@ -139,7 +139,6 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 }
 
 SMT_expr z3_manager::SMT_mk_num_mpq (mpq_t mpq) {
-	double d = mpq_get_d(mpq);
 	char * x = mpq_get_str (NULL,10,mpq);
 	return Z3_mk_numeral(ctx,x,(Z3_sort)int_type);
 }
