@@ -18,6 +18,8 @@ class AISimple : public ModulePass, public AIPass {
 	private:
 		LoopInfo * LI;
 
+		void computeWideningSeed(Function * F);
+
 	public:
 
 		AISimple (char & ID, Apron_Manager_Type _man) : ModulePass(ID), AIPass(_man) {}

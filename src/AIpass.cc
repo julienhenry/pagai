@@ -62,15 +62,17 @@ void AIPass::initFunction(Function * F) {
 			n->Exprs.clear();
 			n->env = ap_environment_alloc_empty();
 		}
-		// creating an X and an Y abstract value for this node
+		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
 				|| Pr::getPr(*F)->count(i)) {
 			n->X_s[passID] = aman->NewAbstract(man,n->env);
 			n->X_d[passID] = aman->NewAbstract(man,n->env);
+			n->X_i[passID] = aman->NewAbstract(man,n->env);
 		} else {
 			n->X_s[passID] = NULL;
 			n->X_d[passID] = NULL;
+			n->X_i[passID] = NULL;
 		}
 	}
 	if (F->size() > 0 && !already_seen) {
@@ -78,9 +80,10 @@ void AIPass::initFunction(Function * F) {
 		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
-	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-	//	printBasicBlock(i);
-	*Out << *F;
+	
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+		printBasicBlock(i);
+	//*Out << *F;
 }
 
 void AIPass::printResult(Function * F) {
@@ -93,6 +96,7 @@ void AIPass::printResult(Function * F) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
+			n->X_i[passID]->print(true);
 			n->X_s[passID]->print(true);
 			if (Pr::getAssert(*b->getParent())->count(b)) {
 				if (n->X_s[passID]->is_bottom()) {
@@ -115,7 +119,7 @@ void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
 	//	*Out << b << ": SCC=" << n->sccId << ": LOOP HEAD" << *b;
 	//} else {
-	*Out << b << ": SCC=" << n->sccId << ":\n" << *b;
+	*Out << "\n(SCC=" << n->sccId << ")" << *b;
 	//}
 	//for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 	//	Instruction * I = i;

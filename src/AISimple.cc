@@ -37,6 +37,7 @@ void AISimple::computeFunc(Function * F) {
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
+	n->X_i[passID]->set_top(env);
 
 	ascendingIter(n, F);
 
@@ -46,6 +47,8 @@ void AISimple::computeFunc(Function * F) {
 	
 	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
+
+	computeWideningSeed(F);
 }
 
 std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
@@ -137,6 +140,8 @@ void AISimple::computeNode(Node * n) {
 
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
+		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
+
 		if (LI->isLoopHeader(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
@@ -148,6 +153,10 @@ void AISimple::computeNode(Node * n) {
 
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
+			if (succ_bottom) {
+				delete Succ->X_i[passID];
+				Succ->X_i[passID] = aman->NewAbstract(Xtemp);
+			}
 			Succ->X_s[passID] = Xtemp;
 			Xtemp = NULL;
 			A.push(Succ);
@@ -160,6 +169,10 @@ void AISimple::computeNode(Node * n) {
 			Succ->X_s[passID]->print();
 		);
 	}
+}
+
+void computeWideningSeed(Function * F) {
+
 }
 
 void AISimple::narrowNode(Node * n) {

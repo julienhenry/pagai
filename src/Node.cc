@@ -44,6 +44,12 @@ Node::~Node() {
 			it++) {
 		delete (*it).second;
 	}
+	for (std::map<params,Abstract*>::iterator it = X_i.begin(),
+			et = X_i.end();
+			it != et;
+			it++) {
+		delete (*it).second;
+	}
 }
 
 /// computeSCC - compute the strongly connected components and the loop 

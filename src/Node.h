@@ -49,10 +49,12 @@ class Node {
 		int sccId;
 		int id;
 
-		/// X_s - Abstract domain of the source state
+		/// X_s - Abstract value of the source state
 		std::map<params,Abstract*> X_s;
-		/// X_d - Abstract domain of the destination state
+		/// X_d - Abstract value of the destination state
 		std::map<params,Abstract*> X_d;
+		/// X_i - First Abstract value not bottom during the analysis
+		std::map<params,Abstract*> X_i;
 
 		ap_environment_t * env;
 
