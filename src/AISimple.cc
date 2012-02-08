@@ -171,7 +171,7 @@ void AISimple::computeNode(Node * n) {
 	}
 }
 
-void computeWideningSeed(Function * F) {
+void AISimple::computeWideningSeed(Function * F) {
 
 }
 
@@ -214,11 +214,17 @@ void AISimple::narrowNode(Node * n) {
 			Xtemp->print();
 		);
 
+		// we check if the Abstract value is a good seed for Halbwachs's
+		// narrowing
+		std::vector<Abstract*> Join;
+		Join.push_back(aman->NewAbstract(Xtemp));
+		Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
+
 		if (Succ->X_d[passID]->is_bottom()) {
 			delete Succ->X_d[passID];
 			Succ->X_d[passID] = Xtemp;
 		} else {
-			std::vector<Abstract*> Join;
+			Join.clear();
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
 			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
