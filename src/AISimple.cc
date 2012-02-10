@@ -48,7 +48,15 @@ void AISimple::computeFunc(Function * F) {
 	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
 
+#if 0
 	computeWideningSeed(F);
+	copy_Xd_to_Xs(F);
+
+	ascendingIter(n, F);
+	narrowingIter(n);
+	while (copy_Xd_to_Xs(F))
+		narrowingIter(n);
+#endif
 }
 
 std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
@@ -196,8 +204,14 @@ void AISimple::computeWideningSeed(Function * F) {
 			Join.push_back(aman->NewAbstract(Xtemp));
 			Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
 			Xseed->join_array(Xtemp->main->env,Join);
-			if (Xseed->compare(Succ->X_s[passID]) == 1)
+			if (Xseed->compare(Succ->X_s[passID]) == 1) {
 				*Out << "SEED FOUND: " << *(n->bb) << "\n";
+				Join.clear();
+				Join.push_back(aman->NewAbstract(Xtemp));
+				Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
+				Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+				A.push(Succ);
+			}
 		}
 	}
 }
