@@ -45,23 +45,16 @@ void AIPass::narrowingIter(Node * n) {
 
 void AIPass::initFunction(Function * F) {
 	Node * n;
-	bool already_seen = false;
 	CurrentAIpass = this;
 
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		if (Nodes.count(i) == 0) {
-			n = new Node(i);
-			Nodes[i] = n;
-		} else {
-			//resetting parameters
-			already_seen = true;
-			n = Nodes[i];
-			n->intVar.clear();
-			n->realVar.clear();
-			n->Exprs.clear();
-			n->env = ap_environment_alloc_empty();
-		}
+		//resetting parameters
+		n = Nodes[i];
+		n->intVar.clear();
+		n->realVar.clear();
+		n->Exprs.clear();
+		n->env = ap_environment_alloc_empty();
 		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
@@ -74,11 +67,6 @@ void AIPass::initFunction(Function * F) {
 			n->X_d[passID] = NULL;
 			n->X_i[passID] = NULL;
 		}
-	}
-	if (F->size() > 0 && !already_seen) {
-		// we find the Strongly Connected Components
-		Node * front = Nodes[&(F->front())];
-		front->computeSCC();
 	}
 	
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)

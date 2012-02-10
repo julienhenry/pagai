@@ -4,6 +4,7 @@
 
 #include "Pr.h"
 #include "Analyzer.h"
+#include "Node.h"
 
 using namespace llvm;
 
@@ -53,6 +54,22 @@ bool Pr::runOnModule(Module &M) {
 // computePr - computes the set Pr of BasicBlocks
 // for the moment - Pr = Pw + blocks with a ret inst
 void Pr::computePr(Function &F) {
+	Node * n;
+
+	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+		if (Nodes.count(i) == 0) {
+			n = new Node(i);
+			Nodes[i] = n;
+		}
+	}
+
+	if (F.size() > 0) {
+		// we find the Strongly Connected Components
+		Node * front = Nodes[&(F.front())];
+		front->computeSCC();
+	}
+
+
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
 	BasicBlock * b;
