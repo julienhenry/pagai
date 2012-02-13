@@ -120,6 +120,7 @@ void Pr::computePr(Function &F) {
 
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
 		b = i;
+		index[Nodes[b]] = 0;
 		if (LI->isLoopHeader(b)) {
 			FPr->insert(b);
 		}
