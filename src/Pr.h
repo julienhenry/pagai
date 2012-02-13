@@ -7,6 +7,7 @@
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
+#include "Node.h"
 
 using namespace llvm;
 
@@ -19,8 +20,20 @@ class Pr : public ModulePass {
 
 		static std::map<Function*,std::set<BasicBlock*>*> Assert_set;
 
+		std::map<Node*,int> index;
+		std::map<Node*,int> lowlink;
+		std::map<Node*,bool> isInStack;
+
 		/// compute the set Pr for a function
 		void computePr(Function &F);
+
+		bool check_acyclic(Function &F, Node * n);
+		bool check_acyclic_rec(
+				Function &F,
+				Node * n, 
+				int & N,
+				std::stack<Node*> * S);
+
 
 	public:
 		static char ID;	

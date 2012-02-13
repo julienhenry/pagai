@@ -4,7 +4,6 @@
 
 #include "Pr.h"
 #include "Analyzer.h"
-#include "Node.h"
 
 using namespace llvm;
 
@@ -49,6 +48,48 @@ bool Pr::runOnModule(Module &M) {
 		computePr(*F);
 	}
 	return 0;
+}
+
+bool Pr::check_acyclic(Function &F, Node * n) {
+	std::stack<Node*> * S = new std::stack<Node*>();
+	int N = 1;
+	check_acyclic_rec(F,n,N,S);
+	delete S;
+	return true;
+}
+
+bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S) {
+	Node * nsucc;
+	index[n]=N;
+	lowlink[n]=N;
+	N++;
+	S->push(n);
+	isInStack[n]=true;
+	for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
+		BasicBlock * succ = *s;
+		nsucc = Nodes[succ];
+		switch (index[nsucc]) {
+			case 0:
+				if (!Pr_set[&F]->count(nsucc->bb))
+					check_acyclic_rec(F,nsucc,N,S);
+				lowlink[n] = std::min(lowlink[n],lowlink[nsucc]);
+				break;
+			default:
+				if (isInStack[nsucc]) {
+					//*Out << *nsucc->bb << " is a backedge node !!\n";
+					lowlink[n] = std::min(lowlink[n],index[nsucc]);
+					return false;
+				}
+		}
+	}
+	if (lowlink == index) {
+		do {
+			nsucc = S->top();
+			S->pop();
+			isInStack[nsucc]=false;
+		} while (nsucc != n);
+	}
+	return true;
 }
 
 // computePr - computes the set Pr of BasicBlocks
@@ -102,6 +143,10 @@ void Pr::computePr(Function &F) {
 	}
 	Pr_set[&F] = FPr;
 	Assert_set[&F] = FAssert;
+
+
+	for (std::set<BasicBlock*>::iterator it = FPr->begin(), et = FPr->end(); it != et; it++)
+		check_acyclic(F,Nodes[*it]);
 }
 
 std::set<BasicBlock*> Pr::getPrPredecessors(BasicBlock * b) {
