@@ -27,13 +27,15 @@ class Pr : public ModulePass {
 		/// compute the set Pr for a function
 		void computePr(Function &F);
 
-		bool check_acyclic(Function &F, Node * n);
+		bool check_acyclic(Function &F,std::set<BasicBlock*>* FPr);
 		bool check_acyclic_rec(
 				Function &F,
 				Node * n, 
 				int & N,
-				std::stack<Node*> * S);
+				std::stack<Node*> * S,
+				std::set<BasicBlock*>* FPr);
 
+		void minimize_Pr(Function &F);
 
 	public:
 		static char ID;	

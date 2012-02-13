@@ -4,6 +4,7 @@
 
 #include "Pr.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 using namespace llvm;
 
@@ -50,15 +51,25 @@ bool Pr::runOnModule(Module &M) {
 	return 0;
 }
 
-bool Pr::check_acyclic(Function &F, Node * n) {
-	std::stack<Node*> * S = new std::stack<Node*>();
-	int N = 1;
-	check_acyclic_rec(F,n,N,S);
-	delete S;
+bool Pr::check_acyclic(Function &F,std::set<BasicBlock*>* FPr) {
+	std::set<BasicBlock*> start;
+	start.insert(FPr->begin(),FPr->end());
+	start.insert(&F.front());
+
+	for (std::set<BasicBlock*>::iterator it = start.begin(), et = start.end(); it != et; it++) {
+		Node * n = Nodes[*it];
+		for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+			index[Nodes[i]] = 0;
+			isInStack[Nodes[i]] = false;
+		}
+		std::stack<Node*> S;
+		int N = 1;
+		if (!check_acyclic_rec(F,n,N,&S,FPr)) return false;
+	}
 	return true;
 }
 
-bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S) {
+bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S,std::set<BasicBlock*>* FPr) {
 	Node * nsucc;
 	index[n]=N;
 	lowlink[n]=N;
@@ -68,15 +79,15 @@ bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S)
 	for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
 		BasicBlock * succ = *s;
 		nsucc = Nodes[succ];
+		if (FPr->count(nsucc->bb))
+			continue;
 		switch (index[nsucc]) {
 			case 0:
-				if (!Pr_set[&F]->count(nsucc->bb))
-					check_acyclic_rec(F,nsucc,N,S);
+				if (!check_acyclic_rec(F,nsucc,N,S,FPr)) return false;
 				lowlink[n] = std::min(lowlink[n],lowlink[nsucc]);
 				break;
 			default:
 				if (isInStack[nsucc]) {
-					//*Out << *nsucc->bb << " is a backedge node !!\n";
 					lowlink[n] = std::min(lowlink[n],index[nsucc]);
 					return false;
 				}
@@ -110,24 +121,29 @@ void Pr::computePr(Function &F) {
 		front->computeSCC();
 	}
 
-
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
 	BasicBlock * b;
 	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
 
-	FPr->insert(F.begin());
 
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
 		b = i;
-		index[Nodes[b]] = 0;
 		if (LI->isLoopHeader(b)) {
 			FPr->insert(b);
 		}
+	}
+	Pr_set[&F] = FPr;
+	Assert_set[&F] = FAssert;
 
+	minimize_Pr(F);
+	
+	FPr->insert(F.begin());
+	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+		b = i;
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
 			if (isa<ReturnInst>(*it)) {
-				FPr->insert(b);
+				FPr->insert(b); 
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
 				if (cF != NULL) {
@@ -142,12 +158,33 @@ void Pr::computePr(Function &F) {
 		}
 
 	}
-	Pr_set[&F] = FPr;
-	Assert_set[&F] = FAssert;
 
+	std::set<BasicBlock*>* Pr = getPr(F);
+	DEBUG(
+		*Out << "FINAL Pr SET:\n";
+		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end(); it != et; it++) 
+			*Out << **it << "\n";
+		
+	);
+}
 
-	for (std::set<BasicBlock*>::iterator it = FPr->begin(), et = FPr->end(); it != et; it++)
-		check_acyclic(F,Nodes[*it]);
+void Pr::minimize_Pr(Function &F) {
+	std::set<BasicBlock*>* FPr = getPr(F);
+
+	for (std::set<BasicBlock*>::iterator it = FPr->begin(), et = FPr->end(); it != et; it++) {
+		BasicBlock * b = *it;
+		std::set<BasicBlock*> Pr;
+		Pr.insert(FPr->begin(),FPr->end());
+		Pr.erase(b);
+		if (check_acyclic(F,&Pr)) {
+			Pr_set[&F]->erase(b);
+			minimize_Pr(F);
+			return;
+		} else {
+			FPr->insert(b);
+		}
+	}
+
 }
 
 std::set<BasicBlock*> Pr::getPrPredecessors(BasicBlock * b) {

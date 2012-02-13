@@ -150,7 +150,8 @@ void AISimple::computeNode(Node * n) {
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		if (LI->isLoopHeader(Succ->bb)) {
+		//if (LI->isLoopHeader(Succ->bb)) {
+		if (Pr::getPr(*b->getParent())->count(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);
