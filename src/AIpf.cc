@@ -77,7 +77,6 @@ void AIpf::computeFunction(Function * F) {
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
-	LI = &(getAnalysis<LoopInfo>(*F));
 
 	*Out << "Computing Rho...";
 	LSMT->getRho(*F);

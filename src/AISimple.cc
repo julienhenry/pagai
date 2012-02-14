@@ -71,7 +71,6 @@ std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
 
 void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 	AU.addRequired<Pr>();
 }
@@ -278,7 +277,6 @@ void AISimple::computeFunction(Function * F) {
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
-	LI = &(getAnalysis<LoopInfo>(*F));
 
 	computeFunc(F);
 }

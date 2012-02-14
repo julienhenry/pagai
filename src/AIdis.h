@@ -6,7 +6,6 @@
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
-#include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpass.h"
 #include "Sigma.h"
@@ -17,9 +16,6 @@ using namespace llvm;
 class AIdis : public ModulePass, public AIPass {
 
 	private:
-
-		LoopInfo * LI;
-
 		std::map<BasicBlock*,Sigma*> S;
 
 		int Max_Disj;

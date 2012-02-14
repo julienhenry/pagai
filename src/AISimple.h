@@ -3,7 +3,6 @@
 
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
-#include "llvm/Analysis/LoopInfo.h"
 #include "AIpass.h"
 
 using namespace llvm;
@@ -16,8 +15,6 @@ using namespace llvm;
 class AISimple : public ModulePass, public AIPass {
 
 	private:
-		LoopInfo * LI;
-
 		void computeWideningSeed(Function * F);
 
 	public:

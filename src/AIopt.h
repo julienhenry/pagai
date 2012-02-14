@@ -7,7 +7,6 @@
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
-#include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpass.h"
 
@@ -17,9 +16,6 @@ using namespace llvm;
 class AIopt : public ModulePass, public AIPass {
 
 	private:
-
-		LoopInfo * LI;
-
 		/// paths - remembers all the paths that have already been
 		/// visited
 		std::map<BasicBlock*,PathTree*> pathtree;

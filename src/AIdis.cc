@@ -28,7 +28,6 @@ const char * AIdis::getPassName() const {
 void AIdis::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Pr>();
-	AU.addRequired<LoopInfo>();
 	AU.addRequired<Live>();
 }
 
@@ -97,7 +96,6 @@ void AIdis::computeFunction(Function * F) {
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
-	LI = &(getAnalysis<LoopInfo>(*F));
 
 	DEBUG(
 		*Out << "Computing Pr...\n";
