@@ -17,6 +17,7 @@ const char * Pr::getPassName() const {
 }
 		
 std::map<Function*,std::set<BasicBlock*>*> Pr::Pr_set;
+std::map<Function*,std::set<BasicBlock*>*> Pr::Pw_set;
 std::map<Function*,std::set<BasicBlock*>*> Pr::Assert_set;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_succ;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_pred;
@@ -36,8 +37,16 @@ std::set<BasicBlock*>* Pr::getPr(Function &F) {
 	return Pr_set[&F];
 }
 
+std::set<BasicBlock*>* Pr::getPw(Function &F) {
+	return Pw_set[&F];
+}
+
 std::set<BasicBlock*>* Pr::getAssert(Function &F) {
 	return Assert_set[&F];
+}
+
+bool Pr::inPw(BasicBlock * b) {
+	return Pw_set[b->getParent()]->count(b);
 }
 
 bool Pr::runOnModule(Module &M) {
@@ -122,6 +131,7 @@ void Pr::computePr(Function &F) {
 	}
 
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
+	std::set<BasicBlock*> * FW = new std::set<BasicBlock*>();
 	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
 	BasicBlock * b;
 	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
@@ -138,6 +148,9 @@ void Pr::computePr(Function &F) {
 
 	minimize_Pr(F);
 	
+	FW->insert(FPr->begin(),FPr->end());
+	Pw_set[&F] = FW;
+
 	FPr->insert(F.begin());
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
 		b = i;

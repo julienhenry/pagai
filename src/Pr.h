@@ -18,6 +18,9 @@ class Pr : public ModulePass {
 		/// associate to each formula its set of Pr nodes
 		static std::map<Function*,std::set<BasicBlock*>*> Pr_set;
 
+		/// widening points (subset of Pr where we apply widening)
+		static std::map<Function*,std::set<BasicBlock*>*> Pw_set;
+
 		static std::map<Function*,std::set<BasicBlock*>*> Assert_set;
 
 		std::map<Node*,int> index;
@@ -59,7 +62,12 @@ class Pr : public ModulePass {
 		/// getPr - get the set Pr. The set Pr is computed only once
 		static std::set<BasicBlock*>* getPr(Function &F);
 
+		/// getPw - get the set Pw. The set Pw is computed only once
+		static std::set<BasicBlock*>* getPw(Function &F);
+
 		static std::set<BasicBlock*>* getAssert(Function &F);
+
+		static bool inPw(BasicBlock * b);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of
 		/// b in Pr

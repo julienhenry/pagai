@@ -204,7 +204,7 @@ void AIpf::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
+		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 				Xtemp->widening(Succ->X_s[passID]);
 				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 				DEBUG(

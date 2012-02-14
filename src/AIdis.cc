@@ -402,7 +402,7 @@ void AIdis::computeNode(Node * n) {
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		if (LI->isLoopHeader(Succ->bb) && ((Succ != n) || !only_join)) {
+		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 				//Xtemp->widening(Succ->X_s[passID]);
 				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
