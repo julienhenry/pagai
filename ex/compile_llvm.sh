@@ -9,15 +9,17 @@ OPTION :
 	-h        : help
 
 	-o [FILE ]: name of the output file
-	-p        : print the optimized llvm bytecode
+	-p        : print the llvm bytecode
 	-g        : generate the .dot CFG
+	-O        : apply optimisations to the bytecode
 "
 }
 
 PRINT=0
 GRAPH=0
+OPT=0
 
-while getopts “hpgi:o:” opt ; do
+while getopts “hpgi:o:O” opt ; do
 	case $opt in
 		h)
 			usage
@@ -31,6 +33,9 @@ while getopts “hpgi:o:” opt ; do
 			;;
 		g)
 			GRAPH=1
+			;;
+		O)
+			OPT=1
 			;;
 		o)
 			OUTPUT=$OPTARG
@@ -55,18 +60,17 @@ if [ -z "$OUTPUT" ] ; then
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 
-#clang -DNDEBUG -fno-exceptions -emit-llvm -c $FILENAME -o $OUTPUT
 clang -emit-llvm -c $FILENAME -o $OUTPUT
-#opt -mem2reg -loopsimplify -lowerswitch $OUTPUT -o $OUTPUT
-#opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
-#opt -mem2reg -lowerswitch -inline -loop-rotate $OUTPUT -o $OUTPUT
-opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
+if [ $OPT -eq 1 ] ; then
+	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
+else
+	opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
+fi
 
 if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT
 	mv *.dot $DIR
 	for i in `ls $DIR/*.dot` ; do
-		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 		dot -Tsvg -o $i.svg $i
 	done
 fi

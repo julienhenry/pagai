@@ -9,11 +9,9 @@ OPTIONS :
 	-h        : help
 
 	-o [FILE ]: name of the IR generated file
-	-p        : print the optimized llvm bytecode
 	-u        : unroll loops once
-	-c        : compare both techniques
+	-c        : compare all techniques
 	-G        : generate the .dot CFG
-	-g        : use Lookahead Widening instead of Path Focusing
 	-y        : use Yices instead of Microsoft Z3
 	-b        : use the Bagnara Widening operator
 "
@@ -21,12 +19,12 @@ OPTIONS :
 
 PRINT=0
 GRAPH=0
-GOPAN=0
 YICES=0
 UNROLL=0
 COMPARE=0
-BAGNARA=0
 RESULT=
+
+REQUIRED=0
 
 while getopts "hpygrbuGi:o:c" opt ; do
 	case $opt in
@@ -34,20 +32,15 @@ while getopts "hpygrbuGi:o:c" opt ; do
 			usage
 			exit 1
             ;;
-        p)
-			PRINT=1
-            ;;
 		i)
 			FILENAME=$OPTARG
+			REQUIRED=1
 			;;
 		u)
 			UNROLL=1
 			;;
 		c)
 			COMPARE=1
-			;;
-		b)
-			BAGNARA=1
 			;;
 		G)
 			GRAPH=1
@@ -71,6 +64,10 @@ while getopts "hpygrbuGi:o:c" opt ; do
      esac
 done
 
+if [ $REQUIRED -eq 0 ] ; then
+	usage
+	exit
+fi
 
 BASENAME=`basename $FILENAME`
 NAME=${BASENAME%%.*}
@@ -94,13 +91,8 @@ if [ $GRAPH -eq 1 ] ; then
 	opt -dot-cfg $OUTPUT -o $OUTPUT
 	mv *.dot $DIR
 	for i in `ls $DIR/*.dot` ; do
-		#dot -Tsvg -o $DIR/callgraph.svg $DIR/cfg.main.dot
 		dot -Tsvg -o $i.svg $i
 	done
-fi
-
-if [ $PRINT -eq 1 ] ; then
-	opt -S $OUTPUT
 fi
 
 NAME=`basename $OUTPUT`
@@ -109,13 +101,9 @@ echo "running Pagai on $NAME"
 if [ $COMPARE -eq 1 ] ; then
 		pagai_2 -c -i $OUTPUT
 else
-	if [ $GOPAN -eq 1 ] ; then
-			pagai_2 -i $OUTPUT
+	if [ $YICES -eq 1 ] ; then
+		pagai_2 -y -i $OUTPUT
 	else
-		if [ $YICES -eq 1 ] ; then
-			pagai_2 -y -i $OUTPUT
-		else
-			pagai_2 -i $OUTPUT
-		fi
+		pagai_2 -i $OUTPUT
 	fi
 fi
