@@ -146,7 +146,7 @@ void Pr::computePr(Function &F) {
 	Pr_set[&F] = FPr;
 	Assert_set[&F] = FAssert;
 
-	minimize_Pr(F);
+	//minimize_Pr(F);
 	
 	FW->insert(FPr->begin(),FPr->end());
 	Pw_set[&F] = FW;

@@ -859,7 +859,8 @@ void SMTpass::visitPHINode (PHINode &I) {
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
 
-	if (is_primed(I.getParent(),I) && I.getNumIncomingValues() != 1) {
+	//if (is_primed(I.getParent(),I) && I.getNumIncomingValues() != 1) {
+	if (I.getNumIncomingValues() != 1) {
 		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(I.getParent(),false));
 		SMT_expr bexpr = man->SMT_mk_not(man->SMT_mk_expr_from_bool_var(bvar));
 		std::vector<SMT_expr> disj;
