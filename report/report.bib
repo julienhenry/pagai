@@ -1,0 +1,453 @@
+
+@inproceedings{MG11,
+  author    = {David Monniaux and
+               Laure Gonnord},
+  title     = {Using Bounded Model Checking to Focus Fixpoint Iterations},
+  booktitle = {SAS},
+  year      = {2011}
+}
+
+# These de Boissinot sur les variables live en SSA
+@phdthesis{Boi10,
+    title = "Towards an SSA based compiler back-end: some interesting %
+	properties of SSA and its extensions",
+    author = "B. Boissinot",
+    school = "École Normale Supérieure de Lyon",
+    year = "2010"
+ }
+
+
+@inproceedings{GopanR06,
+  author    = {Denis Gopan and
+               Thomas W. Reps},
+  title     = {Lookahead Widening},
+  booktitle = {CAV},
+  year      = {2006},
+  pages     = {452-466},
+  ee        = {http://dx.doi.org/10.1007/11817963_41},
+  crossref  = {DBLP:conf/cav/2006},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/cav/2006,
+  editor    = {Thomas Ball and
+               Robert B. Jones},
+  title     = {Computer Aided Verification, 18th International Conference,
+               CAV 2006, Seattle, WA, USA, August 17-20, 2006, Proceedings},
+  booktitle = {CAV},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {4144},
+  year      = {2006},
+  isbn      = {3-540-37406-X},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+# Abstract interpretation
+@inproceedings{CC77,
+  author    = {Patrick Cousot and
+               Radhia Cousot},
+  title     = {Abstract Interpretation: A Unified Lattice Model for Static
+               Analysis of Programs by Construction or Approximation of
+               Fixpoints},
+  booktitle = {POPL},
+  year      = {1977},
+  pages     = {238-252},
+  ee        = {http://doi.acm.org/10.1145/512950.512973},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@article{CousotCousot92-2,
+   author =    {Cousot, P{.} and Cousot, R{.}},
+   title =     {Abstract Interpretation Frameworks},
+   pages =     {511--547},
+   journal =   {Journal of Logic and Computation},
+   volume =    2,
+   number =    4,
+   month =     auf,
+   year =      1992,
+   publisher = {Oxford University Press, Oxford, UK},
+}
+
+@article{CousotCousot92-1,
+   author =  {Cousot, P{.} and Cousot, R{.}},
+   title =   {Abstract Interpretation and Application to Logic Programs},
+   pages =   {103--179},
+   journal = {Journal of Logic Programming},
+   year =    1992,
+   volume =  13,
+   number =  {2--3},
+   note =    {{\footnotesize (The editor of Journal of Logic Programming{} has mistakenly published the
+              unreadable galley proof. For a correct version of this paper, see
+              \url{http://www.di.ens.fr/~cousot}.)}},
+}
+
+@inproceedings{CousotCousot92-4,
+   author =    {Cousot, P{.} and Cousot, R{.}},
+   title =     {Comparing the {G}alois Connection and Widening/Narrowing 
+                Approaches to Abstract Interpretation, invited paper},
+   editor =    {Bruynooghe, M{.} and Wirsing, M{.}},
+   pages =     {269--295},
+   booktitle = {Proceedings of the International Workshop Programming Language 
+                Implementation and Logic Programming, PLILP$\,$'92,},
+   series =    {Leuven, Belgium, 13--17 August 1992, Lecture Notes in Computer 
+                Science 631},
+   publisher = {Springer-Verlag, Berlin, Germany},
+   year =      1992,
+}
+
+@inproceedings{CH78,
+  author    = {Patrick Cousot and
+               Nicolas Halbwachs},
+  title     = {Automatic Discovery of Linear Restraints Among Variables
+               of a Program},
+  booktitle = {POPL},
+  year      = {1978},
+  pages     = {84-96},
+  ee        = {http://doi.acm.org/10.1145/512760.512770},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@phdthesis{Hal79,
+    title = { D\'etermination automatique de relations lin\'eaires v\'erifi\'ees par les variables d'un programme },
+    author = {Halbwachs, Nicolas},
+    month = {March},
+    year = {1979},
+    note = {These de 3e cycle},
+    school = {Universit\'e Scientifique et M\'edicale de Grenoble},
+    team = {SYNC},
+}
+
+@article{HPR97,
+    title = { Verification of real-time systems using linear relation analysis },
+    author = {Halbwachs, Nicolas and Proy, Yann-Eric and Roumanoff, Patrick},
+    month = {aug},
+    year = {1997},
+    journal = {Formal Methods in System Design},
+    number = {2},
+    pages = {157--185},
+    publisher = {Kluwer},
+    volume = {11},
+    team = {SYNC},
+} 
+
+@inproceedings{BlanchetCousotEtAl_PLDI03,
+  author = {B{.} Blanchet and P{.} Cousot and R{.} Cousot and
+                  J{.} Feret and L{.} Mauborgne and A{.} Min{\'e} and
+                  D{.} Monniaux and X{.} Rival},
+  title = {A Static Analyzer for Large Safety-Critical
+                  Software},
+  booktitle = {PLDI},
+  pages = {196--207},
+  year = 2003,
+  organization = {ACM},
+  pdf = {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.pdf},
+  ps = {http://www-verimag.imag.fr/~monniaux/biblio/Static_analyzer_PLDI03.ps.gz},
+  abstract = {We show that abstract interpretation-based static
+                  program analysis can be made efficient and precise
+                  enough to formally verify a class of properties for
+                  a family of large programs with few or no false
+                  alarms. This is achieved by refinement of a general
+                  purpose static analyzer and later adaptation to
+                  particular programs of the family by the end-user
+                  through parametrization. This is applied to the
+                  proof of soundness of data manipulation operations
+                  at the machine level for periodic synchronous safety
+                  critical embedded software. The main novelties are
+                  the design principle of static analyzers by
+                  refinement and adaptation through parametrization,
+                  the symbolic manipulation of expressions to improve
+                  the precision of abstract transfer functions,
+                  ellipsoid, and decision tree abstract domains, all
+                  with sound handling of rounding errors in floating
+                  point computations, widening strategies (with
+                  thresholds, delayed) and the automatic determination
+                  of the parameters (parametrized packing).},
+  category = {intc}
+}
+
+@article{Monniaux_HOSC09,
+  author = {David Monniaux},
+  title = {A minimalistic look at widening operators},
+  journal = {Higher order and symbolic computation},
+  year = 2009,
+  month = dec,
+  doi = {10.1007/s10990-009-9046-8},
+  volume = 22,
+  number = 2,
+  pages = {145--154},
+  issn = {1388-3690},
+  oclc = {40529371},
+  pdf = {http://www-verimag.imag.fr/~monniaux/biblio/Monniaux_HOSC09.pdf},
+  abstract = {We consider the problem of formalizing in higher-order logic the familiar notion of widening from abstract interpretation. It turns out that many axioms of widening (e.g. widening sequences are ascending) are not useful for proving correctness. After keeping only useful axioms, we give an equivalent characterization of widening as a lazily constructed well-founded tree. In type systems supporting dependent products and sums, this tree can be made to reflect the condition of correct termination of the widening sequence.}
+}
+
+@article{BagnaraHRZ05SCP,
+  author    = {Roberto Bagnara and
+               Patricia M. Hill and
+               Elisa Ricci 0002 and
+               Enea Zaffanella},
+  title     = {Precise widening operators for convex polyhedra},
+  journal   = {Sci. Comput. Program.},
+  volume    = {58},
+  number    = {1-2},
+  year      = {2005},
+  pages     = {28-56},
+  ee        = {http://dx.doi.org/10.1016/j.scico.2005.02.003},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+
+
+# APRON
+@inproceedings{JM09,
+  author    = {Bertrand Jeannet and
+               Antoine Min{\'e}},
+  title     = {Apron: A Library of Numerical Abstract Domains for Static
+               Analysis},
+  booktitle = {CAV},
+  year      = {2009},
+  pages     = {661-667},
+  ee        = {http://dx.doi.org/10.1007/978-3-642-02658-4_52},
+  crossref  = {DBLP:conf/cav/2009},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/cav/2009,
+  editor    = {Ahmed Bouajjani and
+               Oded Maler},
+  title     = {Computer Aided Verification, 21st International Conference,
+               CAV 2009, Grenoble, France, June 26 - July 2, 2009. Proceedings},
+  booktitle = {CAV},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {5643},
+  year      = {2009},
+  isbn      = {978-3-642-02657-7},
+  ee        = {http://dx.doi.org/10.1007/978-3-642-02658-4},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+# bourdoncle
+
+@phdthesis{Bou92,
+    title = { Sémantiques des Langages Impératifs d'Ordre Supérieur et Interprétation Abstraite },
+    author = {Bourdoncle, François},
+    year = {1992},
+    note = {Ph.D. dissertation},
+    school = {Ecole Polytechnique}
+}
+
+@inproceedings{Bourdoncle90,
+  author    = {Fran\c{c}ois Bourdoncle},
+  title     = {Interprocedural Abstract Interpretation of Block Structured
+               Languages with Nested Procedures, Aliasing and Recursivity},
+  booktitle = {PLILP},
+  year      = {1990},
+  pages     = {307-323},
+  ee        = {http://dx.doi.org/10.1007/BFb0024192},
+  crossref  = {DBLP:conf/plilp/1990},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/plilp/1990,
+  editor    = {Pierre Deransart and
+               Jan Maluszynski},
+  title     = {Programming Language Implementation and Logic Programming,
+               2nd International Workshop PLILP'90, Link{\"o}ping, Sweden,
+               August 20-22, 1990, Proceedings},
+  booktitle = {PLILP},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {456},
+  year      = {1990},
+  isbn      = {3-540-53010-X},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+
+
+# Gulwani
+@inproceedings{GulwaniZ10,
+  author    = {Sumit Gulwani and
+               Florian Zuleger},
+  title     = {The reachability-bound problem},
+  booktitle = {PLDI},
+  year      = {2010},
+  pages     = {292-304},
+  ee        = {http://doi.acm.org/10.1145/1806596.1806630},
+  crossref  = {DBLP:conf/pldi/2010},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/pldi/2010,
+  editor    = {Benjamin G. Zorn and
+               Alexander Aiken},
+  title     = {Proceedings of the 2010 ACM SIGPLAN Conference on Programming
+               Language Design and Implementation, PLDI 2010, Toronto,
+               Ontario, Canada, June 5-10, 2010},
+  booktitle = {PLDI},
+  publisher = {ACM},
+  year      = {2010},
+  isbn      = {978-1-4503-0019-3},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+% acceleration technique
+
+@phdthesis{Gon07,
+    title = {Acceleration abstraite pour l'amelioration de la precision en analyse des relations lineaires },
+    author = {Gonnord, Laure},
+    year = {2007},
+    school = {Universit\'e Joseph Fourier, Grenoble, France},
+    team = {SYNC},
+} 
+
+@inproceedings{GH06,
+    title = { Combining widening and acceleration in linear relation analysis },
+    author = {Gonnord, Laure and Halbwachs, Nicolas},
+    month = {aug},
+    year = {2006},
+    booktitle = {13th International Static Analysis Symposium, SAS'06},
+    address = {Seoul, Korea},
+    team = {SYNC},
+} 
+
+%LLVM
+  @InProceedings{LLVM:CGO04,
+    author    = {Chris Lattner and Vikram Adve},
+    title     = "{LLVM: A Compilation Framework for Lifelong Program Analysis \& Transformation}",
+    booktitle = "{Proceedings of the 2004 International Symposium on Code Generation and Optimization (CGO'04)}",
+    address   = {Palo Alto, California},
+    month     = {Mar},
+    year      = {2004}
+}
+
+
+% SMT solving
+@MISC{BarST-SMTLIB,
+  author =	 {Clark Barrett and Aaron Stump and Cesare Tinelli},
+  title =	 {{The Satisfiability Modulo Theories Library (SMT-LIB)}},
+  howpublished = {{\tt www.SMT-LIB.org}},
+  year =	 2010,
+}
+
+@book{Kroening08,
+    title = "Decision Procedures",
+    author = "D. Kroening and O. Strichman",
+    publisher = "Springer",
+	isbn      = {978-3-540-74104-6},
+    year = "2008"
+}
+
+@inproceedings{MouraB08,
+  author    = {Leonardo Mendon\c{c}a de Moura and
+               Nikolaj Bj{\o}rner},
+  title     = {Z3: An Efficient SMT Solver},
+  booktitle = {TACAS},
+  year      = {2008},
+  pages     = {337-340},
+  ee        = {http://dx.doi.org/10.1007/978-3-540-78800-3_24},
+  crossref  = {DBLP:conf/tacas/2008},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/tacas/2008,
+  editor    = {C. R. Ramakrishnan and
+               Jakob Rehof},
+  title     = {Tools and Algorithms for the Construction and Analysis of
+               Systems, 14th International Conference, TACAS 2008, Held
+               as Part of the Joint European Conferences on Theory and
+               Practice of Software, ETAPS 2008, Budapest, Hungary, March
+               29-April 6, 2008. Proceedings},
+  booktitle = {TACAS},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {4963},
+  year      = {2008},
+  isbn      = {978-3-540-78799-0},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@inproceedings{DutertreM06,
+  author    = {Bruno Dutertre and
+               Leonardo Mendon\c{c}a de Moura},
+  title     = {A Fast Linear-Arithmetic Solver for DPLL(T)},
+  booktitle = {CAV},
+  year      = {2006},
+  pages     = {81-94},
+  ee        = {http://dx.doi.org/10.1007/11817963_11},
+  crossref  = {DBLP:conf/cav/2006},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+# policy iteration
+@inproceedings{CGGMP05,
+  author    = {Alexandru Costan and
+               Stephane Gaubert and
+               Eric Goubault and
+               Matthieu Martel and
+               Sylvie Putot},
+  title     = {A Policy Iteration Algorithm for Computing Fixed Points
+               in Static Analysis of Programs},
+  booktitle = {CAV},
+  year      = {2005},
+  pages     = {462-475},
+  ee        = {http://dx.doi.org/10.1007/11513988_46},
+  crossref  = {DBLP:conf/cav/2005},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/cav/2005,
+  editor    = {Kousha Etessami and
+               Sriram K. Rajamani},
+  title     = {Computer Aided Verification, 17th International Conference,
+               CAV 2005, Edinburgh, Scotland, UK, July 6-10, 2005, Proceedings},
+  booktitle = {CAV},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3576},
+  year      = {2005},
+  isbn      = {3-540-27231-3},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+
+@InProceedings{Beyer07,
+author = {Dirk Beyer and Thomas A.~Henzinger and Rupak Majumdar and Andrey Rybalchenko},
+title = {Path Invariants},
+booktitle = {Proceedings of the 2007 ACM Conference on Programming Language Design and Implementation (PLDI~2007, San Diego, CA, June 10-13)},
+publisher = {ACM Press, New York~(NY)},
+pages = {300-309},
+year = {2007},
+isbn = {978-1-59593-633-2},
+keyword = {Software Model Checking},
+pdf = {http://www.sosy-lab.org/~dbeyer/Publications/2007-PLDI.Path_Invariants.pdf},
+url = {},
+abstract = { The success of software verification depends on the ability to find a suitable abstraction of a program automatically. We propose a method for automated abstraction refinement which overcomes some limitations of current predicate discovery schemes. In current schemes, the cause of a false alarm is identified as an infeasible error path, and the abstraction is refined in order to remove that path. By contrast, we view the cause of a false alarm ---the spurious counterexample--- as a full-fledged program, namely, a fragment of the original program whose control-flow graph may contain loops and represent unbounded computations. There are two advantages to using such path programs as counterexamples for abstraction refinement. First, we can bring the whole machinery of program analysis to bear on path programs, which are typically small compared to the original program. Specifically, we use constraint-based invariant generation to automatically infer invariants of path programs ---so-called path invariants. Second, we use path invariants for abstraction refinement in order to remove not one infeasibility at a time, but at once all (possibly infinitely many) infeasible error computations that are represented by a path program. Unlike previous predicate discovery schemes, our method handles loops without unrolling them; it infers abstractions that involve universal quantification and naturally incorporates disjunctive reasoning. },
+annote = { PLDI 2007, San Diego, CA, June 10-13,
+ © 2007 ACM 
+ Online:  http://dx.doi.org/10.1145/1250734.1250769 },
+
+}
+
+% interprocedural analysis
+
+@InProceedings{jeannet09b,
+   Author = {Jeannet, B.},
+   Title = {Relational interprocedural verification of concurrent programs},
+   BookTitle = {Software Engineering and Formal Methods, SEFM'09},
+   Publisher = {IEEE},
+   Month = {November},
+   Year = {2009}
+}
+
+% cbench
+
+
+@MISC{cbench,
+  author =	 {cBench},
+  title =	 {Collective Benchmarks},
+  howpublished = {{\tt http://cTuning.org/cbench}},
+  year =	 {},
+}
