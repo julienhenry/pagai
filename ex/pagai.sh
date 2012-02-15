@@ -85,9 +85,9 @@ DIR=`dirname $FILENAME`
 
 if [ -z $BITCODE ] ; then 
 	if [ $UNROLL -eq 0 ] ; then
-		BITCODE=/tmp/${NAME}_nounroll.bc
-	else
 		BITCODE=/tmp/${NAME}.bc
+	else
+		BITCODE=/tmp/${NAME}_unroll.bc
 	fi
 fi
 
@@ -107,8 +107,6 @@ fi
 
 NAME=`basename $BITCODE`
 RESULT=/tmp/${NAME%%.*}.result
-
-echo "running Pagai on $NAME"
 
 ulimit -t $TIME_LIMIT
 
@@ -135,14 +133,14 @@ else
 fi
 xs=$?
 case $xs in
- 0) echo "ok"
+ 0) echo "ok -- $NAME"
 	exit 0
 	 ;; # all fine
  *) if [ $xs -gt 127 ]; then
-       echo "killed"
+       echo "killed -- $NAME"
     else
-       echo "internal error"
+       echo "error -- $NAME"
     fi
-	exit 1
+	exit 0
 esac
 
