@@ -48,7 +48,7 @@ void AISimple::computeFunc(Function * F) {
 	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
 
-#if 1
+#if 0
 	computeWideningSeed(F);
 	copy_Xd_to_Xs(F);
 
