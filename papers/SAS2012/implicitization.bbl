@@ -1,0 +1,140 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+
+\bibitem{BagnaraHRZ05SCP}
+Bagnara, R., Hill, P.M., Ricci, E., Zaffanella, E.: Precise widening operators
+  for convex polyhedra. Science of Computer Programming  58(1--2),  28--56 (Oct
+  2005)
+
+\bibitem{PPL}
+Bagnara, R., Hill, P.M., Zaffanella, E.: The Parma Polyhedra Library, version
+  0.9, \url{http://www.cs.unipr.it/ppl}
+
+\bibitem{DBLP:journals/sttt/BagnaraHZ07}
+Bagnara, R., Hill, P.M., Zaffanella, E.: Widening operators for powerset
+  domains. International Journal on Software Tools for Technology Transfer
+  (STTT)  8(4-5),  449--466 (Aug 2006)
+
+\bibitem{BagnaraHZ08SCP}
+Bagnara, R., Hill, P.M., Zaffanella, E.: The {Parma Polyhedra Library}: Toward
+  a complete set of numerical abstractions for the analysis and verification of
+  hardware and software systems. Science of Computer Programming  72(1--2),
+  3--21 (2008)
+
+\bibitem{BarST-SMTLIB}
+Barrett, C., Stump, A., Tinelli, C.: The satisfiability modulo theories library
+  {(SMT-LIB)}. \href{http://www.SMT-LIB.org}{\nolinkurl{www.SMT-LIB.org}}
+  (2010)
+
+\bibitem{Handbook_SAT}
+Biere, A., Heule, M., van Maaren, H., Walsh, T. (eds.): Handbook of
+  satisfiability, Frontiers in Artificial Intelligence and Applications, vol.
+  185. IOS Press, Amsterdam (2009)
+
+\bibitem{ASTREE_PLDI03}
+Blanchet, B., Cousot, P., Cousot, R., Feret, J., Mauborgne, L., Min\'e, A.,
+  Monniaux, D., Rival, X.: A static analyzer for large safety-critical
+  software. In: Programming Language Design and Implementation (PLDI). pp.
+  196--207. ACM (2003)
+
+\bibitem{BourdonclePhd}
+Bourdoncle, F.: Sémantiques des Langages Impératifs d'Ordre Supérieur et
+  Interprétation Abstraite. Ph.D. thesis, École Polytechnique (1992),
+  \url{http://web.me.com/fbourdoncle/page4/page15/files/dissertation.pdf}
+
+\bibitem{CousotCousot_JLC92}
+Cousot, P., Cousot, R.: Abstract interpretation frameworks. J. of Logic and
+  Computation pp. 511--547 (Aug 1992)
+
+\bibitem{ASTREE_ESOP05}
+Cousot, P., Cousot, R., Feret, J., Mauborgne, L., Min\'e, A., Monniaux, D.,
+  Rival, X.: The {ASTR\'EE} analyzer. In: Sagiv, S.M. (ed.) Programming
+  Languages and Systems (ESOP). pp. 21--30. No. 3444 in Lecture Notes in
+  Computer Science, Springer Verlag (2005)
+
+\bibitem{CousotHalbwachs78}
+Cousot, P., Halbwachs, N.: Automatic discovery of linear restraints among
+  variables of a program. In: Principles of Programming Languages (POPL). pp.
+  84--96. ACM (1978)
+
+\bibitem{DBLP:conf/cav/DutertreM06}
+Dutertre, B., de~Moura, L.M.: A fast linear-arithmetic solver for {DPLL(T)}.
+  In: Ball, T., Jones, R.B. (eds.) CAV. Lecture Notes in Computer Science, vol.
+  4144, pp. 81--94. Springer (2006)
+
+\bibitem{Gawlitza_Monniaux_ESOP11}
+Gawlitza, T., Monniaux, D.: Improving strategies via {SMT} solving. In: Barthe,
+  G. (ed.) ESOP. pp. 236--255. No. 6602 in Lecture Notes in Computer Science,
+  Springer Verlag (2011)
+
+\bibitem{DBLP:conf/sas/GonnordH06}
+Gonnord, L., Halbwachs, N.: Combining widening and acceleration in linear
+  relation analysis. In: Yi, K. (ed.) Static analysis (SAS). Lecture Notes in
+  Computer Science, vol. 4134, pp. 144--160. Springer Verlag (2006)
+
+\bibitem{DBLP:conf/sas/GopanR07}
+Gopan, D., Reps, T.W.: Guided static analysis. In: Nielson, H.R., Fil{\'e}, G.
+  (eds.) SAS. Lecture Notes in Computer Science, vol. 4634, pp. 349--365.
+  Springer (2007)
+
+\bibitem{DBLP:conf/pldi/GulwaniZ10}
+Gulwani, S., Zuleger, F.: The reachability-bound problem. In: Zorn, B.G.,
+  Aiken, A. (eds.) PLDI. pp. 292--304. ACM (2010)
+
+\bibitem{Halbwachs_PhD}
+Halbwachs, N.: D\'etermination automatique de relations lin\'eaires
+  v\'erifi\'ees par les variables d'un programme. Ph.D. thesis, Grenoble
+  University (1979)
+
+\bibitem{Polka:FMSD:97}
+Halbwachs, N., Proy, Y.E., Roumanoff, P.: Verification of real-time systems
+  using linear relation analysis. Formal Methods in System Design  11(2),
+  157--185 (August 1997)
+
+\bibitem{DBLP:conf/cav/JeannetM09}
+Jeannet, B., Min{\'e}, A.: Apron: A library of numerical abstract domains for
+  static analysis. In: Bouajjani, A., Maler, O. (eds.) CAV. Lecture Notes in
+  Computer Science, vol. 5643, pp. 661--667. Springer Verlag (2009)
+
+\bibitem{Kroening_Strichman_08}
+Kroening, D., Strichman, O.: Decision procedures. Springer Verlag (2008)
+
+\bibitem{Lattner:2004:LCF:977395.977673}
+Lattner, C., Adve, V.: {LLVM}: A compilation framework for lifelong program
+  analysis \& transformation. In: Proceedings of the international symposium on
+  Code generation and optimization: feedback-directed and runtime optimization.
+  pp. 75--86. CGO '04, IEEE Computer Society, Washington, DC, USA (Aug 2004)
+
+\bibitem{LLVM_langref}
+LLVM team: {LLVM} Language Reference Manual (2011),
+  \url{http://llvm.org/docs/LangRef.html}
+
+\bibitem{DBLP:journals/lisp/Mine06}
+Min{\'e}, A.: The octagon abstract domain. Higher-Order and Symbolic
+  Computation  19(1),  31--100 (2006)
+
+\bibitem{DBLP:conf/vmcai/Mine06}
+Min{\'e}, A.: Symbolic methods to enhance the precision of numerical abstract
+  domains. In: Emerson, E.A., Namjoshi, K.S. (eds.) VMCAI. Lecture Notes in
+  Computer Science, vol. 3855, pp. 348--363. Springer (2006)
+
+\bibitem{Monniaux_Gonnord_SAS11}
+Monniaux, D., Gonnord, L.: Using bounded model checking to focus fixpoint
+  iterations. In: Yahav, E. (ed.) Static analysis (SAS). Lecture Notes in
+  Computer Science, vol. 6887, pp. 369--385. Springer Verlag (2011)
+
+\bibitem{Monniaux_LeGuen2011}
+Monniaux, D., Le~Guen, J.: Stratified static analysis based on variable
+  dependencies (2011), \url{http://arxiv.org/abs/1109.2405}
+
+\bibitem{DBLP:conf/tacas/MouraB08}
+de~Moura, L.M., Bj{\o}rner, N.: Z3: An efficient smt solver. In: Ramakrishnan,
+  C.R., Rehof, J. (eds.) TACAS. Lecture Notes in Computer Science, vol. 4963,
+  pp. 337--340. Springer (2008)
+
+\bibitem{Rival_Mauborgne_TOPLAS07}
+Rival, X., Mauborgne, L.: The trace partitioning abstract domain. Transactions
+  on Programming Languages and Systems (TOPLAS)  29(5), ~26 (2007)
+
+\end{thebibliography}
