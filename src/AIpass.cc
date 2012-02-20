@@ -40,6 +40,11 @@ void AIPass::narrowingIter(Node * n) {
 		Node * current = A.top();
 		A.pop();
 		narrowNode(current);
+		if (unknown) {
+			ignoreFunction.insert(n->bb->getParent());
+			while (!A.empty()) A.pop();
+			return;
+		}
 	}
 }
 

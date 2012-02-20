@@ -160,8 +160,11 @@ void AIdis::computeFunction(Function * F) {
 		narrowingIter(n);
 
 		// then we move X_d abstract values to X_s abstract values
-		while (copy_Xd_to_Xs(F))
+		int step = 0;
+		while (copy_Xd_to_Xs(F) && step <= 5) {
 			narrowingIter(n);
+			step++;
+		}
 	}
 }
 
