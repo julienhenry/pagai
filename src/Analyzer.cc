@@ -31,6 +31,7 @@ void show_help() {
 		   * pk (NewPolka strict polyhedra), default\n \
 		   * pkeq (NewPolka linear equalities)\n \
 		   * ppl_poly (PPL strict polyhedra)\n \
+		   * ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS’2003)\n \
 		   * ppl_grid (PPL grids)\n \
 		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
 		example of option: -d box\n \
@@ -43,14 +44,13 @@ void show_help() {
 		  * s (simple abstract interpretation)\n \
 		  * dis (lw+pf, using disjunctive invariants)\n \
 		example of option: -t pf\n \
--n : new version of narrowing\n \
+-n : new version of narrowing (only for s technique)\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -C : compare two abstract domains using the same technique\n \
           example: ./pagai -i <filename> -C --domain box --domain2 pkeq -t pf\n \
 	\n \
--b : use the BHRZ03 widening (Bagnara, Hill, Ricci & Zafanella, SAS’2003)\n \
 -f : only outputs the SMTpass formula\n \
--y : use Yices instead of the Z3 SMT-solver (for techniques with lw)\n";
+-y : use Yices instead of the Z3 SMT-solver\n";
 }
 
 SMT_Solver getSMTSolver() {
