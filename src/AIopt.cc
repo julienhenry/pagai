@@ -174,6 +174,10 @@ std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {
 	return Pr::getPrPredecessors(b);
 }
 
+std::set<BasicBlock*> AIopt::getSuccessors(BasicBlock * b) const {
+	return Pr::getPrSuccessors(b);
+}
+
 void AIopt::computeNewPaths(Node * n) {
 	Node * Succ;
 	Abstract * Xtemp = NULL;

@@ -69,6 +69,16 @@ std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
 	return preds;
 }
 
+std::set<BasicBlock*> AISimple::getSuccessors(BasicBlock * b) const {
+	std::set<BasicBlock*> succs;
+	succ_iterator p = succ_begin(b), E = succ_end(b);
+	while (p != E) {
+		succs.insert(*p);
+		p++;
+	}
+	return succs;
+}
+
 void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();

@@ -26,6 +26,7 @@ class AISimple : public ModulePass, public AIPass {
 		void computeFunc(Function * F);
 
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
+		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
 		/// @{
 		/// @name LLVM pass manager stuff

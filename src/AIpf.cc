@@ -96,6 +96,7 @@ void AIpf::computeFunction(Function * F) {
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
+	n->X_i[passID]->set_top(env);
 	A.push(n);
 
 	ascendingIter(n, F);
@@ -129,6 +130,10 @@ void AIpf::computeFunction(Function * F) {
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
 	return Pr::getPrPredecessors(b);
+}
+
+std::set<BasicBlock*> AIpf::getSuccessors(BasicBlock * b) const {
+	return Pr::getPrSuccessors(b);
 }
 
 void AIpf::computeNode(Node * n) {
@@ -203,6 +208,8 @@ void AIpf::computeNode(Node * n) {
 
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
+		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
+
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
 			loopiter(n,Xtemp,&path,only_join,U,V);
@@ -230,6 +237,10 @@ void AIpf::computeNode(Node * n) {
 			Succ->X_s[passID]->print();
 		);
 		delete Succ->X_s[passID];
+		if (succ_bottom) {
+			delete Succ->X_i[passID];
+			Succ->X_i[passID] = aman->NewAbstract(Xtemp);
+		}
 		Succ->X_s[passID] = Xtemp;
 
 		DEBUG(

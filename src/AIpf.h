@@ -49,6 +49,7 @@ class AIpf : public ModulePass, public AIPass {
 		void computeFunction(Function * F);
 
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
+		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
 		/// computeNode - compute and update the Abstract value of the Node n
 		void computeNode(Node * n);

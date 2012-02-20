@@ -133,6 +133,9 @@ class AIPass : public InstVisitor<AIPass> {
 		/// computes the set of predecessors for a BasicBlock
 		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
 
+		/// computes the set of Successors for a BasicBlock
+		virtual std::set<BasicBlock*> getSuccessors(BasicBlock * b) const = 0;
+
 		/// copy the elements in X_d into X_s abstract values
 		/// return true iff there there some Xd values that were not equal to Xs
 		bool copy_Xd_to_Xs(Function * F);

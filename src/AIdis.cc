@@ -169,6 +169,10 @@ std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
 	return Pr::getPrPredecessors(b);
 }
 
+std::set<BasicBlock*> AIdis::getSuccessors(BasicBlock * b) const {
+	return Pr::getPrSuccessors(b);
+}
+
 int AIdis::sigma(
 		std::list<BasicBlock*> path, 
 		int start,

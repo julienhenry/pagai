@@ -449,6 +449,8 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	delete ConstraintsAbstract;
 }
 
+// TODO :
+// make it work for path-focused techniques
 void AIPass::computeWideningSeed(Function * F) {
 	Abstract * Xtemp;
 	Node * n;
@@ -457,7 +459,8 @@ void AIPass::computeWideningSeed(Function * F) {
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		n = Nodes[i];
-		for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
+		std::set<BasicBlock*> Succs = getSuccessors(n->bb);
+		for (std::set<BasicBlock*>::iterator s = Succs.begin(), E = Succs.end(); s != E; ++s) {
 			path.clear();
 			path.push_back(n->bb);
 			path.push_back(*s);
