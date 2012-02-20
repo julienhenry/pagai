@@ -475,7 +475,7 @@ void SMTpass::computeRhoRec(Function &F,
 			} else {
 				Pr::Pr_pred[b].insert(pred);
 			}
-			//Pr_succ[pred].insert(dest);
+			Pr::Pr_succ[pred].insert(dest);
 		}
 	}
 
