@@ -14,12 +14,9 @@ using namespace llvm;
 /// nodes are visited (i.e. Classic, and Gopan&Reps).
 class AISimple : public ModulePass, public AIPass {
 
-	private:
-		void computeWideningSeed(Function * F);
-
 	public:
 
-		AISimple (char & ID, Apron_Manager_Type _man) : ModulePass(ID), AIPass(_man) {}
+		AISimple (char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {}
 
 		AISimple (char & ID) : ModulePass(ID) {}
 

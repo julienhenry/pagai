@@ -17,7 +17,7 @@ class AIClassic : public AISimple {
 		static char ID;	
 
 	public:
-		AIClassic(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {
+		AIClassic(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : AISimple(_ID,_man,_NewNarrow) {
 			init();
 			passID.D = _man;
 		}

@@ -23,7 +23,7 @@ class AIGopan : public AISimple {
 
 	public:
 
-		AIGopan(char &_ID, Apron_Manager_Type _man) : AISimple(_ID,_man) {
+		AIGopan(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : AISimple(_ID,_man,_NewNarrow) {
 			init();
 			passID.D = _man;
 		}

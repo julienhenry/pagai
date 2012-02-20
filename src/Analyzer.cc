@@ -14,6 +14,7 @@ bool compare_Domain;
 bool onlyrho;
 bool bagnara_widening;
 Apron_Manager_Type ap_manager[2];
+bool Narrowing[2];
 llvm::raw_ostream *Out;
 char* filename;
 int npass;
@@ -42,6 +43,7 @@ void show_help() {
 		  * s (simple abstract interpretation)\n \
 		  * dis (lw+pf, using disjunctive invariants)\n \
 		example of option: -t pf\n \
+-n : new version of narrowing\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -C : compare two abstract domains using the same technique\n \
           example: ./pagai -i <filename> -C --domain box --domain2 pkeq -t pf\n \
@@ -81,6 +83,14 @@ Apron_Manager_Type getApronManager() {
 
 Apron_Manager_Type getApronManager(int i) {
 	return ap_manager[i];
+}
+
+bool useNewNarrowing() {
+	return Narrowing[0];
+}
+
+bool useNewNarrowing(int i) {
+	return Narrowing[i];
 }
 
 std::string TechniquesToString(Techniques t) {
@@ -184,6 +194,8 @@ int main(int argc, char* argv[]) {
 	manager = Z3_MANAGER;
 	ap_manager[0] = PK;
 	ap_manager[1] = BOX;
+	Narrowing[0] = false;
+	Narrowing[1] = false;
 	technique = LW_WITH_PF;
 	compare = false;
 	compare_Domain = false;
@@ -215,7 +227,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:nN",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -249,6 +261,12 @@ int main(int argc, char* argv[]) {
             break;
         case 'i':
             filename = optarg;
+            break;
+        case 'n':
+			Narrowing[0] = true;
+            break;
+        case 'N':
+			Narrowing[1] = true;
             break;
         case 'o':
             outputname = optarg;

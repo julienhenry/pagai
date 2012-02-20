@@ -30,7 +30,7 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+		AIopt(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
 			init();
 			passID.D = _man;
 		}

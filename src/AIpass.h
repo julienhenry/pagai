@@ -59,10 +59,11 @@ class AIPass : public InstVisitor<AIPass> {
 	
 	public:
 
-		AIPass (Apron_Manager_Type _man) : 
+		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing) : 
 			LV(NULL),
 			LSMT(NULL),
-			unknown(false) {
+			unknown(false),
+			NewNarrowing(use_New_Narrowing) {
 				man = create_manager(_man);
 				init();
 			}
@@ -72,6 +73,7 @@ class AIPass : public InstVisitor<AIPass> {
 			LSMT(NULL),
 			unknown(false) {
 				man = create_manager(getApronManager());
+				NewNarrowing = useNewNarrowing();
 				init();
 			}
 
@@ -90,6 +92,9 @@ class AIPass : public InstVisitor<AIPass> {
 
 		/// Set to true when the analysis fails (timeout, ...)
 		bool unknown;
+
+		/// when true, apply Halbwach's narrowing
+		bool NewNarrowing;
 
 		/// initFunction - initialize the function by creating the Node
 		/// objects, and computing the strongly connected components.
@@ -140,6 +145,8 @@ class AIPass : public InstVisitor<AIPass> {
 			std::list<BasicBlock*> path, 
 			Abstract &Xtemp);
 
+		/// compute Seeds for Halbwach's narrowing
+		void computeWideningSeed(Function * F);
 
 		/// Basic abstract interpretation ascending iterations
 		/// (iterates over the nodes, calling computeNode for each of

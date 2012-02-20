@@ -48,15 +48,15 @@ void AISimple::computeFunc(Function * F) {
 	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
 
-#if 0
-	computeWideningSeed(F);
-	copy_Xd_to_Xs(F);
-
-	ascendingIter(n, F);
-	narrowingIter(n);
-	while (copy_Xd_to_Xs(F))
+	if (NewNarrowing) {
+		computeWideningSeed(F);
+		copy_Xd_to_Xs(F);
+	
+		ascendingIter(n, F);
 		narrowingIter(n);
-#endif
+		while (copy_Xd_to_Xs(F))
+			narrowingIter(n);
+	}
 }
 
 std::set<BasicBlock*> AISimple::getPredecessors(BasicBlock * b) const {
@@ -178,42 +178,6 @@ void AISimple::computeNode(Node * n) {
 	}
 }
 
-void AISimple::computeWideningSeed(Function * F) {
-	Abstract * Xtemp;
-	Node * n;
-	Node * Succ;
-	std::list<BasicBlock*> path;
-
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		n = Nodes[i];
-		for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
-			path.clear();
-			path.push_back(n->bb);
-			path.push_back(*s);
-			Succ = Nodes[*s];
-	
-			// computing the image of the abstract value by the path's tranformation
-			Xtemp = aman->NewAbstract(n->X_s[passID]);
-			computeTransform(aman,n,path,*Xtemp);
-	
-			// we check if the Abstract value is a good seed for Halbwachs's
-			// narrowing
-			Abstract * Xseed = aman->NewAbstract(Xtemp);
-			std::vector<Abstract*> Join;
-			Join.push_back(aman->NewAbstract(Xtemp));
-			Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
-			Xseed->join_array(Xtemp->main->env,Join);
-			if (Xseed->compare(Succ->X_s[passID]) == 1) {
-				*Out << "SEED FOUND: " << *(n->bb) << "\n";
-				Join.clear();
-				Join.push_back(aman->NewAbstract(Xtemp));
-				Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-				Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
-				A.push(Succ);
-			}
-		}
-	}
-}
 
 void AISimple::narrowNode(Node * n) {
 	Abstract * Xtemp;

@@ -46,7 +46,7 @@ class ModulePassWrapper : public P {
 		static char ID;
 
 		ModulePassWrapper()
-			: P(ID,getApronManager(i))
+			: P(ID,getApronManager(i),useNewNarrowing(i))
 			{}
 
 		~ModulePassWrapper() {}

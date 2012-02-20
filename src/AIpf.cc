@@ -115,6 +115,16 @@ void AIpf::computeFunction(Function * F) {
 		narrowingIter(n);
 		step++;
 	}
+
+	if (NewNarrowing) {
+		computeWideningSeed(F);
+		copy_Xd_to_Xs(F);
+	
+		ascendingIter(n, F);
+		narrowingIter(n);
+		while (copy_Xd_to_Xs(F))
+			narrowingIter(n);
+	}
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {

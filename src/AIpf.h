@@ -20,7 +20,7 @@ class AIpf : public ModulePass, public AIPass {
 
 	public:
 
-		AIpf(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+		AIpf(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
 			init();
 			passID.D = _man;
 		}

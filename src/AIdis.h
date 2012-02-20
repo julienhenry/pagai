@@ -41,7 +41,7 @@ class AIdis : public ModulePass, public AIPass {
 
 	public:
 
-		AIdis(char &_ID, Apron_Manager_Type _man) : ModulePass(_ID), AIPass(_man) {
+		AIdis(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
 			init();
 			passID.D = _man;
 		}
