@@ -10,7 +10,8 @@
 \usepackage{mathcomp,amsfonts,amssymb,mathabx}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
-%\usepackage{graphicx}
+\usepackage{paralist}
+\usepackage{graphicx}
 %\usepackage{color}
 
 \usepackage{enumitem}
@@ -20,7 +21,7 @@
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2,breaklines=true,basicstyle={\rm\fontfamily{phv}\small\selectfont}}
 
 \usepackage{tikz}
-\usetikzlibrary{arrows,automata}
+\usetikzlibrary{arrows,automata,positioning}
 
 \tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
 \tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
@@ -47,6 +48,14 @@ color=blue]
 
 % commentaires dans les algorithmes crees avec le package algorithmic
 \renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
+
+\newcommand{\avirer}[1]{ {\color{red} #1} }
+\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+%\newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
+%\newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
+%\newcommand{\MM}[1]{}
+%\newcommand{\JH}[1]{}
+%\newcommand{\DM}[1]{}
 
 
 \title{\mytitle}
@@ -113,8 +122,11 @@ described in Section~\ref{sec:analysis-algorithm}.
 \end{enumerate}
 
 \section{Bases}
-\subsection{Static analysis by abstract interpretation}
+\subsection{Static Analysis by Abstract Interpretation}
 \label{sec:static_analysis}
+\MM{On peut peut-être réduire un peu vu que tout le monde connait à
+  SAS ?}
+
 Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.
 The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: \left(\abstr{X},\sqsubseteq\right) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
 %
@@ -155,11 +167,17 @@ may foil them: the iterations immediately reach a fixpoint and do not decrease
 further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and
 \ref{sec:path_focusing} describe techniques that work around this problem.
 
-Widening operations have a somewhat counterintuitive behavior: the result of an analysis (postcondition) is not necessarily monotonic with respect to the precondition. For instance, classical interval analysis with widening and decreasing iterations on the following loop yields a loop invariant $x \in [0,+\infty)$ if the precondition is $x \in [0,0]$ , but $x \in [0,10]$ (strictly stronger) if the precondition is $x \in [0,10]$ (strictly weaker):
-\lstinline|while (x != 10) x=x+1;|.
+Widening operations have a somewhat counterintuitive behavior: the
+result of an analysis (postcondition) is not necessarily monotonic
+with respect to the precondition. For instance, classical interval
+analysis with widening and decreasing iterations on the loop
+\lstinline|while (x != 10) x=x+1;| yields a loop invariant $x \in
+[0,+\infty)$ if the precondition is $x \in [0,0]$, but $x \in [0,10]$
+(strictly stronger) if the precondition is $x \in [0,10]$ (strictly
+weaker).
 This means that, when using widenings, being locally more precise (for instance, by using more expressive abstract domains, or widening operators that climb more slowly \cite{BagnaraHRZ05SCP}) does not necessarily translate into higher final precision.
 It is almost always possible to concoct examples where a supposedly more precise abstraction (e.g. polyhedra) yields less precise results than a less precise one (e.g. intervals), but are these examples representative of real programs?
-This justifies our recourse to evaluation on realistic examples~(\S~\ref{sec:compare_techniques}).
+This justifies our recourse to evaluation on real, large programs~(\S~\ref{sec:compare_techniques}).
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
@@ -171,19 +189,20 @@ Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approa
 
 Most SMT solvers, including Z3,
 %\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
-Yices,%
+Yices,
 %\footnote{\url{http://yices.csl.sri.com/}}
 and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
 offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
 it may then backtrack some of the constraints and add other ones without restarting from scratch.
 
-\subsection{A simple, motivating example}
+\subsection{A Simple, Motivating Example}
 \label{subsec:rate_lim}
 Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$:
 \lstinputlisting{rlim_int.c}
 This program implements a construct commonly found in control programs (in e.g.
-automotive or avionics): a rate limiter. For the sake of simplicity, we chose it
-to be fed on a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.
+automotive or avionics): a rate limiter.
+\avirer{For the sake of simplicity, we chose it
+to be fed on a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.}
 
 The expected inductive invariant is $\lstinline|x_old| \in [-100000,100000]$, but classical abstract interpretation using intervals (or octagons or polyhedra) finds $\lstinline|x_old| \in (-\infty,+\infty)$~\cite{ASTREE_ESOP05}.
 Let us briefly see why.
@@ -202,62 +221,50 @@ In contrast, let us distinguish all four possible execution paths through the te
 
 \begin{figure}
 \centering
-\begin{minipage}[c]{.19\textwidth}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+\begin{minipage}[c]{.21\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
                     semithick,font=\footnotesize]
 
 	\node[PRstate] (n0) {$p$};
-	\node[state] (n1) [below left of=n0] {};
-	\node[state] (n2) [below right of=n0] {};
-	\node[state] (n3) [below right of=n1] {};
-	\node[state] (n4) [below left of=n3] {};
-	\node[state] (n5) [below right of=n3] {};
-	\node[state] (n6) [below right of=n4] {};
-	\node[state] (n7) [below left of=n6] {};
-	\node[state] (n8) [below right of=n6] {};
-	\node[PRstate] (n9) [below right of=n7] {$q$};
+	\node[state] (n1) [below left=of n0] {};
+	\node[state] (n2) [below right=of n0] {};
+	\node[state] (n3) [below right=of n1] {};
+	\node[state] (n4) [below left=of n3] {};
+	\node[state] (n5) [below right=of n3] {};
+	\node[state] (n6) [below right=of n4] {};
+	\node[state] (n7) [below left=of n6] {};
+	\node[state] (n8) [below right=of n6] {};
+	\node[PRstate] (n9) [below right=of n7] {$q$};
 
-  \path [transition] 
-		(n0) edge              node {} (n1);
-  \path [transition] 
-		(n0) edge              node {} (n2);
-  \path [transition] 
-		(n1) edge              node {} (n3);
-  \path [transition] 
-		(n2) edge              node {} (n3);
-  \path [transition] 
-		(n3) edge              node {} (n4);
-  \path [transition] 
-		(n3) edge              node {} (n5);
-  \path [transition] 
-		(n4) edge              node {} (n6);
-  \path [transition] 
-		(n5) edge              node {} (n6);
-  \path [transition] 
-		(n6) edge              node {} (n7);
-  \path [transition] 
-		(n6) edge              node {} (n8);
-  \path [transition] 
-		(n7) edge              node {} (n9);
-  \path [transition] 
-		(n8) edge              node {} (n9);
+  \path [transition] (n0) -- (n1);
+  \path [transition] (n0) -- (n2);
+  \path [transition] (n1) -- (n3);
+  \path [transition] (n2) -- (n3);
+  \path [transition] (n3) -- (n4);
+  \path [transition] (n3) -- (n5);
+  \path [transition] (n4) -- (n6);
+  \path [transition] (n5) -- (n6);
+  \path [transition] (n6) -- (n7);
+  \path [transition] (n6) -- (n8);
+  \path [transition] (n7) -- (n9);
+  \path [transition] (n8) -- (n9);
 \end{tikzpicture}
 \end{minipage} 
 $\Longrightarrow$
 \begin{minipage}[c]{.19\textwidth}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=1.1cm,
+\begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
                     semithick,font=\footnotesize]
 
 	\node[PRstate] (n0) {$p$};
-	\node (n1) [below left of=n0] {};
-	\node (n2) [below right of=n0] {};
-	\node (n3) [below right of=n1] {};
-	\node (n4) [below left of=n3] {};
-	\node (n5) [below right of=n3] {};
-	\node (n6) [below right of=n4] {};
-	\node (n7) [below left of=n6] {};
-	\node (n8) [below right of=n6] {};
-	\node[PRstate] (n9) [below right of=n7] {$q$};
+	\node (n1) [below left=of n0] {};
+	\node (n2) [below right=of n0] {};
+	\node (n3) [below right=of n1] {};
+	\node (n4) [below left=of n3] {};
+	\node (n5) [below right=of n3] {};
+	\node (n6) [below right=of n4] {};
+	\node (n7) [below left=of n6] {};
+	\node (n8) [below right=of n6] {};
+	\node[PRstate] (n9) [below right=of n7] {$q$};
 
   \path [transition] 
 		(n0) edge  [out=0, in=0]            node {} (n9);
@@ -289,27 +296,32 @@ Our first contribution (\S\ref{sec:guided_multigraph}) is to recast the ``guided
 A similar explosion occurs in disjunctive invariant generation, following \cite{DBLP:conf/pldi/GulwaniZ10}; our second contribution (\S\ref{sec:disjunctive}) applies our implicit representation to their method.
 
 
-\subsection{Guided static analysis}
+\subsection{Guided Static Analysis}
 \label{sec:guided}
 \emph{Guided static analysis} was proposed by \cite{DBLP:conf/sas/GopanR07} as an improvement over classical upward Kleene iterations with widening.
-Consider the following program, taken from \cite{DBLP:conf/sas/GopanR07}:
-\lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
+Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DBLP:conf/sas/GopanR07}.
 
 \begin{figure}
-\begin{center}
+  \begin{minipage}{.3\linewidth}
+    \lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
+  \end{minipage}
+\hfill
+\begin{minipage}{.5\linewidth}
 \includegraphics[scale=0.75]{gopan_reps}
-\end{center}
-\caption{The invariant for Prog.~\ref{lst:gopan_reps}: the piecewise linear, solid line is the strongest invariant, the grayed polyhedron is its convex hull.}
+\vspace{-1ex}
+\begin{equation}
+y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
+\end{equation}
+\end{minipage}
+\caption{Example program and its invariant: the piecewise linear, solid line is the strongest invariant, the grayed polyhedron is its convex hull.}
 \label{fig:gopan_reps_invariant} 
 \end{figure}
 
 Classical iterations on the domain of convex polyhedra \cite{CousotHalbwachs78,BagnaraHRZ05SCP} or octagons \cite{DBLP:journals/lisp/Mine06} start with $x = 0 \land x = 0$, then continue with $x = y \land 0 \leq x \leq 1$.
 The widening operator extrapolates from these two iterations and yields $x = y \land x \geq 0$.
 From there, the ``else'' branch at line 5 may be taken; with further widening, $0 \leq y \leq x$ is obtained as a loop invariant, and thus the postcondition computed at line 9 is $x \geq 0 \land y = 0$.
-Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron (Fig.~\ref{fig:gopan_reps_invariant}), is
-\begin{equation}
-y \leq x \land y \leq 102-x \land y \geq 0.\label{eqn:triangle}
-\end{equation}
+Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron (Fig.~\ref{fig:gopan_reps_invariant}).
+
 Intuitively, this disappointing result is obtained because widening extrapolates from the first iterations of the loop, but the loop has two different phases ($x \leq 50$ and $x > 50$) with different behaviors, thus the extrapolation from the first phase is not valid for the second.
 
 Gopan and Reps' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~\ref{eqn:triangle}; each phase is identified by the tests taken or not taken.
@@ -354,7 +366,7 @@ the semantics of the program, assuming that the transition semantics can be
 expressed within a decidable theory. For an easy construction of $\rho$, 
 we also assume that the program is expressed in SSA form, meaning that each
 variable is only assigned once in the transition graph. This is not a
-restriction, since there exist standard algorithms that transform a program into
+restriction, since there exists standard algorithms that transform a program into
 an SSA format.
 
 This formula contains Boolean \emph{reachability predicates} $b_i$ for each
@@ -372,7 +384,7 @@ resulting graph is acyclic and there is no paths going through control
 points in $P_R$.
 
 In order to find focus paths, we solve an SMT formula which is satisfiable when
-there exist a path starting at a point $p_i \in P_R$ in a state included in the
+there exists a path starting at a point $p_i \in P_R$ in a state included in the
 current invariant candidate $X_i$, and arriving at a point $p_j \in P_R$ in a
 state outside $X_j$. In this case, we construct this path using the model and
 update $X_j$. When $p_i = p_j$, meaning that the path is actually a self-loop,
@@ -380,7 +392,7 @@ we can apply a widening/narrowing sequence, or even compute the transitive
 closure of the loop (or an approximation thereof, or its application to $X_i$)
 using abstract acceleration~\cite{DBLP:conf/sas/GonnordH06}.
 
-\section{Guided analysis over the paths}
+\section{Guided Analysis over the Paths}
 \label{sec:guided_multigraph}
 
 Guided static analysis, as proposed by \cite{DBLP:conf/sas/GopanR07}, applies to the transition
@@ -480,7 +492,7 @@ adding new paths, or some spurious new paths would be added to $P$,
 and starting with the addition of new paths avoids wasting time
 doing the ascending iterations on an empty graph.
 
-\subsection{Ascending iterations by Path-focusing}
+\subsection{Ascending Iterations by Path-focusing}
 \label{subsec:ascending}
 
 %\MM{Maintenant que l'ordre a changé dans l'algo, on peut peut-être
@@ -501,11 +513,12 @@ meaning that the analysis of $p_i$ is finished.
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
 successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
 associated to $p_i$ :
-$$f(p_i) = \rho \wedge b_i^s \wedge 
+\[
+f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
- \neg X_j^s)$$
-
+ \neg X_j^s)
+\]
 The difference with~\cite{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
 conjoin the formula $f(p_i)$ with the actual set of working paths,
@@ -516,7 +529,7 @@ avoiding an exponentially sized formula. In other words, we force the SMT solver
 to give us a path included in $P$.
 
 
-\subsection{Adding new paths}
+\subsection{Adding New Paths}
 \label{subsec:addingpaths}
 
 Our technique computes the fixpoint iterations on a ascending sequence of
@@ -547,11 +560,12 @@ In the SMT formula, we associate to $p_j$ the abstract value $X_j^s$ when $p_j$
 is the starting point of the path, and $X_j^d$ when it is its destination point.
 We thus check the satisfiability of the formula
 $f'(p_i)$, where:
-$$f'(p_i) = \rho \wedge b_i^s \wedge 
+\[
+f'(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
-\neg X_j^d)$$
-
+\neg X_j^d)
+\]
 $X_j^d$ is updated when the point $p_j$ is the target of a new path.
 This way, further SMT queries do not
 compute other paths with the same source and destination if it is not
@@ -568,14 +582,14 @@ would not be returned by the SMT solver).
 
 \subsection{Termination}
 Termination of this algorithm is guaranteed, because:
-\begin{itemize}
+\begin{inparaenum}
 \item 
 the subset of paths $P$ strictly increases at each loop iteration, and bounded by the finite set of
 paths in the entire graph. 
 \item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
 which guarantees that $P'$
 will eventually be empty after a finite number of loop iterations.
-\end{itemize}
+\end{inparaenum}
 
 \subsection{Example}
 
@@ -583,7 +597,7 @@ We revise the rate limiter described in \ref{subsec:rate_lim}. In this example,
 \emph{Path-focusing} works well because all the paths starting at the
 loop header are actually self loops. In such a case, the technique performs a
 widening/narrowing sequence or accelerates the loop, thus leading to a precise
-invariant. However, in some cases, there also exist paths that are not
+invariant. However, in some cases, there also exists paths that are not
 self loops, in which case \emph{Path-focusing} applies widening. 
 This widening may induce unrecoverable loss of precision.
 
@@ -594,11 +608,8 @@ We choose $P_R$ as the set of loop headers of the function, plus the initial
 state. In this case, we have three elements in $P_R$.
 We also unroll the loop once, in order to distinguish the paths that do not go
 through the loop from the others:
-\begin{lstlisting}[numbers=none]
-if (wait()) {
-   while (wait()) {}
-}
-\end{lstlisting}
+\lstinline|if (wait()) {while (wait()) {}}|
+
 
 The main loop in the expanded multigraph has then 8 distinct paths, half of
 them being self loops, and the other half going to the header of the nested loop.
@@ -628,7 +639,7 @@ loop.
 		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
 		Additionally, the path that goes from $p_5$ to
 		$p_{10}$, that goes through the \emph{else} branch of each 
-		\emph{if-then-else} at lines 7,8 and 9, is also 
+		\emph{if-then-else} at lines 7, 8 and 9, is also 
 		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
 		new subgraph. Again, there is no new path that goes to $p_{10}$ with an
 		image outside $-10 \leq \lstinline|x_old| \leq 10$.
@@ -665,7 +676,7 @@ feasible paths could have been added during the analysis.
 		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
 \end{tikzpicture}
 \end{minipage} 
-\begin{minipage}[c]{.28\textwidth}
+\begin{minipage}[c]{.75\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
@@ -685,7 +696,7 @@ feasible paths could have been added during the analysis.
 		\end{array}$
 		} (n0);
   \path [transition] 
-		(n0) edge node [left, yshift=-0.2cm, xshift=0.2cm] {
+		(n0) edge node [left, yshift=-0.2cm, xshift=0] {
 		$\begin{array}{r}
 			-10000 \leq \lstinline|x| \leq 10000 \\
 			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
@@ -704,7 +715,7 @@ the loop once in order to get precise results. Section \ref{sec:disjunctive}
 proposes a new technique that gives precise invariants without needing such
 graph transformations.
 
-\section{Disjunctive invariants}
+\section{Disjunctive Invariants}
 \label{sec:disjunctive}
 
 \cite{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
@@ -751,37 +762,41 @@ When the formula is satisfiable, we know that the index $j$ of the starting
 disjunct that has to be chosen is the one for which the associate Boolean value
 $d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
 $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
-
+%
 \begin{equation*}
 g(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s 
  \wedge 
-\displaystyle\bigvee_{1 \leq k \leq m_i} (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
+\displaystyle\bigvee_{1 \leq k \leq m_i}\!\! (d_k \wedge X_{i,k} \wedge \bigwedge_{l \neq k}
 \neg d_l)
 \wedge
-\displaystyle\bigvee_{j \in Succ(i)} 
-(b_j^d \wedge \bigwedge_{1 \leq k \leq m_i} (\neg X_{j,k}))
+\displaystyle\bigvee_{j \in Succ(i)}\!\!
+(b_j^d \wedge \bigwedge_{1 \leq k \leq m_i}\!\! (\neg X_{j,k}))
 \end{equation*}
-
+%
 In our algorithm, the initialization of the abstract values slightly differs from
 algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
-initialize each disjunct. Line~\ref{alg=X-init} is then replaced by:
-\begin{algorithm}[!h]
-\begin{algorithmic}[1] 
-\FORALL {$k \in \{1,..,m_i\} \setminus \{\delta_i\}$}
-	\STATE $X_{i,k} \gets \perp$
-\ENDFOR
-\STATE $X_{i,\delta_i} \gets I_{p_i}$
-\end{algorithmic}
-\end{algorithm}
+initialize each disjunct. Instead of Line~\ref{alg=X-init}, we initialize $X_{i,k}$ with $\perp$ for all
+$k \in \{1,..,m_i\} \setminus \{\delta_i\}$, and $X_{i,\delta_i}$ with
+$\gets I_{p_i}$.
+
+% MM: pas la place pour un vrai algo => inliné dans le texte.
+% Line~\ref{alg=X-init} is then replaced by:
+% %\begin{algorithm}[!h]
+% \begin{algorithmic}[1] 
+% \FORALL {$k \in \{1,..,m_i\} \setminus \{\delta_i\}$}
+% 	\STATE $X_{i,k} \gets \perp$
+% \ENDFOR
+% \STATE $X_{i,\delta_i} \gets I_{p_i}$
+% \end{algorithmic}
+% %\end{algorithm}
 
 Furthermore, the Path-focused algorithm (line~\ref{alg=pf} from algorithm
 \ref{algo:combined}) is enhanced to deal with disjunctive invariants, and
 is detailed in algorithm \ref{algo:disjunctive}.
 
-The \emph{Update} function can classically assign to $X_{i,\sigma_i(j,k)}$ the
-value $X_{i,\sigma_i(j,k)} \widening (X_{i,\sigma_i(j,k)} \sqcup
-\tau_{i,k}(X_{i,j}))$, or can integrate the special treatment for self loops
+The \emph{Update} function can classically assign  $X_{i,\sigma_i(j,k)} \widening (X_{i,\sigma_i(j,k)} \sqcup
+\tau_{i,k}(X_{i,j}))$ to $X_{i,\sigma_i(j,k)}$, or can integrate the special treatment for self loops
 proposed by \cite{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
 acceleration.
 
@@ -841,7 +856,7 @@ algorithm~\cite{DBLP:conf/pldi/GulwaniZ10} is that we construct
 $\sigma_i(j,k)$ using SMT queries instead of enumerating a possibly
 exponential number of paths to find a solution.
 
-\section{Experimental comparisons}
+\section{Implementation and Experimental Comparisons}
 \label{sec:experiments}
 
 We have implemented our proposed solutions inside a prototype of intraprocedural
@@ -859,7 +874,7 @@ Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 Our tool operates over LLVM bitcode \cite{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
 Abstract domains are provided by the APRON library \cite{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
-\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}.
+\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3~\cite{DBLP:conf/tacas/MouraB08}.
 
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
@@ -887,7 +902,7 @@ lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{table}
 
-\subsection{Analysis algorithm}
+\subsection{Analysis Algorithm}
 \label{sec:analysis-algorithm}
 For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \cite{BourdonclePhd}.
 
@@ -921,7 +936,7 @@ Our tool currently assumes that integer variables are unbounded mathematical int
 Our implementation of path-focusing currently does not use true acceleration techniques, as proposed by \cite{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
 The analysis is currently only forward, even though nothing in what we describe in this article is specific to forward analysis.
 
-\subsection{Precision of the various techniques}
+\subsection{Precision of the Various Techniques}
 \label{sec:compare_techniques}
 
 \begin{figure}[h]
@@ -1109,7 +1124,7 @@ classical widening. We found that the improved version from
 \cite{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
 control points in $P_R$.
 
-\section{Conclusion and future prospects}
+\section{Conclusion and Future Prospects}
 Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
 
 A common criticism of analysis techniques based on SMT-solving is that they
