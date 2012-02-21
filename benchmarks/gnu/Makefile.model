@@ -1,0 +1,34 @@
+# Makefile
+BCFILES=${wildcard bin/*.o}
+RESFILES=$(BCFILES:bin/%.o=res/%.res)
+COMPAREFILES=$(BCFILES:bin/%.o=res/%.res.compare)
+
+all: $(RESFILES)
+
+res/%.res: bin/%.o
+	@echo "$*.o started..."
+	@pagai.sh -i bin/$*.o -s  > $@  2> /dev/null
+	@echo "$*.o finished"
+
+res/%.res.compare: bin/%.o
+	@echo "$*.o started..."
+	@pagai.sh -i bin/$*.o -c -s > $@  2> /dev/null
+	@echo "$*.o finished"
+
+clean:
+	rm res/*
+
+.PHONY: test compare
+
+test: timestamp.txt
+
+compare: ctimestamp.txt
+
+timestamp.txt: $(RESFILES)
+	touch $@	
+
+ctimestamp.txt: $(COMPAREFILES)
+	touch $@
+
+resdir:
+	mkdir res

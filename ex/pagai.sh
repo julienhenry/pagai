@@ -11,6 +11,7 @@ OPTIONS :
 	-O [FILE ]: name of the IR generated file
 	-o [FILE ]: output file
 	-u        : unroll loops once
+	-s        : silent mode
 	-c        : compare all techniques
 	-G        : generate the .dot CFG
 	-y        : use Yices instead of Microsoft Z3
@@ -29,8 +30,9 @@ RESULT=
 BITCODE=
 
 REQUIRED=0
+SILENT=0
 
-while getopts "hpygrbuGi:o:ct:O:" opt ; do
+while getopts "hpygrbuGi:o:ct:O:s" opt ; do
 	case $opt in
 		h)
 			usage
@@ -48,6 +50,9 @@ while getopts "hpygrbuGi:o:ct:O:" opt ; do
 			;;
 		G)
 			GRAPH=1
+			;;
+		s)
+			SILENT=1
 			;;
 		y)
 			YICES=1
@@ -132,15 +137,18 @@ else
 	fi
 fi
 xs=$?
-case $xs in
- 0) echo "ok -- $NAME"
-	exit 0
-	 ;; # all fine
- *) if [ $xs -gt 127 ]; then
-       echo "killed -- $NAME"
-    else
-       echo "error -- $NAME"
-    fi
-	exit 0
-esac
+
+if [ $SILENT -eq 0 ] ; then
+	case $xs in
+	 0) echo "ok -- $NAME"
+		exit 0
+		 ;; # all fine
+	 *) if [ $xs -gt 127 ]; then
+	       echo "killed -- $NAME"
+	    else
+	       echo "error -- $NAME"
+	    fi
+		exit 0
+	esac
+fi
 
