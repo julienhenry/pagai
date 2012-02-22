@@ -35,12 +35,19 @@ class CompareDomain : public ModulePass {
 		
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
+		const char * getPassName() const;
+
 		bool runOnModule(Module &M);
 };
 
 template<Techniques T>
 char CompareDomain<T>::ID = 0;
 		
+template<Techniques T>
+const char * CompareDomain<T>::getPassName() const {
+	return "CompareDomain";
+}
+
 template<Techniques T>
 void CompareDomain<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 	switch(T) {

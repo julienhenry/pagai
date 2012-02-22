@@ -44,11 +44,13 @@ class AIdis : public ModulePass, public AIPass {
 		AIdis(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
 			init();
 			passID.D = _man;
+			passID.N = _NewNarrow;
 		}
 		
 		AIdis() : ModulePass(ID) {
 			init();
 			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
 		}
 		
 		void init()

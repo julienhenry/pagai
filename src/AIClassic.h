@@ -20,11 +20,13 @@ class AIClassic : public AISimple {
 		AIClassic(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : AISimple(_ID,_man,_NewNarrow) {
 			init();
 			passID.D = _man;
+			passID.N = _NewNarrow;
 		}
 		
 		AIClassic (): AISimple(ID) {
 			init();
 			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
 		}
 
 		void init()

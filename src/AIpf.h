@@ -23,11 +23,13 @@ class AIpf : public ModulePass, public AIPass {
 		AIpf(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
 			init();
 			passID.D = _man;
+			passID.N = _NewNarrow;
 		}
 
 		AIpf (): ModulePass(ID) {
 			init();
 			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
 		}
 		
 		void init()
