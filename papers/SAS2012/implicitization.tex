@@ -941,6 +941,34 @@ lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{table}
 
+
+\section{Conclusion and Future Prospects}
+Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
+
+A common criticism of analysis techniques based on SMT-solving is that they
+do not scale up. Yet, our experiments show that, for numerical properties,
+they scale up to the size of typical functions and loops.
+It is however
+quite certain that, naively applied, they cannot scale to the kind of
+programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
+of thousands of lines of code in a single loop operating over similar numbers
+of remanent variables.
+Actually, for such applications, only (quasi-)linear
+algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
+It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
+
+We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
+
+We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
+
+\phantomsection\addcontentsline{toc}{section}{References} 
+\bibliographystyle{splncs03}
+\bibliography{implicitization}
+
+\appendix
+
+\section{Experimental Results}
+
 \subsection{Analysis Algorithm}
 \label{sec:analysis-algorithm}
 For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \cite{BourdonclePhd}.
@@ -1155,26 +1183,4 @@ classical widening. We found that the improved version from
 \cite{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
 control points in $P_R$.
 
-\section{Conclusion and Future Prospects}
-Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
-
-A common criticism of analysis techniques based on SMT-solving is that they
-do not scale up. Yet, our experiments show that, for numerical properties,
-they scale up to the size of typical functions and loops.
-It is however
-quite certain that, naively applied, they cannot scale to the kind of
-programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
-of thousands of lines of code in a single loop operating over similar numbers
-of remanent variables.
-Actually, for such applications, only (quasi-)linear
-algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
-It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
-
-We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
-
-We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
-
-\phantomsection\addcontentsline{toc}{section}{References} 
-\bibliographystyle{splncs03}
-\bibliography{implicitization}
 \end{document}
