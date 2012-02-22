@@ -908,21 +908,32 @@ We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
 
 \begin{table}[!h]
-	\centering
-\begin{tabular}{|l|r|r|} \hline
-	\multicolumn{1}{|c|}{Name} &
-        \multicolumn{1}{c|}{kLOC} &
-        \multicolumn{1}{c|}{$|P_R|$} \\ \hline
-	a2ps & 55 & 2012\\
-	gawk & 59 & 902\\ 
-	gnuchess & 38 & 1222\\ 
-	gnugo & 83 & 2801\\
-	grep & 35 & 820\\
-	gzip & 27 & 494\\
-	lapack/blas & 954 & 16422\\
-	make & 34 & 993\\ 
-	sed & 23 & 292\\
-	tar & 73 & 1712\\
+      \centering
+      \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline
+        \multicolumn{1}{|c|}{} &
+        \multicolumn{2}{c|}{Size} &
+        \multicolumn{5}{c|}{Execution time (seconds)} \\ \hline
+        \multicolumn{1}{|c|}{Name} & 
+        \multicolumn{1}{c|}{kLOC}  & 
+        \multicolumn{1}{c|}{$|P_R|$}  &
+        \multicolumn{1}{c|}{\textbf{S}} &
+        \multicolumn{1}{c|}{\textbf{G}} &
+        \multicolumn{1}{c|}{\textbf{PF}} &
+        \multicolumn{1}{c|}{\textbf{G+PF}} &
+	\multicolumn{1}{c|}{\textbf{DIS}} \\ 
+        \hline
+        % M-x align RET powers ;-).
+a2ps-4.14      & 55  & 2012  & 64  & 17  & 66   & 175  & 512   \\
+gawk-4.0.0     & 59  & 902   & 59  & 8   & 18   & 43   & 129   \\
+gnuchess-6.0.0 & 38  & 1222  & 112 & 21  & 122  & 374  & 866   \\
+gnugo-3.8      & 83  & 2801  & 155 & 31  & 128  & 382  & 1403  \\
+grep-2.9       & 35  & 820   & 50  & 12  & 21   & 58   & 307   \\
+gzip-1.4       & 27  & 494   & 63  & 12  & 36   & 97   & 617   \\
+lapack-3.3.1   & 954 & 16422 & 721 & 246 & 2690 & 6052 & 22222 \\
+make-3.82      & 34  & 993   & 22  & 7   & 32   & 83   & 255   \\
+sed-4.2        & 23  & 292   & 35  & 7   & 23   & 69   & 521   \\
+tar-1.26       & 73  & 1712  & 270 & 39  & 110  & 304  & 1164  \\
+% TODO: mettre à jour les chiffres ?
 	\hline
 \end{tabular}
 \caption{List of analyzed open-source projects, with their respective number of
@@ -1051,7 +1062,7 @@ statistically more precise than the other techniques.
 
 The analysis using disjunctive invariants greatly improves the
 precision of the analysis (for $12.06\%$ of the control points in $P_R$), at an
-acceptable time cost (see Table \ref{tab:time}).
+acceptable time cost (see Table \ref{tab:time}). \MM{TODO}
 
 While experiencing with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
@@ -1068,29 +1079,13 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 (ii) Replacing the results of nonlinear operations by ``unknown''.
 Neither is currently implemented in our tool.
 
-Table \ref{tab:time} gives the execution time of the different analysis
+Table \ref{tab:time} \MM{TODO} gives the execution time of the different analysis
 techniques. It is interesting to see that \emph{Guided Static Analysis} and
 \emph{Path-focusing} are sometimes faster than the classical
 algorithm.
 This seems due to the fact that these algorithms start on a small subset
 of the graph, and then may need fewer iterations on the complete graph.
 The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
-
-\begin{table}[!h]
-	\centering
-\begin{tabular}{|l|r|r|r|r|r|} \hline
-	\multicolumn{1}{|c|}{Benchmark} &
-        \multicolumn{1}{c|}{\textbf{S}} &
-        \multicolumn{1}{c|}{\textbf{G}} &
-        \multicolumn{1}{c|}{\textbf{PF}} &
-        \multicolumn{1}{c|}{\textbf{G+PF}} &
-	\multicolumn{1}{c|}{\textbf{DIS}} \\ \hline
-	\input{table_time.tex} \hline
-\end{tabular}
-\caption{Execution time for each technique, expressed in seconds}
-\label{tab:time}
-\end{table}
-
 
 \subsection{Precision of Abstract Domains}
 \label{sec:compare_domains}
