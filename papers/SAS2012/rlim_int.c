@@ -1,4 +1,3 @@
-extern int input();
 void rate_limiter() {
   int x_old = 0;
   while (1) {

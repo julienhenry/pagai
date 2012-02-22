@@ -135,7 +135,7 @@ Our tool uses a \emph{single static assignment} (SSA) intermediate representatio
 described in Section~\ref{sec:analysis-algorithm}.
 }
 
-\item We conducted extensive experiments with this tool, on real-life programs: (i) fixing the abstract domain, varying the iteration technique (\S~\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains}).
+\item We conducted extensive experiments with this tool, on real-life programs: (i) fixing the abstract domain, varying the iteration technique (\S\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains}).
 \end{enumerate}
 
 \section{Bases}
@@ -366,7 +366,7 @@ The analysis starts by identifying the tests taken and not taken during the firs
 
 Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~(\ref{eqn:triangle}).
 
-More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body (left side of Fig.~\ref{fig:multigraph});
+More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body \avirer{(left side of Fig.~\ref{fig:multigraph})};
 for each subset, an inductive invariant is computed for the program restricted to it.
 The starting subset are the transitions reachable in one step from the loop initialization.
 If for a given subset $S$ in the sequence, no transitions outside $S$ are reachable from the inductive invariant attached to $S$, then iterations stop;
@@ -447,17 +447,17 @@ inductive invariant of the entire program.
 
 
 Algorithm~\ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
-
+%
 The current working subset of paths, noted $P$ and initially empty, is
 stored using a compact representation, such as binary decision
 diagrams. We also maintain two sets of control points:
-\begin{itemize}
-	\item $A'$ contains the points in $P_R$ that may be the starting points of new
+\begin{compactitem}
+	\item $A'$ : points in $P_R$ that may be the starting points of new
 		feasible paths.
-	\item $A$ contains the points in $P_R$ on which we apply the ascending iterations.
-	Each time the abstract value of a control point $p$ is updated, $p$ is
-	inserted in both $A$ and $A'$.
-\end{itemize}
+	\item $A$ : points in $P_R$ on which we apply the ascending iterations.
+	When the abstract value of a control point $p$ is updated, $p$ is
+	added to both $A$ and $A'$.
+\end{compactitem}
 
 \begin{algorithm}
 	\caption{Guided static analysis on implicit multigraph}
@@ -469,7 +469,7 @@ diagrams. We also maintain two sets of control points:
 
 
 We distinguish three phases in the main loop of the analysis:
-\begin{enumerate}
+\begin{compactenum}
 \item \label{step:addingpaths} We start finding a new relevant subset
   $P \cup P'$ of the graph.
   Either the previous iteration or the initialization lead us to a
@@ -493,7 +493,7 @@ We distinguish three phases in the main loop of the analysis:
   (line~\ref{alg=narrowing} in algorithm~\ref{algo:combined}) and
   reiterate from step 1 unless there are no more points to explore,
   i.e. $A' = \emptyset$.
-\end{enumerate}
+\end{compactenum}
 
 %\MM{Je trouve qu'il manque une vue de haut niveau quelque part par
 %  ici. Dire qu'en gros, l'algo, c'est (en pseudo-code ou en langue naturelle) :
@@ -629,7 +629,7 @@ invariant. However, in some cases, there also exists paths that are not
 self loops, in which case \emph{Path-focusing} applies widening. 
 This widening may induce unrecoverable loss of precision.
 
-Suppose the main loop of the rate limiter contains a nested loop:
+Suppose the main loop of the rate limiter contains a nested loop like:
 \lstinputlisting{rlim_int_loop.c}
 
 We choose $P_R$ as the set of loop headers of the function, plus the initial
@@ -937,7 +937,8 @@ tar-1.26       & 73  & 1712  & 270 & 39  & 110  & 304  & 1164  \\
 	\hline
 \end{tabular}
 \caption{List of analyzed open-source projects, with their respective number of
-lines of code, and their number of control points in $P_R$}
+lines of code, number of control points in $P_R$, and execution time
+on various techniques\MM{TODO}}
 \label{fig:projects}
 \end{table}
 
