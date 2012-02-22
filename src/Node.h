@@ -25,9 +25,11 @@ struct phivar {
 struct params {
 	Techniques T;
 	Apron_Manager_Type D;
+	// enhanced narrowing if N is true
+	bool N;
 
 	bool operator<(const params& A) const
-	{ return (T<A.T) || (T==A.T && D < A.D); }
+	{ return (T<A.T) || (T==A.T && D < A.D) || (T==A.T && D==A.D && N < A.N); }
 };
 
 /// @brief class that keeps information associated to a BasicBlock

@@ -16,6 +16,7 @@ OPTIONS :
 	-G        : generate the .dot CFG
 	-y        : use Yices instead of Microsoft Z3
 	-b        : use the Bagnara Widening operator
+	-p        : use the trunk version of pagai
 	-t        : set a time limit (Pagai is killed after this time, default 800s)
 "
 }
@@ -28,11 +29,11 @@ COMPARE=0
 TIME_LIMIT=800
 RESULT=
 BITCODE=
-
+PAGAI=Pagai
 REQUIRED=0
 SILENT=0
 
-while getopts "hpygrbuGi:o:ct:O:s" opt ; do
+while getopts "hpygrbuGi:o:ct:O:sp" opt ; do
 	case $opt in
 		h)
 			usage
@@ -44,6 +45,9 @@ while getopts "hpygrbuGi:o:ct:O:s" opt ; do
 			;;
 		u)
 			UNROLL=1
+			;;
+		p)
+			PAGAI=pagai
 			;;
 		c)
 			COMPARE=1
@@ -117,22 +121,22 @@ ulimit -t $TIME_LIMIT
 
 if [ -z $OUTPUT ] ; then 
 	if [ $COMPARE -eq 1 ] ; then
-			pagai -c -i $BITCODE
+			$PAGAI -c -i $BITCODE
 	else
 		if [ $YICES -eq 1 ] ; then
-			pagai -y -i $BITCODE
+			$PAGAI -y -i $BITCODE
 		else
-			pagai -i $BITCODE
+			$PAGAI -i $BITCODE
 		fi
 	fi
 else
 	if [ $COMPARE -eq 1 ] ; then
-			pagai -c -i $BITCODE -o $OUTPUT
+			$PAGAI -c -i $BITCODE -o $OUTPUT
 	else
 		if [ $YICES -eq 1 ] ; then
-			pagai -y -i $BITCODE -o $OUTPUT
+			$PAGAI -y -i $BITCODE -o $OUTPUT
 		else
-			pagai -i $BITCODE -o $OUTPUT
+			$PAGAI -i $BITCODE -o $OUTPUT
 		fi
 	fi
 fi

@@ -43,6 +43,8 @@ bool compareTechniques();
 
 bool compareDomain();
 
+bool compareNarrowing();
+
 bool onlyOutputsRho();
 
 char* getFilename();

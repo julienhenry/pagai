@@ -9,10 +9,12 @@ COMPAREFILES=$(BCFILES:%.bc=%.res.compare)
 all: $(RESFILES)
 
 %.res: %.bc
-	@pagai.sh -i $*.bc -o $@ -t 10 2> /dev/null
+	@pagai.sh -i $*.bc -o $@ -t 800 2> /dev/null
 
 %.res.compare: %.bc
-	@pagai.sh -i $*.bc -c -o $@ -t 10 2> /dev/null
+	@echo $*.bc started...
+	@pagai.sh -i $*.bc -c -t 800 > $@ 2> /dev/null
+	@echo $*.bc finished
 
 clean:
 	rm $(BENCHDIR)/*.res*

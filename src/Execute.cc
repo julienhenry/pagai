@@ -28,6 +28,7 @@
 #include "SMTpass.h"
 #include "Compare.h"
 #include "CompareDomain.h"
+#include "CompareNarrowing.h"
 #include "Analyzer.h"
 #include "GenerateSMT.h"
 
@@ -105,19 +106,38 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(TD);
 	Passes.add(createVerifierPass());
 	Passes.add(createGCLoweringPass());
-	//Passes.add(createLowerInvokePass());
-	Passes.add(createPromoteMemoryToRegisterPass());
-	Passes.add(createLoopSimplifyPass());	
-	Passes.add(LoopInfoPass);
-
+	
 	// this pass converts SwitchInst instructions into a sequence of
 	// binary branch instructions, much easier to deal with
 	Passes.add(createLowerSwitchPass());	
+	Passes.add(createLowerInvokePass());
+	Passes.add(createPromoteMemoryToRegisterPass());
+	//Passes.add(createLoopSimplifyPass());	
+	Passes.add(LoopInfoPass);
+
 
 	if (onlyOutputsRho()) {
 		Passes.add(new GenerateSMT());
 	} else if (compareTechniques()) {
 		Passes.add(new Compare());
+	} else if (compareNarrowing()) {
+		switch (getTechnique()) {
+			case LOOKAHEAD_WIDENING:
+				Passes.add(new CompareNarrowing<LOOKAHEAD_WIDENING>());
+				break;
+			case PATH_FOCUSING:
+				Passes.add(new CompareNarrowing<PATH_FOCUSING>());
+				break;
+			case LW_WITH_PF:
+				Passes.add(new CompareNarrowing<LW_WITH_PF>());
+				break;
+			case SIMPLE:
+				Passes.add(new CompareNarrowing<SIMPLE>());
+				break;
+			case LW_WITH_PF_DISJ:
+				Passes.add(new CompareNarrowing<LW_WITH_PF_DISJ>());
+				break;
+		}
 	} else if (compareDomain()) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:

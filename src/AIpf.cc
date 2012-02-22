@@ -101,30 +101,12 @@ void AIpf::computeFunction(Function * F) {
 
 	ascendingIter(n, F);
 
-	// we set X_d abstract values to bottom for narrowing
-	// USELESS : they are already at bottom !
-	//for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-	//	b = i;
-	//	if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
-	//		Nodes[b]->X_d[passID]->set_bottom(env);
-	//	}
-	//}
 	narrowingIter(n);
 	// then we move X_d abstract values to X_s abstract values
 	int step = 0;
 	while (copy_Xd_to_Xs(F) && step <= 5) {
 		narrowingIter(n);
 		step++;
-	}
-
-	if (NewNarrowing) {
-		computeWideningSeed(F);
-		copy_Xd_to_Xs(F);
-	
-		ascendingIter(n, F);
-		narrowingIter(n);
-		while (copy_Xd_to_Xs(F))
-			narrowingIter(n);
 	}
 }
 

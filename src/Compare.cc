@@ -226,7 +226,7 @@ bool Compare::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPr(*b->getParent())->count(b)) {
+			if (Pr::getPw(*b->getParent())->count(b)) {
 				compareTechniques(n,LOOKAHEAD_WIDENING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,LOOKAHEAD_WIDENING);

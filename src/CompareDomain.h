@@ -100,7 +100,7 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPr(*b->getParent())->count(b)) {
+			if (Pr::getPw(*b->getParent())->count(b)) {
 				// TODO
 				params P1, P2;
 				P1.T = T;

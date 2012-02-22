@@ -1,4 +1,5 @@
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Transforms/Scalar.h"
 #include "llvm/Instructions.h"
 #include "llvm/Support/CFG.h"
 
