@@ -241,7 +241,12 @@ better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
 \lstinputlisting{rlim_int2.c}
 
+\avirer{
 \begin{figure}
+\MM{J'aime bien cette figure, qui montre en un coup d'oeil l'idée,
+  mais elle prend vraiment beaucoup de place, je propose de
+  supprimer.}
+
 \centering
 \begin{minipage}[c]{.21\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
@@ -309,9 +314,10 @@ $\Longrightarrow$
 \caption{Expansion of the transition graph into a multigraph.}
 \label{fig:multigraph}
 \end{figure}
+}
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
-We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first (as in Fig.~\ref{fig:multigraph}), even though not all feasible paths are needed to compute the invariant.
+We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first \avirer{(as in Fig.~\ref{fig:multigraph})}, even though not all feasible paths are needed to compute the invariant.
 
 Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph (Fig.~\ref{fig:multigraph}); it is succinctly representated by the transition graph of the first program.
 Our first contribution (\S\ref{sec:guided_multigraph}) is to recast the ``guided analysis'' from \cite{DBLP:conf/sas/GopanR07} on such a succinct representation of the paths in lieu of the individual transitions.
@@ -329,8 +335,8 @@ Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DB
   \end{minipage}
 \hfill
 \begin{minipage}{.5\linewidth}
-\includegraphics[scale=0.75]{gopan_reps}
-\vspace{-1ex}
+\includegraphics[scale=0.7]{gopan_reps}
+\vspace{-1em}
 \begin{equation}
 y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
 \end{equation}
