@@ -75,6 +75,8 @@ color=blue]
 \and CNRS
 \and Grenoble-INP}
 
+\renewcommand{\baselinestretch}{1}
+
 \begin{document}
 \maketitle
 
@@ -121,7 +123,7 @@ evident which ones perform more or less precisely or more or less efficiently on
 Unfortunately, the published literature on the subject lacks experimental comparative assessments. One purpose of this article is therefore to propose such experimental results.}
 
 This article makes the following contributions:
-\begin{enumerate}
+\begin{compactenum}
 \item We recast the guided static analysis technique from \cite{DBLP:conf/sas/GopanR07} on the expanded multigraph from \cite{Monniaux_Gonnord_SAS11}, considering entire paths instead of individual transitions, using SMT queries and binary decision diagrams\label{contr:guided_multigraph} (See \S\ref{sec:guided_multigraph}).
 \item We improve the technique for obtaining disjunctive invariants from \cite{DBLP:conf/pldi/GulwaniZ10} by replacing the explicit exhaustive enumeration of paths by a sequence of SMT queries\label{contr:disjunctive} (See \S\ref{sec:disjunctive}).
 \item We implemented these techniques, in addition to ``classical'' iterations and the original guided static analysis, inside a prototype static analyzer.
@@ -135,8 +137,8 @@ Our tool uses a \emph{single static assignment} (SSA) intermediate representatio
 described in Section~\ref{sec:analysis-algorithm}.
 }
 
-\item We conducted extensive experiments with this tool, on real-life programs: (i) fixing the abstract domain, varying the iteration technique (\S\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains}).
-\end{enumerate}
+\item We conducted extensive experiments with this tool, on real-life programs\avirer{: (i) fixing the abstract domain, varying the iteration technique (\S\ref{sec:compare_techniques}) (ii) fixing the iteration technique, varying the abstract domain (\S\ref{sec:compare_domains})}.
+\end{compactenum}
 
 \section{Bases}
 \subsection{Static Analysis by Abstract Interpretation}
@@ -144,22 +146,21 @@ described in Section~\ref{sec:analysis-algorithm}.
 \MM{On peut peut-être réduire un peu vu que tout le monde connait à
   SAS ?}
 
-Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.
+Let $X$ be the set of possible states of the program variables; for instance, if the program has 3 unbounded integer variables, then $X = \ZZ^3$. The set $\parts{X}$ of subsets of $X$, partially ordered by inclusion, is the \emph{concrete domain}. An \emph{abstract domain} is a set $\abstr{X}$ equipped with a partial order $\sqsubseteq$; for instance, it can be the domain of convex polyhedra in $\QQ^3$ ordered by geometric inclusion. \avirer{In this article, all abstract domains are supposed to contain machine-representable objects, and all $\sqsubseteq$ order relations are supposed to be decidable.}
 The concrete and abstract domains are connected by a monotone \emph{concretization} function $\gamma: \left(\abstr{X},\sqsubseteq\right) \rightarrow (\parts{X},\subseteq)$: an element $\abstr{x} \in \abstr{X}$ represents a set $\gamma(\abstr{x})$.%
 %
-\footnote{%
-Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
+% \footnote{%
+% Some presentations of abstract interpretation identify an element $\abstr{x}$ with the set of states $\gamma(\abstr{x})$ that it represents. This leads to simpler notations, but may also confuse if, as in some of our constructions, there exist several $\abstr{x}$ with identical $\gamma(\abstr{x})$, but distinct algorithmic behaviors.}
 
 We also assume a join operator $\sqcup: \abstr{X} \times \abstr{X} \rightarrow \abstr{X}$, with infix notation; in practice, it is generally a least upper bound operation, but we only need it to satisfy $\gamma(\abstr{x}) \cup \gamma(\abstr{y}) \subseteq \gamma(\abstr{x} \sqcup \abstr{y})$ for all $\abstr{x},\abstr{y}$.
 
 Classically, one considers the control-flow graph of the program, with edges labeled with concrete transition relations (e.g. $x' = x+1$ for an instruction \lstinline|x = x+1;|), and attaches an abstract element to each control point.
 A concrete transition relation $\tau \subseteq X \times X$ is replaced by an abstract \emph{forward abstract transformer} $\abstr{\tau}: \abstr{X} \rightarrow \abstr{X}$, such that
-\begin{equation}
+\(
 \forall \abstr{x} \in \abstr{X}, x,x' \in X,~
 x \in \gamma(\abstr{x}) \land (x,x') \in \tau \implies
 x' \in \gamma \circ \abstr{\tau}(\abstr{x})
-\label{eqn:transformer_correct}
-\end{equation}
+\).
 It is easy to see that if to any control point $p \in P$ we attach an abstract element $\abstr{x}_p$ such that
 (i) for any $p$, $\gamma(\abstr{x}_p)$ includes all initial states possible at control node $p$
 (ii) for any $p,p'$, $\abstr{\tau}_{p,p'} (\abstr{x}_p) \sqsubseteq \abstr{x}_{p'}$, noting $\tau_{p,p'}$ the transition from $p$ to~$p'$, then $(\gamma(\abstr{x}_p))_{p \in P}$ form an \emph{inductive invariant}: by induction, when the control point is $p$, the program state always lies in $\gamma(\abstr{x}_p)$.
@@ -541,11 +542,13 @@ meaning that the analysis of $p_i$ is finished.
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
 successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
 associated to $p_i$ :
+\vspace{-.5em}
 \[
 f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
  \neg X_j^s)
+\vspace{-.1em}
 \]
 The difference with~\cite{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
@@ -588,11 +591,13 @@ In the SMT formula, we associate to $p_j$ the abstract value $X_j^s$ when $p_j$
 is the starting point of the path, and $X_j^d$ when it is its destination point.
 We thus check the satisfiability of the formula
 $f'(p_i)$, where:
+\vspace{-.5em}
 \[
 f'(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
 \neg X_j^d)
+\vspace{-1em}
 \]
 $X_j^d$ is updated when the point $p_j$ is the target of a new path.
 This way, further SMT queries do not
@@ -653,7 +658,7 @@ analysis. The points in $P_R$ are noted $p_i$, where $i$ is the corresponding
 line in the code: for instance, $p_5$ corresponds to the header of the main
 loop.
 
-\begin{enumerate}
+\begin{compactenum}
 	\item The first subset of paths is depicted on Figure
 		\ref{fig:example-graph} Step 1. We apply Path-Focusing on this graph,
 		and discover for $p_5$ the inductive invariant $\lstinline|x_old| = 0$.
@@ -679,7 +684,7 @@ loop.
 	\item Finally, we compute the new subgraph. The SMT-solver does not find any
 		new path that makes the abstract values grow, and the algorithm
 		terminates.
-\end{enumerate}
+\end{compactenum}
 
 Our technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
@@ -769,14 +774,14 @@ last transition of the path, or else construct it dynamically during the
 analysis.
 
 Our method improves this technique in two ways :
-\begin{itemize}
+\begin{compactitem}
 \item Instead of enumerating the whole set of paths, we keep them implicit and
 compute them only when needed.
 
 \item At each loop iteration of the original algorithm \cite{DBLP:conf/pldi/GulwaniZ10}, an image by each path inside the loop is computed for each disjunct of the invariant candidate.
 Yet, many of these images may be redundant: for instance, if our invariant candidate is $(0 \leq x \leq 10 \land 0 \leq y \leq 1000) \lor (x < -10 \land y < -10)$, then there is no point enumerating paths whose image is included in this invariant candidate.
 In our approach, we compute such an image only if it makes the resulting abstract value grow.
-\end{itemize}
+\end{compactitem}
 
 Our improvement consists in a modification of the SMT formula we solve in
 \ref{sec:guided_multigraph}.
@@ -873,12 +878,12 @@ abstract value $X_{i,j}$ by the path indexed by $k$, and try to find an existing
 disjunct of index $j'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
 If such an index exists, then we set $\sigma_i(j,k) = j'$.
 Otherwise:
-\begin{itemize}[itemsep=-1\parsep,topsep=0pt]
+\begin{compactitem}
 	\item if $m_i < M$, we increase $m_i$ by $1$ and define $\sigma_i(j,k) = m_i$
 	\item if $m_i = M$, we define $\sigma_i(j,k) = M$ 
 		%\JH{A la place, Gulwani cherche l'invariant qui a le plus de contraintes
 		%d'egalite en commun pour definir son $sigma$. Nous, on le met dans M, pour simplifier}
-\end{itemize}
+\end{compactitem}
 The main difference with the original
 algorithm~\cite{DBLP:conf/pldi/GulwaniZ10} is that we construct
 $\sigma_i(j,k)$ using SMT queries instead of enumerating a possibly
