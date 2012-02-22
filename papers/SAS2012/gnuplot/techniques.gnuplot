@@ -2,9 +2,10 @@
 #set output "techniques.jpeg"
 set terminal epslatex
 set output "gnuplot/techniques.tex"
-set size 0.7,1
+set size 0.8,0.7
 set boxwidth 1.0 absolute
 set style fill pattern noborder
+set key top left
 #set style fill solid 1.0 border
 #set style line 1 lt -1 linecolor rgb "blue" lw 3 
 #set style line 2 lt -1 linecolor rgb "red" lw 3 

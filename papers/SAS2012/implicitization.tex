@@ -13,6 +13,7 @@
 \usepackage{paralist}
 \usepackage{graphicx}
 %\usepackage{color}
+\usepackage{placeins}
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
@@ -210,6 +211,7 @@ SAT was extended to \emph{satisfiability modulo theory} (SMT): in addition to pr
 For instance, the theories of linear integer arithmetic (LIA) and linear real arithmetic (LRA) have atoms of the form $a_1 x_1 + \dots + a_n x_n \bowtie C$ where $a_1,\dots,a_n,C$ are integer constants, $x_1,\dots,x_n$ are variables (interpreted over $\ZZ$ for LIA and $\RR$ or $\QQ$ for LRA), and $\bowtie$ is a comparison operator $=,\neq,<,\leq,>,\geq$.
 Satisfiability for LIA and LRA is NP-complete, yet tools based on DPLL(T) approach \cite{Kroening_Strichman_08,Handbook_SAT} solve many useful SMT problems in practice. All these tools provide a \emph{satisfying assignment} if the problem is satisfiable.
 
+\avirer{
 Most SMT solvers, including Z3,
 %\footnote{\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/}}
 Yices,
@@ -217,6 +219,7 @@ Yices,
 and all those supporting the full SMTLIB2 standard \cite{BarST-SMTLIB},
 offer an \emph{incremental} interface: the client program specifies the formula as an initially empty conjunction, to which additional constraints are added, and calls a ``check'' function answering whether it is satisfiable; 
 it may then backtrack some of the constraints and add other ones without restarting from scratch.
+}
 
 \subsection{A Simple, Motivating Example}
 \label{subsec:rate_lim}
@@ -318,9 +321,9 @@ $\Longrightarrow$
 }
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
-We have transformed the first program into the second, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first \avirer{(as in Fig.~\ref{fig:multigraph})}, even though not all feasible paths are needed to compute the invariant.
+We have transformed the program, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first \avirer{(as in Fig.~\ref{fig:multigraph})}, even though not all feasible paths are needed to compute the invariant.
 
-Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph (Fig.~\ref{fig:multigraph}); it is succinctly representated by the transition graph of the first program.
+Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph \avirer{(Fig.~\ref{fig:multigraph})}; it is succinctly representated by the transition graph of the first program.
 Our first contribution (\S\ref{sec:guided_multigraph}) is to recast the ``guided analysis'' from \cite{DBLP:conf/sas/GopanR07} on such a succinct representation of the paths in lieu of the individual transitions.
 A similar explosion occurs in disjunctive invariant generation, following \cite{DBLP:conf/pldi/GulwaniZ10}; our second contribution (\S\ref{sec:disjunctive}) applies our implicit representation to their method.
 
@@ -331,6 +334,7 @@ A similar explosion occurs in disjunctive invariant generation, following \cite{
 Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DBLP:conf/sas/GopanR07}.
 
 \begin{figure}
+  \vspace{-1em}
   \begin{minipage}{.3\linewidth}
     \lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
   \end{minipage}
@@ -353,7 +357,7 @@ Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \
 
 Intuitively, this disappointing result is obtained because widening extrapolates from the first iterations of the loop, but the loop has two different phases ($x \leq 50$ and $x > 50$) with different behaviors, thus the extrapolation from the first phase is not valid for the second.
 
-Gopan and Reps' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~\ref{eqn:triangle}; each phase is identified by the tests taken or not taken.
+Gopan and Reps' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~(\ref{eqn:triangle}); each phase is identified by the tests taken or not taken.
 
 The analysis starts by identifying the tests taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
 \begin{lstlisting}[numbers=none]
@@ -365,7 +369,11 @@ The analysis starts by identifying the tests taken and not taken during the firs
   }
 \end{lstlisting}
 
-Analyzing this loop using widening and narrowing on convex polyhedra or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$. Now, the transition at line~5 becomes feasible; and we analyze the full loop, starting iterations from $0 \leq x \leq 51 \land y = x$, and obtain invariant~(\ref{eqn:triangle}).
+Analyzing this loop using widening and narrowing on convex polyhedra
+or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$.
+Now, the transition at line~5 becomes feasible; and we analyze the
+full loop, starting iterations from $0 \leq x \leq 51 \land y = x$,
+and obtain invariant~(\ref{eqn:triangle}) in Fig~\ref{fig:gopan_reps_invariant}.
 
 More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body \avirer{(left side of Fig.~\ref{fig:multigraph})};
 for each subset, an inductive invariant is computed for the program restricted to it.
@@ -517,8 +525,8 @@ Thus, our technique combines both the advantages of \emph{Guided Static
 Analysis} and \emph{Path-focusing}.
 
 The order of steps is important: narrowing has to be performed before
-adding new paths, or some spurious new paths would be added to $P$,
-and starting with the addition of new paths avoids wasting time
+adding new paths, or spurious new paths would be added to $P$.
+Starting with the addition of new paths avoids% wasting time
 doing the ascending iterations on an empty graph.
 
 \subsection{Ascending Iterations by Path-focusing}
@@ -796,6 +804,7 @@ disjunct that has to be chosen is the one for which the associate Boolean value
 $d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
 $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 %
+\vspace{-.5em}
 \begin{equation*}
 g(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s 
@@ -805,8 +814,9 @@ g(p_i) = \rho \wedge b_i^s \wedge
 \wedge
 \displaystyle\bigvee_{j \in Succ(i)}\!\!
 (b_j^d \wedge \bigwedge_{1 \leq k \leq m_i}\!\! (\neg X_{j,k}))
+\vspace{-.5em}
 \end{equation*}
-%
+
 In our algorithm, the initialization of the abstract values slightly differs from
 algorithm \ref{algo:combined} line~\ref{alg=X-init}, since we now have to
 initialize each disjunct. Instead of Line~\ref{alg=X-init}, we initialize $X_{i,k}$ with $\perp$ for all
@@ -875,7 +885,7 @@ only once.
 When the value of $\sigma_i(j,k)$ is required but undefined, we first compute
 the image of the
 abstract value $X_{i,j}$ by the path indexed by $k$, and try to find an existing
-disjunct of index $j'$ so that the least upper bound of the two abstract values is exactly their union (this can be tested using SMT-solving).
+disjunct of index $j'$ so that the least upper bound of the two abstract values is exactly their union (using SMT-solving).
 If such an index exists, then we set $\sigma_i(j,k) = j'$.
 Otherwise:
 \begin{compactitem}
@@ -911,8 +921,9 @@ For SMT-solving, our analyzer uses Yices
 
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
+\MM{TODO: résumer les conclusions sur les résultats}
 
-\begin{table}[!h]
+\begin{figure}[h!]
       \centering
       \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline
         \multicolumn{1}{|c|}{} &
@@ -940,13 +951,25 @@ sed-4.2        & 23  & 292   & 35  & 7   & 23   & 69   & 521   \\
 tar-1.26       & 73  & 1712  & 270 & 39  & 110  & 304  & 1164  \\
 % TODO: mettre à jour les chiffres ?
 	\hline
-\end{tabular}
-\caption{List of analyzed open-source projects, with their respective number of
-lines of code, number of control points in $P_R$, and execution time
-on various techniques\MM{TODO}}
-\label{fig:projects}
-\end{table}
+      \end{tabular}
+      \label{fig:projects}
 
+    \input{gnuplot/techniques.tex}
+  \vspace{-20pt}
+  \caption{Comparison of the abstract values obtained on several open-source projects. The table shows
+  their respective number of lines of code, number of control points in $P_R$, and execution time
+  on various techniques.
+  Techniques are classical abstract
+  interpretation (S), \emph{Guided Static
+  Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
+  (G+PF), and its version with disjunctive invariants (DIS).
+  The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
+$\supsetneq$ the percentage of invariants stronger with the right-side technique,
+and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
+neither greater nor smaller;
+the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
+  \label{fig:techniques}
+\end {figure}
 
 \section{Conclusion and Future Prospects}
 Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
@@ -966,6 +989,8 @@ It thus seems reasonable that techniques such as considering ``packs'' of relate
 We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
 
 We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
+
+\FloatBarrier
 
 \phantomsection\addcontentsline{toc}{section}{References} 
 \bibliographystyle{splncs03}
@@ -1020,23 +1045,7 @@ The analysis is currently only forward, even though nothing in what we describe 
 \subsection{Precision of the Various Techniques}
 \label{sec:compare_techniques}
 
-\begin{figure}[h]
-  \begin{center}
-    \input{gnuplot/techniques.tex}
-  \end{center} 
-  \vspace{-20pt}
-  \caption{Comparison of the abstract values obtained by classical abstract
-  interpretation (S), \emph{Guided Static
-  Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
-  (G+PF), and its version with disjunctive invariants (DIS).
-  The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
-$\supsetneq$ the percentage of invariants stronger with the right-side technique,
-and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
-neither greater nor smaller;
-the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
-  \label{fig:techniques}
-\end {figure}
-
+\MM{TODO: graphique supprimé ici}
 
 \begin{table*}
 \begin{center}
