@@ -13,9 +13,12 @@ OPTIONS :
 	-u        : unroll loops once
 	-s        : silent mode
 	-c        : compare all techniques
+	-M        : compare narrowing
 	-G        : generate the .dot CFG
 	-y        : use Yices instead of Microsoft Z3
 	-b        : use the Bagnara Widening operator
+	-d        : domain 1
+	-D        : domain 2
 	-p        : use the trunk version of pagai
 	-t        : set a time limit (Pagai is killed after this time, default 800s)
 "
@@ -26,14 +29,17 @@ GRAPH=0
 YICES=0
 UNROLL=0
 COMPARE=0
+NCOMPARE=0
 TIME_LIMIT=800
 RESULT=
 BITCODE=
 PAGAI=Pagai
 REQUIRED=0
 SILENT=0
+DOMAIN1=pk
+DOMAIN2=pk
 
-while getopts "hpygrbuGi:o:ct:O:sp" opt ; do
+while getopts "hpygrbuGi:o:ct:O:spMd:D:" opt ; do
 	case $opt in
 		h)
 			usage
@@ -43,6 +49,12 @@ while getopts "hpygrbuGi:o:ct:O:sp" opt ; do
 			FILENAME=$OPTARG
 			REQUIRED=1
 			;;
+		d)
+			DOMAIN1=$OPTARG
+			;;
+		D)
+			DOMAIN2=$OPTARG
+			;;
 		u)
 			UNROLL=1
 			;;
@@ -51,6 +63,9 @@ while getopts "hpygrbuGi:o:ct:O:sp" opt ; do
 			;;
 		c)
 			COMPARE=1
+			;;
+		M)
+			NCOMPARE=1
 			;;
 		G)
 			GRAPH=1
@@ -119,25 +134,28 @@ RESULT=/tmp/${NAME%%.*}.result
 
 ulimit -t $TIME_LIMIT
 
+ARGS="--domain $DOMAIN1 --domain2 $DOMAIN2 "
+
 if [ -z $OUTPUT ] ; then 
 	if [ $COMPARE -eq 1 ] ; then
-			$PAGAI -c -i $BITCODE
+		$PAGAI $ARGS -c -i $BITCODE
+	elif [ $NCOMPARE -eq 1 ] ; then
+		echo "$PAGAI $ARGS -t s -M -i $BITCODE"
+		$PAGAI $ARGS -t s -M -i $BITCODE
+	elif [ $YICES -eq 1 ] ; then
+		$PAGAI $ARGS -y -i $BITCODE
 	else
-		if [ $YICES -eq 1 ] ; then
-			$PAGAI -y -i $BITCODE
-		else
-			$PAGAI -i $BITCODE
-		fi
+		$PAGAI $ARGS -i $BITCODE
 	fi
 else
 	if [ $COMPARE -eq 1 ] ; then
-			$PAGAI -c -i $BITCODE -o $OUTPUT
+			$PAGAI $ARGS -c -i $BITCODE -o $OUTPUT
+	elif [ $NCOMPARE -eq 1 ] ; then
+		$PAGAI $ARGS -t s -M -i $BITCODE -o $OUTPUT
+	elif [ $YICES -eq 1 ] ; then
+		$PAGAI $ARGS -y -i $BITCODE -o $OUTPUT
 	else
-		if [ $YICES -eq 1 ] ; then
-			$PAGAI -y -i $BITCODE -o $OUTPUT
-		else
-			$PAGAI -i $BITCODE -o $OUTPUT
-		fi
+		$PAGAI $ARGS -i $BITCODE -o $OUTPUT
 	fi
 fi
 xs=$?

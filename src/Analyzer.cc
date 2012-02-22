@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 	filename=NULL;
 	manager = Z3_MANAGER;
 	ap_manager[0] = PK;
-	ap_manager[1] = BOX;
+	ap_manager[1] = PK;
 	Narrowing[0] = false;
 	Narrowing[1] = false;
 	technique = LW_WITH_PF;
