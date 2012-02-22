@@ -49,15 +49,22 @@ color=blue]
 % commentaires dans les algorithmes crees avec le package algorithmic
 \renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
 
-\newcommand{\avirer}[1]{ {\color{red} #1} }
-\newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
-%\newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
-%\newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
-%\newcommand{\avirer}[1]{}
-%\newcommand{\MM}[1]{}
-%\newcommand{\JH}[1]{}
-%\newcommand{\DM}[1]{}
+\usepackage{ifthen}
+\newboolean{draft}
+%\setboolean{draft}{true}
+\setboolean{draft}{false}
 
+\ifthenelse{\boolean{draft}}{
+  \newcommand{\avirer}[1]{{\color{red} #1}}
+  \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+  \newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
+  \newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
+}{
+  \newcommand{\avirer}[1]{}
+  \newcommand{\MM}[1]{}
+  \newcommand{\JH}[1]{}
+  \newcommand{\DM}[1]{}
+}
 
 \title{\mytitle}
 \subtitle{Combined analysis algorithms and experimental evaluation}
