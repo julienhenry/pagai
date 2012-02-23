@@ -76,7 +76,7 @@ color=blue]
 \and CNRS
 \and Grenoble-INP}
 
-\renewcommand{\baselinestretch}{1}
+\renewcommand{\baselinestretch}{.97}
 
 \begin{document}
 \maketitle
@@ -88,7 +88,7 @@ paths inside loops, at the expense of possibly exponential complexity. SMT-solvi
 
 We improve previously proposed techniques for guided static analysis and the generation of disjunctive invariants by combining them with techniques for succinct representations of paths and symbolic representations for transitions based on static single assignment.
 
-Because of the non-monotonicity of the results of abstract interpretation with widening operators, it is difficult to conclude that some abstraction is more precise than another based on theoretical local precision results. We thus conducted extensive comparisons between our new techniques and previous ones, on a variety of open-source packages. We also took the opportunity to compare the precision of various classical abstract domains (convex polyhedra, octagons, intervals).
+Because of the non-monotonicity of the results of abstract interpretation with widening operators, it is difficult to conclude that some abstraction is more precise than another based on theoretical local precision results. We thus conducted extensive comparisons between our new techniques and previous ones, on a variety of open-source packages.
 \end{abstract}
 
 
@@ -186,22 +186,23 @@ may foil them: the iterations immediately reach a fixpoint and do not decrease
 further (see example in \S\ref{subsec:rate_lim}). Sections \ref{sec:guided} and
 \ref{sec:path_focusing} describe techniques that work around this problem.
 
+\MM{J'avais insisté pour qu'on écrive un truc comme ça, mais si on ne
+  met plus l'accent sur le côté expérimental, on peut sans doute
+  supprimer ce paragraphe completement ?}
+\avirer{
 Widening operations have a somewhat counterintuitive behavior: the
 result of an analysis (postcondition) is not necessarily monotonic
 with respect to the precondition.
-\avirer{
-For instance, classical interval
-analysis with widening and decreasing iterations on the loop
-\lstinline|while (x != 10) x=x+1;| yields a loop invariant $x \in
-[0,+\infty)$ if the precondition is $x \in [0,0]$, but $x \in [0,10]$
-(strictly stronger) if the precondition is $x \in [0,10]$ (strictly
-weaker).
-}
+% For instance, classical interval
+% analysis with widening and decreasing iterations on the loop
+% \lstinline|while (x != 10) x=x+1;| yields a loop invariant $x \in
+% [0,+\infty)$ if the precondition is $x \in [0,0]$, but $x \in [0,10]$
+% (strictly stronger) if the precondition is $x \in [0,10]$ (strictly
+% weaker).
 This means that, when using widenings, being locally more precise \avirer{(for instance, by using more expressive abstract domains, or widening operators that climb more slowly \cite{BagnaraHRZ05SCP})} does not necessarily translate into higher final precision.
-\avirer{
-It is almost always possible to concoct examples where a supposedly more precise abstraction (e.g. polyhedra) yields less precise results than a less precise one (e.g. intervals), but are these examples representative of real programs?
-}
+% It is almost always possible to concoct examples where a supposedly more precise abstraction (e.g. polyhedra) yields less precise results than a less precise one (e.g. intervals), but are these examples representative of real programs
 This justifies our recourse to evaluation on real, large programs~(\S~\ref{sec:compare_techniques}).
+}
 
 \subsection{SMT-solving}
 Boolean satisfiability (SAT) is the canonical NP-complete problem: given a propositional formula (e.g. $(a \lor \neg b) \land (\neg a \lor b \lor \neg c)$), decide whether it is satisfiable --- and, if so, output a satisfying assignment.
@@ -504,15 +505,6 @@ We distinguish three phases in the main loop of the analysis:
   i.e. $A' = \emptyset$.
 \end{compactenum}
 
-%\MM{Je trouve qu'il manque une vue de haut niveau quelque part par
-%  ici. Dire qu'en gros, l'algo, c'est (en pseudo-code ou en langue naturelle) :
-%
-%Sans ca, enchainer tout de suite sur ``ascending iterations'' est un peu brutal.
-%
-%Ensuite, on peut rafiner la définition de ``Subset'' ($A$ et $P$), et
-%enchainer sur l'algo 2.
-%}
-
 Step~\ref{step:ascending} corresponds to the application of
 path-focusing \cite{Monniaux_Gonnord_SAS11} to
 the elements of $A$ until $A$ is empty. 
@@ -526,7 +518,7 @@ Analysis} and \emph{Path-focusing}.
 
 The order of steps is important: narrowing has to be performed before
 adding new paths, or spurious new paths would be added to $P$.
-Starting with the addition of new paths avoids% wasting time
+Starting with the addition of new paths avoids
 doing the ascending iterations on an empty graph.
 
 \subsection{Ascending Iterations by Path-focusing}
