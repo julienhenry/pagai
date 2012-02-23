@@ -76,7 +76,7 @@ color=blue]
 \and CNRS
 \and Grenoble-INP}
 
-\renewcommand{\baselinestretch}{.97}
+\renewcommand{\baselinestretch}{1}
 
 \begin{document}
 \maketitle
@@ -361,6 +361,7 @@ Intuitively, this disappointing result is obtained because widening extrapolates
 Gopan and Reps' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~(\ref{eqn:triangle}); each phase is identified by the tests taken or not taken.
 
 The analysis starts by identifying the tests taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
+\vspace{-.5em}
 \begin{lstlisting}[numbers=none]
   while(1) {
     if(x <= 50) y++;
@@ -369,6 +370,7 @@ The analysis starts by identifying the tests taken and not taken during the firs
     x++;
   }
 \end{lstlisting}
+\vspace{-.5em}
 
 Analyzing this loop using widening and narrowing on convex polyhedra
 or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$.
@@ -439,7 +441,7 @@ multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges
 unfeasible paths.
 In this section, we use the same notations as \ref{sec:path_focusing}, except
 that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
-another abstract value $X_i^d$ later in the algorithm.
+another abstract value $X_i^d$ later.
 
 The combination of these two techniques aims at first discovering a precise
 inductive invariant for a subset of paths between two points in $P_R$, 
@@ -453,7 +455,16 @@ We iterate the operations until the whole program (i.e all the
 feasible paths) has been considered. The result will then be an
 inductive invariant of the entire program.
 
-\subsection{Algorithm}
+The ascending iteration applies path-focusing
+\cite{Monniaux_Gonnord_SAS11} to a subset of the multigraph. As
+\cite{DBLP:conf/sas/GopanR07}, we do some narrowing, to recover
+precision lost by widening, \emph{before}
+computing and taking into account new feasible paths. Thus, our
+technique combines the advantages of \emph{Guided Static
+  Analysis} and \emph{Path-focusing}.
+
+% MM: ce titre bouffe pas mal de place pour une valeur ajoutée faible
+%\subsection{Algorithm}
 
 
 Algorithm~\ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
@@ -469,6 +480,7 @@ diagrams. We also maintain two sets of control points:
 	added to both $A$ and $A'$.
 \end{compactitem}
 
+\vspace{-1em}
 \begin{algorithm}
 	\caption{Guided static analysis on implicit multigraph}
 	\label{algo:combined}
@@ -476,6 +488,7 @@ diagrams. We also maintain two sets of control points:
 	\input{algo/algo-combined.tex}
 	\end{algorithmic}
 \end{algorithm}
+\vspace{-1em}
 
 
 We distinguish three phases in the main loop of the analysis:
@@ -504,17 +517,6 @@ We distinguish three phases in the main loop of the analysis:
   reiterate from step 1 unless there are no more points to explore,
   i.e. $A' = \emptyset$.
 \end{compactenum}
-
-Step~\ref{step:ascending} corresponds to the application of
-path-focusing \cite{Monniaux_Gonnord_SAS11} to
-the elements of $A$ until $A$ is empty. 
-When $A$ becomes empty, it means the
-invariant computation of the subgraph is finished. As proposed by
-\cite{DBLP:conf/sas/GopanR07}, we can do some narrowing iterations.
-These narrowing iterations allow to recover precision lost by
-widening, \emph{before} computing and taking into account new feasible paths.
-Thus, our technique combines both the advantages of \emph{Guided Static
-Analysis} and \emph{Path-focusing}.
 
 The order of steps is important: narrowing has to be performed before
 adding new paths, or spurious new paths would be added to $P$.
@@ -605,6 +607,7 @@ compute other paths with the same source and destination if it is not
 needed (because these new paths would not make $X_j^d$ grow, hence
 would not be returned by the SMT solver).
 
+\vspace{-1em}
 \begin{algorithm}
 	\caption{ComputeNewPaths}
 	\label{algo:computepaths}
@@ -612,6 +615,7 @@ would not be returned by the SMT solver).
 	\input{algo/compute-paths.tex}
 	\end{algorithmic}
 \end{algorithm}
+\vspace{-1em}
 
 \subsection{Termination}
 Termination of this algorithm is guaranteed, because:
@@ -703,7 +707,7 @@ feasible paths could have been added during the analysis.
 	\node[PRstate] (n00) {$p_4$};
 	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
 	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
-	\node (label) [below of=n1, yshift=1.2cm] {Step 1};
+	\node (label) [left of=n00, node distance=1cm] {\bf Step 1};
 
   \path [transition] 
 		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
@@ -716,7 +720,7 @@ feasible paths could have been added during the analysis.
 	\node[PRstate] (n00) {$p_4$};
 	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
 	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
-	\node (label) [below of=n1, yshift=1.2cm] {Step 2};
+	\node (label) [left of=n00, node distance=1cm] {\bf Step 2};
 
   \path [transition] 
 		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
@@ -835,6 +839,7 @@ The \emph{Update} function can classically assign  $X_{i,\sigma_i(j,k)} \widenin
 proposed by \cite{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
 acceleration.
 
+\vspace{-1em}
 \begin{algorithm}[!h]
 \caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
 \label{algo:disjunctive}
@@ -850,6 +855,7 @@ acceleration.
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
+\vspace{-1em}
 
 We experimented with a heuristic
 of dynamic construction of the $\sigma_i$ functions, adapted from
