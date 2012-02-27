@@ -218,6 +218,10 @@ void AbstractGopan::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 	*main = Xmain;
 }
 
+void AbstractGopan::meet(Abstract* A) {
+	//TODO
+}
+
 void AbstractGopan::print(bool only_main) {
 
 	FILE* tmp = tmpfile();

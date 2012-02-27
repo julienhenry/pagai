@@ -38,6 +38,7 @@ void AISimple::computeFunc(Function * F) {
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 	n->X_i[passID]->set_top(env);
+	n->X_f[passID]->set_top(env);
 
 	ascendingIter(n, F);
 
@@ -47,8 +48,13 @@ void AISimple::computeFunc(Function * F) {
 	while (copy_Xd_to_Xs(F))
 		narrowingIter(n);
 
+
 	if (NewNarrowing) {
+		
+		copy_Xs_to_Xf(F);
+
 		computeWideningSeed(F);
+		
 		copy_Xd_to_Xs(F);
 	
 		ascendingIter(n, F);
@@ -165,6 +171,10 @@ void AISimple::computeNode(Node * n) {
 			Xtemp->widening(Succ->X_s[passID]);
 		} else {
 			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
+		}
+		
+		if (!Succ->X_f[passID]->is_bottom()) {
+			Xtemp->meet(Succ->X_f[passID]);
 		}
 
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {

@@ -57,6 +57,7 @@ class Node {
 		std::map<params,Abstract*> X_d;
 		/// X_i - First Abstract value not bottom during the analysis
 		std::map<params,Abstract*> X_i;
+		std::map<params,Abstract*> X_f;
 
 		ap_environment_t * env;
 

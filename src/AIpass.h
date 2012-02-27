@@ -140,6 +140,9 @@ class AIPass : public InstVisitor<AIPass> {
 		/// return true iff there there some Xd values that were not equal to Xs
 		bool copy_Xd_to_Xs(Function * F);
 
+		///
+		void copy_Xs_to_Xf(Function * F);
+
 		/// computeTransform - computes in Xtemp the polyhedra resulting from
 		/// the transformation  of n->X through the path
 		void computeTransform (	

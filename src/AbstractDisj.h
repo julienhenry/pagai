@@ -113,6 +113,8 @@ class AbstractDisj: public Abstract {
 		void join_array_dpUcm(ap_environment_t *env, Abstract* n);
 		void join_array_dpUcm(ap_environment_t *env, Abstract* n, int index);
 		
+		void meet(Abstract* A);
+
 		/// to_tcons_array - convert the abstract value to a conjunction of
 		// tree constraints
 		ap_tcons1_array_t to_tcons_array();

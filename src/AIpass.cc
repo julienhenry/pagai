@@ -67,10 +67,12 @@ void AIPass::initFunction(Function * F) {
 			n->X_s[passID] = aman->NewAbstract(man,n->env);
 			n->X_d[passID] = aman->NewAbstract(man,n->env);
 			n->X_i[passID] = aman->NewAbstract(man,n->env);
+			n->X_f[passID] = aman->NewAbstract(man,n->env);
 		} else {
 			n->X_s[passID] = NULL;
 			n->X_d[passID] = NULL;
 			n->X_i[passID] = NULL;
+			n->X_f[passID] = NULL;
 		}
 	}
 	
@@ -165,6 +167,21 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 		}
 	}
 	return res;
+}
+
+void AIPass::copy_Xs_to_Xf(Function * F) {
+	BasicBlock * b;
+	ap_environment_t * env = ap_environment_alloc_empty();
+
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		if (dynamic_cast<AISimple*>(this)
+				|| Pr::getPr(*F)->count(i)) {
+
+			delete Nodes[b]->X_f[passID];
+			Nodes[b]->X_f[passID] = aman->NewAbstract(Nodes[b]->X_s[passID]);
+		}
+	}
 }
 
 void AIPass::loopiter(

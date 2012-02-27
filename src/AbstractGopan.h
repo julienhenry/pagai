@@ -62,6 +62,8 @@ class AbstractGopan : public Abstract {
 		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
 		void join_array_dpUcm(ap_environment_t *env, Abstract* n);
 
+		void meet(Abstract* A);
+
 		/// to_tcons_array - convert the abstract value to a conjunction of
 		// tree constraints
 		ap_tcons1_array_t to_tcons_array();

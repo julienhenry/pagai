@@ -143,6 +143,12 @@ void AbstractClassic::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
 	join_array(env,v);
 }
 
+void AbstractClassic::meet(Abstract* A) {
+	ap_abstract1_t tmp = *main;
+	*main = ap_abstract1_meet(man,false,main,A->main);
+	ap_abstract1_clear(man,&tmp);
+}
+
 ap_tcons1_array_t AbstractClassic::to_tcons_array() {
 	return ap_abstract1_to_tcons_array(man,main);
 }

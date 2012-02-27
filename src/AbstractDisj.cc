@@ -249,6 +249,10 @@ void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n, int inde
 	main = disj[0]->main;
 }
 
+void AbstractDisj::meet(Abstract* A) {
+	//TODO
+}
+
 //NOT CORRECT
 ap_tcons1_array_t AbstractDisj::to_tcons_array() {
 	return ap_abstract1_to_tcons_array(man,main);
