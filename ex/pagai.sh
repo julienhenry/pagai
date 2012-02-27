@@ -11,6 +11,7 @@ OPTIONS :
 	-o [FILE ]: name of the IR generated file
 	-a        : arguments given to pagai
 	-u        : unroll loops once
+	-I [level]: inline functions
 	-s        : silent mode
 	-G        : generate the .dot CFG
 	-p        : use the trunk version of pagai
@@ -27,9 +28,10 @@ BITCODE=
 PAGAI=Pagai
 REQUIRED=0
 SILENT=0
+INLINE=0
 ARGS=" "
 
-while getopts "a:hpruGi:o:t:s" opt ; do
+while getopts "a:hpruGi:o:t:sI:" opt ; do
 	case $opt in
 		h)
 			usage
@@ -53,6 +55,9 @@ while getopts "a:hpruGi:o:t:s" opt ; do
 			;;
 		a)
 			ARGS=$OPTARG
+			;;
+		I)
+			INLINE=$OPTARG
 			;;
 		t)
 			TIME_LIMIT=$OPTARG
@@ -91,6 +96,10 @@ if [ $UNROLL -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $FILENAME -o $BITCODE
 else
 	opt -mem2reg -inline -lowerswitch $FILENAME -o $BITCODE
+fi
+
+if [ ! $INLINE -eq 0 ] ; then
+opt -inline -inline-threshold=$INLINE -inlinehint-threshold=$INLINE  $BITCODE -o $BITCODE
 fi
 
 if [ $GRAPH -eq 1 ] ; then
