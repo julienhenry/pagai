@@ -5,5 +5,4 @@ void rate_limiter() {
     if (x > x_old+10) x = x_old+10;
     else if (x < x_old-10) x = x_old-10;
     else x_old = x;
-  }
-}
+} }

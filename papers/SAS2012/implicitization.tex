@@ -17,6 +17,7 @@
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
+\usepackage{rotating}
 
 \usepackage{listings}
 \lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2,breaklines=true,basicstyle={\rm\fontfamily{phv}\small\selectfont}}
@@ -699,9 +700,8 @@ feasible paths could have been added during the analysis.
 
 \begin{figure}
 \label{fig:example-graph}
-\centering
 \begin{minipage}[c]{.15\textwidth}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.5cm,
                     semithick,font=\footnotesize]
 
 	\node[PRstate] (n00) {$p_4$};
@@ -712,7 +712,7 @@ feasible paths could have been added during the analysis.
   \path [transition] 
 		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
 \end{tikzpicture}
-\end{minipage} 
+\end{minipage}\hfill
 \begin{minipage}[c]{.75\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
@@ -1064,7 +1064,7 @@ The analysis is currently only forward, even though nothing in what we describe 
 
 \MM{TODO: graphique supprimé ici}
 
-\begin{table*}
+\begin{sidewaystable}
 \begin{center}
 \setlength{\tabcolsep}{0.75ex}
 \begin{tabular}{|l
@@ -1099,7 +1099,7 @@ instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
 $\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:techniques}
-\end{table*}
+\end{sidewaystable}
 
 For each program and each pair $(T_1,T_2)$ of analysis techniques, we list
 the proportion of control points in $P_R$ where $T_1$ (resp.~$T_2$) gives a
@@ -1149,7 +1149,7 @@ The techniques we introduce in this article are slower, but speed is still on th
 
 \subsection{Precision of Abstract Domains}
 \label{sec:compare_domains}
-\begin{table*}
+\begin{sidewaystable}
 \begin{center}
 \setlength{\tabcolsep}{0.75ex}
 \begin{tabular}{|l
@@ -1186,7 +1186,7 @@ using the classical widening operator (POLY). POLY and POLY* use the Parma
 Polyhedral Library \cite{PPL}.
 $\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:domain}
-\end{table*}
+\end{sidewaystable}
 
 For each program and each pair $(D_1,D_2)$ of abstract domains, we compare by
 inclusion the invariants of the different control points in $P_R$ (where $P_R$
