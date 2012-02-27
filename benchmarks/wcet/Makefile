@@ -25,7 +25,7 @@ clean:
 	rm $(BENCHDIR)/*.res*
 
 cclean:
-	rm $(BENCHDIR)/*.res,compare
+	rm $(BENCHDIR)/*.res.compare
 
 nclean:
 	rm $(BENCHDIR)/*.res.narrow
