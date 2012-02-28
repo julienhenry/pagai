@@ -261,65 +261,72 @@ void AIdis::computeNewPaths(Node * n) {
 }
 
 void AIdis::loopiter(
-	Node * n, 
-	int index,
-	int Sigma,
-	Abstract * &Xtemp, 
-	std::list<BasicBlock*> * path,
-	bool &only_join, 
-	PathTree * const U) {
+		Node * n, 
+		int index,
+		int Sigma,
+		Abstract * &Xtemp, 
+		std::list<BasicBlock*> * path,
+		bool &only_join, 
+		PathTree * const U,
+		PathTree * const V
+		) {
 	Node * Succ = n;
 	AbstractDisj * SuccDis = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
 
 	std::vector<Abstract*> Join;
 	if (U->exist(*path)) {
-		// backup the previous abstract value
-		Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(index));
+		if (V->exist(*path)) {
+			only_join = false;
+		} else {
+			// backup the previous abstract value
+			Abstract * Xpred = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(index));
 
-		Join.clear();
-		Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma)));
-		Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+			Join.clear();
+			Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma)));
+			Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
+			Xtemp->join_array(Xtemp->main->env,Join);
 
-		DEBUG(
-			*Out << "BEFORE MINIWIDENING\n";	
-			*Out << "Succ->X:\n";
-			SuccDis->print();
-			*Out << "Xtemp:\n";
-			Xtemp->print();
-		);
+			DEBUG(
+				*Out << "BEFORE MINIWIDENING\n";	
+				*Out << "Succ->X:\n";
+				SuccDis->print();
+				*Out << "Xtemp:\n";
+				Xtemp->print();
+			);
 
-		DEBUG(
-			*Out << "THRESHOLD:\n";
-			fflush(stdout);
-			ap_lincons1_array_fprint(stdout,&threshold);
-			fflush(stdout);
-		);
-		Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
-		DEBUG(
-			*Out << "MINIWIDENING!\n";	
-		);
-		delete SuccDis->getDisjunct(Sigma);
-		SuccDis->setDisjunct(Sigma,Xtemp);
-		DEBUG(
-			*Out << "AFTER MINIWIDENING\n";	
-			Xtemp->print();
-		);
+			DEBUG(
+				*Out << "THRESHOLD:\n";
+				fflush(stdout);
+				ap_lincons1_array_fprint(stdout,&threshold);
+				fflush(stdout);
+			);
+			Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
+			DEBUG(
+				*Out << "MINIWIDENING!\n";	
+			);
+			delete SuccDis->getDisjunct(Sigma);
+			SuccDis->setDisjunct(Sigma,Xtemp);
+			DEBUG(
+				*Out << "AFTER MINIWIDENING\n";	
+				Xtemp->print();
+			);
 
-		Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
-		computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
-		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
-			SuccDis->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
-			Xtemp->print();
-		);
-		
-		delete SuccDis->getDisjunct(index);
-		SuccDis->setDisjunct(index,Xpred);
-		only_join = true;
-		U->remove(*path);
+			Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
+			computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
+			DEBUG(
+				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+				SuccDis->print();
+				*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+				Xtemp->print();
+			);
+			
+			delete SuccDis->getDisjunct(index);
+			SuccDis->setDisjunct(index,Xpred);
+			only_join = true;
+			V->insert(*path);
+		}
 	} else {
+		only_join = true;
 		U->insert(*path);
 	}
 }
@@ -335,6 +342,7 @@ void AIdis::computeNode(Node * n) {
 		return;
 	}
 	std::map<int,PathTree*> U;
+	std::map<int,PathTree*> V;
 
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -366,6 +374,13 @@ void AIdis::computeNode(Node * n) {
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
 				unknown = true;
+				// delete all path trees and return
+				for (std::map<int,PathTree*>::iterator it = U.begin(), 
+						et = U.end(); it != et; it++) 
+					delete it->second;
+				for (std::map<int,PathTree*>::iterator it = V.begin(), 
+						et = V.end(); it != et; it++) 
+					delete it->second;
 				return;
 			}
 			break;
@@ -391,16 +406,12 @@ void AIdis::computeNode(Node * n) {
 
 		if (!U.count(index))
 			U[index] = new PathTree(n->bb);
+		if (!V.count(index))
+			V[index] = new PathTree(n->bb);
 
-		if (!U[index]->exist(path)) {
-			n_paths++;
-			only_join = true;
-		} else {
-			only_join = false;
-		}
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,index,Sigma,Xtemp,&path,only_join,U[index]);
+			loopiter(n,index,Sigma,Xtemp,&path,only_join,U[index],V[index]);
 		} 
 		Join.clear();
 		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
@@ -408,8 +419,8 @@ void AIdis::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
-				//Xtemp->widening(Succ->X_s[passID]);
-				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
+				Xtemp->widening(SuccDisj->getDisjunct(Sigma));
+				//Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
 				DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
@@ -434,6 +445,9 @@ void AIdis::computeNode(Node * n) {
 
 	//delete U;
 	for (std::map<int,PathTree*>::iterator it = U.begin(), et = U.end(); it != et; it++) {
+		delete it->second;
+	}
+	for (std::map<int,PathTree*>::iterator it = V.begin(), et = V.end(); it != et; it++) {
 		delete it->second;
 	}
 }

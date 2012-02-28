@@ -246,7 +246,6 @@ void AIPass::loopiter(
 			delete Succ->X_s[passID];
 			Succ->X_s[passID] = Xpred;
 			only_join = true;
-			//U->remove(*path);
 			V->insert(*path);
 		}
 	} else {

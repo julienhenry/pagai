@@ -10,17 +10,14 @@ NCOMPAREFILES=$(BCFILES:%.bc=%.res.narrow)
 all: $(RESFILES)
 
 %.res: %.bc
-	@pagai.sh -i $*.bc -o $@ -t 800 2> /dev/null
+	@pagai.sh -s -I 2000 -t 800 -i $*.bc > $@
 
 %.res.compare: %.bc
-	@echo $*.bc started...
-	@pagai.sh -i $*.bc -c -t 800 > $@ 2> /dev/null
-	@echo $*.bc finished
+	@pagai.sh -s -t 800 -i $*.bc -a " -c " > $@
 
 %.res.narrow: %.bc
-	@echo $*.bc started...
-	@pagai.sh -s -I 2000 -t 800 -i $*.bc -a " -t s --domain pk --domain2 pk -M " > $@
-	@echo $*.bc finished
+	@pagai.sh -s -I 20000 -t 800 -i $*.bc -a " -t s --domain pk --domain2 pk -M " > $@
+
 clean:
 	rm $(BENCHDIR)/*.res*
 
@@ -39,4 +36,6 @@ ncompare: $(NCOMPAREFILES)
 ndiff:
 	@./diff_narrowing.sh $(BENCHDIR)
 	
+cdiff:
+	@./diff_compare.sh $(BENCHDIR)
 

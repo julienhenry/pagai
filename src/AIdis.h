@@ -95,7 +95,8 @@ class AIdis : public ModulePass, public AIPass {
 			Abstract * &Xtemp,
 			std::list<BasicBlock*> * path,
 			bool &only_join,
-			PathTree * const U);
+			PathTree * const U,
+			PathTree * const V);
 };
 
 #endif
