@@ -60,7 +60,11 @@ for dir in `ls` ; do
 			done
 			TOTAL=$[${RES[0]}+${RES[1]}+${RES[2]}+${RES[3]}]
 			for k in `seq 0 27` ; do 
-			AVG[$k]=`echo "scale=2;${RES[$k]}*100/$TOTAL"| bc`
+				if [ $TOTAL -ne 0 ] ; then
+					AVG[$k]=`echo "scale=2;${RES[$k]}*100/$TOTAL"| bc`
+				else
+					AVG[$k]=0
+				fi
 			done
 			TIME_S=`echo "scale=0;(${TIME[0]}*1000000+${TIME[1]})/1000000" | bc`
 			TIME_LW=`echo "scale=0;(${TIME[2]}*1000000+${TIME[3]})/1000000" | bc`
