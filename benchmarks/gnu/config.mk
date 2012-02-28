@@ -1,1 +1,1 @@
-# BENCHDIR=~/local/benchmarks/regression/gnu
+BENCHDIR=~/local/benchmarks/regression/gnu
