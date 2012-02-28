@@ -112,34 +112,34 @@ for k in `seq 0 27` ; do
 done
 
 
-echo "#####"
-echo "TOTAL"
-echo EQ LT GT UN
-echo ${ALL[0]} ${ALL[1]} ${ALL[2]} ${ALL[3]}		LW/S
-echo ${ALL[4]} ${ALL[5]} ${ALL[6]} ${ALL[7]}		PF/S
-echo ${ALL[8]} ${ALL[9]} ${ALL[10]} ${ALL[11]}		PF/LW
-echo ${ALL[12]} ${ALL[13]} ${ALL[14]} ${ALL[15]}		LW+PF/PF
-echo ${ALL[16]} ${ALL[17]} ${ALL[18]} ${ALL[19]}		LW+PF/LW
-echo ${ALL[20]} ${ALL[21]} ${ALL[22]} ${ALL[23]}		LW+PF/S
-echo ${ALL[24]} ${ALL[25]} ${ALL[26]} ${ALL[27]}		DIS/LW+PF
-echo "#####"
-
-TOTAL=$[${ALL[0]}+${ALL[1]}+${ALL[2]}+${ALL[3]}]
-for k in `seq 0 27` ; do 
-	ALL[$k]=`echo "scale=2;${ALL[$k]}*100/$TOTAL"| bc`
-done
-
-echo "#####"
-echo "TOTAL"
-echo EQ LT GT UN
-echo G/S      ${ALL[0]} ${ALL[1]} ${ALL[2]} ${ALL[3]}			
-echo PF/S      ${ALL[4]} ${ALL[5]} ${ALL[6]} ${ALL[7]}			
-echo PF/G     ${ALL[8]} ${ALL[9]} ${ALL[10]} ${ALL[11]}			
-echo G+PF/PF  ${ALL[12]} ${ALL[13]} ${ALL[14]} ${ALL[15]}		
-echo G+PF/G  ${ALL[16]} ${ALL[17]} ${ALL[18]} ${ALL[19]}		
-echo G+PF/S   ${ALL[20]} ${ALL[21]} ${ALL[22]} ${ALL[23]}		
-echo DIS/G+PF ${ALL[24]} ${ALL[25]} ${ALL[26]} ${ALL[27]}		
-echo "#####"
+#echo "#####"
+#echo "TOTAL"
+#echo EQ LT GT UN
+#echo ${ALL[0]} ${ALL[1]} ${ALL[2]} ${ALL[3]}		LW/S
+#echo ${ALL[4]} ${ALL[5]} ${ALL[6]} ${ALL[7]}		PF/S
+#echo ${ALL[8]} ${ALL[9]} ${ALL[10]} ${ALL[11]}		PF/LW
+#echo ${ALL[12]} ${ALL[13]} ${ALL[14]} ${ALL[15]}		LW+PF/PF
+#echo ${ALL[16]} ${ALL[17]} ${ALL[18]} ${ALL[19]}		LW+PF/LW
+#echo ${ALL[20]} ${ALL[21]} ${ALL[22]} ${ALL[23]}		LW+PF/S
+#echo ${ALL[24]} ${ALL[25]} ${ALL[26]} ${ALL[27]}		DIS/LW+PF
+#echo "#####"
+#
+#TOTAL=$[${ALL[0]}+${ALL[1]}+${ALL[2]}+${ALL[3]}]
+#for k in `seq 0 27` ; do 
+#	ALL[$k]=`echo "scale=2;${ALL[$k]}*100/$TOTAL"| bc`
+#done
+#
+#echo "#####"
+#echo "TOTAL"
+#echo EQ LT GT UN
+#echo G/S      ${ALL[0]} ${ALL[1]} ${ALL[2]} ${ALL[3]}			
+#echo PF/S      ${ALL[4]} ${ALL[5]} ${ALL[6]} ${ALL[7]}			
+#echo PF/G     ${ALL[8]} ${ALL[9]} ${ALL[10]} ${ALL[11]}			
+#echo G+PF/PF  ${ALL[12]} ${ALL[13]} ${ALL[14]} ${ALL[15]}		
+#echo G+PF/G  ${ALL[16]} ${ALL[17]} ${ALL[18]} ${ALL[19]}		
+#echo G+PF/S   ${ALL[20]} ${ALL[21]} ${ALL[22]} ${ALL[23]}		
+#echo DIS/G+PF ${ALL[24]} ${ALL[25]} ${ALL[26]} ${ALL[27]}		
+#echo "#####"
 #echo ${ALL[0]} ${ALL[4]} ${ALL[8]} ${ALL[12]} ${ALL[16]} ${ALL[20]} ${ALL[24]}
 #echo ${ALL[1]} ${ALL[5]} ${ALL[9]} ${ALL[13]} ${ALL[17]} ${ALL[21]} ${ALL[25]}
 #echo ${ALL[2]} ${ALL[6]} ${ALL[10]} ${ALL[14]} ${ALL[18]} ${ALL[22]} ${ALL[26]}

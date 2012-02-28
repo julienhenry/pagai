@@ -39,6 +39,7 @@ bool AIopt::runOnModule(Module &M) {
 	int N_Pr = 0;
 	//LSMT = &(getAnalysis<SMTpass>());
 	LSMT = SMTpass::getInstance();
+	LSMT->reset_SMTcontext();
 
 	*Out << "Starting analysis: PF+LW\n";
 
@@ -83,6 +84,7 @@ bool AIopt::runOnModule(Module &M) {
 }
 
 
+PathTree * W;
 
 void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
@@ -147,6 +149,7 @@ void AIopt::computeFunction(Function * F) {
 		}
 		A_prime.clear();
 
+		W = new PathTree(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
 
@@ -319,9 +322,15 @@ void AIopt::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
-				Xtemp->widening(Succ->X_s[passID]);
+				if (W->exist(path)) {
+					Xtemp->widening(Succ->X_s[passID]);
+					DEBUG(*Out << "WIDENING! \n";);
+					delete W;
+					W = new PathTree(n->bb);
+				} else {
+					W->insert(path);
+				}
 				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
-				DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "NO WIDENING\n";);
 		}
