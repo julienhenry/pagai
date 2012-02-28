@@ -1,4 +1,12 @@
 #!/bin/bash
+if [ -z $1 ] ; then
+	echo error : please use the command \"make ndiff\"
+	exit
+fi
+
+DIR=`pwd`
+cd $1
+
 
 for k in `seq 0 3` ; do 
 	ALL[$k]=0
@@ -101,3 +109,5 @@ echo "TOTAL"
 echo EQ LT GT UN
 echo G/S      ${ALL[0]} ${ALL[1]} ${ALL[2]} ${ALL[3]}			
 echo "#####"
+
+cd $DIR

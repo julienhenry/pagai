@@ -38,6 +38,12 @@ cclean:
 	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model cclean && cd ..);\
 	done ;
 
+cdiff:
+	./diff_analyzer.sh $(BENCHDIR)
+
+ndiff:
+	./diff_narrowing.sh $(BENCHDIR)
+
 resdir:
 	for p in  $(SUBDIRS); do\
 	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model resdir && cd ..);\

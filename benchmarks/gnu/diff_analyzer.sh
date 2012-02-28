@@ -1,4 +1,12 @@
 #!/bin/bash
+if [ -z $1 ] ; then
+	echo error : please use the command \"make cdiff\"
+	exit
+fi
+
+DIR=`pwd`
+cd $1
+
 
 for k in `seq 0 27` ; do 
 	ALL[$k]=0
@@ -142,3 +150,5 @@ echo "#####"
 #echo ${ALL[1]} ${ALL[5]} ${ALL[9]} ${ALL[13]} ${ALL[17]} ${ALL[21]} ${ALL[25]}
 #echo ${ALL[2]} ${ALL[6]} ${ALL[10]} ${ALL[14]} ${ALL[18]} ${ALL[22]} ${ALL[26]}
 #echo ${ALL[3]} ${ALL[7]} ${ALL[11]} ${ALL[15]} ${ALL[19]} ${ALL[23]} ${ALL[27]}
+
+cd $DIR
