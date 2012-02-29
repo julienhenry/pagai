@@ -30,16 +30,18 @@ class AIopt : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {
+		AIopt(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {
 			init();
 			passID.D = _man;
 			passID.N = _NewNarrow;
+			passID.TH = _Threshold;
 		}
 		
 		AIopt() : ModulePass(ID) {
 			init();
 			passID.D = getApronManager();
 			passID.N = useNewNarrowing();
+			passID.TH = useThreshold();
 		}
 
 		void init()

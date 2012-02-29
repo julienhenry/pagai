@@ -300,7 +300,10 @@ void AIdis::loopiter(
 				ap_lincons1_array_fprint(stdout,&threshold);
 				fflush(stdout);
 			);
-			Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
+			if (use_threshold)
+				Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
+			else
+				Xtemp->widening(SuccDis->getDisjunct(Sigma));
 			DEBUG(
 				*Out << "MINIWIDENING!\n";	
 			);
@@ -419,9 +422,11 @@ void AIdis::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+			if (use_threshold)
+				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
+			else
 				Xtemp->widening(SuccDisj->getDisjunct(Sigma));
-				//Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
-				DEBUG(*Out << "WIDENING! \n";);
+			DEBUG(*Out << "WIDENING! \n";);
 		} else {
 			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
 		}

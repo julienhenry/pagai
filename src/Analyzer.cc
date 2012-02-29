@@ -16,6 +16,7 @@ bool onlyrho;
 bool bagnara_widening;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
+bool Threshold[2];
 llvm::raw_ostream *Out;
 char* filename;
 int npass;
@@ -46,6 +47,7 @@ void show_help() {
 		  * dis (lw+pf, using disjunctive invariants)\n \
 		example of option: -t pf\n \
 -n : new version of narrowing (only for s technique)\n \
+-T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
 -c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
 -C : compare two abstract domains using the same technique\n \
@@ -97,6 +99,14 @@ bool useNewNarrowing() {
 
 bool useNewNarrowing(int i) {
 	return Narrowing[i];
+}
+
+bool useThreshold() {
+	return Threshold[0];
+}
+
+bool useThreshold(int i) {
+	return Threshold[i];
 }
 
 std::string TechniquesToString(Techniques t) {
@@ -202,6 +212,8 @@ int main(int argc, char* argv[]) {
 	ap_manager[1] = PK;
 	Narrowing[0] = false;
 	Narrowing[1] = false;
+	Threshold[0] = false;
+	Threshold[1] = false;
 	technique = LW_WITH_PF;
 	compare = false;
 	compare_Domain = false;
@@ -234,7 +246,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:nNM",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:nNMT",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -274,6 +286,9 @@ int main(int argc, char* argv[]) {
             break;
         case 'N':
 			Narrowing[1] = true;
+            break;
+        case 'T':
+			Threshold[0] = true;
             break;
         case 'M':
 			Narrowing[0] = true;

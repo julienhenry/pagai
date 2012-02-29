@@ -171,7 +171,10 @@ void AISimple::computeNode(Node * n) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);
-			Xtemp->widening(Succ->X_s[passID]);
+			if (use_threshold) {
+				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+			} else
+				Xtemp->widening(Succ->X_s[passID]);
 		} else {
 			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
 		}

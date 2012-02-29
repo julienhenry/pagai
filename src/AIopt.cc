@@ -323,14 +323,16 @@ void AIopt::computeNode(Node * n) {
 
 		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 				if (W->exist(path)) {
-					Xtemp->widening(Succ->X_s[passID]);
+					if (use_threshold)
+						Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+					else
+						Xtemp->widening(Succ->X_s[passID]);
 					DEBUG(*Out << "WIDENING! \n";);
 					delete W;
 					W = new PathTree(n->bb);
 				} else {
 					W->insert(path);
 				}
-				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 		} else {
 			DEBUG(*Out << "NO WIDENING\n";);
 		}

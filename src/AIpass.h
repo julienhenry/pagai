@@ -59,11 +59,12 @@ class AIPass : public InstVisitor<AIPass> {
 	
 	public:
 
-		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing) : 
+		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing, bool _use_Threshold) : 
 			LV(NULL),
 			LSMT(NULL),
 			unknown(false),
-			NewNarrowing(use_New_Narrowing) {
+			NewNarrowing(use_New_Narrowing),
+			use_threshold(_use_Threshold) {
 				man = create_manager(_man);
 				init();
 			}
@@ -74,6 +75,7 @@ class AIPass : public InstVisitor<AIPass> {
 			unknown(false) {
 				man = create_manager(getApronManager());
 				NewNarrowing = useNewNarrowing();
+				use_threshold = useThreshold();
 				init();
 			}
 
@@ -95,6 +97,10 @@ class AIPass : public InstVisitor<AIPass> {
 
 		/// when true, apply Halbwach's narrowing
 		bool NewNarrowing;
+
+		/// when true, apply widening with threshold
+		/// instead of classic widening
+		bool use_threshold;
 
 		/// initFunction - initialize the function by creating the Node
 		/// objects, and computing the strongly connected components.

@@ -23,16 +23,18 @@ class AIGopan : public AISimple {
 
 	public:
 
-		AIGopan(char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : AISimple(_ID,_man,_NewNarrow) {
+		AIGopan(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : AISimple(_ID,_man,_NewNarrow, _Threshold) {
 			init();
 			passID.D = _man;
 			passID.N = _NewNarrow;
+			passID.TH = _Threshold;
 		}
 		
 		AIGopan (): AISimple(ID) {
 			init();
 			passID.D = getApronManager();
 			passID.N = useNewNarrowing();
+			passID.TH = useThreshold();
 		}
 
 		void init()

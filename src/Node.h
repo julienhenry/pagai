@@ -27,9 +27,14 @@ struct params {
 	Apron_Manager_Type D;
 	// enhanced narrowing if N is true
 	bool N;
+	// widening with threshold
+	bool TH;
 
 	bool operator<(const params& A) const
-	{ return (T<A.T) || (T==A.T && D < A.D) || (T==A.T && D==A.D && N < A.N); }
+	{ return (T<A.T) 
+		|| (T==A.T && D < A.D) 
+		|| (T==A.T && D==A.D && N < A.N)
+		|| (T==A.T && D==A.D && N == A.N && TH < A.TH); }
 };
 
 /// @brief class that keeps information associated to a BasicBlock

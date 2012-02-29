@@ -222,8 +222,10 @@ void AIPass::loopiter(
 			//	fflush(stdout);
 			//);
 
-			//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
-			Xtemp->widening(Succ->X_s[passID]);
+			if (use_threshold)
+				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+			else
+				Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
 					*Out << "MINIWIDENING!\n";	
 				 );

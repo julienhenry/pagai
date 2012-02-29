@@ -204,11 +204,13 @@ void AIpf::computeNode(Node * n) {
 		Xtemp->join_array(Xtemp->main->env,Join);
 
 		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+			if (use_threshold)
+				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+			else
 				Xtemp->widening(Succ->X_s[passID]);
-				//Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
-				DEBUG(
-					*Out << "WIDENING! \n";
-				);
+			DEBUG(
+				*Out << "WIDENING! \n";
+			);
 		} else {
 			DEBUG(
 				*Out << "NO WIDENING\n";

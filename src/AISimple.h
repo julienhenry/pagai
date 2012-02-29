@@ -16,7 +16,7 @@ class AISimple : public ModulePass, public AIPass {
 
 	public:
 
-		AISimple (char &_ID, Apron_Manager_Type _man, bool _NewNarrow) : ModulePass(_ID), AIPass(_man,_NewNarrow) {}
+		AISimple (char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {}
 
 		AISimple (char & ID) : ModulePass(ID) {}
 
