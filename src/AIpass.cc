@@ -75,7 +75,7 @@ void AIPass::initFunction(Function * F) {
 			n->X_f[passID] = NULL;
 		}
 	}
-	
+
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
 	//*Out << *F;
@@ -180,6 +180,21 @@ void AIPass::copy_Xs_to_Xf(Function * F) {
 
 			delete Nodes[b]->X_f[passID];
 			Nodes[b]->X_f[passID] = aman->NewAbstract(Nodes[b]->X_s[passID]);
+		}
+	}
+}
+
+void AIPass::copy_Xf_to_Xs(Function * F) {
+	BasicBlock * b;
+	ap_environment_t * env = ap_environment_alloc_empty();
+
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		if (dynamic_cast<AISimple*>(this)
+				|| Pr::getPr(*F)->count(i)) {
+
+			delete Nodes[b]->X_s[passID];
+			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_f[passID]);
 		}
 	}
 }
@@ -474,11 +489,12 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 // TODO :
 // make it work for path-focused techniques
-void AIPass::computeWideningSeed(Function * F) {
+bool AIPass::computeWideningSeed(Function * F) {
 	Abstract * Xtemp;
 	Node * n;
 	Node * Succ;
 	std::list<BasicBlock*> path;
+	bool found = false;
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		n = Nodes[i];
@@ -488,28 +504,39 @@ void AIPass::computeWideningSeed(Function * F) {
 			path.push_back(n->bb);
 			path.push_back(*s);
 			Succ = Nodes[*s];
-	
+
 			// computing the image of the abstract value by the path's tranformation
 			Xtemp = aman->NewAbstract(n->X_s[passID]);
 			computeTransform(aman,n,path,*Xtemp);
-	
+
 			// we check if the Abstract value is a good seed for Halbwachs's
 			// narrowing
-			Abstract * Xseed = aman->NewAbstract(Xtemp);
-			std::vector<Abstract*> Join;
-			Join.push_back(aman->NewAbstract(Xtemp));
-			Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
-			Xseed->join_array(Xtemp->main->env,Join);
-			if (Xseed->compare(Succ->X_s[passID]) == 1) {
-				*Out << "SEED FOUND: " << *(n->bb) << "\n";
-				Join.clear();
+			if (Xtemp->compare(Succ->X_i[passID]) < 0) {
+
+				Abstract * Xseed = aman->NewAbstract(Xtemp);
+				std::vector<Abstract*> Join;
 				Join.push_back(aman->NewAbstract(Xtemp));
-				Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-				Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
-				A.push(Succ);
+				Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
+				Xseed->join_array(Xtemp->main->env,Join);
+				if (Xseed->compare(Succ->X_s[passID]) == 1) {
+					*Out << "n\n";
+					n->X_s[passID]->print();
+					*Out << "Xtemp\n";
+					Xtemp->print();
+					*Out << "Succ\n";
+					Succ->X_s[passID]->print();
+					*Out << "SEED FOUND: " << *(n->bb) << "\n";
+					Join.clear();
+					Join.push_back(aman->NewAbstract(Xtemp));
+					Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
+					Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+					A.push(Succ);
+					found = true;
+				}
 			}
 		}
 	}
+	return found;
 }
 
 bool isequal(std::list<BasicBlock*> p, std::list<BasicBlock*> q) {

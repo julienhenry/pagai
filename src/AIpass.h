@@ -148,6 +148,7 @@ class AIPass : public InstVisitor<AIPass> {
 
 		///
 		void copy_Xs_to_Xf(Function * F);
+		void copy_Xf_to_Xs(Function * F);
 
 		/// computeTransform - computes in Xtemp the polyhedra resulting from
 		/// the transformation  of n->X through the path
@@ -158,7 +159,8 @@ class AIPass : public InstVisitor<AIPass> {
 			Abstract &Xtemp);
 
 		/// compute Seeds for Halbwach's narrowing
-		void computeWideningSeed(Function * F);
+		/// returns true iff one ore more seeds have been found
+		bool computeWideningSeed(Function * F);
 
 		/// Basic abstract interpretation ascending iterations
 		/// (iterates over the nodes, calling computeNode for each of

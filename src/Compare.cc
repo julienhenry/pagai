@@ -93,6 +93,8 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	P2.T = t2;
 	P1.D = getApronManager();
 	P2.D = getApronManager();
+	P1.TH = useThreshold();
+	P2.TH = useThreshold();
 
 	switch (compareAbstract(n->X_s[P1],n->X_s[P2])) {
 		case 0:
@@ -120,6 +122,7 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 	params P;
 	P.T = t;
 	P.D = getApronManager();
+	P.TH = useThreshold();
 	
 	if (Time.count(t)) {
 		Time[t] = add(Time[t],Total_time[P][F]);

@@ -53,17 +53,25 @@ void AISimple::computeFunc(Function * F) {
 
 
 	if (NewNarrowing) {
-		
 		copy_Xs_to_Xf(F);
 
-		computeWideningSeed(F);
+		if (!computeWideningSeed(F)) {
+			DEBUG(
+				*Out << "NO SEEDS\n";
+			);
+			copy_Xf_to_Xs(F);
+			return;
+		}
 		
 		copy_Xd_to_Xs(F);
 	
 		ascendingIter(n, F);
 		narrowingIter(n);
-		while (copy_Xd_to_Xs(F))
+		step = 0;
+		while (copy_Xd_to_Xs(F) && step <= 5) {
 			narrowingIter(n);
+			step++;
+		}
 	}
 }
 

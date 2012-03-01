@@ -36,8 +36,8 @@ class Abstract {
 
 		/// compare the abstract value with another one
 		/// return 0 in equal
-		/// return 1 in case of this <= d
-		/// return -1 in case of d <= this
+		/// return 1 in case of this < d
+		/// return -1 in case of d < this
 		/// return -2 if not comparable
 		int compare(Abstract * d);
 

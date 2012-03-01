@@ -24,10 +24,10 @@ enum Apron_Manager_Type {
 };
 
 enum Techniques {
+	SIMPLE,
 	LOOKAHEAD_WIDENING,
 	PATH_FOCUSING,
 	LW_WITH_PF,
-	SIMPLE,
 	LW_WITH_PF_DISJ
 };
 
