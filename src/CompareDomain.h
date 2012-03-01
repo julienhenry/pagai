@@ -114,6 +114,10 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 				P2.T = T;
 				P1.D = getApronManager(0);
 				P2.D = getApronManager(1);
+				P1.N = useNewNarrowing(0);
+				P2.N = useNewNarrowing(1);
+				P1.TH = useThreshold(0);
+				P2.TH = useThreshold(1);
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";
 				n->X_s[P1]->print();
