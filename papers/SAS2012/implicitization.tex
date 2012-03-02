@@ -390,7 +390,7 @@ Termination ensues from the finiteness of the control-flow graph.
 \subsection{Path-focusing}
 \label{sec:path_focusing}
 
-\cite{Monniaux_Gonnord_SAS11}'s \emph{path-focusing} technique
+Monniaux \& Gonnord's \emph{path-focusing} \cite{Monniaux_Gonnord_SAS11} technique
 distinguishes the different paths in the program in order to avoid loss of
 precision due to merge operations. Since the number of paths may be exponential,
 the technique keeps them implicit and computes them when needed using
@@ -755,7 +755,7 @@ graph transformations.
 \section{Disjunctive Invariants}
 \label{sec:disjunctive}
 
-\cite{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
+Gulwani \& Zuleger \cite{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
 distinguishing all the paths inside a loop. In
 this section, we propose to improve this technique by using SMT queries to find
 interesting paths, the objective being to avoid an explicit exhaustive
