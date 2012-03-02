@@ -56,6 +56,7 @@ bool AIpf::runOnModule(Module &M) {
 		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 
 		printResult(F);
 	}
@@ -176,7 +177,7 @@ void AIpf::computeNode(Node * n) {
 	
 		Succ = Nodes[path.back()];
 
-		n_iterations++;
+		asc_iterations[passID][n->bb->getParent()]++;
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
@@ -275,6 +276,8 @@ void AIpf::narrowNode(Node * n) {
 		DEBUG(
 			printPath(path);
 		);
+		
+		desc_iterations[passID][n->bb->getParent()]++;
 		
 		Succ = Nodes[path.back()];
 

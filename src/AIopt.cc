@@ -77,6 +77,7 @@ bool AIopt::runOnModule(Module &M) {
 		}
 
 		computeFunction(F);
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 		
 		printResult(F);
 	}
@@ -299,7 +300,9 @@ void AIopt::computeNode(Node * n) {
 			printPath(path);
 		);
 		Succ = Nodes[path.back()];
-		n_iterations++;
+		
+		asc_iterations[passID][n->bb->getParent()]++;
+
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
@@ -393,6 +396,8 @@ void AIopt::narrowNode(Node * n) {
 		);
 		
 		Succ = Nodes[path.back()];
+
+		desc_iterations[passID][n->bb->getParent()]++;
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);

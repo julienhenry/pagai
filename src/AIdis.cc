@@ -75,6 +75,7 @@ bool AIdis::runOnModule(Module &M) {
 		}
 
 		computeFunction(F);
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 		
 		printResult(F);
 	}
@@ -392,7 +393,9 @@ void AIdis::computeNode(Node * n) {
 			printPath(path);
 		);
 		Succ = Nodes[path.back()];
-		n_iterations++;
+		
+		asc_iterations[passID][n->bb->getParent()]++;
+		
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
@@ -495,6 +498,8 @@ void AIdis::narrowNode(Node * n) {
 		);
 		
 		Succ = Nodes[path.back()];
+
+		desc_iterations[passID][n->bb->getParent()]++;
 
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);

@@ -105,9 +105,10 @@ void AIPass::printResult(Function * F) {
 			}
 		}
 	}
-	Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 	*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
 	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
+	*Out << "ASC ITERATIONS " << asc_iterations[passID][F] << "\n" ;
+	*Out << "DESC ITERATIONS " << desc_iterations[passID][F] << "\n" ;
 }
 
 void AIPass::printBasicBlock(BasicBlock* b) {

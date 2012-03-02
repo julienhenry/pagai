@@ -124,6 +124,7 @@ bool AISimple::runOnModule(Module &M) {
 		LSMT->reset_SMTcontext();
 		initFunction(F);
 		computeFunction(F);
+		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
 		printResult(F);
 	}
 	return 0;
@@ -159,6 +160,8 @@ void AISimple::computeNode(Node * n) {
 		path.push_back(b);
 		path.push_back(*s);
 		Succ = Nodes[*s];
+		
+		asc_iterations[passID][n->bb->getParent()]++;
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
@@ -245,6 +248,8 @@ void AISimple::narrowNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
+
+		desc_iterations[passID][n->bb->getParent()]++;
 
 		DEBUG(
 			*Out << "POLYHEDRON TO JOIN\n";

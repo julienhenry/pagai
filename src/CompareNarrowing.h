@@ -21,6 +21,10 @@ class CompareNarrowing : public ModulePass {
 	private:	
 		SMTpass * LSMT;
 	
+		std::map<params, struct timeval> Time;
+		std::map<params, int> total_asc;
+		std::map<params, int> total_desc;
+
 	public:
 		/// It is crucial for LLVM's pass manager that
 		/// this ID is different (in address) from a class to another,
@@ -34,6 +38,14 @@ class CompareNarrowing : public ModulePass {
 		~CompareNarrowing() {}
 		
 		void getAnalysisUsage(AnalysisUsage &AU) const;
+
+		void ComputeTime(params P, Function * F);
+		
+		void printTime(params P);
+
+		void ComputeIterations(params P, Function * F);
+		
+		void printIterations(params P);
 
 		bool runOnModule(Module &M);
 	
@@ -76,6 +88,37 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 }
 
+template<Techniques T>
+void CompareNarrowing<T>::ComputeIterations(params P, Function * F) {
+	
+	if (total_asc.count(P)) {
+		total_asc[P] = total_asc[P] + asc_iterations[P][F];
+		total_desc[P] = total_desc[P] + desc_iterations[P][F];
+	} else {
+		total_asc[P] = asc_iterations[P][F];
+		total_desc[P] = desc_iterations[P][F];
+	}
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::printIterations(params P) {
+	*Out << total_asc[P] << " " << total_desc[P] << "\n";
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::ComputeTime(params P, Function * F) {
+	
+	if (Time.count(P)) {
+		Time[P] = add(Time[P],Total_time[P][F]);
+	} else {
+		Time[P] = Total_time[P][F];
+	}
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::printTime(params P) {
+	*Out << Time[P].tv_sec << " " << Time[P].tv_usec << "\n";
+}
 
 template<Techniques T>
 bool CompareNarrowing<T>::runOnModule(Module &M) {
@@ -88,6 +131,16 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	int lt = 0;
 	int eq = 0;
 	int un = 0;
+
+	params P1, P2;
+	P1.T = T;
+	P2.T = T;
+	P1.D = getApronManager(0);
+	P2.D = getApronManager(1);
+	P1.N = useNewNarrowing(0);
+	P2.N = useNewNarrowing(1);
+	P1.TH = useThreshold(0);
+	P2.TH = useThreshold(1);
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -108,16 +161,12 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 			b = i;
 			n = Nodes[b];
 			if (Pr::getPw(*b->getParent())->count(b)) {
-				// TODO
-				params P1, P2;
-				P1.T = T;
-				P2.T = T;
-				P1.D = getApronManager(0);
-				P2.D = getApronManager(1);
-				P1.N = useNewNarrowing(0);
-				P2.N = useNewNarrowing(1);
-				P1.TH = useThreshold(0);
-				P2.TH = useThreshold(1);
+		
+				ComputeTime(P1,F);
+				ComputeTime(P2,F);
+				ComputeIterations(P1,F);
+				ComputeIterations(P2,F);
+
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";
 				n->X_s[P1]->print();
@@ -147,7 +196,15 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	*Out << ApronManagerToString(getApronManager(0)) << " ABSTRACT DOMAIN\n\n\n" 
 		<< "IMPROVED NARROWING -- CLASSIC" << "\n";
 	Out->resetColor();
-	*Out << "\n";
+	*Out << "\nTIME\n";
+	printTime(P1);
+	printTime(P2);
+	
+	*Out << "\nITERATIONS\n";
+	printIterations(P1);
+	printIterations(P2);
+
+	*Out << "\n\n";
 	*Out << "EQ " << eq << "\n";
 	*Out << "LT " << lt << "\n";
 	*Out << "GT " << gt << "\n";

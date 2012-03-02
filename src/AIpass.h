@@ -19,7 +19,6 @@ class SMTpass;
 class Live;
 class Node;
 
-
 /// @brief Base class for abstract interpretation
 ///
 /// Base class factoring helper functions and data-structure to

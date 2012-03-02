@@ -221,7 +221,6 @@ int main(int argc, char* argv[]) {
 	onlyrho = false;
 	n_totalpaths = 0;
 	n_paths = 0;
-	n_iterations = 0;
 	SMT_time.tv_sec = 0;
 	SMT_time.tv_usec = 0;
 	npass = 0;
