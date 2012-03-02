@@ -18,12 +18,13 @@ PRINT_TIME=0
 
 for k in `seq 0 3` ; do 
 	RES[$k]=0
+	TIME[$k]=0
+	ITERATIONS[$k]=0
 done
-#for k in `seq 0 3` ; do 
-#	TIME[$k]=0
-#done
 #FUNCTIONS=0
 #IGNORED=0
+
+
 for i in *.res.narrow ; do
 	basename=`basename $i`
 	basename=${basename%%.*}
@@ -36,39 +37,46 @@ for i in *.res.narrow ; do
 		done
 	fi
 
-	#if [ ! -z `tail -n 21 $i | grep FUNCTIONS:`  ] ; then
-	#	NFUNC=`tail -n 20 $i | head -n 1`
-	#	FUNCTIONS=$[$FUNCTIONS+$NFUNC]
-	#fi
+	if [ ! -z `tail -n 13 $i | grep ITERATIONS`  ] ; then
+		k=0
+		for j in `tail -n 12 $i | head -n 2` ; do
+			ITERATIONS[$k]=$[${ITERATIONS[$k]}+$j]
+			k=$(($k+1))
+		done
+	fi
 
 	#if [ ! -z `tail -n 18 $i | grep IGNORED:`  ] ; then
 	#	NFUNC=`tail -n 17 $i | head -n 1`
 	#	IGNORED=$[$IGNORED+$NFUNC]
 	#fi
 
-	#if [ ! -z `tail -n 15 $i | grep TIME:`  ] ; then
-	#	k=0
-	#	for j in `tail -n 14 $i | head -n 5` ; do
-	#		TIME[$k]=$[${TIME[$k]}+$j]
-	#		k=$(($k+1))
-	#	done
-	#fi
+	if [ ! -z `tail -n 17 $i | grep TIME`  ] ; then
+		k=0
+		for j in `tail -n 16 $i | head -n 2` ; do
+			TIME[$k]=$[${TIME[$k]}+$j]
+			k=$(($k+1))
+		done
+	fi
 
 done
 TOTAL=$[${RES[0]}+${RES[1]}+${RES[2]}+${RES[3]}]
 for k in `seq 0 3` ; do 
 	AVG[$k]=`echo "scale=2;${RES[$k]}*100/$TOTAL"| bc`
 done
-#TIME_1=`echo "scale=0;(${TIME[0]}*1000000+${TIME[1]})/1000000" | bc`
-#TIME_2=`echo "scale=0;(${TIME[2]}*1000000+${TIME[3]})/1000000" | bc`
+TIME_1=`echo "scale=0;(${TIME[0]}*1000000+${TIME[1]})/1000000" | bc`
+TIME_2=`echo "scale=0;(${TIME[2]}*1000000+${TIME[3]})/1000000" | bc`
 if [ $LATEX -eq 0 ] ; then
 	echo "#####"
 	echo $dir
-	echo "IGNORED : $IGNORED / $FUNCTIONS"
-	#echo ""
+	#echo "IGNORED : $IGNORED / $FUNCTIONS"
 	#echo TIME
-	#echo $TIME_S S
-	#echo $TIME_LW LW
+	echo "             ASC      DESC"
+	echo "IMPROVED ${ITERATIONS[0]} ${ITERATIONS[1]}"
+	echo "CLASSIC  ${ITERATIONS[2]} ${ITERATIONS[3]}"
+	echo ""
+	echo "TIME"
+	echo "IMPROVED" $TIME_1 
+	echo "CLASSIC " $TIME_2 
 	#echo $TIME_PF PF
 	#echo $TIME_C LW+PF
 	#echo $TIME_DIS DIS
