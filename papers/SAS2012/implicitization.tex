@@ -225,10 +225,38 @@ it may then backtrack some of the constraints and add other ones without restart
 
 \subsection{A Simple, Motivating Example}
 \label{subsec:rate_lim}
-Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$:
+Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$ (in the associated control-flow graph, $s$ is the start node and $e$ the end node):
+
+\begin{minipage}{9cm}
 \lstinputlisting{rlim_int.c}
+\end{minipage}%
+\begin{minipage}[c]{2cm}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$s$};
+	\node[state] (n1) [below left=of n0] {};
+	\node[state] (n2) [below right=of n0] {};
+	\node[state] (n3) [below right=of n1] {};
+	\node[state] (n4) [below left=of n3] {};
+	\node[state] (n5) [below right=of n3] {};
+	\node[state] (n6) [below right=of n4] {};
+	\node[PRstate] (n7) [below =of n6] {$e$};
+
+  \path [transition] (n0) -- (n1);
+  \path [transition] (n0) -- (n2);
+  \path [transition] (n1) -- (n3);
+  \path [transition] (n2) -- (n3);
+  \path [transition] (n3) -- (n4);
+  \path [transition] (n3) -- (n5);
+  \path [transition] (n4) -- (n6);
+  \path [transition] (n5) -- (n6);
+  \path [transition] (n6) -- (n7);
+\end{tikzpicture}
+\end{minipage} 
+
 This program implements a construct commonly found in control programs (in e.g.
-automotive or avionics): a rate limiter.
+automotive or avionics): a rate or slope limiter.
 \avirer{For the sake of simplicity, we chose it
 to be fed on a nondeterministic input clamped between $[-100000,100000]$, but in a real system it would be integrated in a reactive control loop and its input connected to a complex system with unknown output range.}
 
@@ -244,51 +272,16 @@ We could use ``widening up to'' or ``widening with thresholds'', propagating the
 The guided static analysis of \cite{DBLP:conf/sas/GopanR07} does not perform
 better, and also obtains $\lstinline|x_old| \in (-\infty,+\infty)$.
 
-In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to:
+In contrast, let us distinguish all four possible execution paths through the tests at lines 6 and~7. The path through both ``else'' branches is infeasible; the program is thus equivalent to a program with 3 paths:
+
+\begin{minipage}[c]{9cm}
 \lstinputlisting{rlim_int2.c}
-
-\avirer{
-\begin{figure}
-\MM{J'aime bien cette figure, qui montre en un coup d'oeil l'idée,
-  mais elle prend vraiment beaucoup de place, je propose de
-  supprimer.}
-
-\centering
-\begin{minipage}[c]{.21\textwidth}
+\end{minipage}
+\begin{minipage}[c]{2cm}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
                     semithick,font=\footnotesize]
 
-	\node[PRstate] (n0) {$p$};
-	\node[state] (n1) [below left=of n0] {};
-	\node[state] (n2) [below right=of n0] {};
-	\node[state] (n3) [below right=of n1] {};
-	\node[state] (n4) [below left=of n3] {};
-	\node[state] (n5) [below right=of n3] {};
-	\node[state] (n6) [below right=of n4] {};
-	\node[state] (n7) [below left=of n6] {};
-	\node[state] (n8) [below right=of n6] {};
-	\node[PRstate] (n9) [below right=of n7] {$q$};
-
-  \path [transition] (n0) -- (n1);
-  \path [transition] (n0) -- (n2);
-  \path [transition] (n1) -- (n3);
-  \path [transition] (n2) -- (n3);
-  \path [transition] (n3) -- (n4);
-  \path [transition] (n3) -- (n5);
-  \path [transition] (n4) -- (n6);
-  \path [transition] (n5) -- (n6);
-  \path [transition] (n6) -- (n7);
-  \path [transition] (n6) -- (n8);
-  \path [transition] (n7) -- (n9);
-  \path [transition] (n8) -- (n9);
-\end{tikzpicture}
-\end{minipage} 
-$\Longrightarrow$
-\begin{minipage}[c]{.19\textwidth}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=.2cm and .5cm,
-                    semithick,font=\footnotesize]
-
-	\node[PRstate] (n0) {$p$};
+	\node[PRstate] (n0) {$s$};
 	\node (n1) [below left=of n0] {};
 	\node (n2) [below right=of n0] {};
 	\node (n3) [below right=of n1] {};
@@ -297,30 +290,26 @@ $\Longrightarrow$
 	\node (n6) [below right=of n4] {};
 	\node (n7) [below left=of n6] {};
 	\node (n8) [below right=of n6] {};
-	\node[PRstate] (n9) [below right=of n7] {$q$};
+	\node[PRstate] (n9) [below right=of n7] {$e$};
 
-  \path [transition] 
-		(n0) edge  [out=0, in=0]            node {} (n9);
-  \path [transition] 
-		(n0) edge  [out=180, in=180]        node {} (n9);
-  \path [transition] 
-		(n0) edge  [out=205, in=155]            node {} (n9);
+%  \path [transition] 
+%		(n0) edge  [out=0, in=0]            node {} (n9);
+%  \path [transition] 
+%		(n0) edge  [out=180, in=180]        node {} (n9);
+%  \path [transition] 
+%		(n0) edge  [out=205, in=155]            node {} (n9);
   \path [transition] 
 		(n0) edge  [out=230, in=130]            node {} (n9);
   \path [transition] 
 		(n0) edge  [out=255, in=105]            node {} (n9);
-  \path [transition] 
-		(n0) edge  [out=-25, in=25]            node {} (n9);
-  \path [transition] 
+%  \path [transition] 
+%		(n0) edge  [out=-25, in=25]            node {} (n9);
+  \path [transition,dotted] 
 		(n0) edge  [out=-50, in=50]            node {} (n9);
   \path [transition] 
 		(n0) edge  [out=-75, in=75]            node {} (n9);
 \end{tikzpicture}
 \end{minipage}
-\caption{Expansion of the transition graph into a multigraph.}
-\label{fig:multigraph}
-\end{figure}
-}
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
 We have transformed the program, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first \avirer{(as in Fig.~\ref{fig:multigraph})}, even though not all feasible paths are needed to compute the invariant.
@@ -421,7 +410,7 @@ The Boolean $b_{i}^s$ is $true$ when the path starts at point $p_i$, whereas
 $b_i^d$ is $true$ when the path arrives at $p_i$. In other words, we split the
 points in $P_R$ into a \emph{source} point, with only outgoing transitions, and
 a \emph{destination} point, with only incoming transitions, so that the
-resulting graph is acyclic and there is no paths going through control
+resulting graph is acyclic and there are no paths going through control
 points in $P_R$.
 
 In order to find focus paths, we solve an SMT formula which is satisfiable when
@@ -469,6 +458,7 @@ technique combines the advantages of \emph{Guided Static
 
 
 Algorithm~\ref{algo:combined} performs Guided static analysis on the implicitly represented multigraph.
+$I_p$ denotes a set of initial states at program point~$p$ (thus $\emptyset$ for most $p$).
 %
 The current working subset of paths, noted $P$ and initially empty, is
 stored using a compact representation, such as binary decision
@@ -496,7 +486,7 @@ We distinguish three phases in the main loop of the analysis:
 \begin{compactenum}
 \item \label{step:addingpaths} We start finding a new relevant subset
   $P \cup P'$ of the graph.
-  Either the previous iteration or the initialization lead us to a
+  Either the previous iteration or the initialization led us to a
   state where there are no more paths in the previous subset $P$,
   starting at $p_i$, that make the abstract values of the successors
   grow (otherwise, the SMT solver would not have answered
@@ -566,10 +556,10 @@ to give us a path included in $P$.
 \subsection{Adding New Paths}
 \label{subsec:addingpaths}
 
-Our technique computes the fixpoint iterations on a ascending sequence of
+Our technique computes the fixpoint iterations on an ascending sequence of
 subgraphs, until the complete graph is reached.
 When the analysis of a subgraph is finished, meaning that the abstract values
-for each control points has converged to an inductive invariant for this subgraph,
+for each control point has converged to an inductive invariant for this subgraph,
 the next subgraph to work on has to be computed.
 
 This new subgraph is the union of the paths of the previous one with a set
@@ -622,7 +612,8 @@ would not be returned by the SMT solver).
 Termination of this algorithm is guaranteed, because:
 \begin{inparaenum}
 \item 
-the subset of paths $P$ strictly increases at each loop iteration, and bounded by the finite set of
+the subset of paths $P$ strictly increases at each loop iteration,
+and is bounded by the finite set of
 paths in the entire graph. 
 \item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
 which guarantees that $P'$
@@ -1042,7 +1033,7 @@ $(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
 such operations are directly supported by APRON. This has three benefits:
 (i) it limits the number of dimensions in the abstract values, since polyhedra libraries typically perform worse with higher dimensions;
 (ii) the abstract operation for a single path in path-focusing methods also is a (large) parallel assignment;
-(iii) as suggested by \cite{DBLP:conf/vmcai/Mine06}, this approach is more precise than running abstract operations for each program line separately:
+(iii) as suggested previously \cite{Colby_PhD,DBLP:conf/vmcai/Mine06}, this approach is more precise than running abstract operations for each program line separately:
 for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a line-by-line interval analysis obtains $y \in [0,1]$ and $z \in [-1,1]$ while our ``en bloc'' analysis symbolically simplifies $z = x - x = 0$ and thus $z \in [0,0]$.
 
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
