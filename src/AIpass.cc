@@ -105,7 +105,7 @@ void AIPass::printResult(Function * F) {
 			}
 		}
 	}
-	*Out << Total_time[passID][F].tv_sec << " " << Total_time[passID][F].tv_usec << " TOTAL_TIME\n";
+	*Out << Total_time[passID][F]->seconds() << "." << Total_time[passID][F]->microseconds() << " seconds\n";
 	//*Out << SMT_time.tv_sec << " " << SMT_time.tv_usec  << " SMT_TIME " << "\n";
 	*Out << "ASC ITERATIONS " << asc_iterations[passID][F] << "\n" ;
 	*Out << "DESC ITERATIONS " << desc_iterations[passID][F] << "\n" ;

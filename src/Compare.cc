@@ -125,14 +125,19 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 	P.TH = useThreshold();
 	
 	if (Time.count(t)) {
-		Time[t] = add(Time[t],Total_time[P][F]);
+		*Time[t] = *Time[t]+*Total_time[P][F];
 	} else {
-		Time[t] = Total_time[P][F];
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[t] = zero;
+		*Time[t] = *Total_time[P][F];
 	}
 }
 
 void Compare::printTime(Techniques t) {
-	*Out << Time[t].tv_sec << " " << Time[t].tv_usec << "\n";
+	*Out 
+		<< " " << Time[t]->seconds() 
+		<< " " << Time[t]->microseconds() 
+		<<  "\n";
 }
 
 void Compare::printResults(Techniques t1, Techniques t2) {

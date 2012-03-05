@@ -8,6 +8,7 @@
 #include "Node.h"
 #include "Abstract.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 using namespace llvm;
 
@@ -34,7 +35,7 @@ class Compare : public ModulePass {
 			std::map<Techniques,CmpResults> 
 			> results;
 
-		std::map<Techniques, struct timeval> Time;
+		std::map<Techniques, sys::TimeValue *> Time;
 		int compareAbstract(Abstract * A, Abstract * B);
 
 		void compareTechniques(

@@ -21,7 +21,7 @@ class CompareNarrowing : public ModulePass {
 	private:	
 		SMTpass * LSMT;
 	
-		std::map<params, struct timeval> Time;
+		std::map<params, sys::TimeValue *> Time;
 		std::map<params, int> total_asc;
 		std::map<params, int> total_desc;
 
@@ -109,15 +109,20 @@ template<Techniques T>
 void CompareNarrowing<T>::ComputeTime(params P, Function * F) {
 	
 	if (Time.count(P)) {
-		Time[P] = add(Time[P],Total_time[P][F]);
+		*Time[P] = *Time[P]+*Total_time[P][F];
 	} else {
-		Time[P] = Total_time[P][F];
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[P] = zero;
+		*Time[P] = *Total_time[P][F];
 	}
 }
 
 template<Techniques T>
 void CompareNarrowing<T>::printTime(params P) {
-	*Out << Time[P].tv_sec << " " << Time[P].tv_usec << "\n";
+	*Out 
+		<< " " << Time[P]->seconds() 
+		<< " " << Time[P]->microseconds() 
+		<<  "\n";
 }
 
 template<Techniques T>
@@ -157,15 +162,16 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 
 		if (ignoreFunction.count(F) > 0) continue;
+		
+		ComputeTime(P1,F);
+		ComputeTime(P2,F);
+		ComputeIterations(P1,F);
+		ComputeIterations(P2,F);
+
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
 			if (Pr::getPw(*b->getParent())->count(b)) {
-		
-				ComputeTime(P1,F);
-				ComputeTime(P2,F);
-				ComputeIterations(P1,F);
-				ComputeIterations(P2,F);
 
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";

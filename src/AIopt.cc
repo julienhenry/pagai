@@ -45,7 +45,10 @@ bool AIopt::runOnModule(Module &M) {
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
-		Total_time[passID][F] = Now();
+
+		sys::TimeValue * time = new sys::TimeValue(0,0);
+		*time = sys::TimeValue::now();
+		Total_time[passID][F] = time;
 		
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
@@ -77,7 +80,7 @@ bool AIopt::runOnModule(Module &M) {
 		}
 
 		computeFunction(F);
-		Total_time[passID][F] = sub(Now(),Total_time[passID][F]);
+		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
 	}
