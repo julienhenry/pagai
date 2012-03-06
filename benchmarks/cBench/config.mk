@@ -1,1 +1,1 @@
-# BENCHDIR=~/local/benchmarks/regression/cBench
+BENCHDIR=~jhenry/local/benchmarks/regression/cBench

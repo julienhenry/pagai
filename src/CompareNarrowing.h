@@ -22,6 +22,7 @@ class CompareNarrowing : public ModulePass {
 		SMTpass * LSMT;
 	
 		std::map<params, sys::TimeValue *> Time;
+		std::map<params, sys::TimeValue *> Eq_Time;
 		std::map<params, int> total_asc;
 		std::map<params, int> total_desc;
 
@@ -39,9 +40,11 @@ class CompareNarrowing : public ModulePass {
 		
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
-		void ComputeTime(params P, Function * F);
+		void AddTime(params P, Function * F);
+		void AddEqTime(params P, Function * F);
 		
 		void printTime(params P);
+		void printEqTime(params P);
 
 		void ComputeIterations(params P, Function * F);
 		
@@ -106,7 +109,19 @@ void CompareNarrowing<T>::printIterations(params P) {
 }
 
 template<Techniques T>
-void CompareNarrowing<T>::ComputeTime(params P, Function * F) {
+void CompareNarrowing<T>::AddEqTime(params P, Function * F) {
+	
+	if (Eq_Time.count(P)) {
+		*Eq_Time[P] = *Eq_Time[P]+*Total_time[P][F];
+	} else {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Eq_Time[P] = zero;
+		*Eq_Time[P] = *Total_time[P][F];
+	}
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::AddTime(params P, Function * F) {
 	
 	if (Time.count(P)) {
 		*Time[P] = *Time[P]+*Total_time[P][F];
@@ -115,6 +130,14 @@ void CompareNarrowing<T>::ComputeTime(params P, Function * F) {
 		Time[P] = zero;
 		*Time[P] = *Total_time[P][F];
 	}
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::printEqTime(params P) {
+	*Out 
+		<< " " << Eq_Time[P]->seconds() 
+		<< " " << Eq_Time[P]->microseconds() 
+		<<  "\n";
 }
 
 template<Techniques T>
@@ -163,10 +186,12 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 
 		if (ignoreFunction.count(F) > 0) continue;
 		
-		ComputeTime(P1,F);
-		ComputeTime(P2,F);
+		AddTime(P1,F);
+		AddTime(P2,F);
 		ComputeIterations(P1,F);
 		ComputeIterations(P2,F);
+
+		bool distinct = false;
 
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
@@ -183,18 +208,27 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 						eq++;
 						break;
 					case 1:
+						distinct = true;
 						lt++;
 						break;
 					case -1:
+						distinct = true;
 						gt++;
 						break;
 					case -2:
+						distinct = true;
 						un++;
 						break;
 					default:
+						distinct = true;
 						break;
 				}
 			}
+		}
+
+		if (distinct) {
+			AddEqTime(P1,F);
+			AddEqTime(P2,F);
 		}
 	}
 
@@ -206,6 +240,9 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	printTime(P1);
 	printTime(P2);
 	
+	printEqTime(P1);
+	printEqTime(P2);
+
 	*Out << "\nITERATIONS\n";
 	printIterations(P1);
 	printIterations(P2);
