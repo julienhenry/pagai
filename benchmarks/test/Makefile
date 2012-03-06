@@ -2,6 +2,9 @@ BENCHDIR=.
 
 -include config.mk
 
+ROOT=../..
+include $(ROOT)/common.mk
+ABSROOT=$(PWD)/$(ROOT)
 
 CFILES=${wildcard $(BENCHDIR)/*.c}
 BCFILES=$(CFILES:%.c=%.bc)
@@ -11,21 +14,19 @@ COMPAREFILES=$(CFILES:%.c=%.res.compare)
 all: $(BCFILES)
 
 %.bc: %.c
-	@./compile_llvm.sh -i $*.c -o $@
+	$(AT)$(COMPILE_LLVM) -i $*.c -o $@
 
 %.res: %.bc
-	@pagai.sh -i $*.bc -o $@ -t 10 2> /dev/null
+	$(AT)$(PAGAI_SH) -i $*.bc -o $@ -t 10 2> /dev/null
 
 %.res.compare: %.bc
-	@pagai.sh -i $*.bc -c -o $@ -t 10 2> /dev/null
+	$(AT)$(PAGAI_SH) -i $*.bc -c -o $@ -t 10 2> /dev/null
 
 clean:
 	rm $(BENCHDIR)/*.bc
 	rm $(BENCHDIR)/*.res*
 
 test: $(RESFILES)
-	
 
 compare: $(COMPAREFILES)
-	
 

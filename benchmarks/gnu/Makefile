@@ -3,6 +3,10 @@ BENCHDIR=.
 
 -include config.mk
 
+ROOT=../..
+include $(ROOT)/common.mk
+ABSROOT=$(PWD)/$(ROOT)
+
 SUBDIRS=$(shell echo $(BENCHDIR)/*/)
 TIMESTAMPS=$(SUBDIRS:%=%/timestamp.txt)
 CTIMESTAMPS=$(SUBDIRS:%=%/ctimestamp.txt)
@@ -15,27 +19,27 @@ compare: $(CTIMESTAMPS)
 ncompare: $(NTIMESTAMPS)
 
 %/timestamp.txt:
-		cd $* && $(MAKE) -f $(PWD)/Makefile.model test
+	cd $* && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model test
 
 %/ctimestamp.txt:
-		cd $* && $(MAKE) -f $(PWD)/Makefile.model compare
+	cd $* && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model compare
 
 %/ntimestamp.txt:
-		cd $* && $(MAKE) -f $(PWD)/Makefile.model ncompare
+	cd $* && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model ncompare
 
 clean:
 	for p in  $(SUBDIRS); do\
-	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model clean && cd ..);\
+		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model clean);\
 	done ;
 
 nclean:
 	for p in  $(SUBDIRS); do\
-	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model nclean && cd ..);\
+		( cd $$p && $(MAKE) -f $(PWD)/Makefile.model nclean && cd ..);\
 	done ;
 
 cclean:
 	for p in  $(SUBDIRS); do\
-	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model cclean && cd ..);\
+		( cd $$p && $(MAKE) -f $(PWD)/Makefile.model cclean && cd ..);\
 	done ;
 
 cdiff:
@@ -46,7 +50,7 @@ ndiff:
 
 resdir:
 	for p in  $(SUBDIRS); do\
-	( cd $$p && $(MAKE) -f $(PWD)/Makefile.model resdir && cd ..);\
+		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model resdir);\
 	done ;
 
 debug:

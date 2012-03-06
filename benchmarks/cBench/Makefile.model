@@ -1,3 +1,9 @@
+ifndef ROOT
+	ROOT = ../../
+endif
+
+include $(ROOT)/common.mk
+
 # Makefile
 BCFILES=${wildcard src/*.o}
 RESFILES=$(BCFILES:src/%.o=res/%.res)
@@ -7,14 +13,14 @@ all: $(RESFILES)
 
 
 res/%.res: src/%.o
-	@echo "$*.o started..."
-	@pagai.sh -i src/$*.o -s  > $@  2> /dev/null
-	@echo "$*.o finished"
+	$(AT)echo "$*.o started..."
+	$(AT)$(PAGAI_SH) -i src/$*.o -s  > $@  2> /dev/null
+	$(AT)echo "$*.o finished"
 
 res/%.res.compare: src/%.o
-	@echo "$*.o started..."
-	@pagai.sh -i src/$*.o -c -s > $@  2> /dev/null
-	@echo "$*.o finished"
+	$(AT)echo "$*.o started..."
+	$(AT)$(PAGAI_SH) -i src/$*.o -c -s > $@  2> /dev/null
+	$(AT)echo "$*.o finished"
 
 clean:
 	rm res/*

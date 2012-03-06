@@ -1,3 +1,8 @@
+
+ROOT=..
+include $(ROOT)/common.mk
+ABSROOT=$(PWD)/$(ROOT)
+
 CFILES=${wildcard *.c}
 BCFILES=$(CFILES:%.c=bin/%.bc)
 RESFILES=$(CFILES:%.c=res/%.res)
@@ -5,10 +10,10 @@ RESFILES=$(CFILES:%.c=res/%.res)
 all: $(BCFILES)
 
 bin/%.bc: %.c
-	./compile_llvm.sh -i $*.c -o $@
+	$(COMPILE_LLVM) -i $*.c -o $@
 
 res/%.res: bin/%.bc
-	../src/pagai -i bin/$*.bc -o $@
+	$(PAGAI_SH) -i bin/$*.bc -o $@
 
 clean:
 	rm bin/*.bc

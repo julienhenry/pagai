@@ -2,6 +2,10 @@ BENCHDIR=.
 
 -include config.mk
 
+ROOT=../..
+include $(ROOT)/common.mk
+ABSROOT=$(PWD)/$(ROOT)
+
 BCFILES=${wildcard $(BENCHDIR)/*.bc}
 RESFILES=$(BCFILES:%.bc=%.res)
 COMPAREFILES=$(BCFILES:%.bc=%.res.compare)
@@ -10,13 +14,13 @@ NCOMPAREFILES=$(BCFILES:%.bc=%.res.narrow)
 all: $(RESFILES)
 
 %.res: %.bc
-	@pagai.sh -s -I 2000 -t 800 -i $*.bc > $@
+	$(AT)$(PAGAI_SH) -s -I 2000 -t 800 -i $*.bc > $@
 
 %.res.compare: %.bc
-	@pagai.sh -s -t 800 -i $*.bc -a " -c " > $@
+	$(AT)$(PAGAI_SH) -s -t 800 -i $*.bc -a " -c " > $@
 
 %.res.narrow: %.bc
-	@pagai.sh -s -I 20000 -t 800 -i $*.bc -a " -t s --domain pk --domain2 pk -M " > $@
+	$(AT)$(PAGAI_SH) -s -I 20000 -t 800 -i $*.bc -a " -t s --domain pk --domain2 pk -M " > $@
 
 clean:
 	rm $(BENCHDIR)/*.res*
@@ -28,14 +32,14 @@ nclean:
 	rm $(BENCHDIR)/*.res.narrow
 
 test: $(RESFILES)
-	
+
 compare: $(COMPAREFILES)
 
 ncompare: $(NCOMPAREFILES)
 
 ndiff:
-	@./diff_narrowing.sh $(BENCHDIR)
-	
+	$(AT)./diff_narrowing.sh $(BENCHDIR)
+
 cdiff:
-	@./diff_compare.sh $(BENCHDIR)
+	$(AT)./diff_compare.sh $(BENCHDIR)
 

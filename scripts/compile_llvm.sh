@@ -3,7 +3,7 @@
 function usage () {
 echo "
 Usage:
-./compile_llvm <OPTION> -i [FILE]
+./compile_llvm.sh <OPTION> -i [FILE]
 
 OPTION :
 	-h        : help
@@ -19,7 +19,7 @@ PRINT=0
 GRAPH=0
 OPT=0
 
-while getopts “hpgi:o:O” opt ; do
+while getopts "hpgi:o:O" opt ; do
 	case $opt in
 		h)
 			usage
