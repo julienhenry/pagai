@@ -29,6 +29,7 @@ for i in *.res.compare ; do
 	basename=`basename $i`
 	basename=${basename%%.*}
 
+	echo $basename
 	if [ ! -z `tail -n 8 $i | grep MATRIX:`  ] ; then
 		k=0
 		for j in `tail -n 7 $i` ; do

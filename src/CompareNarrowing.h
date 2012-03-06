@@ -105,6 +105,10 @@ void CompareNarrowing<T>::ComputeIterations(params P, Function * F) {
 
 template<Techniques T>
 void CompareNarrowing<T>::printIterations(params P) {
+	if (!total_asc.count(P)) {
+		total_asc[P] = 0;
+		total_desc[P] = 0;
+	}
 	*Out << total_asc[P] << " " << total_desc[P] << "\n";
 }
 
@@ -146,6 +150,10 @@ void CompareNarrowing<T>::printEqTime(params P) {
 
 template<Techniques T>
 void CompareNarrowing<T>::printTime(params P) {
+	if (!Time.count(P)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[P] = zero;
+	}
 	*Out 
 		<< " " << Time[P]->seconds() 
 		<< " " << Time[P]->microseconds() 
@@ -163,7 +171,6 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	int lt = 0;
 	int eq = 0;
 	int un = 0;
-
 	params P1, P2;
 	P1.T = T;
 	P2.T = T;

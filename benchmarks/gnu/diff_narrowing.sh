@@ -20,8 +20,9 @@ for dir in `ls` ; do
 		cd $dir
 		for k in `seq 0 3` ; do 
 			RES[$k]=0
+			ITERATIONS[$k]=0
 		done
-		for k in `seq 0 3` ; do 
+		for k in `seq 0 7` ; do 
 			TIME[$k]=0
 		done
 		FUNCTIONS=0
@@ -31,6 +32,7 @@ for dir in `ls` ; do
 				basename=`basename $i`
 				basename=${basename%%.*}
 			
+				echo $i
 				if [ ! -z `tail -n 2 $i | grep MATRIX:`  ] ; then
 					k=0
 					for j in `tail -n 1 $i` ; do
@@ -39,19 +41,18 @@ for dir in `ls` ; do
 					done
 				fi
 
-				if [ ! -z `tail -n 21 $i | grep FUNCTIONS:`  ] ; then
-					NFUNC=`tail -n 20 $i | head -n 1`
-					FUNCTIONS=$[$FUNCTIONS+$NFUNC]
-				fi
 
-				if [ ! -z `tail -n 18 $i | grep IGNORED:`  ] ; then
-					NFUNC=`tail -n 17 $i | head -n 1`
-					IGNORED=$[$IGNORED+$NFUNC]
-				fi
-
-				if [ ! -z `tail -n 15 $i | grep TIME:`  ] ; then
+				if [ ! -z `tail -n 13 $i | grep ITERATIONS`  ] ; then
 					k=0
-					for j in `tail -n 14 $i | head -n 5` ; do
+					for j in `tail -n 12 $i | head -n 2` ; do
+						ITERATIONS[$k]=$[${ITERATIONS[$k]}+$j]
+						k=$(($k+1))
+					done
+				fi
+
+				if [ ! -z `tail -n 19 $i | grep TIME`  ] ; then
+					k=0
+					for j in `tail -n 18 $i | head -n 4` ; do
 						TIME[$k]=$[${TIME[$k]}+$j]
 						k=$(($k+1))
 					done
@@ -64,29 +65,22 @@ for dir in `ls` ; do
 			done
 			TIME_1=`echo "scale=0;(${TIME[0]}*1000000+${TIME[1]})/1000000" | bc`
 			TIME_2=`echo "scale=0;(${TIME[2]}*1000000+${TIME[3]})/1000000" | bc`
-			if [ $LATEX -eq 0 ] ; then
-				echo "#####"
-				echo $dir
-				echo "IGNORED : $IGNORED / $FUNCTIONS"
-				echo ""
-				echo TIME
-				echo $TIME_S S
-				echo $TIME_LW LW
-				echo $TIME_PF PF
-				echo $TIME_C LW+PF
-				echo $TIME_DIS DIS
-				echo ""
-				echo $TOTAL
-				echo EQ LT GT UN
-				echo ${RES[0]} ${RES[1]} ${RES[2]} ${RES[3]}		
-				echo ""
-				echo EQ LT GT UN
-				echo ${AVG[0]} ${AVG[1]} ${AVG[2]} ${AVG[3]}
-				echo "#####"
-			fi
+			TIME_3=`echo "scale=0;(${TIME[4]}*1000000+${TIME[5]})/1000000" | bc`
+			TIME_4=`echo "scale=0;(${TIME[6]}*1000000+${TIME[7]})/1000000" | bc`
 			for k in `seq 0 3` ; do 
-			ALL[$k]=$[${RES[$k]}+${ALL[$k]}]
+				ALL[$k]=$[${RES[$k]}+${ALL[$k]}]
 			done
+			echo "             ASC      DESC"
+			echo "IMPROVED ${ITERATIONS[0]} ${ITERATIONS[1]}"
+			echo "CLASSIC  ${ITERATIONS[2]} ${ITERATIONS[3]}"
+			echo ""
+			echo "TIME"
+			echo "IMPROVED" $TIME_1 
+			echo "CLASSIC " $TIME_2 
+			echo ""
+			echo "SAME RESULT:"
+			echo "IMPROVED " $TIME_3 
+			echo "CLASSIC " $TIME_4 
 		fi
 		cd ..
 	fi

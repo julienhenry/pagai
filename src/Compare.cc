@@ -134,6 +134,10 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 }
 
 void Compare::printTime(Techniques t) {
+	if (!Time.count(t)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[t] = zero;
+	}
 	*Out 
 		<< " " << Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
