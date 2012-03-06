@@ -501,11 +501,14 @@ bool AIPass::computeWideningSeed(Function * F) {
 		n = Nodes[i];
 		std::set<BasicBlock*> Succs = getSuccessors(n->bb);
 		for (std::set<BasicBlock*>::iterator s = Succs.begin(), E = Succs.end(); s != E; ++s) {
+
+			// to be candidate, the transition should go to a widening point
+			if (!Pr::inPw(*s)) continue;
+
 			path.clear();
 			path.push_back(n->bb);
 			path.push_back(*s);
 			Succ = Nodes[*s];
-
 			// computing the image of the abstract value by the path's tranformation
 			Xtemp = aman->NewAbstract(n->X_s[passID]);
 			computeTransform(aman,n,path,*Xtemp);
@@ -520,13 +523,15 @@ bool AIPass::computeWideningSeed(Function * F) {
 				Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
 				Xseed->join_array(Xtemp->main->env,Join);
 				if (Xseed->compare(Succ->X_s[passID]) == 1) {
-					*Out << "n\n";
-					n->X_s[passID]->print();
-					*Out << "Xtemp\n";
-					Xtemp->print();
-					*Out << "Succ\n";
-					Succ->X_s[passID]->print();
-					*Out << "SEED FOUND: " << *(n->bb) << "\n";
+					DEBUG(
+						*Out << "n\n";
+						n->X_s[passID]->print();
+						*Out << "Xtemp\n";
+						Xtemp->print();
+						*Out << "Succ\n";
+						Succ->X_s[passID]->print();
+						*Out << "SEED FOUND: " << *(n->bb) << "\n";
+					);
 					Join.clear();
 					Join.push_back(aman->NewAbstract(Xtemp));
 					Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
