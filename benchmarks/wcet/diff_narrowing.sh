@@ -18,8 +18,11 @@ PRINT_TIME=0
 
 for k in `seq 0 3` ; do 
 	RES[$k]=0
-	TIME[$k]=0
 	ITERATIONS[$k]=0
+done
+
+for k in `seq 0 7` ; do 
+	TIME[$k]=0
 done
 #FUNCTIONS=0
 #IGNORED=0
@@ -50,9 +53,9 @@ for i in *.res.narrow ; do
 	#	IGNORED=$[$IGNORED+$NFUNC]
 	#fi
 
-	if [ ! -z `tail -n 17 $i | grep TIME`  ] ; then
+	if [ ! -z `tail -n 19 $i | grep TIME`  ] ; then
 		k=0
-		for j in `tail -n 16 $i | head -n 2` ; do
+		for j in `tail -n 18 $i | head -n 4` ; do
 			TIME[$k]=$[${TIME[$k]}+$j]
 			k=$(($k+1))
 		done
@@ -65,6 +68,8 @@ for k in `seq 0 3` ; do
 done
 TIME_1=`echo "scale=0;(${TIME[0]}*1000000+${TIME[1]})/1000000" | bc`
 TIME_2=`echo "scale=0;(${TIME[2]}*1000000+${TIME[3]})/1000000" | bc`
+TIME_3=`echo "scale=0;(${TIME[4]}*1000000+${TIME[5]})/1000000" | bc`
+TIME_4=`echo "scale=0;(${TIME[6]}*1000000+${TIME[7]})/1000000" | bc`
 if [ $LATEX -eq 0 ] ; then
 	echo "#####"
 	echo $dir
@@ -77,6 +82,10 @@ if [ $LATEX -eq 0 ] ; then
 	echo "TIME"
 	echo "IMPROVED" $TIME_1 
 	echo "CLASSIC " $TIME_2 
+	echo ""
+	echo "SAME RESULT:"
+	echo "IMPROVED " $TIME_3 
+	echo "CLASSIC " $TIME_4 
 	#echo $TIME_PF PF
 	#echo $TIME_C LW+PF
 	#echo $TIME_DIS DIS

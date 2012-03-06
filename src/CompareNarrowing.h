@@ -134,6 +134,10 @@ void CompareNarrowing<T>::AddTime(params P, Function * F) {
 
 template<Techniques T>
 void CompareNarrowing<T>::printEqTime(params P) {
+	if (!Eq_Time.count(P)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Eq_Time[P] = zero;
+	}
 	*Out 
 		<< " " << Eq_Time[P]->seconds() 
 		<< " " << Eq_Time[P]->microseconds() 
@@ -226,7 +230,7 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 			}
 		}
 
-		if (distinct) {
+		if (!distinct) {
 			AddEqTime(P1,F);
 			AddEqTime(P2,F);
 		}
