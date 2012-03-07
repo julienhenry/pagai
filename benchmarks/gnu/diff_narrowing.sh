@@ -13,6 +13,10 @@ for k in `seq 0 3` ; do
 	TOTAL_ITERATIONS[$k]=0
 done
 
+for k in `seq 0 2` ; do 
+	TOTAL_FUNCTIONS[$k]=0
+done
+
 for k in `seq 0 7` ; do 
 	TOTAL_TIME[$k]=0
 done
@@ -28,11 +32,12 @@ for dir in * ; do
 			RES[$k]=0
 			ITERATIONS[$k]=0
 		done
+		for k in `seq 0 2` ; do 
+			FUNCTIONS[$k]=0
+		done
 		for k in `seq 0 7` ; do 
 			TIME[$k]=0
 		done
-		FUNCTIONS=0
-		IGNORED=0
 		if [ -d res ] ; then	
 			for i in res/*.res.narrow ; do
 				basename=`basename $i`
@@ -46,6 +51,13 @@ for dir in * ; do
 					done
 				fi
 
+				if [ ! -z `tail -n 16 $i | head -n 1 | grep FUNCTIONS`  ] ; then
+					k=0
+					for j in `tail -n 15 $i | head -n 1` ; do
+						FUNCTIONS[$k]=$[${FUNCTIONS[$k]}+$j]
+						k=$(($k+1))
+					done
+				fi
 
 				if [ ! -z `tail -n 13 $i | head -n 1 | grep ITERATIONS`  ] ; then
 					k=0
@@ -55,9 +67,9 @@ for dir in * ; do
 					done
 				fi
 
-				if [ ! -z `tail -n 19 $i| head -n 1 | grep TIME`  ] ; then
+				if [ ! -z `tail -n 22 $i| head -n 1 | grep TIME`  ] ; then
 					k=0
-					for j in `tail -n 18 $i | head -n 4` ; do
+					for j in `tail -n 21 $i | head -n 4` ; do
 						TIME[$k]=$[${TIME[$k]}+$j]
 						k=$(($k+1))
 					done
@@ -70,6 +82,9 @@ for dir in * ; do
 					AVG[$k]=`echo "scale=2;${RES[$k]}*100/$TOTAL"| bc`
 					TOTAL_ITERATIONS[$k]=$[${TOTAL_ITERATIONS[$k]}+${ITERATIONS[$k]}]
 					ALL[$k]=$[${RES[$k]}+${ALL[$k]}]
+				done
+				for k in `seq 0 2` ; do 
+					TOTAL_FUNCTIONS[$k]=$[${TOTAL_FUNCTIONS[$k]}+${FUNCTIONS[$k]}]
 				done
 				for k in `seq 0 7` ; do 
 					TOTAL_TIME[$k]=$[${TOTAL_TIME[$k]}+${TIME[$k]}]
@@ -84,6 +99,9 @@ for dir in * ; do
 				echo "             ASC      DESC"
 				echo "IMPROVED ${ITERATIONS[0]} ${ITERATIONS[1]}"
 				echo "CLASSIC  ${ITERATIONS[2]} ${ITERATIONS[3]}"
+				echo ""
+				echo "FUNCTIONS"
+				echo "${FUNCTIONS[0]} ${FUNCTIONS[1]} ${FUNCTIONS[2]}"
 				echo ""
 				echo "TIME"
 				echo "IMPROVED" $TIME_1 
@@ -119,6 +137,9 @@ echo
 echo "             ASC      DESC"
 echo "IMPROVED ${TOTAL_ITERATIONS[0]} ${TOTAL_ITERATIONS[1]}"
 echo "CLASSIC  ${TOTAL_ITERATIONS[2]} ${TOTAL_ITERATIONS[3]}"
+echo
+echo "FUNCTIONS"
+echo "${TOTAL_FUNCTIONS[0]} ${TOTAL_FUNCTIONS[1]} ${TOTAL_FUNCTIONS[2]}"
 echo
 echo "TIME"
 echo "IMPROVED" $TOTAL_TIME_1 

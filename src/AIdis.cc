@@ -60,13 +60,6 @@ bool AIdis::runOnModule(Module &M) {
 
 		initFunction(F);
 
-		// we delete the previous pathtree, since we entered a new function
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
-			it != et;
-			it++) {
-			delete (*it).second;
-		}
-		pathtree.clear();
 
 		// we create the new pathtree and Sigma
 		std::set<BasicBlock*>* Pr = Pr::getPr(*F); 
@@ -81,6 +74,23 @@ bool AIdis::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+
+		// we delete the previous pathtree
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
+			it != et;
+			it++) {
+			delete (*it).second;
+		}
+		pathtree.clear();
+
+		// we delete the previous Sigma
+		for (std::map<BasicBlock*,Sigma*>::iterator it = S.begin(), et = S.end();
+			it != et;
+			it++) {
+			delete (*it).second;
+		}
+		S.clear();
+
 	}
 	return 0;
 }

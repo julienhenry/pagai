@@ -42,6 +42,7 @@ void AISimple::computeFunc(Function * F) {
 
 	ascendingIter(n, F);
 
+	return;
 	narrowingIter(n);
 
 	// then we move X_d abstract values to X_s abstract values

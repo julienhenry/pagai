@@ -171,6 +171,10 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	int lt = 0;
 	int eq = 0;
 	int un = 0;
+
+	int F_equal = 0;
+	int F_distinct = 0;
+
 	params P1, P2;
 	P1.T = T;
 	P2.T = T;
@@ -240,6 +244,9 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		if (!distinct) {
 			AddEqTime(P1,F);
 			AddEqTime(P2,F);
+			F_equal++;
+		} else {
+			F_distinct++;
 		}
 	}
 
@@ -253,6 +260,12 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	
 	printEqTime(P1);
 	printEqTime(P2);
+
+	*Out << "\nFUNCTIONS\n";
+	*Out 
+		<< F_equal 
+		<< " " << F_distinct 
+		<<  " " << F_equal+F_distinct << "\n";
 
 	*Out << "\nITERATIONS\n";
 	printIterations(P1);

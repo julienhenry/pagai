@@ -24,7 +24,10 @@ done
 for k in `seq 0 7` ; do 
 	TIME[$k]=0
 done
-#FUNCTIONS=0
+
+for k in `seq 0 2` ; do 
+	FUNCTIONS[$k]=0
+done
 #IGNORED=0
 
 
@@ -48,14 +51,22 @@ for i in *.res.narrow ; do
 		done
 	fi
 
+	if [ ! -z `tail -n 16 $i | grep FUNCTIONS`  ] ; then
+		k=0
+		for j in `tail -n 15 $i | head -n 1` ; do
+			FUNCTIONS[$k]=$[${FUNCTIONS[$k]}+$j]
+			k=$(($k+1))
+		done
+	fi
+
 	#if [ ! -z `tail -n 18 $i | grep IGNORED:`  ] ; then
 	#	NFUNC=`tail -n 17 $i | head -n 1`
 	#	IGNORED=$[$IGNORED+$NFUNC]
 	#fi
 
-	if [ ! -z `tail -n 19 $i | grep TIME`  ] ; then
+	if [ ! -z `tail -n 22 $i | grep TIME`  ] ; then
 		k=0
-		for j in `tail -n 18 $i | head -n 4` ; do
+		for j in `tail -n 21 $i | head -n 4` ; do
 			TIME[$k]=$[${TIME[$k]}+$j]
 			k=$(($k+1))
 		done
@@ -79,13 +90,18 @@ if [ $LATEX -eq 0 ] ; then
 	echo "IMPROVED ${ITERATIONS[0]} ${ITERATIONS[1]}"
 	echo "CLASSIC  ${ITERATIONS[2]} ${ITERATIONS[3]}"
 	echo ""
+	echo "FUNCTIONS"
+	echo "EQ  " ${FUNCTIONS[0]}
+	echo "NE  " ${FUNCTIONS[1]}
+	echo "TOT " ${FUNCTIONS[2]}
+	echo ""
 	echo "TIME"
-	echo "IMPROVED" $TIME_1 
-	echo "CLASSIC " $TIME_2 
+	echo "IMPROVED " $TIME_1 
+	echo "CLASSIC  " $TIME_2 
 	echo ""
 	echo "SAME RESULT:"
 	echo "IMPROVED " $TIME_3 
-	echo "CLASSIC " $TIME_4 
+	echo "CLASSIC  " $TIME_4 
 	#echo $TIME_PF PF
 	#echo $TIME_C LW+PF
 	#echo $TIME_DIS DIS

@@ -63,13 +63,6 @@ bool AIopt::runOnModule(Module &M) {
 
 		initFunction(F);
 
-		// we delete the previous pathtree, since we entered a new function
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
-			it != et;
-			it++) {
-			delete (*it).second;
-		}
-		pathtree.clear();
 
 		// we create the new pathtree
 		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
@@ -83,6 +76,14 @@ bool AIopt::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+
+		// we delete the pathtree
+		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
+			it != et;
+			it++) {
+			delete (*it).second;
+		}
+		pathtree.clear();
 	}
 	return 0;
 }
