@@ -20,6 +20,8 @@ class AIopt : public ModulePass, public AIPass {
 		/// visited
 		std::map<BasicBlock*,PathTree*> pathtree;
 
+		PathTree * W;
+
 		std::set<Node*> A_prime;
 
 		void computeNewPaths(

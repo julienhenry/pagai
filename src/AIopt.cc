@@ -89,7 +89,6 @@ bool AIopt::runOnModule(Module &M) {
 }
 
 
-PathTree * W;
 
 void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
@@ -174,6 +173,7 @@ void AIopt::computeFunction(Function * F) {
 			narrowingIter(n);
 			step++;
 		}
+		delete W;
 
 	}
 }
