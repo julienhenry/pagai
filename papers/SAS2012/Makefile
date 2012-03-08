@@ -1,4 +1,4 @@
-implicitization.pdf: gnuplot/techniques.pdf
+implicitization.pdf: gnuplot/techniques.pdf table1.tex table_time.tex table_domain.tex
 
 BIBTEXSRCS= implicitization.bib
 

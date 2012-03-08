@@ -1,7 +1,7 @@
 #set terminal jpeg medium
 #set output "techniques.jpeg"
 set terminal epslatex
-set output "gnuplot/techniques.tex"
+set output "techniques.tex"
 set size 0.8,0.7
 set boxwidth 1.0 absolute
 set style fill pattern noborder
@@ -19,8 +19,8 @@ set mxtics 2
 set mytics 2
 set xtics 2 rotate by -45
 set ytics 2
-set yrange [0:16]
+set yrange [0:18]
 set label 1 "percentage of control points" at graph -0.125, graph 0.5 center rotate
 #set xlabel "Techniques"
 
-plot 'gnuplot/techniques.dat' using 3 t "$\\subsetneq$" fs solid 0.3 ls 1, '' using 4 t "$\\supsetneq$" fs pattern 3 ls 2, '' using 5:xtic(1) t "uncomparable"  fs pattern 13 ls 3
+plot 'techniques.dat' using 3 t "$\\subsetneq$" fs solid 0.3 ls 1, '' using 4 t "$\\supsetneq$" fs pattern 3 ls 2, '' using 5:xtic(1) t "uncomparable"  fs pattern 13 ls 3
