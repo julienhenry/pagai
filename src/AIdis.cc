@@ -133,17 +133,17 @@ void AIdis::computeFunction(Function * F) {
 	n->create_env(&env,LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	A.push(n);
+
+	while (!A_prime.empty()) 
+			A_prime.pop();
+	while (!A.empty()) 
+			A.pop();
 
 	//A' <- initial state
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
 	while (!A_prime.empty()) {
-		// P' <- emptyset
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
-			(*it).second->clear(true);
-		}
 		
 		// compute the new paths starting in a point in A'
 		is_computed.clear();
@@ -155,14 +155,6 @@ void AIdis::computeFunction(Function * F) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				return;
-			}
-		}
-
-		// P <- P U P'
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
-			if (!(*it).second->isZero(true)) {
-				// we add the new feasible paths to the graph
-				(*it).second->mergeBDD();
 			}
 		}
 

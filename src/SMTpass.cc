@@ -117,8 +117,9 @@ SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value)
 		mpq_t mpq;
 		mpq_init(mpq);
 		ap_mpq_set_scalar(mpq,scalar,round);
-		//return man->SMT_mk_num((int)value);
-		return man->SMT_mk_num_mpq(mpq);
+		SMT_expr res = man->SMT_mk_num_mpq(mpq);
+		mpq_clear(mpq);
+		return res;
 	} else {
 		return man->SMT_mk_real(value);
 	}
