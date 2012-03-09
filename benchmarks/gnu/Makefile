@@ -34,12 +34,12 @@ clean:
 
 nclean:
 	for p in  $(SUBDIRS); do\
-		( cd $$p && $(MAKE) -f $(PWD)/Makefile.model nclean && cd ..);\
+		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model nclean && cd ..);\
 	done ;
 
 cclean:
 	for p in  $(SUBDIRS); do\
-		( cd $$p && $(MAKE) -f $(PWD)/Makefile.model cclean && cd ..);\
+		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model cclean && cd ..);\
 	done ;
 
 cdiff:

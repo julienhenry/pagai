@@ -144,6 +144,18 @@ void AIopt::computeFunction(Function * F) {
 			computeNewPaths(*it); // this method adds elements in A
 		}
 
+//		is_computed.clear();
+//		while (!A_prime.empty()) {
+//			Node * current = A.top();
+//			A_prime.pop();
+//			computeNewPaths(current); // this method adds elements in A and A'
+//			if (unknown) {
+//				ignoreFunction.insert(F);
+//				while (!A_prime.empty()) A_prime.pop();
+//				return;
+//			}
+//		}
+
 		// P <- P U P'
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
 			if (!(*it).second->isZero(true)) {
