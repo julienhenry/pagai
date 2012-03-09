@@ -92,6 +92,6 @@ class PathTree {
 
 		/// generate the SMTpass formula associated to the Bdd
 		SMT_expr generateSMTformula(
-			SMTpass * smt);
+			SMTpass * smt, bool neg = false);
 };
 #endif

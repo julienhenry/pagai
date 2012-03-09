@@ -129,8 +129,7 @@ void AIopt::computeFunction(Function * F) {
 	n->X_d[passID]->set_top(env);
 	
 	//A' <- initial state
-	A_prime.clear();	
-	A_prime.insert(n);
+	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
 	while (!A_prime.empty()) {
@@ -140,21 +139,17 @@ void AIopt::computeFunction(Function * F) {
 		}
 		
 		// compute the new paths starting in a point in A'
-		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
-			computeNewPaths(*it); // this method adds elements in A
+		is_computed.clear();
+		while (!A_prime.empty()) {
+			Node * current = A_prime.top();
+			A_prime.pop();
+			computeNewPaths(current); // this method adds elements in A and A'
+			if (unknown) {
+				ignoreFunction.insert(F);
+				while (!A_prime.empty()) A_prime.pop();
+				return;
+			}
 		}
-
-//		is_computed.clear();
-//		while (!A_prime.empty()) {
-//			Node * current = A.top();
-//			A_prime.pop();
-//			computeNewPaths(current); // this method adds elements in A and A'
-//			if (unknown) {
-//				ignoreFunction.insert(F);
-//				while (!A_prime.empty()) A_prime.pop();
-//				return;
-//			}
-//		}
 
 		// P <- P U P'
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end(); it != et; it++) {
@@ -163,7 +158,6 @@ void AIopt::computeFunction(Function * F) {
 				(*it).second->mergeBDD();
 			}
 		}
-		A_prime.clear();
 
 		W = new PathTree(n->bb);
 		is_computed.clear();
@@ -203,6 +197,10 @@ void AIopt::computeNewPaths(Node * n) {
 	Abstract * Xtemp = NULL;
 	std::vector<Abstract*> Join;
 
+	if (is_computed.count(n) && is_computed[n]) {
+		return;
+	}
+
 	// first, we set X_d abstract values to X_s
 	std::set<BasicBlock*> successors = Pr::getPrSuccessors(n->bb);
 	for (std::set<BasicBlock*>::iterator it = successors.begin(),
@@ -215,6 +213,7 @@ void AIopt::computeNewPaths(Node * n) {
 	}
 
 	while (true) {
+		is_computed[n] = true;
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
 			*Out << "COMPUTENEWPATHS-------------- SMT SOLVE -------------------------\n";
@@ -222,7 +221,8 @@ void AIopt::computeNewPaths(Node * n) {
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,
+				pathtree[n->bb]->generateSMTformula(LSMT,true));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			LSMT->man->SMT_print(smtexpr);
@@ -244,22 +244,25 @@ void AIopt::computeNewPaths(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,*Xtemp);
-		Succ->X_d[passID]->change_environment(Xtemp->main->env);
+		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
 		Join.clear();
-		Join.push_back(Succ->X_d[passID]);
+		Join.push_back(Succ->X_s[passID]);
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
-		Succ->X_d[passID] = Xtemp;
+		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
 
 		// there is a new path that has to be explored
-		pathtree[n->bb]->insert(path,true);
+		pathtree[n->bb]->insert(path,false);
 		DEBUG(
 			*Out << "THE FOLLOWING PATH IS INSERTED INTO P'\n";	
 			printPath(path);
 		);
 		A.push(n);
+		A.push(Succ);
+		is_computed[Succ] = false;
+		A_prime.push(Succ);
 	}
 }
 
@@ -370,7 +373,7 @@ void AIopt::computeNode(Node * n) {
 		is_computed[Succ] = false;
 		// we have to search for new paths starting at Succ, 
 		// since the associated abstract value has changed
-		A_prime.insert(Succ);
+		A_prime.push(Succ);
 	}
 	delete U;
 	delete V;

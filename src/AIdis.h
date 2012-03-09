@@ -24,7 +24,7 @@ class AIdis : public ModulePass, public AIPass {
 		/// visited
 		std::map<BasicBlock*,PathTree*> pathtree;
 
-		std::set<Node*> A_prime;
+		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
 		void computeNewPaths(
 			Node * n

@@ -136,8 +136,7 @@ void AIdis::computeFunction(Function * F) {
 	A.push(n);
 
 	//A' <- initial state
-	A_prime.clear();	
-	A_prime.insert(n);
+	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
 	while (!A_prime.empty()) {
@@ -147,8 +146,16 @@ void AIdis::computeFunction(Function * F) {
 		}
 		
 		// compute the new paths starting in a point in A'
-		for (std::set<Node*>::iterator it = A_prime.begin(), et = A_prime.end(); it != et; it++) {
-			computeNewPaths(*it); // this method adds elements in A
+		is_computed.clear();
+		while (!A_prime.empty()) {
+			Node * current = A_prime.top();
+			A_prime.pop();
+			computeNewPaths(current); // this method adds elements in A and A'
+			if (unknown) {
+				ignoreFunction.insert(F);
+				while (!A_prime.empty()) A_prime.pop();
+				return;
+			}
 		}
 
 		// P <- P U P'
@@ -158,7 +165,6 @@ void AIdis::computeFunction(Function * F) {
 				(*it).second->mergeBDD();
 			}
 		}
-		A_prime.clear();
 
 		is_computed.clear();
 		ascendingIter(n, F, true);
@@ -221,7 +227,8 @@ void AIdis::computeNewPaths(Node * n) {
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,
+				pathtree[n->bb]->generateSMTformula(LSMT,true));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			LSMT->man->SMT_print(smtexpr);
@@ -253,7 +260,7 @@ void AIdis::computeNewPaths(Node * n) {
 			*Out << "XTEMP\n";
 			Xtemp->print();
 		);
-		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_d[passID]);
+		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
 		int Sigma = sigma(path,index,Xtemp,false);
 		Join.clear();
 		Join.push_back(SuccDisj->getDisjunct(Sigma));
@@ -263,14 +270,17 @@ void AIdis::computeNewPaths(Node * n) {
 		Xtemp = NULL;
 
 		// there is a new path that has to be explored
-		pathtree[n->bb]->insert(path,true);
+		pathtree[n->bb]->insert(path,false);
 		DEBUG(
 			*Out << "INSERTING INTO P THE PATH\n";
 			printPath(path);
 			*Out << "RESULT\n";
-			Succ->X_d[passID]->print();
+			Succ->X_s[passID]->print();
 		);
 		A.push(n);
+		A.push(Succ);
+		is_computed[Succ] = false;
+		A_prime.push(Succ);
 	}
 }
 
@@ -461,7 +471,7 @@ void AIdis::computeNode(Node * n) {
 		is_computed[Succ] = false;
 		// we have to search for new paths starting at Succ, 
 		// since the associated abstract value has changed
-		A_prime.insert(Succ);
+		A_prime.push(Succ);
 	}
 
 	//delete U;

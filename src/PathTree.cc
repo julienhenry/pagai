@@ -93,13 +93,14 @@ void PathTree::DumpDotBDD(BDD graph, std::string filename) {
 	fclose(fp);
 }
 
-SMT_expr PathTree::generateSMTformula(SMTpass * smt) {
+SMT_expr PathTree::generateSMTformula(SMTpass * smt, bool neg) {
 	std::map<DdNode*,SMT_expr> Bdd_expr;
 	DdNode *node;
 	DdNode *N, *Nv, *Nnv;
 	DdGen *gen;
 	DdNode * true_node;
 	std::vector<SMT_expr> formula;
+	std::vector<SMT_expr> factorized;
 	for(gen = Cudd_FirstNode (mgr->getManager(), Bdd->getNode(), &node);
 	!Cudd_IsGenEmpty(gen);
 	(void) Cudd_NextNode(gen, &node)) {
@@ -153,7 +154,7 @@ SMT_expr PathTree::generateSMTformula(SMTpass * smt) {
 				name << "Bdd_" << node;
 				SMT_var var = smt->man->SMT_mk_bool_var(name.str());
 				SMT_expr vexpr = smt->man->SMT_mk_expr_from_bool_var(var);
-				formula.push_back(smt->man->SMT_mk_eq(vexpr,Bdd_expr[node]));
+				factorized.push_back(smt->man->SMT_mk_eq(vexpr,Bdd_expr[node]));
 				Bdd_expr[node] = vexpr;	
 			}
 		}
@@ -165,7 +166,13 @@ SMT_expr PathTree::generateSMTformula(SMTpass * smt) {
 		formula.push_back(smt->man->SMT_mk_not(Bdd_expr[Cudd_Regular(Bdd->getNode())]));
 	else
 		formula.push_back(Bdd_expr[Cudd_Regular(Bdd->getNode())]);
-	return smt->man->SMT_mk_and(formula);
+
+	SMT_expr res = smt->man->SMT_mk_and(formula);
+	if (neg)
+		res = smt->man->SMT_mk_not(res);
+
+	factorized.push_back(res);
+	return smt->man->SMT_mk_and(factorized);
 } 
 
 BDD PathTree::computef(std::list<BasicBlock*> path) {

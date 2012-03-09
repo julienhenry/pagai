@@ -22,7 +22,7 @@ class AIopt : public ModulePass, public AIPass {
 
 		PathTree * W;
 
-		std::set<Node*> A_prime;
+		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
 		void computeNewPaths(
 			Node * n
