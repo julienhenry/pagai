@@ -364,13 +364,13 @@ The analysis starts by identifying the tests taken and not taken during the firs
 
 Analyzing this loop using widening and narrowing on convex polyhedra
 or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$.
-Now, the transition at line~5 becomes feasible; and we analyze the
+Now, the transition at line~4 becomes feasible; and we analyze the
 full loop, starting iterations from $0 \leq x \leq 51 \land y = x$,
 and obtain invariant~(\ref{eqn:triangle}) in Fig~\ref{fig:gopan_reps_invariant}.
 
 More generally, this analysis method considers an ascending sequence of subsets of the transitions in the loop body \avirer{(left side of Fig.~\ref{fig:multigraph})};
 for each subset, an inductive invariant is computed for the program restricted to it.
-The starting subset are the transitions reachable in one step from the loop initialization.
+The starting subset consists in the transitions reachable in one step from the loop initialization.
 If for a given subset $S$ in the sequence, no transitions outside $S$ are reachable from the inductive invariant attached to $S$, then iterations stop;
 otherwise, add these transitions to $S$ and iterate more.
 Termination ensues from the finiteness of the control-flow graph.
@@ -429,7 +429,7 @@ Guided static analysis, as proposed by \cite{DBLP:conf/sas/GopanR07}, applies to
 graph of the program. We now present a new technique applying this analysis on the implicit
 multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
 unfeasible paths.
-In this section, we use the same notations as \ref{sec:path_focusing}, except
+In this section, we use the same notations as \S\ref{sec:path_focusing}, except
 that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
 another abstract value $X_i^d$ later.
 
