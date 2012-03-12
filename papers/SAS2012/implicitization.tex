@@ -225,7 +225,7 @@ it may then backtrack some of the constraints and add other ones without restart
 
 \subsection{A Simple, Motivating Example}
 \label{subsec:rate_lim}
-Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$ (in the associated control-flow graph, $s$ is the start node and $e$ the end node):
+Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, where \lstinline|input($a$, $b$)| stands for a nondeterministic input in $[a,b]$ (the control-flow graph on the right depicts the loop body, $s$ is the start node and $e$ the end node):
 
 \begin{minipage}{9cm}
 \lstinputlisting{rlim_int.c}
@@ -312,9 +312,9 @@ In contrast, let us distinguish all four possible execution paths through the te
 \end{minipage}
 
 Classical interval analysis on this program yields $\lstinline|x_old| \in [-100000,100000]$.
-We have transformed the program, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first \avirer{(as in Fig.~\ref{fig:multigraph})}, even though not all feasible paths are needed to compute the invariant.
+We have transformed the program, manually pruning out infeasible paths; yet in general the resulting program could be exponentially larger than the first, even though not all feasible paths are needed to compute the invariant.
 
-Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph \avirer{(Fig.~\ref{fig:multigraph})}; it is succinctly representated by the transition graph of the first program.
+Following recent suggestions \cite{Gawlitza_Monniaux_ESOP11,Monniaux_Gonnord_SAS11}, we avoid this space explosion by keeping the second program implicit while simulating its analysis. This means we work on an implicitly represented transition multigraph \avirer{(Fig.~\ref{fig:multigraph})}; it is succinctly represented by the transition graph of the first program.
 Our first contribution (\S\ref{sec:guided_multigraph}) is to recast the ``guided analysis'' from \cite{DBLP:conf/sas/GopanR07} on such a succinct representation of the paths in lieu of the individual transitions.
 A similar explosion occurs in disjunctive invariant generation, following \cite{DBLP:conf/pldi/GulwaniZ10}; our second contribution (\S\ref{sec:disjunctive}) applies our implicit representation to their method.
 
@@ -333,9 +333,9 @@ Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DB
 \begin{minipage}{.5\linewidth}
 \includegraphics[scale=0.7]{gopan_reps}
 \vspace{-1em}
-\begin{equation}
+\begin{equation*}
 y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
-\end{equation}
+\end{equation*}
 \end{minipage}
 \caption{Example program and its invariant: the piecewise linear, solid line is the strongest invariant, the grayed polyhedron is its convex hull.}
 \label{fig:gopan_reps_invariant} 
@@ -343,7 +343,7 @@ y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
 
 Classical iterations on the domain of convex polyhedra \cite{CousotHalbwachs78,BagnaraHRZ05SCP} or octagons \cite{DBLP:journals/lisp/Mine06} start with $x = 0 \land x = 0$, then continue with $x = y \land 0 \leq x \leq 1$.
 The widening operator extrapolates from these two iterations and yields $x = y \land x \geq 0$.
-From there, the ``else'' branch at line 5 may be taken; with further widening, $0 \leq y \leq x$ is obtained as a loop invariant, and thus the postcondition computed at line 9 is $x \geq 0 \land y = 0$.
+From there, the ``else'' branch at line~4 may be taken; with further widening, $0 \leq y \leq x$ is obtained as a loop invariant, and thus the computed loop postcondition is $x \geq 0 \land y = 0$.
 Yet the strongest invariant is $(0 \leq x \leq 51 \land y = x) \lor (51 \leq x \leq 102 \land x+y=102)$, and its convex hull, a convex polyhedron (Fig.~\ref{fig:gopan_reps_invariant}).
 
 Intuitively, this disappointing result is obtained because widening extrapolates from the first iterations of the loop, but the loop has two different phases ($x \leq 50$ and $x > 50$) with different behaviors, thus the extrapolation from the first phase is not valid for the second.
