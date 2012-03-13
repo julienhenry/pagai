@@ -690,7 +690,6 @@ feasible paths could have been added during the analysis.
 
 
 \begin{figure}
-\label{fig:example-graph}
 \begin{minipage}[c]{.15\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.5cm,
                     semithick,font=\footnotesize]
@@ -734,6 +733,7 @@ feasible paths could have been added during the analysis.
 \end{tikzpicture}
 \end{minipage}
 \caption{Ascending sequence of subgraphs}
+\label{fig:example-graph}
 \end{figure}
 
 
@@ -917,10 +917,30 @@ For SMT-solving, our analyzer uses Yices
 
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
+These results confirm that our combined technique improve the
+analysis in comparison with the two techniques taken individually, at
+a reasonable cost. The extension with disjunctive invariants increases
+precision in many cases, but with higher cost in terms of execution
+time.
+
 \MM{TODO: résumer les conclusions sur les résultats}
 
-\begin{figure}[h!]
-      \centering
+\section{Conclusion and Future Prospects}
+Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
+
+A common criticism of analysis techniques based on SMT-solving is that they
+do not scale up. Yet, our experiments show that, for numerical properties,
+they scale up to the size of typical functions and loops.
+It is however
+quite certain that, naively applied, they cannot scale to the kind of
+programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
+of thousands of lines of code in a single loop operating over similar numbers
+of remanent variables.
+Actually, for such applications, only (quasi-)linear
+algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
+It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
+
+\begin{table}[h!]\centering
       \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline
         \multicolumn{1}{|c|}{} &
         \multicolumn{2}{c|}{Size} &
@@ -938,8 +958,12 @@ different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) w
 		\input{table_time}
 	\hline
       \end{tabular}
-      \label{fig:projects}
+\caption{Execution times for various techniques}
+\label{tab:time}
+\end{table}
 
+\begin{figure}[h!]%
+      \centering%
     \input{gnuplot/techniques.tex}
   \vspace{-20pt}
   \caption{Comparison of the abstract values obtained on several open-source projects. The table shows
@@ -949,36 +973,17 @@ different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) w
   interpretation (S), \emph{Guided Static
   Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
   (G+PF), and its version with disjunctive invariants (DIS).
-  The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
-$\supsetneq$ the percentage of invariants stronger with the right-side technique,
+  The $\subsetneq$ bars (resp. $\supsetneq$) gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side (resp. right-side) technique,
 and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
 neither greater nor smaller;
 the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
   \label{fig:techniques}
+  \label{fig:projects}
 \end {figure}
 
 \MM{Bon, c'est vraiment frustrant de se limiter à ça, mais pour écrire
   plus, faut trouver de la place}
-These results confirm that our combined technique improve the
-analysis in comparison with the two techniques taken individually, at
-a reasonable cost. The extension with disjunctive invariants increases
-precision in many cases, but with higher cost in terms of execution
-time.
 
-\section{Conclusion and Future Prospects}
-Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
-
-A common criticism of analysis techniques based on SMT-solving is that they
-do not scale up. Yet, our experiments show that, for numerical properties,
-they scale up to the size of typical functions and loops.
-It is however
-quite certain that, naively applied, they cannot scale to the kind of
-programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
-of thousands of lines of code in a single loop operating over similar numbers
-of remanent variables.
-Actually, for such applications, only (quasi-)linear
-algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
-It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
 
 We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
 
