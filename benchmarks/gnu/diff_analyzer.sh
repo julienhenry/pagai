@@ -13,7 +13,7 @@ for k in `seq 0 27` ; do
 done
 
 LATEX=1
-PRINT_TIME=0
+PRINT_TIME=1
 
 for dir in `ls` ; do
 	if [ -d $dir ] ; then

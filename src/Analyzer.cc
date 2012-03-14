@@ -119,6 +119,8 @@ std::string TechniquesToString(Techniques t) {
 			return "COMBINED TECHNIQUE";
 		case SIMPLE:
 			return "CLASSIC";
+		case GUIDED:
+			return "GUIDED";
 		case LW_WITH_PF_DISJ:
 			return "DISJUNCTIVE";
 		default:
@@ -185,6 +187,8 @@ bool setTechnique(char * t) {
 		technique = LW_WITH_PF;
 	} else if (!d.compare("s")) {
 		technique = SIMPLE;
+	} else if (!d.compare("g")) {
+		technique = GUIDED;
 	} else if (!d.compare("dis")) {
 		technique = LW_WITH_PF_DISJ;
 	} else {

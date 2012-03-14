@@ -21,6 +21,7 @@
 #include "AIGopan.h"
 #include "AIClassic.h"
 #include "AIdis.h"
+#include "AIGuided.h"
 #include "ModulePassWrapper.h"
 #include "Node.h"
 #include "Execute.h"
@@ -125,6 +126,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			case LOOKAHEAD_WIDENING:
 				Passes.add(new CompareNarrowing<LOOKAHEAD_WIDENING>());
 				break;
+			case GUIDED:
+				Passes.add(new CompareNarrowing<GUIDED>());
+				break;
 			case PATH_FOCUSING:
 				Passes.add(new CompareNarrowing<PATH_FOCUSING>());
 				break;
@@ -142,6 +146,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
 				Passes.add(new CompareDomain<LOOKAHEAD_WIDENING>());
+				break;
+			case GUIDED:
+				Passes.add(new CompareNarrowing<GUIDED>());
 				break;
 			case PATH_FOCUSING:
 				Passes.add(new CompareDomain<PATH_FOCUSING>());
@@ -161,6 +168,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
 				AIPass = new ModulePassWrapper<AIGopan, 0>();
+				break;
+			case GUIDED:
+				AIPass = new ModulePassWrapper<AIGuided, 0>();
 				break;
 			case PATH_FOCUSING:
 				AIPass = new ModulePassWrapper<AIpf, 0>();

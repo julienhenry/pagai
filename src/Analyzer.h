@@ -26,6 +26,7 @@ enum Apron_Manager_Type {
 enum Techniques {
 	SIMPLE,
 	LOOKAHEAD_WIDENING,
+	GUIDED,
 	PATH_FOCUSING,
 	LW_WITH_PF,
 	LW_WITH_PF_DISJ

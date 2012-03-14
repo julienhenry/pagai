@@ -7,6 +7,7 @@
 #include "AIpass.h"
 #include "Pr.h"
 #include "AISimple.h"
+#include "AIGuided.h"
 #include "Expr.h"
 #include "Live.h"
 #include "Node.h"
@@ -63,6 +64,7 @@ void AIPass::initFunction(Function * F) {
 		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
+				||dynamic_cast<AIGuided*>(this)
 				|| Pr::getPr(*F)->count(i)) {
 			n->X_s[passID] = aman->NewAbstract(man,n->env);
 			n->X_d[passID] = aman->NewAbstract(man,n->env);
