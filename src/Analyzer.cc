@@ -41,6 +41,7 @@ void show_help() {
 -t : use a specific technique\n \
 		possible techniques:\n \
 		  * lw (Lookahead Widening)\n \
+		  * g (Guided Static Analysis)\n \
 		  * pf (Path Focusing)\n \
 		  * lw+pf (combination of Lookahead Widening and Path Focusing), default\n \
 		  * s (simple abstract interpretation)\n \
