@@ -4,6 +4,7 @@
 #include "AIpf.h"
 #include "AIopt.h"
 #include "AIGopan.h"
+#include "AIGuided.h"
 #include "AIClassic.h"
 #include "AIdis.h"
 #include "Node.h"
@@ -25,7 +26,7 @@ Compare::Compare() : ModulePass(ID) {}
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 	AU.addRequired<ModulePassWrapper<AIpf, 0> >();
-	AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
+	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
 	AU.addRequired<Pr>();
@@ -160,37 +161,37 @@ void Compare::printAllResults() {
 
 	*Out << "\nTIME:\n";
 	printTime(SIMPLE);
-	printTime(LOOKAHEAD_WIDENING);
+	printTime(GUIDED);
 	printTime(PATH_FOCUSING);
 	printTime(LW_WITH_PF);
 	printTime(LW_WITH_PF_DISJ);
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
-	*Out	<< results[LOOKAHEAD_WIDENING][SIMPLE].eq << " "
-			<< results[LOOKAHEAD_WIDENING][SIMPLE].lt << " "
-			<< results[LOOKAHEAD_WIDENING][SIMPLE].gt << " "
-			<< results[LOOKAHEAD_WIDENING][SIMPLE].un << " "
+	*Out	<< results[GUIDED][SIMPLE].eq << " "
+			<< results[GUIDED][SIMPLE].lt << " "
+			<< results[GUIDED][SIMPLE].gt << " "
+			<< results[GUIDED][SIMPLE].un << " "
 			<< "\n";
 	*Out	<< results[PATH_FOCUSING][SIMPLE].eq << " "
 			<< results[PATH_FOCUSING][SIMPLE].lt << " "
 			<< results[PATH_FOCUSING][SIMPLE].gt << " "
 			<< results[PATH_FOCUSING][SIMPLE].un << " "
 			<< "\n";
-	*Out	<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].eq << " "
-			<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].lt << " "
-			<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].gt << " "
-			<< results[PATH_FOCUSING][LOOKAHEAD_WIDENING].un << " "
+	*Out	<< results[PATH_FOCUSING][GUIDED].eq << " "
+			<< results[PATH_FOCUSING][GUIDED].lt << " "
+			<< results[PATH_FOCUSING][GUIDED].gt << " "
+			<< results[PATH_FOCUSING][GUIDED].un << " "
 			<< "\n";
 	*Out	<< results[LW_WITH_PF][PATH_FOCUSING].eq << " "
 			<< results[LW_WITH_PF][PATH_FOCUSING].lt << " "
 			<< results[LW_WITH_PF][PATH_FOCUSING].gt << " "
 			<< results[LW_WITH_PF][PATH_FOCUSING].un << " "
 			<< "\n";
-	*Out	<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].eq << " "
-			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].lt << " "
-			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].gt << " "
-			<< results[LW_WITH_PF][LOOKAHEAD_WIDENING].un << " "
+	*Out	<< results[LW_WITH_PF][GUIDED].eq << " "
+			<< results[LW_WITH_PF][GUIDED].lt << " "
+			<< results[LW_WITH_PF][GUIDED].gt << " "
+			<< results[LW_WITH_PF][GUIDED].un << " "
 			<< "\n";
 	*Out	<< results[LW_WITH_PF][SIMPLE].eq << " "
 			<< results[LW_WITH_PF][SIMPLE].lt << " "
@@ -230,7 +231,7 @@ bool Compare::runOnModule(Module &M) {
 
 		// we now count the computing time
 		ComputeTime(SIMPLE,F);
-		ComputeTime(LOOKAHEAD_WIDENING,F);
+		ComputeTime(GUIDED,F);
 		ComputeTime(PATH_FOCUSING,F);
 		ComputeTime(LW_WITH_PF,F);
 		ComputeTime(LW_WITH_PF_DISJ,F);
@@ -239,21 +240,21 @@ bool Compare::runOnModule(Module &M) {
 			b = i;
 			n = Nodes[b];
 			if (Pr::getPw(*b->getParent())->count(b)) {
-				compareTechniques(n,LOOKAHEAD_WIDENING,SIMPLE);
+				compareTechniques(n,GUIDED,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,SIMPLE);
-				compareTechniques(n,PATH_FOCUSING,LOOKAHEAD_WIDENING);
+				compareTechniques(n,PATH_FOCUSING,GUIDED);
 				compareTechniques(n,LW_WITH_PF,PATH_FOCUSING);
-				compareTechniques(n,LW_WITH_PF,LOOKAHEAD_WIDENING);
+				compareTechniques(n,LW_WITH_PF,GUIDED);
 				compareTechniques(n,LW_WITH_PF,SIMPLE);
 				compareTechniques(n,LW_WITH_PF_DISJ,LW_WITH_PF);
 			}
 		}
 	}
-	printResults(LOOKAHEAD_WIDENING,SIMPLE);
+	printResults(GUIDED,SIMPLE);
 	printResults(PATH_FOCUSING,SIMPLE);
-	printResults(PATH_FOCUSING,LOOKAHEAD_WIDENING);
+	printResults(PATH_FOCUSING,GUIDED);
 	printResults(LW_WITH_PF,PATH_FOCUSING);
-	printResults(LW_WITH_PF,LOOKAHEAD_WIDENING);
+	printResults(LW_WITH_PF,GUIDED);
 	printResults(LW_WITH_PF,SIMPLE);
 	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
 

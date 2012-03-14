@@ -9,6 +9,7 @@
 #include "AIpf.h"
 #include "AIopt.h"
 #include "AIGopan.h"
+#include "AIGuided.h"
 #include "AIClassic.h"
 #include "AIdis.h"
 #include "Debug.h"
@@ -69,6 +70,10 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 		case LOOKAHEAD_WIDENING:
 			AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
 			AU.addRequired<ModulePassWrapper<AIGopan, 1> >();
+			break;
+		case GUIDED:
+			AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
+			AU.addRequired<ModulePassWrapper<AIGuided, 1> >();
 			break;
 		case PATH_FOCUSING:
 			AU.addRequired<ModulePassWrapper<AIpf, 0> >();

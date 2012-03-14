@@ -10,8 +10,8 @@ void rate_limiter() {
         x = x_old+10;
     if (x <= x_old-10)
         x = x_old-10;
-    x_old = x;
 	while (wait()) {}
+    x_old = x;
   }
 }
 
