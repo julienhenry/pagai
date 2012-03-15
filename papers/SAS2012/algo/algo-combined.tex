@@ -2,7 +2,7 @@
 \STATE $A \gets \emptyset$
 \STATE $P \gets \emptyset$ \COMMENT{Paths in the current subset}
 \FORALL{$p_i \in P_R$}
-	\STATE $X_i^s \gets I_{p_i}$ \label{alg=X-init}
+	\STATE $X_i \gets I_{p_i}$ \label{alg=X-init}
 \ENDFOR 
 \WHILE{$A' \neq \emptyset$}
 
@@ -22,5 +22,5 @@
 \STATE Narrow \label{alg=narrowing}
 \ENDWHILE
 
-\RETURN $\{X_i^s,\ i \in P_R\}$
+\RETURN $\{X_i,\ i \in P_R\}$
 
