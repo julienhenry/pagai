@@ -7,10 +7,10 @@
 #include "Analyzer.h"
 #include "Pr.h"
 
-void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map) {
+void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, bool start) {
 	int n;
 	getBDDfromBasicBlock(Start,map,n);
-	if (!Pr->count(Start)) {
+	if ( start || !Pr->count(Start)) {
 		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
 			BasicBlock *Succ = *PI;
 			createBDDVars(Succ,Pr,BddVar);
@@ -30,7 +30,7 @@ PathTree::PathTree(BasicBlock * Start) {
 	// we compute all the levels of the BDD
 	Function * F = Start->getParent();
 	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
-	createBDDVars(Start,Pr,BddVarStart);
+	createBDDVars(Start,Pr,BddVarStart,true);
 }
 
 PathTree::~PathTree() {
@@ -172,6 +172,8 @@ SMT_expr PathTree::generateSMTformula(SMTpass * smt, bool neg) {
 		res = smt->man->SMT_mk_not(res);
 
 	factorized.push_back(res);
+	*Out << BddIndex << "\n";
+	DumpDotBDD("toto",false);
 	return smt->man->SMT_mk_and(factorized);
 } 
 
