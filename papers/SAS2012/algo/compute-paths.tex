@@ -6,7 +6,8 @@
 		\STATE \textbf{break}
 	\ENDIF
 	\STATE Compute the path $e$ from the model
-	\STATE Update $X^d_j$
-	\STATE $P' \gets P' \cup \{e\}$
+	\STATE $X_j \gets X_j \sqcup \tau_e(X_i)$
+	\STATE $P \gets P \cup \{e\}$
 	\STATE $A \gets A \cup \{p_i\}$
+	\STATE $A' \gets A' \cup \{p_i\}$
 \ENDWHILE

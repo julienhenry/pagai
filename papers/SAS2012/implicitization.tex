@@ -429,9 +429,10 @@ Guided static analysis, as proposed by \cite{DBLP:conf/sas/GopanR07}, applies to
 graph of the program. We now present a new technique applying this analysis on the implicit
 multigraph from \cite{Monniaux_Gonnord_SAS11}, thus avoiding control flow merges with
 unfeasible paths.
-In this section, we use the same notations as \S\ref{sec:path_focusing}, except
-that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
-another abstract value $X_i^d$ later.
+In this section, we use the same notations as \S\ref{sec:path_focusing}.
+%, except
+%that we call the abstract values $X_i^s$ instead of $X_i$ to leave room for
+%another abstract value $X_i^d$ later.
 
 The combination of these two techniques aims at first discovering a precise
 inductive invariant for a subset of paths between two points in $P_R$, 
@@ -485,7 +486,7 @@ diagrams. We also maintain two sets of control points:
 We distinguish three phases in the main loop of the analysis:
 \begin{compactenum}
 \item \label{step:addingpaths} We start finding a new relevant subset
-  $P \cup P'$ of the graph.
+  $P$ of the graph.
   Either the previous iteration or the initialization led us to a
   state where there are no more paths in the previous subset $P$,
   starting at $p_i$, that make the abstract values of the successors
@@ -493,7 +494,7 @@ We distinguish three phases in the main loop of the analysis:
   ``\emph{unsat}''). Narrowing iterations preserve this property.
   However, there may exist such paths in the entire multigraph, that
   are not in $P$. This phase computes these paths and adds them to
-  $P'$. This phase is described in~\ref{subsec:addingpaths}
+  the subset. This phase is described in~\ref{subsec:addingpaths}
   and corresponds to lines in~\ref{alg=start-add-paths} to
   \ref{alg=end-add-paths} in Algorithm~\ref{algo:combined}.
 \item \label{step:ascending} Given a new subset $P$, we search for paths starting at point
@@ -526,21 +527,21 @@ treatment for self loops (line~\ref{alg=pf} in algorithm~\ref{algo:combined}).
 
 In order to find which path to focus on, we construct an SMT formula $f(p_i)$, whose
 model when satisfiable is a path that starts in $p_i$, goes to a successor $p_j
-\in P_R$ of $p_i$, such that the image of $X_{i}^s$ by the path transformation
-is not included in the current $X_{j}^s$.
-Intuitively, such a path makes the abstract value $X_{j}^s$ grow, and thus is
+\in P_R$ of $p_i$, such that the image of $X_{i}$ by the path transformation
+is not included in the current $X_{j}$.
+Intuitively, such a path makes the abstract value $X_{j}$ grow, and thus is
 an interesting path to focus on. We loop until the formula becomes unsatisfiable,
 meaning that the analysis of $p_i$ is finished.
 
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
-successor of $p_i$ in the expanded multigraph, and $X_i^s$ the abstract value
+successor of $p_i$ in the expanded multigraph, and $X_i$ the abstract value
 associated to $p_i$ :
 \vspace{-.5em}
 \[
 f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
-b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
- \neg X_j^s)
+b_j^s \wedge X_i \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
+ \neg X_j)
 \vspace{-.1em}
 \]
 The difference with~\cite{Monniaux_Gonnord_SAS11} is that we do not
@@ -551,7 +552,8 @@ noted $P$, expressed as a Boolean formula, where the Boolean variables are the
 this formula from the binary decision diagram using dynamic programming, and
 avoiding an exponentially sized formula. In other words, we force the SMT solver
 to give us a path included in $P$.
-
+Each time the invariant candidate of a point $p_j$ has been updated, $p_j$ is
+inserted into $A'$ since it may be the start of a new feasible paths.
 
 \subsection{Adding New Paths}
 \label{subsec:addingpaths}
@@ -569,34 +571,20 @@ can make the invariant grow. This is line~\ref{alg=computeNewPaths} in
 Algorithm~\ref{algo:combined}, which corresponds to
 Algorithm~\ref{algo:computepaths}. We also use SMT solving to discover
 these new paths, but we subtly change the SMT formula given to the
-SMT solver: we now simply check for the satisfiability of $f(p_i)$
-instead of $f(p_i) \wedge P$. Since we already know that $f(p_i)
-\wedge P$ is unsatisfiable, none of the paths given by the SMT solver
-will be in $P$.
-
+SMT solver: we now try to find a path that is not yet in $P$, but is feasible
+and makes the invariant candidate of its destination grow.
 % À changer si on décide de ne plus distinguer $X^s$ et $X^d$
-Also, to prevent the algorithm from adding too many paths at a time,
-and in particular to prevent the algorithm from trying to re-add the
-same path infinitely many times, we use another abstract value
-associated to the control point $p_j$, noted $X_j^d$, which is distinct
-from $X_j^s$, and initialized to $X_j^s$ right before computing new paths. 
-In the SMT formula, we associate to $p_j$ the abstract value $X_j^s$ when $p_j$
-is the starting point of the path, and $X_j^d$ when it is its destination point.
 We thus check the satisfiability of the formula
 $f'(p_i)$, where:
 \vspace{-.5em}
 \[
-f'(p_i) = \rho \wedge b_i^s \wedge 
-\displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
-b_j^s \wedge X_i^s \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
-\neg X_j^d)
+f'(p_i) = f(p_i)\wedge \neg P
 \vspace{-1em}
 \]
-$X_j^d$ is updated when the point $p_j$ is the target of a new path.
-This way, further SMT queries do not
-compute other paths with the same source and destination if it is not
-needed (because these new paths would not make $X_j^d$ grow, hence
-would not be returned by the SMT solver).
+$X_j$ is updated using an abstract union when the point $p_j$ is the target of a new path. This way, further SMT queries do not
+compute other paths with the same source and destination if it is not needed
+(because these new paths would not make $X_j$ grow, hence would not be returned
+by the SMT solver).
 
 \vspace{-1em}
 \begin{algorithm}
@@ -608,6 +596,11 @@ would not be returned by the SMT solver).
 \end{algorithm}
 \vspace{-1em}
 
+When a new path has been found, it is immediately added into $P$. 
+We then have to add $p_i$ and $p_j$ into $A$ (since we do not apply widening in
+this section) and $p_j$ into $A'$, since $p_j$ may be the starting point of a
+new feasible path.
+
 \subsection{Termination}
 Termination of this algorithm is guaranteed, because:
 \begin{inparaenum}
@@ -615,9 +608,13 @@ Termination of this algorithm is guaranteed, because:
 the subset of paths $P$ strictly increases at each loop iteration,
 and is bounded by the finite set of
 paths in the entire graph. 
-\item the set $P'$ always verifies $P \cap P' = \emptyset$ by construction, 
-which guarantees that $P'$
-will eventually be empty after a finite number of loop iterations.
+\item
+	When computing new paths, we cunjunct our formula with $\neg P$, meaning
+	that we obtain each possible path only once. The number of path is finite,
+	so this computation always terminates.
+\item
+	The Path-focusing iterations terminate because of the properties of
+	widening.
 \end{inparaenum}
 
 \subsection{Example}

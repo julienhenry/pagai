@@ -6,14 +6,11 @@
 \ENDFOR 
 \WHILE{$A' \neq \emptyset$}
 
-\STATE $P' \gets \emptyset$ \COMMENT{new paths}
-	
-\FORALL{$p_i \in A'$}\label{alg=start-add-paths}
-\STATE ComputeNewPaths($p_i$) \COMMENT{Update $A$ and $P'$}\label{alg=computeNewPaths}
-\ENDFOR \label{alg=end-add-paths}
-
-\STATE $P \gets P \cup P'$
-\STATE $A' \gets \emptyset$
+\WHILE{$A' \neq \emptyset$} \label{alg=start-add-paths} 
+	\STATE Select $p_i \in A'$
+	\STATE $A' \gets A' \setminus \{p_i\}$
+	\STATE ComputeNewPaths($p_i$) \COMMENT{Update $A$, $A'$ and $P$}\label{alg=computeNewPaths}
+\ENDWHILE \label{alg=end-add-paths}
 
 \STATE \COMMENT{ascending iterations on $P$}
 \WHILE{$A \neq \emptyset$} \label{alg=start-ascending} 
