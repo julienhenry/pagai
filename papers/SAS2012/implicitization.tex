@@ -564,9 +564,9 @@ When the analysis of a subgraph is finished, meaning that the abstract values
 for each control point has converged to an inductive invariant for this subgraph,
 the next subgraph to work on has to be computed.
 
-This new subgraph is the union of the paths of the previous one with a set
-$P'$ of new paths that become feasible regarding the current abstract values.
-The paths in $P'$ are computed one after another, until no more path
+This new subgraph contains all the paths from the previous one, and also new
+paths that become feasible regarding the current abstract values.
+The new paths in $P$ are computed one after another, until no more path
 can make the invariant grow. This is line~\ref{alg=computeNewPaths} in
 Algorithm~\ref{algo:combined}, which corresponds to
 Algorithm~\ref{algo:computepaths}. We also use SMT solving to discover
@@ -609,11 +609,11 @@ the subset of paths $P$ strictly increases at each loop iteration,
 and is bounded by the finite set of
 paths in the entire graph. 
 \item
-	When computing new paths, we cunjunct our formula with $\neg P$, meaning
+	when computing new paths, we cunjunct our formula with $\neg P$, meaning
 	that we obtain each possible path only once. The number of path is finite,
 	so this computation always terminates.
 \item
-	The Path-focusing iterations terminate because of the properties of
+	the Path-focusing iterations terminate because of the properties of
 	widening.
 \end{inparaenum}
 
@@ -632,18 +632,13 @@ Suppose the main loop of the rate limiter contains a nested loop like:
 
 We choose $P_R$ as the set of loop headers of the function, plus the initial
 state. In this case, we have three elements in $P_R$.
-We also unroll the loop once, in order to distinguish the paths that do not go
-through the loop from the others:
-\lstinline|if (wait()) {while (wait()) {}}|
 
+The main loop in the expanded multigraph has then 4 distinct paths going to the header of the nested loop.
 
-The main loop in the expanded multigraph has then 8 distinct paths, half of
-them being self loops, and the other half going to the header of the nested loop.
-
-Guided static analysis from \cite{DBLP:conf/sas/GopanR07} yields, at line 5,
+Guided static analysis from \cite{DBLP:conf/sas/GopanR07} yields, at line 3,
 $\lstinline|x_old| \in (-\infty,+\infty)$.
-Path-focusing \cite{Monniaux_Gonnord_SAS11} performs slightly
-better, and finds $\lstinline|x_old| \in (-\infty,10000]$.
+Path-focusing \cite{Monniaux_Gonnord_SAS11} also
+finds $\lstinline|x_old| \in (-\infty,+\infty)$.
 Now, let us see how our technique performs on this example.
 
 Figure \ref{fig:example-graph} shows the sequence of subset of paths during the
@@ -652,81 +647,81 @@ line in the code: for instance, $p_5$ corresponds to the header of the main
 loop.
 
 \begin{compactenum}
-	\item The first subset of paths is depicted on Figure
-		\ref{fig:example-graph} Step 1. We apply Path-Focusing on this graph,
-		and discover for $p_5$ the inductive invariant $\lstinline|x_old| = 0$.
+	\item The starting subgraph is depicted on Figure
+		\ref{fig:example-graph} Step 1. At the beginning, this graph has no
+		transitions.
 	\item
-		We then compute the set $P'$ of paths that have to be added into the
-		next subgraph. 
-		The image of $\lstinline|x_old| = 0$ by the path that goes from $p_5$ to
-		itself, and that goes through the \emph{else} branch of each 
+		We compute the new feasible paths that have to be added into the
+		subgraph. We first find the path from $p_1$ to $p_3$ and obtain at $p_3$
+		$\lstinline|x_old| = 0$. We then find the path
+		
+		The image of $\lstinline|x_old| = 0$ by the path that goes from $p_3$ to
+		$p_8$, and that goes through the \emph{else} branch of each 
 		\emph{if-then-else}, is $-10 \leq \lstinline|x_old| \leq 10$. This path
-		is then added to our subgraph. Moreover, there is no other path whose
+		is then added to our subgraph. 
+		
+		Moreover, there is no other path starting at $p_3$ whose
 		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
-		Additionally, the path that goes from $p_5$ to
-		$p_{10}$, that goes through the \emph{else} branch of each 
-		\emph{if-then-else} at lines 7, 8 and 9, is also 
-		$-10 \leq \lstinline|x_old| \leq 10$, and thus is also added into the
-		new subgraph. Again, there is no new path that goes to $p_{10}$ with an
-		image outside $-10 \leq \lstinline|x_old| \leq 10$.
+
+		Finally, since the abstract value associated to $p_8$ is  
+		$-10 \leq \lstinline|x_old| \leq 10$, the path from $p_8$ to $p_1$ is
+		feasible and is added into $P$. The final subgraph is depicted on Figure
+		\ref{fig:example-graph} Step 2.
+
 	\item
-		We apply Path Focusing on this new subgraph (\ref{fig:example-graph}
-		Step 2). When we have reached an inductive invariant, we narrow, and the
-		result for both $p_5$ and $p_{10}$ is the polyhedron 
-		$-10000 \leq \lstinline|x_old| \leq 10000$.
-	\item Finally, we compute the new subgraph. The SMT-solver does not find any
+		We then compute the ascending iterations by path-focusing. At the end of
+		these iterations, we obtain 
+$-\infty \leq \lstinline|x_old| \leq +\infty$ for both $p_3$ and $p_8$.
+	\item
+		We now can apply narrowing iterations, and recover the precision lost by
+		widening: we obtain 
+		$-10000 \leq \lstinline|x_old| \leq 10000$ at points $p_3$ and $p_8$.
+	\item Finally, we compute the next subgraph. The SMT-solver does not find any
 		new path that makes the abstract values grow, and the algorithm
 		terminates.
+
 \end{compactenum}
 
 Our technique gives us the expected invariant 
 $\lstinline|x_old| \in~[-10000,\allowbreak 10000]$. 
-Here, only 3 paths out of the 8 have been computed during the analysis. In
+Here, only 3 paths out of the 6 have been computed during the analysis. In
 practice, depending on the order the SMT-solver returns the paths, other
 feasible paths could have been added during the analysis.
 
 
 \begin{figure}
-\begin{minipage}[c]{.15\textwidth}
-\begin{tikzpicture}[->,>=stealth',auto,node distance=2.5cm,
+\begin{minipage}[c]{.45\textwidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
-	\node[PRstate] (n00) {$p_4$};
-	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
-	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
+	\node[PRstate] (n00) {$p_1$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_3$};
+	\node[PRstate] (n1) [below of=n0] {$p_{8}$};
 	\node (label) [left of=n00, node distance=1cm] {\bf Step 1};
 
-  \path [transition] 
-		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
 \end{tikzpicture}
 \end{minipage}\hfill
 \begin{minipage}[c]{.75\textwidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=2.1cm,
                     semithick,font=\footnotesize]
 
-	\node[PRstate] (n00) {$p_4$};
-	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_5$};
-	\node[PRstate] (n1) [below of=n0] {$p_{10}$};
+	\node[PRstate] (n00) {$p_1$};
+	\node[PRstate] (n0) [below of=n00, yshift=0.8cm] {$p_3$};
+	\node[PRstate] (n1) [below of=n0] {$p_{8}$};
 	\node (label) [left of=n00, node distance=1cm] {\bf Step 2};
 
   \path [transition] 
 		(n00) edge  node {$\lstinline|x_old| \gets 0$} (n0);
   \path [transition] 
-		(n0) edge  [loop left] node [left, xshift=0.2cm] {
-		$\begin{array}{r}
-			-10000 \leq \lstinline|x| \leq 10000 \\
-			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
-			\lstinline|x_old| \gets \lstinline|x|
-		\end{array}$
-		} (n0);
-  \path [transition] 
-		(n0) edge node [left, yshift=-0.2cm, xshift=0] {
+		(n0) edge [bend left] node [left, yshift=-0.2cm, xshift=0] {
 		$\begin{array}{r}
 			-10000 \leq \lstinline|x| \leq 10000 \\
 			\lstinline|x_old|-10 \leq \lstinline|x| \leq \lstinline|x_old|+10 /\\
 			\lstinline|x_old| \gets \lstinline|x|
 		\end{array}$
 		} (n1);
+  \path [transition] 
+		(n1) edge [bend left]  node {} (n0);
 \end{tikzpicture}
 \end{minipage}
 \caption{Ascending sequence of subgraphs}
@@ -735,10 +730,12 @@ feasible paths could have been added during the analysis.
 
 
 In this example, we see that our technique actually combines best of
-\emph{Guided Static Analysis} and \emph{Path Focusing}. Still, we need to unroll
-the loop once in order to get precise results. Section \ref{sec:disjunctive}
-proposes a new technique that gives precise invariants without needing such
-graph transformations.
+\emph{Guided Static Analysis} and \emph{Path Focusing}. 
+% JH: plus besoin de ca
+%Still, we need to unroll
+%the loop once in order to get precise results. Section \ref{sec:disjunctive}
+%proposes a new technique that gives precise invariants without needing such
+%graph transformations.
 
 \section{Disjunctive Invariants}
 \label{sec:disjunctive}
