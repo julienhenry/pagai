@@ -254,7 +254,7 @@ void AIopt::computeNewPaths(Node * n) {
 		);
 		A.push(n);
 		A.push(Succ);
-		is_computed[Succ] = false;
+		//is_computed[Succ] = false;
 		A_prime.push(Succ);
 	}
 }

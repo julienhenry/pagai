@@ -5,13 +5,15 @@ void rate_limiter() {
   x_old = 0;
   while (1) {
     int x = input();
-    if (x < -10000) x = -10000;
-    if (x > 10000) x = 10000;
+    if (x < -10000 || x > 10000) {
+		x = 0;
+		x_old = 0;
+	}
     if (x > x_old+10)
         x = x_old+10;
     if (x < x_old-10)
         x = x_old-10;
-	while (wait()) {}
+	if (wait()) while (wait()) {}
     x_old = x;
   }
 }

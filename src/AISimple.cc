@@ -46,7 +46,7 @@ void AISimple::computeFunc(Function * F) {
 
 	// then we move X_d abstract values to X_s abstract values
 	int step = 0;
-	while (copy_Xd_to_Xs(F) && step <= 5) {
+	while (copy_Xd_to_Xs(F) && step <= 10) {
 		narrowingIter(n);
 		step++;
 	}
