@@ -172,8 +172,6 @@ SMT_expr PathTree::generateSMTformula(SMTpass * smt, bool neg) {
 		res = smt->man->SMT_mk_not(res);
 
 	factorized.push_back(res);
-	*Out << BddIndex << "\n";
-	DumpDotBDD("toto",false);
 	return smt->man->SMT_mk_and(factorized);
 } 
 
