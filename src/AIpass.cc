@@ -155,6 +155,7 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
+				|| dynamic_cast<AIGuided*>(this)
 				|| Pr::getPr(*F)->count(i)) {
 
 			if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)

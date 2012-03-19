@@ -156,7 +156,7 @@ void AIGuided::computeFunction(Function * F) {
 
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
-		while (copy_Xd_to_Xs(F) && step <= 10) {
+		while (copy_Xd_to_Xs(F) && step <= 5) {
 			narrowingIter(n);
 			step++;
 		}
@@ -194,6 +194,14 @@ void AIGuided::computeNewPaths(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
+
+	DEBUG (
+		Out->changeColor(raw_ostream::GREEN,true);
+		*Out << "#######################################################\n";
+		*Out << "Computing new paths: " << b << "\n";
+		Out->resetColor();
+		*Out << *b << "\n";
+	);
 
 	is_computed[n] = true;
 	if (n->X_s[passID]->is_bottom()) {
