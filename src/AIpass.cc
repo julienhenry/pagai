@@ -180,6 +180,7 @@ void AIPass::copy_Xs_to_Xf(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
+				|| dynamic_cast<AIGuided*>(this)
 				|| Pr::getPr(*F)->count(i)) {
 
 			delete Nodes[b]->X_f[passID];
@@ -195,6 +196,7 @@ void AIPass::copy_Xf_to_Xs(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
+				|| dynamic_cast<AIGuided*>(this)
 				|| Pr::getPr(*F)->count(i)) {
 
 			delete Nodes[b]->X_s[passID];
