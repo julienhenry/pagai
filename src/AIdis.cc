@@ -214,12 +214,12 @@ void AIdis::computeNewPaths(Node * n) {
 	while (true) {
 		DEBUG(
 			Out->changeColor(raw_ostream::RED,true);
-			*Out << "COMPUTEPATHS------ NEW SMT SOLVE -------------------------\n";
+			*Out << "COMPUTENEWPATHS------ NEW SMT SOLVE -------------------------\n";
 			Out->resetColor();
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,
 				pathtree[n->bb]->generateSMTformula(LSMT,true));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
@@ -271,7 +271,7 @@ void AIdis::computeNewPaths(Node * n) {
 		);
 		A.push(n);
 		A.push(Succ);
-		is_computed[Succ] = false;
+		//is_computed[Succ] = false;
 		A_prime.push(Succ);
 	}
 }
