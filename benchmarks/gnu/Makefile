@@ -56,11 +56,19 @@ cclean:
 		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model cclean && cd ..);\
 	done ;
 
+dclean:
+	for p in  $(SUBDIRS); do\
+		( cd $$p && $(MAKE) ROOT=$(ABSROOT) -f $(PWD)/Makefile.model dclean && cd ..);\
+	done ;
+
 cdiff:
 	./diff_analyzer.sh $(BENCHDIR)
 
 ndiff:
 	./diff_narrowing.sh $(BENCHDIR)
+
+ddiff:
+	./diff_domain.sh $(BENCHDIR)
 
 resdir:
 	for p in  $(SUBDIRS); do\

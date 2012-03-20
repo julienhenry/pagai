@@ -35,6 +35,9 @@ nclean:
 cclean:
 	rm ctimestamp.txt res/*.res.compare
 
+dclean:
+	rm dtimestamp* res/*.res.dcompare.*
+
 .PHONY: test compare
 
 test: timestamp.txt
