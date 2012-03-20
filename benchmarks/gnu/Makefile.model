@@ -9,6 +9,8 @@ BCFILES=${wildcard bin/*.o}
 RESFILES=$(BCFILES:bin/%.o=res/%.res)
 COMPAREFILES=$(BCFILES:bin/%.o=res/%.res.compare)
 NARROWFILES=$(BCFILES:bin/%.o=res/%.res.narrow)
+DCOMPAREFILES=$(BCFILES:bin/%.o=res/%.res.dcompare.$(DOM1).$(DOM2))
+
 
 all: $(RESFILES)
 
@@ -17,6 +19,9 @@ res/%.res: bin/%.o
 
 res/%.res.compare: bin/%.o
 	$(AT)$(PAGAI_SH) -s -t 1200 -i bin/$*.o -a " -c " -s > $@  
+
+res/%.res.dcompare.$(DOM1).$(DOM2): bin/%.o
+	$(AT)$(PAGAI_SH) -s -t 1200 -i bin/$*.o -a " -C --domain $(DOM1) --domain2 $(DOM2)  " -s > $@  
 
 res/%.res.narrow: bin/%.o
 	$(AT)$(PAGAI_SH) -s -i bin/$*.o -I 2000 -a " -t s --domain pk --domain2 pk -M " > $@  
@@ -36,6 +41,8 @@ test: timestamp.txt
 
 compare: ctimestamp.txt
 
+dcompare: dtimestamp.$(DOM1).$(DOM2).txt
+
 ncompare: ntimestamp.txt
 
 timestamp.txt: $(RESFILES)
@@ -45,6 +52,9 @@ ctimestamp.txt: $(COMPAREFILES)
 	touch $@
 
 ntimestamp.txt: $(NARROWFILES)
+	touch $@
+
+dtimestamp.$(DOM1).$(DOM2).txt: $(DCOMPAREFILES)
 	touch $@
 
 resdir:
