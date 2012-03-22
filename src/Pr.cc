@@ -156,7 +156,7 @@ void Pr::computePr(Function &F) {
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
 		b = i;
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
-			if (isa<ReturnInst>(*it)) {
+			if (isa<ReturnInst>(*it) || isa<UnreachableInst>(*it)) {
 				FPr->insert(b); 
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
