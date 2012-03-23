@@ -325,14 +325,14 @@ A similar explosion occurs in disjunctive invariant generation, following \cite{
 Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DBLP:conf/sas/GopanR07}.
 
 \begin{figure}
-  \vspace{-1em}
+%  \vspace{-1em}
   \begin{minipage}{.3\linewidth}
     \lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
   \end{minipage}
 \hfill
 \begin{minipage}{.5\linewidth}
 \includegraphics[scale=0.7]{gopan_reps}
-\vspace{-1em}
+%\vspace{-1em}
 \begin{equation*}
 y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
 \end{equation*}
@@ -536,13 +536,13 @@ meaning that the analysis of $p_i$ is finished.
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
 successor of $p_i$ in the expanded multigraph, and $X_i$ the abstract value
 associated to $p_i$ :
-\vspace{-.5em}
+%\vspace{-.5em}
 \[
 f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
  \neg X_j)
-\vspace{-.1em}
+%\vspace{-.1em}
 \]
 The difference with~\cite{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
@@ -576,10 +576,10 @@ and makes the invariant candidate of its destination grow.
 % À changer si on décide de ne plus distinguer $X^s$ et $X^d$
 We thus check the satisfiability of the formula
 $f'(p_i)$, where:
-\vspace{-.5em}
+%\vspace{-.5em}
 \[
 f'(p_i) = f(p_i)\wedge \neg P
-\vspace{-1em}
+%\vspace{-1em}
 \]
 $X_j$ is updated using an abstract union when the point $p_j$ is the target of a new path. This way, further SMT queries do not
 compute other paths with the same source and destination if it is not needed
