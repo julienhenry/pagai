@@ -19,7 +19,7 @@ set mxtics 2
 set mytics 2
 set xtics 2 rotate by -45
 set ytics 2
-set yrange [0:18]
+set yrange [0:16]
 set label 1 "percentage of control points" at graph -0.125, graph 0.5 center rotate
 #set xlabel "Techniques"
 

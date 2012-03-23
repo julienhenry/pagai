@@ -10,4 +10,4 @@ gnuplot/%.pdf: gnuplot/%.eps
 	epstopdf --filter < $< > $@
 
 gnuplot/%.eps gnuplot/%.tex: gnuplot/%.gnuplot
-	$(GNUPLOT) $<
+	cd gnuplot/ && $(GNUPLOT) $*.gnuplot
