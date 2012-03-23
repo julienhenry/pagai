@@ -653,7 +653,9 @@ loop.
 	\item
 		We compute the new feasible paths that have to be added into the
 		subgraph. We first find the path from $p_1$ to $p_3$ and obtain at $p_3$
-		$\lstinline|x_old| = 0$. We then find the path
+		$\lstinline|x_old| = 0$.
+                \MM{TODO: il y avait cette phrase pas finie `` We then
+                  find the path''. J'ai enlevé. C'est bon ?}
 		
 		The image of $\lstinline|x_old| = 0$ by the path that goes from $p_3$ to
 		$p_8$, and that goes through the \emph{else} branch of each 
@@ -664,7 +666,8 @@ loop.
 		image is not in $-10 \leq \lstinline|x_old| \leq 10$.
 
 		Finally, since the abstract value associated to $p_8$ is  
-		$-10 \leq \lstinline|x_old| \leq 10$, the path from $p_8$ to $p_1$ is
+		$-10 \leq \lstinline|x_old| \leq 10$, the path from
+                $p_8$ to $p_3$\MM{TODO: y'avait $p_1$ ici, j'ai mis $p_3$, c'est bon ?} is
 		feasible and is added into $P$. The final subgraph is depicted on Figure
 		\ref{fig:example-graph} Step 2.
 
