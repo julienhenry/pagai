@@ -1091,18 +1091,23 @@ invariant). We use convex polyhedra as the abstract domain.
 
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
 \emph{Guided Static Analysis} from \cite{DBLP:conf/sas/GopanR07} improves the
-result of the classical Abstract Interpretation in $2.72\%$ of the control points
-in $P_R$.
+result of the classical Abstract Interpretation in $2.21\%$ of the control points in $P_R$.
 \emph{Path-focusing} from \cite{Monniaux_Gonnord_SAS11} gives
 statistically better results, and finds better invariants than \emph{Guided
-Static Analysis} in $9.89\%$ of the cases. However, it also loses precision in an
-important number ($2.68\%$) of control points.
+Static Analysis} in $5.00\%$ of the cases. However, it also loses
+precision compared to \emph{Guided Static Analysis}  in an
+important number ($4.00\%$) of control points.
+
+Unfortunately, these two techniques are less precise than the classical analysis
+in a important number of cases ($4.64\%$ for $G$, $5.14\%$ for $PF$).
+This could be explained by the non-monotonicity of the results with widening operators.
+
 Finally, our combined technique gives the most promising results, since it is
 statistically more precise than the other techniques.
 
 The analysis using disjunctive invariants greatly improves the
-precision of the analysis (for $12.06\%$ of the control points in $P_R$), at an
-acceptable time cost (see Table \ref{tab:time}). \MM{TODO}
+precision of the analysis (for $14.46\%$ of the control points in $P_R$), at an
+acceptable time cost compared to our combined algorithm (see Table \ref{tab:time}). \MM{TODO}
 
 While experiencing with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
@@ -1111,7 +1116,7 @@ expressing the semantics of non-linear programs.
 In this case, we skipped the functions for which the SMT-solver returned the
 ``unknown'' result.
 This limitation occurred very rarely in our experiments, except for the analysis
-of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
+of \emph{Lapack/Blas}, where 668 over the 1498 functions have been skipped.
 \emph{Lapack/Blas} implements matrix computations, which use floating-point multiplications.
 
 In cases where the formula is expressed in too rich a logic for the SMT-solver to deal with, a number of workarounds are possible, including:
@@ -1120,11 +1125,11 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 Neither is currently implemented in our tool.
 
 Table \ref{tab:time} \MM{TODO} gives the execution time of the different analysis
-techniques. It is interesting to see that \emph{Guided Static Analysis} and
-\emph{Path-focusing} are sometimes faster than the classical
-algorithm.
-This seems due to the fact that these algorithms start on a small subset
-of the graph, and then may need fewer iterations on the complete graph.
+techniques. It is interesting to see that 
+\emph{Path-focusing} technique is sometimes faster than the classical algorithm.
+This seems due to the fact that this technique avoids many convex hulls, which
+is costly, and also computes the image of an abstract value by an entire path
+instead of many single transitions.
 The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
 
 \subsection{Precision of Abstract Domains}
