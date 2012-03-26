@@ -1002,7 +1002,7 @@ We focused on numerical properties, because they are supported by easily availab
 Experimental results of our tool on the benchmark presented in
 Fig~\ref{fig:projects} are given below. The precision of different
 techniques is given in Table~\ref{tab:techniques}. The precision of
-abstract domains and widening operators in given in
+abstract domains and widening operators is given in
 Table~\ref{tab:domain}.
 
 \begin{sidewaystable}
@@ -1073,7 +1073,8 @@ $\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniqu
 \caption{Results of the comparison of the various abstract domains, when using
 the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK and
 POLY),
-Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
+Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear
+inequalities with linear congruences
 (GRID). The last column compares the domain of Convex Polyhedra with the
 improved widening operator from \cite{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
 using the classical widening operator (POLY). POLY and POLY* use the Parma
