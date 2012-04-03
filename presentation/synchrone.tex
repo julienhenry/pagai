@@ -5,9 +5,9 @@
 \usepackage{comment}
 \usepackage{listings}
 
-\title[Path-focusing technique]{Path-Focusing technique}
+\title[Path-focusing technique]{Abstract Interpretation and Decision Procedures}
 
-\subtitle{Improving precision of Abstract Interpretation} % (optional)
+\subtitle{The PAGAI Tool} % (optional)
 
 \author[J. Henry, D. Monniaux, M. Moy]{\underline{Julien Henry}, David Monniaux, Matthieu
 Moy}
@@ -59,7 +59,7 @@ color=blue]
 \item BUT: may induce huge imprecisions
 \item Narrowing tends to recover some precision\ldots
 \end{itemize}
-\item \alert<2>{Consider paths that are unfeasible in reality}
+\item \alert<2>{Least Upper Bound operation : loss of precision}
 \end{itemize}
 \end{frame}
 
@@ -190,10 +190,10 @@ $\Rightarrow$ yields imprecision when a loop has several phases.
 \end{columns}
 \end{frame}
 
-\section[Guided Analysis]{Guided Static Analysis}
+\section[Basis]{Basis}
 
 \begin{frame}
-  \frametitle{Principle}
+  \frametitle{Guided Static Analysis}
 
 D. Gopan \& T. Reps, CAV 2006
 \bigskip
@@ -365,10 +365,9 @@ D. Gopan \& T. Reps, CAV 2006
 \end{columns}
 \end{frame}
 
-\section[Path focusing]{Using SMT-solving to focus new paths}
 
 \begin{frame}
-  \frametitle{Principle}
+  \frametitle{Path-Focusing}
 
 D. Monniaux \& L. Gonnord, SAS 11
 \bigskip
