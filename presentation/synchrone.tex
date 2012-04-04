@@ -5,7 +5,7 @@
 \usepackage{comment}
 \usepackage{listings}
 
-\title[Path-focusing technique]{Abstract Interpretation and Decision Procedures}
+\title[Synchronous Seminar]{Abstract Interpretation and Decision Procedures}
 
 \subtitle{The PAGAI Tool} % (optional)
 
@@ -199,7 +199,7 @@ D. Gopan \& T. Reps, CAV 2006
 \bigskip
 \begin{itemize}
 \item separate loops into distinct phases.
-\item obtaining a solution for each loop phase before proceeding to the next.
+\item obtain a solution for each loop phase before proceeding to the next.
 \item widening \& narrowing at each loop phase.
 \begin{itemize}
 \item Better precision
@@ -772,7 +772,6 @@ $X_{i}$: abstract domain of node $p_i$
 \end{columns}
 \end{frame}
 
-
 \section[Combined technique]{Combining Analysis Techniques}
 
 \begin{frame}
@@ -849,7 +848,7 @@ $p_3 : X_3 \visible<3->{\sqcup \tau_4(X_1)}$
 \vspace{0.5cm}
 \visible<5->{
 $\tau_3$ feasible, but:
-$$\tau_3(p_1) \subset X_2 \sqcup \tau_1(X_1) \sqcup \tau_2(X_1)$$
+$$\tau_3(X_1) \subset X_2 \sqcup \tau_1(X_1) \sqcup \tau_2(X_1)$$
 }
 \end{frame}
 
