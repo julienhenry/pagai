@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "assert.h"
 
 
 int main() {
@@ -14,6 +14,7 @@ int main() {
 		if (y < 0) break;
 		x++;
 	}
-	
+ 	
+	assert(x+y<=101);
 	assert(x <= 102);
 }

@@ -85,6 +85,7 @@ bool AIopt::runOnModule(Module &M) {
 		}
 		pathtree.clear();
 	}
+	LSMT->reset_SMTcontext();
 	return 0;
 }
 

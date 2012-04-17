@@ -12,8 +12,8 @@ for k in `seq 0 27` ; do
 	ALL[$k]=0
 done
 
-LATEX=1
-PRINT_TIME=1
+LATEX=0
+PRINT_TIME=0
 
 for dir in `ls` ; do
 	if [ -d $dir ] ; then

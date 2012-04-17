@@ -43,7 +43,7 @@ function diff_project {
 		#echo -n " & "
 		#diff_domains oct pkeq
 		echo -n " & "
-		diff_domains pk ppl_grid
+		diff_domains pk pkgrid
 		echo -n " & "
 		diff_domains ppl_poly ppl_poly_bagnara
 		echo " \\\\ \\hline"

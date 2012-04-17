@@ -79,6 +79,7 @@ macro(configure_llvm PROG)
   target_link_libraries("${PROG}" dl)
   target_link_libraries("${PROG}" pthread)
 
+  set(CMAKE_CXX_FLAGS " -g -pg ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 endmacro()
