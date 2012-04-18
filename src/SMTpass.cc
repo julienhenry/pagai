@@ -289,10 +289,12 @@ const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 
 const std::string SMTpass::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
+	char * var = ap_var_to_string((ap_var_t)v);
 	if (primed)
-		name << "x'_" << ap_var_to_string((ap_var_t)v) << "_";
+		name << "x'_" << var << "_";
 	else
-		name << "x_" << ap_var_to_string((ap_var_t)v) <<  "_";
+		name << "x_" << var << "_";
+	free(var);
 	return name.str();
 }
 

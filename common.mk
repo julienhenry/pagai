@@ -10,3 +10,5 @@ AT = @
 else
 AT =
 endif
+
+%.bc: CFLAGS += -I./

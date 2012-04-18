@@ -42,6 +42,7 @@ SMT_var yices::SMT_mk_bool_var(std::string val) {
 	if (res == NULL) {
 		res = yices_mk_bool_var_decl(ctx,cstr);
 	} 
+	delete [] cstr;
 	return res;
 }
 
@@ -53,6 +54,7 @@ SMT_var yices::SMT_mk_var(std::string name,SMT_type type) {
 	if (res == NULL) {
 		res = yices_mk_var_decl(ctx,cstr,type);
 	} 
+	delete [] cstr;
 	return res;
 }
 

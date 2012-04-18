@@ -60,7 +60,7 @@ if [ -z "$OUTPUT" ] ; then
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 
-clang -emit-llvm -c $FILENAME -o $OUTPUT
+clang -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 if [ $OPT -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
 else
