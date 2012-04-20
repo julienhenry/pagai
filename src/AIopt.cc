@@ -70,6 +70,8 @@ bool AIopt::runOnModule(Module &M) {
 			it != et;
 			it++) {
 			pathtree[*it] = new PathTree(*it);
+			U[*it] = new PathTree(*it);
+			V[*it] = new PathTree(*it);
 		}
 
 		computeFunction(F);
@@ -77,13 +79,10 @@ bool AIopt::runOnModule(Module &M) {
 		
 		printResult(F);
 
-		// we delete the pathtree
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
-			it != et;
-			it++) {
-			delete (*it).second;
-		}
-		pathtree.clear();
+		// deleting the pathtrees
+		ClearPathtreeMap(pathtree);
+		ClearPathtreeMap(U);
+		ClearPathtreeMap(V);
 	}
 	LSMT->reset_SMTcontext();
 	return 0;
@@ -270,9 +269,9 @@ void AIopt::computeNode(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
-	
-	PathTree * const U = new PathTree(n->bb);
-	PathTree * const V = new PathTree(n->bb);
+
+	U[n->bb]->clear();
+	V[n->bb]->clear();
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -303,8 +302,6 @@ void AIopt::computeNode(Node * n) {
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
 				unknown = true;
-				delete U;
-				delete V;
 				return;
 			}
 			break;
@@ -330,7 +327,7 @@ void AIopt::computeNode(Node * n) {
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,Xtemp,&path,only_join,U,V);
+			loopiter(n,Xtemp,&path,only_join,U[n->bb],V[n->bb]);
 		} 
 		Join.clear();
 		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
@@ -344,8 +341,7 @@ void AIopt::computeNode(Node * n) {
 					else
 						Xtemp->widening(Succ->X_s[passID]);
 					DEBUG(*Out << "WIDENING! \n";);
-					delete W;
-					W = new PathTree(n->bb);
+					W->clear();
 				} else {
 					W->insert(path);
 				}
@@ -369,8 +365,6 @@ void AIopt::computeNode(Node * n) {
 		// since the associated abstract value has changed
 		A_prime.push(Succ);
 	}
-	delete U;
-	delete V;
 }
 
 void AIopt::narrowNode(Node * n) {

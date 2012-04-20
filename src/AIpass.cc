@@ -1201,3 +1201,11 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 }
 
 
+void AIPass::ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree) {
+	for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
+		it != et;
+		it++) {
+		delete (*it).second;
+	}
+	pathtree.clear();
+}

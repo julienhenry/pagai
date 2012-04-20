@@ -56,6 +56,9 @@ class AIPass : public InstVisitor<AIPass> {
 			PathTree * const U,
 			PathTree * const V);
 	
+		/// delete all pathtrees inside the map and clear the map
+		void ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree);
+
 	public:
 
 		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing, bool _use_Threshold) : 

@@ -22,6 +22,9 @@ class AIopt : public ModulePass, public AIPass {
 
 		PathTree * W;
 
+		std::map<BasicBlock*,PathTree*> U;
+		std::map<BasicBlock*,PathTree*> V;
+
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
 		void computeNewPaths(

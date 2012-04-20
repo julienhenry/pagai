@@ -58,11 +58,26 @@ bool AIpf::runOnModule(Module &M) {
 		Out->resetColor();
 		LSMT->reset_SMTcontext();
 		initFunction(F);
+
+		// we create the new pathtree
+		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
+		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
+			it != et;
+			it++) {
+			U[*it] = new PathTree(*it);
+			V[*it] = new PathTree(*it);
+		}
+
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 
 		printResult(F);
+
+		// deleting the pathtrees
+		ClearPathtreeMap(U);
+		ClearPathtreeMap(V);
 	}
+	LSMT->reset_SMTcontext();
 	return false;
 }
 
@@ -141,8 +156,8 @@ void AIpf::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	PathTree * const U = new PathTree(n->bb);
-	PathTree * const V = new PathTree(n->bb);
+	U[n->bb]->clear();
+	V[n->bb]->clear();
 
 	while (true) {
 		is_computed[n] = true;
@@ -169,8 +184,6 @@ void AIpf::computeNode(Node * n) {
 			if (res == -1) {
 				unknown = true;
 			}
-			delete U;
-			delete V;
 			return;
 		}
 	
@@ -199,7 +212,7 @@ void AIpf::computeNode(Node * n) {
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
-			loopiter(n,Xtemp,&path,only_join,U,V);
+			loopiter(n,Xtemp,&path,only_join,U[n->bb],V[n->bb]);
 		} 
 		
 		Join.clear();
@@ -240,8 +253,6 @@ void AIpf::computeNode(Node * n) {
 		A.push(Succ);
 		is_computed[Succ] = false;
 	}
-	delete U;
-	delete V;
 }
 
 void AIpf::narrowNode(Node * n) {

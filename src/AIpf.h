@@ -18,6 +18,11 @@ class AIpf : public ModulePass, public AIPass {
 	public:
 		static char ID;	
 
+	private:
+		
+		std::map<BasicBlock*,PathTree*> U;
+		std::map<BasicBlock*,PathTree*> V;
+
 	public:
 
 		AIpf(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {

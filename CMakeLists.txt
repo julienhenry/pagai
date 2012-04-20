@@ -5,6 +5,7 @@ project(PAGAI CXX)
 # configuration
 option(STATIC_LINK "Whether to build executables as static" OFF)
 option(CHECK_EXTERNALS "Whether to check that external dependancies are OK before compiling" ON)
+option(ENABLE_PROFILING "Whether to build using -pg" OFF)
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
@@ -55,6 +56,10 @@ macro(configure_llvm PROG)
   # llvm-config has a -fno-rtti -fno-exception by default, but we use dynamic_cast<>
   STRING(REGEX REPLACE "-fno-rtti" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
   STRING(REGEX REPLACE "-fno-exceptions" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+  # when compiling with -pg, -fomit-frame-pointer is not allowed
+  if(${ENABLE_PROFILING})
+    STRING(REGEX REPLACE "-fomit-frame-pointer" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
+  endif()
 
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --ldflags
     OUTPUT_VARIABLE LLVM_LDFLAGS)
@@ -79,9 +84,13 @@ macro(configure_llvm PROG)
   target_link_libraries("${PROG}" dl)
   target_link_libraries("${PROG}" pthread)
 
-  set(CMAKE_CXX_FLAGS " -g -pg ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+
+  if(${ENABLE_PROFILING})
+    set(CMAKE_CXX_FLAGS " -g -pg ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS " -pg ${CMAKE_EXE_LINKER_FLAGS}")
+  endif()
 endmacro()
 
 macro(add_library_maybe_names PROG LIB NAMES OPTS MSG)
