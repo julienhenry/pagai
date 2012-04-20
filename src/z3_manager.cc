@@ -293,7 +293,7 @@ void z3_manager::SMT_print(SMT_expr a){
 
 	*Out << Z3_benchmark_to_smtlib_string(ctx,
 				oss.str().c_str(),
-				"logic",
+				"unknown",
 				"unknown",
 				"",
 				0,
@@ -325,8 +325,10 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			*Out << "sat\n";
 			);
 			ret = 1;
+			DEBUG(
 			DEBUG_SMT(
 			*Out << Z3_model_to_string(ctx,m);
+			);
 			);
 			unsigned n = Z3_get_model_num_constants(ctx,m);
 			for (unsigned i = 0; i < n; i++) {

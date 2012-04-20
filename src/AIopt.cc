@@ -218,6 +218,11 @@ void AIopt::computeNewPaths(Node * n) {
 				pathtree[n->bb]->generateSMTformula(LSMT,true));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
+			*Out
+				<< "\n"
+				<< "FORMULA"
+				<< "(COMPUTENEWPATHS)"
+				<< "\n\n";
 			LSMT->man->SMT_print(smtexpr);
 		);
 		int res;
@@ -293,6 +298,11 @@ void AIopt::computeNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree[b]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
+			*Out
+				<< "\n"
+				<< "FORMULA"
+				<< "(COMPUTENODE)"
+				<< "\n\n";
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
@@ -388,6 +398,11 @@ void AIopt::narrowNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree[n->bb]->generateSMTformula(LSMT));
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
+			*Out
+				<< "\n"
+				<< "FORMULA"
+				<< "(NARROWNODE)"
+				<< "\n\n";
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
