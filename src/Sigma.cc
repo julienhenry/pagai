@@ -12,13 +12,15 @@
 //#define DUMP_ADD	
 
 
-void Sigma::createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, bool start) {
+void Sigma::createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start) {
 	int n;
 	getADDfromBasicBlock(Start,map,n);
+	seen->insert(Start);
 	if (start || !Pr->count(Start)) {
 		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
 			BasicBlock *Succ = *PI;
-			createADDVars(Succ,Pr,AddVar);
+			if (!seen->count(Succ))
+				createADDVars(Succ,Pr,AddVar,seen);
 		}
 	}
 }
@@ -32,7 +34,8 @@ void Sigma::init(BasicBlock * Start) {
 	// we compute all the levels of the ADD
 	Function * F = Start->getParent();
 	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
-	createADDVars(Start,Pr,AddVarSource,true);
+	std::set<BasicBlock*> seen;
+	createADDVars(Start,Pr,AddVarSource,&seen,true);
 }
 
 Sigma::Sigma(BasicBlock * Start, int _Max_Disj): Max_Disj(_Max_Disj) {

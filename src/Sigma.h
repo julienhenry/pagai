@@ -20,7 +20,7 @@ class Sigma {
 
 		void init(BasicBlock * Start);
 
-		void createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, bool start = false);
+		void createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start = false);
 
 		/// @{
 		/// variables needed by some methods
