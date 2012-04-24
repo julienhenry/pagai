@@ -58,7 +58,7 @@ bool AIpf::runOnModule(Module &M) {
 		Out->resetColor();
 		LSMT->reset_SMTcontext();
 		initFunction(F);
-
+		
 		// we create the new pathtree
 		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
@@ -101,6 +101,7 @@ void AIpf::computeFunction(Function * F) {
 	*Out << "Computing Rho...";
 	LSMT->getRho(*F);
 	*Out << "OK\n";
+
 	
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {

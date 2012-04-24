@@ -59,7 +59,7 @@ class PathTree {
 			int i,
 			SMTpass * smt = NULL);
 
-		void createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, bool start = false);
+		void createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start = false);
 
 		/// dump the BDD "graph" in a .dot file. Name of the .dot
 		/// file is given by the filename argument.

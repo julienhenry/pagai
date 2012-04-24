@@ -7,13 +7,15 @@
 #include "Analyzer.h"
 #include "Pr.h"
 
-void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, bool start) {
+void PathTree::createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start) {
 	int n;
 	getBDDfromBasicBlock(Start,map,n);
+	seen->insert(Start);
 	if ( start || !Pr->count(Start)) {
 		for (succ_iterator PI = succ_begin(Start), E = succ_end(Start); PI != E; ++PI) {
 			BasicBlock *Succ = *PI;
-			createBDDVars(Succ,Pr,BddVar);
+			if (!seen->count(Succ))
+				createBDDVars(Succ,Pr,BddVar,seen);
 		}
 	}
 }
@@ -30,7 +32,8 @@ PathTree::PathTree(BasicBlock * Start) {
 	// we compute all the levels of the BDD
 	Function * F = Start->getParent();
 	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
-	createBDDVars(Start,Pr,BddVarStart,true);
+	std::set<BasicBlock*> seen;
+	createBDDVars(Start,Pr,BddVarStart,&seen,true);
 }
 
 PathTree::~PathTree() {
