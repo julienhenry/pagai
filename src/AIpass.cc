@@ -1156,7 +1156,7 @@ void AIPass::visitBinaryOperator (BinaryOperator &I){
 	common_environment(&exp1,&exp2);
 
 	// we create the expression associated to the binary op
-	ap_texpr1_t * exp = ap_texpr1_binop(op,exp1, exp2, type, dir);
+	ap_texpr1_t * exp = ap_texpr1_binop(op, exp1, exp2, type, dir);
 	set_ap_expr(&I,exp,n);
 
 	// this value may use some apron variables 

@@ -10,6 +10,7 @@
 #include "SMTpass.h"
 #include "z3_manager.h"
 #include "yices.h"
+#include "SMTlib.h"
 #include "Expr.h"
 #include "apron.h"
 #include "Debug.h"
@@ -24,7 +25,7 @@ SMTpass::SMTpass() {
 			man = new z3_manager();
 			break;
 		case YICES_MANAGER: 
-			man = new yices();
+			man = new SMTlib();
 			break;
 	}
 }
@@ -55,7 +56,7 @@ void SMTpass::reset_SMTcontext() {
 			man = new z3_manager();
 			break;
 		case YICES_MANAGER: 
-			man = new yices();
+			man = new SMTlib();
 			break;
 	}
 }

@@ -27,6 +27,7 @@
 #include "Execute.h"
 #include "Live.h"
 #include "SMTpass.h"
+#include "SMTlib.h"
 #include "Compare.h"
 #include "CompareDomain.h"
 #include "CompareNarrowing.h"
