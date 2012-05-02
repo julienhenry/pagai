@@ -36,10 +36,11 @@ SMTlib::SMTlib() {
 		dup2(rpipefd[1], STDOUT_FILENO);
 		close(wpipefd[0]);
 		close(rpipefd[1]);
-		char * argv[3];
-		argv[0] = "-smt2";
-		argv[1] = "-in";
-		argv[2] = NULL;
+		char * argv[4];
+		argv[0] = "";
+		argv[1] = "-smt2";
+		argv[2] = "-in";
+		argv[3] = NULL;
 		execvp("z3",argv);
 	} else { 
 		/* Parent : PAGAI */
@@ -71,10 +72,12 @@ void SMTlib::pwrite(std::string s) {
 std::string SMTlib::pread() {
 	char buf;
 	std::ostringstream oss;
+	*Out << "READ : ";
 	while (read(rpipefd[0], &buf, 1) > 0) {
 		oss << buf;
-		*Out << "READ letter " << buf << "\n";
+		*Out << buf;
 	}
+	*Out << "\nREAD OK";
 	return oss.str();
 }
 
@@ -89,22 +92,35 @@ SMT_expr SMTlib::SMT_mk_false(){
 }
 
 SMT_var SMTlib::SMT_mk_bool_var(std::string name){
-	std::string * res = new std::string(name);
-	return res;
+	if (!vars.count(name)) {
+		std::string * res = new std::string(name);
+		vars[name] = res;
+
+		std::ostringstream oss;
+		oss << "(declare-fun " << name << " () Bool)\n";
+		pwrite(oss.str());
+	}
+	return vars[name];
 }
 
 SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
-	std::string * res = new std::string(name);
-	return res;
+	if (!vars.count(name)) {
+		std::string * res = new std::string(name);
+		vars[name] = res;
+		std::ostringstream oss;
+		oss << "(declare-fun " << name << " () Int)\n";
+		pwrite(oss.str());
+	}
+	return vars[name];
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_bool_var(SMT_var var){
-	std::string * res = new std::string("true");
+	std::string * res = new std::string(*((std::string*)var));
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_var(SMT_var var){
-	std::string * res = new std::string("true");
+	std::string * res = new std::string(*((std::string*)var));
 	return res;
 }
 
@@ -171,77 +187,161 @@ SMT_expr SMTlib::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr SMTlib::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(ite "
+		<< *((std::string*)c) << " "
+		<< *((std::string*)t) << " "
+		<< *((std::string*)e) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_not (SMT_expr a){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(not " << *((std::string*)a) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_num (int n){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	if (n < 0)
+		oss << "(- " << -n << ")";
+	else
+		oss << n;
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << mpq;
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << x;
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_sum (std::vector<SMT_expr> args){
 	std::string * res = new std::string("true");
-	return res;
+	switch (args.size()) {
+		case 0:
+			return NULL;
+			break;
+		case 1:
+			res = new std::string(*((std::string*)args[0]));
+			return res;
+			break;
+		default:
+			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
+			std::ostringstream oss;
+			oss << "(+ "; 
+			for (; b != e; ++b) {
+				oss << *((std::string*)*b) << " ";
+			}
+			oss << ")";
+			res = new std::string(oss.str());
+			return res;
+	}
 }
 
 SMT_expr SMTlib::SMT_mk_sub (std::vector<SMT_expr> args){
 	std::string * res = new std::string("true");
-	return res;
+	switch (args.size()) {
+		case 0:
+			return NULL;
+			break;
+		case 1:
+			res = new std::string(*((std::string*)args[0]));
+			return res;
+			break;
+		default:
+			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
+			std::ostringstream oss;
+			oss << "(- "; 
+			for (; b != e; ++b) {
+				oss << *((std::string*)*b) << " ";
+			}
+			oss << ")";
+			res = new std::string(oss.str());
+			return res;
+	}
 }
 
 SMT_expr SMTlib::SMT_mk_mul (std::vector<SMT_expr> args){
 	std::string * res = new std::string("true");
-	return res;
+	switch (args.size()) {
+		case 0:
+			return NULL;
+			break;
+		case 1:
+			res = new std::string(*((std::string*)args[0]));
+			return res;
+			break;
+		default:
+			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
+			std::ostringstream oss;
+			oss << "(* "; 
+			for (; b != e; ++b) {
+				oss << *((std::string*)*b) << " ";
+			}
+			oss << ")";
+			res = new std::string(oss.str());
+			return res;
+	}
 }
 
 SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(div " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(mod " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(xor " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(< " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_le (SMT_expr a1, SMT_expr a2){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(<= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_gt (SMT_expr a1, SMT_expr a2){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(> " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
-	std::string * res = new std::string("true");
+	std::ostringstream oss;
+	oss << "(>= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
 	return res;
 }
 
@@ -280,6 +380,7 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		<< *((std::string*)a)
 		<< ")\n";
 	oss << "(check-sat)\n";
+	oss << "(get-model)\n";
 	*Out << "\n\n" << oss.str() << "\n\n";
 	pwrite(oss.str());
 	pread();

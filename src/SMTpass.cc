@@ -292,7 +292,7 @@ const std::string SMTpass::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
 	char * var = ap_var_to_string((ap_var_t)v);
 	if (primed)
-		name << "x'_" << var << "_";
+		name << "x_prime_" << var << "_";
 	else
 		name << "x_" << var << "_";
 	free(var);
