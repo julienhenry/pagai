@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -12,8 +13,14 @@
 #include "SMTlib.h"
 #include "Analyzer.h"
 #include "Debug.h"
+#include "SMTlib2driver.h"
+
+int k;
 
 SMTlib::SMTlib() {
+
+	k=0;
+
 	pid_t cpid;
 	char buf;
 
@@ -65,19 +72,40 @@ SMTlib::~SMTlib() {
 }
 
 void SMTlib::pwrite(std::string s) {
-	*Out << "WRITTING " << s ;
+	*Out << "WRITTING : " << s  << "\n";
 	write(wpipefd[1], s.c_str(), strlen(s.c_str()));
 }
 
 std::string SMTlib::pread() {
-	char buf;
 	std::ostringstream oss;
-	*Out << "READ : ";
+	std::ostringstream filename;
+	filename << "/tmp/return" << k << ".smt2";
+	k++;
+
+	std::ofstream tmp;
+	tmp.open (filename.str().c_str());
+	char buf;
+	int parenthesis = 0;
 	while (read(rpipefd[0], &buf, 1) > 0) {
+		tmp << buf;
 		oss << buf;
-		*Out << buf;
+		if (buf == '(')
+			parenthesis++;
+		if (buf == ')')
+			parenthesis--;
+		if (buf == '\n' && parenthesis == 0) {
+			break;
+		}
 	}
-	*Out << "\nREAD OK";
+	
+	*Out << "RECEIVED:\n" << oss.str() << "\n";
+	*Out << "STORED " << filename.str() << "\n";
+	tmp.close();
+//FILE * input = fdopen(rpipefd[0],"r");
+	FILE * input = fopen (filename.str().c_str(), "r");
+	SMTlib2driver driver;
+	driver.parse(input);
+
 	return oss.str();
 }
 
@@ -380,9 +408,12 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		<< *((std::string*)a)
 		<< ")\n";
 	oss << "(check-sat)\n";
-	oss << "(get-model)\n";
 	*Out << "\n\n" << oss.str() << "\n\n";
 	pwrite(oss.str());
+	pread();
+
+	
+	pwrite("(get-model)\n");
 	pread();
 	return 0;
 }

@@ -181,6 +181,9 @@ else()
   set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
 endif()
 
+find_package(BISON)
+find_package(FLEX)
+
 option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
 

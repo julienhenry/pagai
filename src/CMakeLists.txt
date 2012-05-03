@@ -38,7 +38,19 @@ link_directories(
   ${PPL_PREFIX}/lib
 )
 
-add_executable(pagai ${TOP_SRC})
+find_package(BISON)
+find_package(FLEX)
+BISON_TARGET(SMTlib2parser SMTlib2parser.yy
+	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2parser.cc)
+FLEX_TARGET(SMTlib2lexer SMTlib2lexer.lex
+	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2lexer.cc)
+ADD_FLEX_BISON_DEPENDENCY(SMTlib2lexer SMTlib2parser)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
+add_executable(pagai ${TOP_SRC} 
+	${BISON_SMTlib2parser_OUTPUTS}
+	${FLEX_SMTlib2lexer_OUTPUTS})
 
 configure_llvm(pagai bitreader selectiondag)
 
@@ -76,3 +88,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DOXYFILE.in ${CMAKE_CURRENT_BINARY_DI
 ADD_CUSTOM_TARGET(doc
   COMMAND doxygen ${CMAKE_CURRENT_BINARY_DIR}/DOXYFILE
   )
+
