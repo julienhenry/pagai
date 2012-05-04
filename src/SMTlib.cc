@@ -62,6 +62,7 @@ SMTlib::SMTlib() {
 	//Enable model construction
 	pwrite("(set-option :produce-models true)\n");
 	pwrite("(set-option :interactive-mode true)\n");
+	pwrite("(set-option :print-success false)\n");
 	//pwrite("(set-logic QF_LRA)\n");
 
 	//int_type = Z3_mk_int_sort(ctx);
@@ -70,6 +71,7 @@ SMTlib::SMTlib() {
 }
 
 SMTlib::~SMTlib() {
+	pwrite("(exit)\n");
 	close(wpipefd[1]); /* Reader will see EOF */
 	close(rpipefd[0]);
 	wait(NULL);
@@ -283,10 +285,15 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
 	std::ostringstream oss;
-	if (x < 0)
-		oss << "(- " << -x << ")";
-	else
+	double intpart;
+	if (x < 0) {
+		oss << "(- " << -x;
+		if (modf(x, &intpart) == 0.0) oss << ".0";
+		oss << ")";
+	} else {
 		oss << x;
+		if (modf(x, &intpart) == 0.0) oss << ".0";
+	}
 	std::string * res = new std::string(oss.str());
 	return res;
 }
@@ -430,7 +437,7 @@ SMT_expr SMTlib::SMT_mk_int0() {
 }
 
 SMT_expr SMTlib::SMT_mk_real0() {
-	std::string * res = new std::string("0");
+	std::string * res = new std::string("0.0");
 	return res;
 }
 
