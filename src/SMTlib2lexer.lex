@@ -25,7 +25,9 @@ typedef yy::SMTlib2parser::token token;
 blank       [\t ]
 letter      [A-Za-z]
 num			[0-9]
-integer		{num}+
+posinteger	{num}+
+neginteger	-{blank}{posinteger}
+integer		{neginteger}|{posinteger}
 var			{letter}|{num}|_|\.|\%
 varname		{var}+
 
@@ -38,40 +40,34 @@ varname		{var}+
 %{
   yylloc->step ();
 %}
-{blank}+   yylloc->step ();
-[\n]+      yylloc->lines (yyleng); yylloc->step ();
+{blank}   yylloc->step ();
+[\n]      yylloc->lines (yyleng); yylloc->step ();
 
-"("					return(token::LEFTPAR);			{*Out << "LEFTPAR\n";}
-")"					return(token::RIGHTPAR);		{*Out << "RIGHTPAR\n";}
-
-"unknown"			return(token::UNKNOWN);				{*Out << "UNKNOWN\n";}
-"unsat"				return(token::UNSAT);				{*Out << "UNSAT\n";}
-"sat"				return(token::SAT);					{*Out << "SAT\n";}
-"true"				return(token::TRUE);				{*Out << "TRUE\n";}
-"false"				return(token::FALSE);				{*Out << "FALSE\n";}
-"model"				return(token::MODEL);				{*Out << "MODEL\n";}
-
-"Int"				return(token::TYPE);				{*Out << "TYPE INT\n";}
-"Bool"				return(token::TYPE);				{*Out << "TYPE BOOL\n";}
+"("					return(token::LEFTPAR);			
+")"					return(token::RIGHTPAR);		
+                
+"unknown"			return(token::UNKNOWN);			
+"unsat"				return(token::UNSAT);			
+"sat"				return(token::SAT);				
+"true"				return(token::TRUE);			
+"false"				return(token::FALSE);			
+"model"				return(token::MODEL);			
+                
+"Int"				return(token::TYPE);			
+"Bool"				return(token::BOOLTYPE);			
 
 "define-fun"		return(token::DEFINEFUN);
 
-{integer}			{
-						*Out << "integer\n";
-						long n = strtol (yytext, NULL, 10);
-						if (! (INT_MIN <= n && n <= INT_MAX && errno != ERANGE))
-							driver.error (*yylloc, "integer is out of range");
-						yylval->ival = n;
-						return(token::INTVALUE);
-					}
+{integer}			return(token::INTVALUE);
 
 {varname}			{
-						*Out << "varname\n";
 						yylval->sval=new std::string(yytext);
 						return(token::VARNAME);
 					}
 
+.          driver.error (*yylloc, "invalid character");
 
+<<EOF>>				{yyterminate();}
 %%
 
 void SMTlib2driver::scan_begin () {

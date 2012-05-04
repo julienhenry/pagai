@@ -11,15 +11,24 @@
 class SMTlib: public SMT_manager {
 
 	private:
-		std::map<std::string,SMT_var> vars;
-		std::map<SMT_var,SMT_type> types;
+
+		struct definedvars {
+			SMT_var var;
+			int stack_level;
+		};
+
+		std::map<std::string,struct definedvars> vars;
+
+		std::set<std::string> model;
+
+		int stack_level;
 
 		int wpipefd[2]; // pipe from PAGAI to the SMT solver
 		int rpipefd[2]; // pipe from the SMT solver to PAGAI
 
 
 		void pwrite(std::string s);
-		std::string pread();
+		int pread();
 	
 
 	public:

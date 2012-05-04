@@ -20,6 +20,7 @@ int k;
 SMTlib::SMTlib() {
 
 	k=0;
+	stack_level = 0;
 
 	pid_t cpid;
 	char buf;
@@ -72,11 +73,12 @@ SMTlib::~SMTlib() {
 }
 
 void SMTlib::pwrite(std::string s) {
-	*Out << "WRITTING : " << s  << "\n";
+	DEBUG(*Out << "WRITTING : " << s  << "\n";);
 	write(wpipefd[1], s.c_str(), strlen(s.c_str()));
 }
 
-std::string SMTlib::pread() {
+int SMTlib::pread() {
+	int ret;
 	std::ostringstream oss;
 	std::ostringstream filename;
 	filename << "/tmp/return" << k << ".smt2";
@@ -98,15 +100,33 @@ std::string SMTlib::pread() {
 		}
 	}
 	
+	tmp.close();
+	DEBUG(
 	*Out << "RECEIVED:\n" << oss.str() << "\n";
 	*Out << "STORED " << filename.str() << "\n";
-	tmp.close();
+	);
 //FILE * input = fdopen(rpipefd[0],"r");
 	FILE * input = fopen (filename.str().c_str(), "r");
 	SMTlib2driver driver;
 	driver.parse(input);
 
-	return oss.str();
+	switch (driver.ans) {
+		case SAT:
+			ret = 1;
+			break;
+		case UNSAT:
+			ret = 0;
+			break;
+		case UNKNOWN:
+			ret = -1;
+			break;
+		default:
+			ret = -1;
+	}
+
+	model.clear();
+	model.insert(driver.model.begin(),driver.model.end());
+	return ret;
 }
 
 SMT_expr SMTlib::SMT_mk_true(){
@@ -122,24 +142,26 @@ SMT_expr SMTlib::SMT_mk_false(){
 SMT_var SMTlib::SMT_mk_bool_var(std::string name){
 	if (!vars.count(name)) {
 		std::string * res = new std::string(name);
-		vars[name] = res;
+		vars[name].var = res;
+		vars[name].stack_level = stack_level;
 
 		std::ostringstream oss;
 		oss << "(declare-fun " << name << " () Bool)\n";
 		pwrite(oss.str());
 	}
-	return vars[name];
+	return vars[name].var;
 }
 
 SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 	if (!vars.count(name)) {
 		std::string * res = new std::string(name);
-		vars[name] = res;
+		vars[name].var = res;
+		vars[name].stack_level = stack_level;
 		std::ostringstream oss;
-		oss << "(declare-fun " << name << " () Int)\n";
+		oss << "(declare-fun " << name << " () " << type << ")\n";
 		pwrite(oss.str());
 	}
-	return vars[name];
+	return vars[name].var;
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_bool_var(SMT_var var){
@@ -243,7 +265,15 @@ SMT_expr SMTlib::SMT_mk_num (int n){
 
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 	std::ostringstream oss;
-	oss << mpq;
+	if (mpq_sgn(mpq) < 0) {
+		mpq_t nmpq;
+		mpq_init(nmpq);
+		mpq_neg(nmpq,mpq);
+		oss << "(- " << nmpq << ")";
+		mpq_clear(nmpq);
+	} else {
+		oss << mpq;
+	}
 	std::string * res = new std::string(oss.str());
 	return res;
 }
@@ -256,7 +286,7 @@ SMT_expr SMTlib::SMT_mk_real (double x) {
 }
 
 SMT_expr SMTlib::SMT_mk_sum (std::vector<SMT_expr> args){
-	std::string * res = new std::string("true");
+	std::string * res;
 	switch (args.size()) {
 		case 0:
 			return NULL;
@@ -279,7 +309,7 @@ SMT_expr SMTlib::SMT_mk_sum (std::vector<SMT_expr> args){
 }
 
 SMT_expr SMTlib::SMT_mk_sub (std::vector<SMT_expr> args){
-	std::string * res = new std::string("true");
+	std::string * res;
 	switch (args.size()) {
 		case 0:
 			return NULL;
@@ -403,25 +433,44 @@ void SMTlib::SMT_print(SMT_expr a){
 }
 
 int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
+	int ret;
 	std::ostringstream oss;
 	oss << "(assert "
 		<< *((std::string*)a)
 		<< ")\n";
 	oss << "(check-sat)\n";
-	*Out << "\n\n" << oss.str() << "\n\n";
+	DEBUG(
+		*Out << "\n\n" << oss.str() << "\n\n";
+	);
 	pwrite(oss.str());
-	pread();
 
-	
-	pwrite("(get-model)\n");
-	pread();
-	return 0;
+	ret = pread();
+	if (ret == 1) {
+		// SAT
+		pwrite("(get-model)\n");
+		pread();
+		true_booleans->clear();
+		true_booleans->insert(model.begin(),model.end());
+	}
+	return ret;
 }
 
 void SMTlib::push_context() {
 	pwrite("(push 1)\n");
+	stack_level++;
 }
 
 void SMTlib::pop_context() {
 	pwrite("(pop 1)\n");
+	stack_level--;
+
+	std::map<std::string,struct definedvars> tmpvars;
+	std::map<std::string,struct definedvars>::iterator it = vars.begin(), et = vars.end();
+	for (; it != et; it++) {
+		if ((*it).second.stack_level <= stack_level) {
+			tmpvars.insert(*it);
+		}
+	}
+	vars.clear();
+	vars.insert(tmpvars.begin(), tmpvars.end());
 }

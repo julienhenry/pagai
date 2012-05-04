@@ -3,8 +3,6 @@
 #include "SMTlib2parser.hh"
 
 SMTlib2driver::SMTlib2driver() : trace_scanning (false), trace_parsing (false) {
-	variables["one"] = 1;
-	variables["two"] = 2;
 }
 
 SMTlib2driver::~SMTlib2driver() {
@@ -14,10 +12,8 @@ int SMTlib2driver::parse (FILE* f) {
 	file = f;
 	scan_begin ();
 	yy::SMTlib2parser parser (*this);
-	//parser.set_debug_level (trace_parsing);
-	*Out << "starting to parse\n";
+	parser.set_debug_level (trace_parsing);
 	int res = parser.parse ();
-	*Out << "parse OK\n";
 	scan_end ();
 	return 1;
 }

@@ -27,7 +27,7 @@ class SMTlib2driver
 		SMTlib2driver ();
 		virtual ~SMTlib2driver ();
 
-		std::map<std::string, int> variables;
+		std::set<std::string> model;
 
 		SMTans ans;
 

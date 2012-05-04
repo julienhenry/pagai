@@ -358,7 +358,6 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 								break;
 							case Z3_L_TRUE:
 								//DEBUG(
-								//*Out << "true\n";
 								//);
 								true_booleans->insert(name);
 								break;
