@@ -46,9 +46,9 @@ SMTlib::SMTlib() {
 		close(wpipefd[0]);
 		close(rpipefd[1]);
 		char * argv[4];
-		argv[0] = "";
-		argv[1] = "-smt2";
-		argv[2] = "-in";
+		argv[0] = (char*)"";
+		argv[1] = (char*)"-smt2";
+		argv[2] = (char*)"-in";
 		argv[3] = NULL;
 		execvp("z3",argv);
 	} else { 
@@ -62,10 +62,6 @@ SMTlib::SMTlib() {
 	pwrite("(set-option :interactive-mode true)\n");
 	pwrite("(set-option :print-success false)\n");
 	//pwrite("(set-logic QF_LRA)\n");
-
-	//int_type = Z3_mk_int_sort(ctx);
-	//float_type = Z3_mk_real_sort(ctx);
-	//bool_type = Z3_mk_bool_sort(ctx);
 }
 
 SMTlib::~SMTlib() {
