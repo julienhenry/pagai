@@ -42,11 +42,12 @@
 %token END 0
 %token MODEL
 %token DEFINEFUN
+%token DIVIDE
 %token<bval> TRUE FALSE
 %token SAT UNSAT UNKNOWN
 %token LEFTPAR RIGHTPAR
 %token<bval> INTVALUE 
-%token<bval> FLOATVALUE
+%token<bval> REALVALUE
 %token<bval> TYPE
 %token BOOLTYPE
 %token<sval> VARNAME
@@ -93,7 +94,8 @@ FunArgs:
 
 FunValue:
 		INTVALUE						{$$ = false;}
-		| FLOATVALUE					{$$ = false;}
+		| REALVALUE						{$$ = false;}
+		| LEFTPAR DIVIDE REALVALUE REALVALUE RIGHTPAR {$$ = false;}
 		| BoolValue						{$$ = $1;}
 		| LEFTPAR FunValue RIGHTPAR		{$$ = $2;}
 		;

@@ -26,9 +26,12 @@ blank       [\t ]
 letter      [A-Za-z]
 num			[0-9]
 posinteger	{num}+
+posreal		{posinteger}\.{posinteger}
+negreal		-{blank}{posreal}
+real		{negreal}|{posreal}
 neginteger	-{blank}{posinteger}
 integer		{neginteger}|{posinteger}
-var			{letter}|{num}|_|\.|\%
+var			{letter}|{num}|_|\.|\%|!
 varname		{var}+
 
 %{
@@ -45,6 +48,7 @@ varname		{var}+
 
 "("					return(token::LEFTPAR);			
 ")"					return(token::RIGHTPAR);		
+"/"					return(token::DIVIDE);		
                 
 "unknown"			return(token::UNKNOWN);			
 "unsat"				return(token::UNSAT);			
@@ -54,9 +58,12 @@ varname		{var}+
 "model"				return(token::MODEL);			
                 
 "Int"				return(token::TYPE);			
+"Real"				return(token::TYPE);			
 "Bool"				return(token::BOOLTYPE);			
 
 "define-fun"		return(token::DEFINEFUN);
+
+{real}				return(token::REALVALUE);
 
 {integer}			return(token::INTVALUE);
 

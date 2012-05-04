@@ -22,6 +22,9 @@ SMTlib::SMTlib() {
 	k=0;
 	stack_level = 0;
 
+	int_type = new std::string("Int");
+	float_type = new std::string("Real");
+
 	pid_t cpid;
 	char buf;
 
@@ -59,7 +62,7 @@ SMTlib::SMTlib() {
 	//Enable model construction
 	pwrite("(set-option :produce-models true)\n");
 	pwrite("(set-option :interactive-mode true)\n");
-	pwrite("(set-logic QF_LIA)\n");
+	//pwrite("(set-logic QF_LRA)\n");
 
 	//int_type = Z3_mk_int_sort(ctx);
 	//float_type = Z3_mk_real_sort(ctx);
@@ -158,7 +161,7 @@ SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 		vars[name].var = res;
 		vars[name].stack_level = stack_level;
 		std::ostringstream oss;
-		oss << "(declare-fun " << name << " () " << type << ")\n";
+		oss << "(declare-fun " << name << " () " << *((std::string*)type) << ")\n";
 		pwrite(oss.str());
 	}
 	return vars[name].var;
@@ -280,7 +283,10 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
 	std::ostringstream oss;
-	oss << x;
+	if (x < 0)
+		oss << "(- " << -x << ")";
+	else
+		oss << x;
 	std::string * res = new std::string(oss.str());
 	return res;
 }
