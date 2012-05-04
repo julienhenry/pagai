@@ -15,11 +15,9 @@
 #include "Debug.h"
 #include "SMTlib2driver.h"
 
-int k;
 
 SMTlib::SMTlib() {
 
-	k=0;
 	stack_level = 0;
 
 	int_type = new std::string("Int");
@@ -86,8 +84,7 @@ int SMTlib::pread() {
 	int ret;
 	std::ostringstream oss;
 	std::ostringstream filename;
-	filename << "/tmp/return" << k << ".smt2";
-	k++;
+	filename << "/tmp/return" << ".smt2";
 
 	std::ofstream tmp;
 	tmp.open (filename.str().c_str());
