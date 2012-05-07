@@ -11,8 +11,8 @@
 \usepackage{natbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
-%\usepackage{graphicx}
-%\usepackage{color}
+\usepackage{graphicx}
+\usepackage{color}
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
@@ -105,7 +105,9 @@ Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
 Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
-\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}.
+\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
+through their C API, and can also operate with any SMT-solver supporting the
+SMT-Lib 2 standard \cite{BarST-SMTLIB} through a pipe.
 
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
@@ -176,7 +178,7 @@ The analysis is currently only forward, even though nothing in what we describe 
 
 \begin{figure}[h]
   \begin{center}
-    %\input{./techniques.tex}
+    \input{./gnuplot/techniques.tex}
   \end{center} 
   \vspace{-20pt}
   \caption{Comparison of the abstract values obtained by classical abstract
@@ -193,6 +195,7 @@ the code points where both invariants are equal make up the remaining percentage
 
 
 \begin{table*}
+	\tiny
 \begin{center}
 \setlength{\tabcolsep}{0.75ex}
 \begin{tabular}{|l
@@ -216,7 +219,7 @@ the code points where both invariants are equal make up the remaining percentage
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
  \hline
- %\input{table1}
+ \input{table1}
 \end{tabular}
 \end{center}
 \caption{Result of the comparison of the various techniques described in this
@@ -276,7 +279,7 @@ of the graph, and then may need fewer iterations on the complete graph.
 The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
 
 \begin{table}[!h]
-	\centering
+	\centering \tiny
 \begin{tabular}{|l|r|r|r|r|r|} \hline
 	\multicolumn{1}{|c|}{Benchmark} &
         \multicolumn{1}{c|}{\textbf{S}} &
@@ -284,7 +287,7 @@ The techniques we introduce in this article are slower, but speed is still on th
         \multicolumn{1}{c|}{\textbf{PF}} &
         \multicolumn{1}{c|}{\textbf{G+PF}} &
 	\multicolumn{1}{c|}{\textbf{DIS}} \\ \hline
-	%\input{table_time.tex} \hline
+	\input{table_time.tex} \hline
 \end{tabular}
 \caption{Execution time for each technique, expressed in seconds}
 \label{tab:time}
@@ -294,6 +297,7 @@ The techniques we introduce in this article are slower, but speed is still on th
 \subsection{Precision of Abstract Domains}
 \label{sec:compare_domains}
 \begin{table*}
+	\tiny
 \begin{center}
 \setlength{\tabcolsep}{0.75ex}
 \begin{tabular}{|l
@@ -317,7 +321,7 @@ The techniques we introduce in this article are slower, but speed is still on th
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
  \hline
- %\input{table_domain.tex}
+ \input{table_domain.tex}
 \end{tabular}
 \end{center}
 \caption{Results of the comparison of the various abstract domains, when using
