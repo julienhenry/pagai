@@ -15,6 +15,12 @@
 #include "apron.h"
 #include "Debug.h"
 
+/*
+DM: If set to 0, modulo (grid) constraints are not converted to SMT.
+    If set to 1, they are - this causes segfaults in Z3 3.8 (but not 4.0+).
+ */
+#define SMT_HAS_WORKING_MODULO 1
+
 using namespace std;
 
 int SMTpass::nundef = 0;
@@ -154,12 +160,8 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  if (integer) {
 				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
 			  } else {
-#if 0
-			    return man->SMT_mk_true();
-#elif 1
-			    return man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),scalar_smt);
-#else
-			    // This segfaults. Perhaps bug in Z3.
+#if SMT_HAS_WORKING_MODULO
+			    // This segfaults in Z3 3.8
 			    SMT_expr test = man->SMT_mk_is_int(linexpr_smt);
 			    if (value == 1) {
 			      return test;
@@ -170,6 +172,8 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(intexpr,modulo),scalar_smt));
 			      return man->SMT_mk_and(args);
 			    }
+#else
+			    return man->SMT_mk_true();
 #endif
 			  }
             }
