@@ -14,7 +14,7 @@ int SMTlib2driver::parse (FILE* f) {
 	yy::SMTlib2parser parser (*this);
 	parser.set_debug_level (trace_parsing);
 	int res = parser.parse ();
-	scan_end ();
+	// scan_end ();
 	return 1;
 }
 
