@@ -50,11 +50,19 @@ SMTlib::SMTlib() {
 		argv[1] = (char*)"-smt2";
 		argv[2] = (char*)"-in";
 		argv[3] = NULL;
-		execvp("z3",argv);
-	} else { 
-		/* Parent : PAGAI */
-		close(wpipefd[0]);
-		close(rpipefd[1]);
+		if (execvp("z3",argv)) {
+		  perror("exec z3");
+		  exit(1);
+		}
+	}
+	/* Parent : PAGAI */
+	close(wpipefd[0]);
+	close(rpipefd[1]);
+	input = fdopen(rpipefd[0],"r");
+	//setbuf(input, NULL);
+	if (input == NULL) {
+	  perror("fdopen");
+	  exit(1);
 	}
 
 	//Enable model construction
@@ -72,39 +80,13 @@ SMTlib::~SMTlib() {
 }
 
 void SMTlib::pwrite(std::string s) {
-	DEBUG(*Out << "WRITTING : " << s  << "\n";);
+	DEBUG(*Out << "WRITING : " << s  << "\n";);
 	write(wpipefd[1], s.c_str(), strlen(s.c_str()));
 }
 
 int SMTlib::pread() {
 	int ret;
-	std::ostringstream oss;
-	std::ostringstream filename;
-	filename << "/tmp/return" << ".smt2";
 
-	std::ofstream tmp;
-	tmp.open (filename.str().c_str());
-	char buf;
-	int parenthesis = 0;
-	while (read(rpipefd[0], &buf, 1) > 0) {
-		tmp << buf;
-		oss << buf;
-		if (buf == '(')
-			parenthesis++;
-		if (buf == ')')
-			parenthesis--;
-		if (buf == '\n' && parenthesis == 0) {
-			break;
-		}
-	}
-	
-	tmp.close();
-	DEBUG(
-	*Out << "RECEIVED:\n" << oss.str() << "\n";
-	*Out << "STORED " << filename.str() << "\n";
-	);
-//FILE * input = fdopen(rpipefd[0],"r");
-	FILE * input = fopen (filename.str().c_str(), "r");
 	SMTlib2driver driver;
 	driver.parse(input);
 

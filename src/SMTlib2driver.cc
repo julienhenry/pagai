@@ -2,7 +2,7 @@
 #include "SMTlib2driver.h"
 #include "SMTlib2parser.hh"
 
-SMTlib2driver::SMTlib2driver() : trace_scanning (false), trace_parsing (false) {
+SMTlib2driver::SMTlib2driver() : trace_scanning (true), trace_parsing (true) {
 }
 
 SMTlib2driver::~SMTlib2driver() {
@@ -14,7 +14,7 @@ int SMTlib2driver::parse (FILE* f) {
 	yy::SMTlib2parser parser (*this);
 	parser.set_debug_level (trace_parsing);
 	int res = parser.parse ();
-	scan_end ();
+	// scan_end ();
 	return 1;
 }
 
