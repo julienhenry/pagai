@@ -53,7 +53,9 @@ varname		{var}+
                 
 "unknown"			return(token::UNKNOWN);			
 "unsat"				return(token::UNSAT);			
-"sat"				return(token::SAT);				
+"sat"				return(token::SAT);
+"error"                         return(token::ERROR);
+
 "true"				return(token::TRUE);			
 "false"				return(token::FALSE);			
 "model"				return(token::MODEL);			

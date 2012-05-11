@@ -2,7 +2,7 @@
 #include "SMTlib2driver.h"
 #include "SMTlib2parser.hh"
 
-SMTlib2driver::SMTlib2driver() : trace_scanning (false), trace_parsing (false) {
+SMTlib2driver::SMTlib2driver() : trace_scanning (true), trace_parsing (true) {
 }
 
 SMTlib2driver::~SMTlib2driver() {
