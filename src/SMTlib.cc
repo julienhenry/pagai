@@ -82,6 +82,8 @@ int SMTlib::pread() {
 	std::ostringstream filename;
 	filename << "/tmp/return" << ".smt2";
 
+#undef SMTLIB2_USES_TMPFILE
+#ifdef SMTLIB2_USES_TMPFILE
 	std::ofstream tmp;
 	tmp.open (filename.str().c_str());
 	char buf;
@@ -103,8 +105,16 @@ int SMTlib::pread() {
 	*Out << "RECEIVED:\n" << oss.str() << "\n";
 	*Out << "STORED " << filename.str() << "\n";
 	);
-//FILE * input = fdopen(rpipefd[0],"r");
 	FILE * input = fopen (filename.str().c_str(), "r");
+#else
+	FILE * input = fdopen(dup(rpipefd[0]),"r");
+	if (input == NULL) {
+	  perror("fdopen in pread");
+	  exit(1);
+	}
+	setbuf(input, NULL);
+#endif
+
 	SMTlib2driver driver;
 	driver.parse(input);
 
