@@ -59,7 +59,7 @@ SMTlib::SMTlib() {
 	close(wpipefd[0]);
 	close(rpipefd[1]);
 	input = fdopen(rpipefd[0],"r");
-	setbuf(input, NULL);
+	//setbuf(input, NULL);
 	if (input == NULL) {
 	  perror("fdopen");
 	  exit(1);
