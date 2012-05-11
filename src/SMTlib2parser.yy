@@ -41,6 +41,7 @@
 
 %token END 0
 %token MODEL
+%token ERROR
 %token DEFINEFUN
 %token DIVIDE
 %token<bval> TRUE FALSE
@@ -62,10 +63,13 @@
 %%
 
 Smt:
-	 SAT 					{driver.ans = SAT;}
-	|UNSAT					{driver.ans = UNSAT;}
-	|UNKNOWN 				{driver.ans = UNKNOWN;}
-	|Model 					{driver.ans = SAT;}
+        Smt0 { YYACCEPT; };
+
+Smt0:
+	 SAT 					{driver.ans = SAT; }
+	|UNSAT					{driver.ans = UNSAT; }
+	|UNKNOWN 				{driver.ans = UNKNOWN; }
+	|Model 					{driver.ans = SAT; }
 	;
 
 Model:

@@ -25,7 +25,7 @@ class SMTlib: public SMT_manager {
 
 		int wpipefd[2]; // pipe from PAGAI to the SMT solver
 		int rpipefd[2]; // pipe from the SMT solver to PAGAI
-
+		FILE *input;
 
 		void pwrite(std::string s);
 		int pread();
