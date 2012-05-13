@@ -4,11 +4,11 @@ DEST=build
 DEST_LINKS=.
 
 CUDD_VERSION=2.4.2
-YICES_VERSION=1.0.31
+YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_VERSION=2.19
+Z3_VERSION=4.0
 Z3_ARCH=
-LLVM_VERSION=2.9
+LLVM_VERSION=3.0
 APRON_VERSION=0.9.10
 PPL_VERSION=0.11.2
 CUDD_XCFLAGS=
@@ -45,8 +45,8 @@ CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 Z3_ARCHIVE=z3$(Z3_ARCH)-$(Z3_VERSION).tar.gz
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).tar.gz
-CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
-APRON_ARCHIVE=apron-$(APRON_VERSION).tgz
+CLANG_ARCHIVE=clang-$(LLVM_VERSION).tar.gz
+APRON_ARCHIVE=apron-$(APRON_VERSION).tar.gz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
 DEST_ABS=${shell mkdir -p "$(DEST)" && cd $(DEST) && pwd}
@@ -123,16 +123,16 @@ $(Z3_COMPILED): $(DEST)/$(Z3_ARCHIVE)
 
 #### LLVM + Clang Installation
 $(DEST)/$(LLVM_ARCHIVE):
-	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz" "$@"
+	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/$(LLVM_ARCHIVE)" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)"
+	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
 	touch --no-create "$@"
 
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		$(MAKE) && $(MAKE) install
+		$(MAKE) && (patch bindings/ocaml/llvm/Makefile ../../../external/llvm-3.0.patch ; $(MAKE) install)
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
@@ -141,7 +141,7 @@ $(DEST)/$(CLANG_ARCHIVE):
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION) clang
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION).src clang
 	touch --no-create "$@"
 
 #### Apron
