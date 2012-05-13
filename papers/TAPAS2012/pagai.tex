@@ -85,8 +85,20 @@
 \end{keyword}
 \end{frontmatter}
 \section{Introduction}\label{intro}
-Introduction
 
+This paper introduces PAGAI, a new tool for static analysis, that
+computes numerical invariants at the different control points of a program.
+This tool uses the LLVM compiler infrastructure.
+
+Several other verification tools already use the LLVM framework, such as
+Calysto, KLEE, LAV, LLBMC.
+
+Our tool is dedicated to experiment various combination of analysis techniques
+by abstract interpretation.
+Indeed, depending on the iteration strategy, the choice of the abstract domain,
+etc, precision and cost of the analysis hugely vary. Our platform allows to
+compare various state-of-the-art techniques and abstract domains on real life
+programs, such as GNU projects.
 
 \section{Implementation}
 
