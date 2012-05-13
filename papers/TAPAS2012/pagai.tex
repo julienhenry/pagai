@@ -54,13 +54,13 @@
 \begin{frontmatter}
   \title{PAGAI} 
   \author{Julien Henry \thanksref{imag.fr}}
-  \address{VERIMAG\\ Universit\'e Joseph Fourier\\
+  \address{Universit\'e Joseph Fourier, VERIMAG\\
     Grenoble, France} 
 	\author{David Monniaux\thanksref{imag.fr}}
-  \address{VERIMAG\\CNRS\\
+  \address{CNRS, VERIMAG\\
     Grenoble, France} 
 	\author{Matthieu Moy\thanksref{grenoble-inp.fr}}
-  \address{VERIMAG\\Grenoble-INP\\
+  \address{Grenoble-INP, VERIMAG\\
     Grenoble, France} 
 	
     \thanks[imag.fr]{Email:
@@ -81,24 +81,32 @@
 	comparing these techniques on several benchmarks and GNU programs.
 \end{abstract}
 \begin{keyword}
-  Please list keywords from your paper here, separated by commas.
+	Static Analysis, Program Verification, Abstract Interpretation, Decision
+	Procedure, Satisfiability Modulo Theories.
 \end{keyword}
 \end{frontmatter}
 \section{Introduction}\label{intro}
 
 This paper introduces PAGAI, a new tool for static analysis, that
 computes numerical invariants at the different control points of a program.
-This tool uses the LLVM compiler infrastructure.
-
+This tool uses the internal representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673},
+which is a target for several industrial-strengh compilers, most notably Clang (supporting C and
+C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
 Several other verification tools already use the LLVM framework, such as
 Calysto, KLEE, LAV, LLBMC.
 
-Our tool is dedicated to experiment various combination of analysis techniques
+Our tool is dedicated to experiment with various combination of analysis techniques
 by abstract interpretation.
 Indeed, depending on the iteration strategy, the choice of the abstract domain,
 etc, precision and cost of the analysis hugely vary. Our platform allows to
 compare various state-of-the-art techniques and abstract domains on real life
 programs, such as GNU projects.
+
+
+\section{Motivating Example}
+
+
+These techniques make a precise analysis of the paths inside the program
 
 \section{Implementation}
 
@@ -108,14 +116,7 @@ as well as the classical abstract interpretation algorithm, and the state-of-the
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 
-%\MM{On peut peut-être citer le nom de l'outil (on garde PAGAI ?) ici.
-%  L'intérêt d'avoir un nom, c'est que les gens peuvent en parler plus
-%  facilement, et c'est plus facile de retrouver le papier origine d'un
-%  outil quand il cite son nom}
-%\DM{Dans la version finale, oui, mais pas dans une soumission anonymisée... suffit de Googlifier pagai sur imag.fr}
-%
-Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
-Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
+	Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
 through their C API, and can also operate with any SMT-solver supporting the
@@ -394,21 +395,6 @@ We compared the precision of different techniques and abstract domains by compar
 
 We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
 
-% Cas a probleme:
-% Initialisation (x,y) à {(1,0), (0,1)}
-% puis boucle: si y = 0 alors x++
-% fait un polyèdre qui finit par perdre y <= 1 et x >= 0
-
-%\appendix
-%\section{Appendix Title}
-
-%This is the text of the appendix, if you need one.
-
-%\acks
-
-% Acknowledgments, if needed.
-
-% We recommend abbrvnat bibliography style.
 
 \phantomsection\addcontentsline{toc}{section}{References} 
 	\bibliographystyle{plainnat}
