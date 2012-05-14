@@ -261,7 +261,10 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 SMT_expr SMTlib::SMT_mk_real (double x) {
 	std::ostringstream oss;
 	double intpart;
-	if (x < 0) {
+	if (x == 0.0) { // necessary because printing -0.0 is an error
+	  oss << "0.0";
+	}
+	else if (x < 0.0) {
 		oss << "(- " << -x;
 		if (modf(x, &intpart) == 0.0) oss << ".0";
 		oss << ")";

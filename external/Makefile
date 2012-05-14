@@ -9,7 +9,7 @@ YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=4.0
 Z3_ARCH=
 LLVM_VERSION=3.0
-APRON_VERSION=0.9.10
+APRON_VERSION=2012-05-14
 PPL_VERSION=0.11.2
 CUDD_XCFLAGS=
 
@@ -46,7 +46,7 @@ YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 Z3_ARCHIVE=z3$(Z3_ARCH)-$(Z3_VERSION).tar.gz
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).tar.gz
 CLANG_ARCHIVE=clang-$(LLVM_VERSION).tar.gz
-APRON_ARCHIVE=apron-$(APRON_VERSION).tar.gz
+APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
 DEST_ABS=${shell mkdir -p "$(DEST)" && cd $(DEST) && pwd}
@@ -146,10 +146,10 @@ $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
-	$(DOWNLOAD) 'http://apron.cri.ensmp.fr/library/$(APRON_ARCHIVE)' "$@"
+	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/201/$(APRON_ARCHIVE)' "$@"
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)"
+	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
 	touch --no-create "$@"
 
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
