@@ -1,0 +1,11 @@
+2012-05-14  David MONNIAUX  <david@etale>
+
+	* Fix in SMTLIB2 printing: floating-point value -0.0 must be
+	printed as 0.0, -0.0 causes a syntax error in Z3.
+
+	* external/ now downloads an Apron tarball (2012-05-14)
+	from the Pagai Forge site, obtained from Apron svn.
+	Solves two problems:
+	- Apron 0.9.10 contains bugs fixed in svn
+	- the Apron site no longer has Apron 0.9.10 !?
+	
