@@ -211,7 +211,7 @@ SMT_expr SMTlib::SMT_mk_eq (SMT_expr a1, SMT_expr a2){
 
 SMT_expr SMTlib::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
 	std::ostringstream oss;
-	oss << "(!= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	oss << "(not (= " << *((std::string*)a1) << " " << *((std::string*)a2) << "))";
 	std::string * res = new std::string(oss.str());
 	return res;
 }
