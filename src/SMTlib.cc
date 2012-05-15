@@ -15,6 +15,7 @@
 #include "Debug.h"
 #include "SMTlib2driver.h"
 
+#define Z3 1
 
 SMTlib::SMTlib() {
 
@@ -45,6 +46,14 @@ SMTlib::SMTlib() {
 		dup2(rpipefd[1], STDOUT_FILENO);
 		close(wpipefd[0]);
 		close(rpipefd[1]);
+#if MATHSAT
+		char * argv[1];
+		argv[0] = NULL;
+		if (execvp("mathsat",argv)) {
+		  perror("exec mathsat");
+		  exit(1);
+		}
+#elif Z3
 		char * argv[4];
 		argv[0] = (char*)"";
 		argv[1] = (char*)"-smt2";
@@ -54,6 +63,9 @@ SMTlib::SMTlib() {
 		  perror("exec z3");
 		  exit(1);
 		}
+#else
+		exit(1);
+#endif
 	}
 	/* Parent : PAGAI */
 	close(wpipefd[0]);
@@ -395,16 +407,19 @@ SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr SMTlib::SMT_mk_int2real(SMT_expr a) {
+  exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real2int(SMT_expr a) {
+  exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_is_int(SMT_expr a) {
+  exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
