@@ -52,7 +52,7 @@
 \def\lastname{Henry}
 \begin{document}
 \begin{frontmatter}
-  \title{PAGAI} 
+  \title{PAGAI : a path sensitive static analyser} 
   \author{Julien Henry \thanksref{imag.fr}}
   \address{Universit\'e Joseph Fourier, VERIMAG\\
     Grenoble, France} 
@@ -74,8 +74,8 @@
 	working over the LLVM compiler infrastructure, that computes inductive
 	invariants on the numerical variables of the program.
 	PAGAI implements various state-of-the-art techniques combining Abstract
-	Interpretation and Decision Procedures (SMT-solving), and offers
-	several abstract domains.
+	Interpretation and Decision Procedures (SMT-solving), that allow to do a
+	precise analysis of the various paths in a program.
 	We thus can compare in time and precision the various combinations of
 	techniques and abstract domains. We conducted extensive experiments for
 	comparing these techniques on several benchmarks and GNU programs.
@@ -120,7 +120,7 @@ programs, such as GNU projects.
 
 \section{Motivating Example}
 
-
+Exemple du boustrophedon ???
 These techniques make a precise analysis of the paths inside the program
 
 \section{Implementation}
