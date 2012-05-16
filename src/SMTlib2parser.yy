@@ -41,7 +41,7 @@
 
 %token END 0
 %token MODEL
-%token ERROR
+%token UNSUPPORTED ERROR
 %token DEFINEFUN
 %token DIVIDE
 %token<bval> TRUE FALSE

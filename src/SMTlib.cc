@@ -16,8 +16,20 @@
 #include "SMTlib2driver.h"
 
 #define Z3 1
+//#define MATHSAT 1
+#define LOG_SMT
+
+// MathSat uses a different model format
 
 SMTlib::SMTlib() {
+#ifdef LOG_SMT
+  static int logfile_counter = 0;
+  char filename[sizeof("logfile-000.smt")];
+  sprintf(filename, "logfile-%03d.smt", logfile_counter++);
+  log_file = fopen(filename, "w");
+#else
+  log_file = NULL;
+#endif
 
 	stack_level = 0;
 
@@ -79,7 +91,9 @@ SMTlib::SMTlib() {
 
 	//Enable model construction
 	pwrite("(set-option :produce-models true)\n");
+#if Z3
 	pwrite("(set-option :interactive-mode true)\n");
+#endif
 	pwrite("(set-option :print-success false)\n");
 	//pwrite("(set-logic QF_LRA)\n");
 }
@@ -88,12 +102,17 @@ SMTlib::~SMTlib() {
 	pwrite("(exit)\n");
 	close(wpipefd[1]); /* Reader will see EOF */
 	close(rpipefd[0]);
+	if (log_file) fclose(log_file);
 	wait(NULL);
 }
 
 void SMTlib::pwrite(std::string s) {
 	DEBUG(*Out << "WRITING : " << s  << "\n";);
-	write(wpipefd[1], s.c_str(), strlen(s.c_str()));
+	write(wpipefd[1], s.c_str(), strlen(s.c_str())); // DM pquoi pas s.length() ?
+	if (log_file) {
+	  fputs(s.c_str(), log_file);
+	  fflush(log_file);
+	}
 }
 
 int SMTlib::pread() {

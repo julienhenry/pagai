@@ -30,6 +30,7 @@ class SMTlib: public SMT_manager {
 		void pwrite(std::string s);
 		int pread();
 	
+		FILE *log_file;
 
 	public:
 		

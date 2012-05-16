@@ -55,6 +55,7 @@ varname		{var}+
 "unsat"				return(token::UNSAT);			
 "sat"				return(token::SAT);
 "error"                         return(token::ERROR);
+"unsupported"                         return(token::UNSUPPORTED);
 
 "true"				return(token::TRUE);			
 "false"				return(token::FALSE);			
