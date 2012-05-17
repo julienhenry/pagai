@@ -3,7 +3,7 @@
 DEST=build
 DEST_LINKS=.
 
-CUDD_VERSION=2.4.2
+CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=4.0
@@ -85,9 +85,8 @@ $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
-$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
+$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
-	(cd $(DEST)/"cudd-$(CUDD_VERSION)" && patch -p1) < ./cudd.patch
 	touch --no-create "$@"
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
