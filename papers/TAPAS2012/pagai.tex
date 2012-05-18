@@ -8,7 +8,7 @@
 
 \usepackage{amsmath}
 \usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
-\usepackage{natbib}
+\usepackage[authoryear]{natbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
 \usepackage{graphicx}
@@ -52,15 +52,15 @@
 \def\lastname{Henry}
 \begin{document}
 \begin{frontmatter}
-  \title{PAGAI} 
+  \title{PAGAI : a path sensitive static analyser} 
   \author{Julien Henry \thanksref{imag.fr}}
-  \address{VERIMAG\\ Universit\'e Joseph Fourier\\
+  \address{Universit\'e Joseph Fourier, VERIMAG\\
     Grenoble, France} 
 	\author{David Monniaux\thanksref{imag.fr}}
-  \address{VERIMAG\\CNRS\\
+  \address{CNRS, VERIMAG\\
     Grenoble, France} 
 	\author{Matthieu Moy\thanksref{grenoble-inp.fr}}
-  \address{VERIMAG\\Grenoble-INP\\
+  \address{Grenoble-INP, VERIMAG\\
     Grenoble, France} 
 	
     \thanks[imag.fr]{Email:
@@ -74,45 +74,76 @@
 	working over the LLVM compiler infrastructure, that computes inductive
 	invariants on the numerical variables of the program.
 	PAGAI implements various state-of-the-art techniques combining Abstract
-	Interpretation and Decision Procedures (SMT-solving), and offers
-	several abstract domains.
+	Interpretation and Decision Procedures (SMT-solving), that allow to do a
+	precise analysis of the various paths in a program.
 	We thus can compare in time and precision the various combinations of
 	techniques and abstract domains. We conducted extensive experiments for
 	comparing these techniques on several benchmarks and GNU programs.
 \end{abstract}
 \begin{keyword}
-  Please list keywords from your paper here, separated by commas.
+	Static Analysis, Program Verification, Abstract Interpretation, Decision
+	Procedure, Satisfiability Modulo Theories.
 \end{keyword}
 \end{frontmatter}
 \section{Introduction}\label{intro}
-Introduction
+Static analysis aims at automatically computing properties on programs, such as
+the possible values of their variables during execution. This allows to show for
+instance that a program has no runtime error (such as arithmetic overflow,
+division by zero), to compute loop invariants, etc. The main applications of
+static analysis are compile-time optimisations, and the proof of safety
+properties in critical systems.
+Abstract Interpretation is a general framework for fully automatic static
+analysis, that computes inductive invariants at various control points of an
+imperative program. Linear Relation Analysis (LRA) is a direct application of
+this framework, that computes an upper-approximation of the set of the reachable
+states of a numerical program.
 
+This paper introduces PAGAI, a new tool for static analysis, that
+computes numerical invariants at the different control points of a program.
+This tool uses the internal representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673},
+which is a target for several industrial-strengh compilers, most notably Clang
+(supporting C,
+C++ and Objective-C) and llvm-gcc (supporting C, C++, Fortran and Ada).
+Several other verification tools already use the LLVM framework, such as
+Calysto, KLEE, LAV, LLBMC.
+
+Our tool is dedicated to experiment with various combination of analysis techniques
+by Abstract Interpretation.
+Indeed, depending on the iteration strategy, the choice of the abstract domain,
+etc, precision and cost of the analysis may hugely vary. 
+We experimentally investigate techniques that take benefits of the improvements in SMT solving
+to choose the iteration strategy of the Abstract Interpretation framework.
+
+Our platform allows to compare such state-of-the-art techniques and abstract domains on real life
+programs, such as GNU projects.
+
+
+\section{Motivating Example}
+
+Exemple du boustrophedon ???
+These techniques make a precise analysis of the paths inside the program
 
 \section{Implementation}
 
-We have implemented our proposed solutions inside a prototype of intraprocedural
-static analyzer,
+PAGAI is a prototype of intraprocedural static analyser, that implements our
+recent combined techniques \cite{Henry_Monniaux_Moy_SAS12}
 as well as the classical abstract interpretation algorithm, and the state-of-the-art
 techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
 Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 
-%\MM{On peut peut-être citer le nom de l'outil (on garde PAGAI ?) ici.
-%  L'intérêt d'avoir un nom, c'est que les gens peuvent en parler plus
-%  facilement, et c'est plus facile de retrouver le papier origine d'un
-%  outil quand il cite son nom}
-%\DM{Dans la version finale, oui, mais pas dans une soumission anonymisée... suffit de Googlifier pagai sur imag.fr}
-%
-Our tool operates over LLVM bitcode \citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, which is a target for several compilers, most notably Clang (supporting C and C++) and llvm-gcc (supporting C, C++, Fortran and Ada).
-Abstract domains are provided by the APRON library \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin Polka ``PK'' library), octagons, intervals, and linear congruences.
+Abstract domains are provided by the APRON library
+\citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin
+Polka ``PK'' library), octagons, intervals, and linear congruences. It also has
+an interface with the Parma Polyhedra Library (CITATION!!), giving access to
+more abstract domains.
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
 through their C API, and can also operate with any SMT-solver supporting the
 SMT-Lib 2 standard \cite{BarST-SMTLIB,BarST-SMT-10} through a pipe.
 
-We conducted extensive experiments on real-life programs in order to compare the
-different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
 
 \begin{table}[!h]
+	\tiny
 	\centering
 \begin{tabular}{|l|r|r|} \hline
 	\multicolumn{1}{|c|}{Name} &
@@ -126,7 +157,6 @@ different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) w
 	gzip & 27 & 494\\
 	lapack/blas & 954 & 16422\\
 	make & 34 & 993\\ 
-	sed & 23 & 292\\
 	tar & 73 & 1712\\
 	\hline
 \end{tabular}
@@ -145,7 +175,42 @@ One may see conversion to SSA form as a static precomputation of some of the sym
 
 SSA introduces $\phi$-functions at the head of a control code to define variables whose value depends on which incoming edge to this control node was last taken. For instance, for \lstinline|if (...) { x = 2*x+1; } else { x= 0; }|, then $x_2$ is defined as $\phi(2x_1+1,0)$. In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves may not be representable as affine linear functions, because they are defined using $\phi$-functions, bitwise arithmetic, loads from memory, or return values from function calls.
 
-This motivates a key implement decision of our tool: only those variables $v_1,\dots,v_n$ that are not defined by arithmetic operations are retained as coordinates in the abstract domain (e.g. as dimensions in polyhedra). A basic block of code therefore amounts to a \emph{parallel assignment} operation
+This motivates a key implement decision of our tool: only those variables
+$v_1,\dots,v_n$ that are not defined by arithmetic operations are retained as
+coordinates in the abstract domain (e.g. as dimensions in polyhedra), assuming
+they are live at the associate control point. 
+
+	For instance, assume that $x,y,z$ are numerical variables of a program,
+	$x$ is defined as $x = y+z$, and $x,y,z$ are live at point $p$. Instead of having
+	$x$ as a dimension for the abstract value at point $p$, we only have $y$ and $z$. All the properties
+	for $x$ can be directly extracted from the abstract value attached to $p$ and the information $x=y+z$.
+	This is an optimisation in the sense that there is redundant information in
+	the abstract value if both $x,y$ and $z$ are dimensions of $X_p$.
+
+	Then, classical definition of liveness can be adapted in our case:
+
+	\begin{definition}[Liveness by linearity]
+	A variable $v$ is \emph{live by linearity} at a control point $p$ if and
+	only if:
+	\begin{itemize}
+	\item 
+	its value is available at $p$, meaning that there is a path from the
+	point defining the variable to $p$,
+	\item one of these conditions holds:
+		\begin{itemize}
+		\item $v$ is live in $p$.
+		\item There is a variable $v'$, defined as a linear combination of other
+		variables $v_1, v_2, \dots, v_n$, so that $\exists i \in \{1,\dots,n\}, v = v_i$,
+		and $v'$ is live by linearity in $p$.
+		\end{itemize}
+	\end{itemize}
+	\end{definition}
+
+	Finally, a variable is a dimension in the abstract domain if and only if it
+	is live by linearity and it is not defined as a linear combination of
+	program variables.
+
+A basic block of code therefore amounts to a \emph{parallel assignment} operation
 $(v_1,\dots,v_n) \allowbreak\mapsto\allowbreak
 (f_1(v_1,\dots,v_n), \allowbreak, \dots, \allowbreak
  f_n(v_1,\dots,v_n))$;
@@ -157,7 +222,7 @@ for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a lin
 
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
-We further reduce the number of variables by projecting out those that are not live at the program point. Again, SSA use-def and def-use chains make it easy to compute liveness.
+\subsection{Limitations of the tool}
 
 Our tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
 The remaining memory accesses are treated as undefined values, as are the return
@@ -168,10 +233,14 @@ Our tool currently assumes that integer variables are unbounded mathematical int
 
 Our implementation of path-focusing currently does not use true acceleration
 techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
-The analysis is currently only forward, even though nothing in what we describe in this article is specific to forward analysis.
+The analysis is currently only forward, even though nothing in the techniques
+implemented is specific to forward analysis.
 
 \section{Experiments}
 \label{sec:experiments}
+
+We conducted extensive experiments on real-life programs in order to compare the
+different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
 
 \subsection{Precision of the various techniques}
 \label{sec:compare_techniques}
@@ -382,24 +451,9 @@ We compared the precision of different techniques and abstract domains by compar
 
 We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
 
-% Cas a probleme:
-% Initialisation (x,y) à {(1,0), (0,1)}
-% puis boucle: si y = 0 alors x++
-% fait un polyèdre qui finit par perdre y <= 1 et x >= 0
-
-%\appendix
-%\section{Appendix Title}
-
-%This is the text of the appendix, if you need one.
-
-%\acks
-
-% Acknowledgments, if needed.
-
-% We recommend abbrvnat bibliography style.
 
 \phantomsection\addcontentsline{toc}{section}{References} 
-\bibliographystyle{plain}
+	\bibliographystyle{plainnat}
 \bibliography{pagai}
 \end{document}
 
