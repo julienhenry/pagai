@@ -41,7 +41,7 @@
 
 %token END 0
 %token MODEL
-%token UNSUPPORTED ERROR
+%token UNSUPPORTED ERROR SUCCESS
 %token DEFINEFUN
 %token DIVIDE
 %token<bval> TRUE FALSE
@@ -63,7 +63,11 @@
 %%
 
 Smt:
-        Smt0 { YYACCEPT; };
+        successes Smt0 { YYACCEPT; };
+
+successes:
+        /* */ { }
+        | SUCCESS successes { }
 
 Smt0:
 	 SAT 					{driver.ans = SAT; }

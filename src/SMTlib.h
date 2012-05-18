@@ -11,8 +11,9 @@
 #define LOG_SMT 1
 #define MATHSAT 0
 #define Z3 1
+#define SMTINTERPOL 0
 
-#if MATHSAT
+#if MATHSAT || SMTINTERPOL
 #define SMT_SUPPORTS_DIVIDES 1
 #endif
 

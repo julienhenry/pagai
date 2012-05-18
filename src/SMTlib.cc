@@ -55,15 +55,24 @@ SMTlib::SMTlib() {
 		close(wpipefd[0]);
 		close(rpipefd[1]);
 #if MATHSAT
-		char * argv[1];
-		argv[0] = NULL;
+		char * argv[2];
+		argv[0] = (char*) "mathsat";
+		argv[1] = NULL;
 		if (execvp("mathsat",argv)) {
 		  perror("exec mathsat");
 		  exit(1);
 		}
+#elif SMTINTERPOL
+		char * argv[2];
+		argv[0] = (char*) "smtinterpol";
+		argv[1] = NULL;
+		if (execvp("smtinterpol",argv)) {
+		  perror("exec smtinterpol");
+		  exit(1);
+		}		
 #elif Z3
 		char * argv[4];
-		argv[0] = (char*)"";
+		argv[0] = (char*)"z3";
 		argv[1] = (char*)"-smt2";
 		argv[2] = (char*)"-in";
 		argv[3] = NULL;
@@ -89,6 +98,9 @@ SMTlib::SMTlib() {
 	pwrite("(set-option :produce-models true)\n");
 #if Z3
 	pwrite("(set-option :interactive-mode true)\n");
+#endif
+#if SMTINTERPOL
+	pwrite("(set-logic QF_UFLIRA)\n");
 #endif
 	pwrite("(set-option :print-success false)\n");
 	//pwrite("(set-logic QF_LRA)\n");
