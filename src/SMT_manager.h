@@ -49,6 +49,8 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2) = 0;
 
+		virtual SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
+
 		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2) = 0;
 
@@ -65,6 +67,12 @@ class SMT_manager {
 		virtual void SMT_print(SMT_expr a) = 0;
 		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
+		static std::vector<SMT_expr> vec2(SMT_expr a1, SMT_expr a2) {
+		  std::vector<SMT_expr> vec;
+		  vec.push_back(a1);
+		  vec.push_back(a2);
+		  return vec;
+		}
 };
 
 #endif

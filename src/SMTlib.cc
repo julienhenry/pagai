@@ -15,17 +15,13 @@
 #include "Debug.h"
 #include "SMTlib2driver.h"
 
-#define Z3 1
-//#define MATHSAT 1
-#define LOG_SMT
-
 // MathSat uses a different model format
 
 SMTlib::SMTlib() {
 #ifdef LOG_SMT
   static int logfile_counter = 0;
-  char filename[sizeof("logfile-000.smt")];
-  sprintf(filename, "logfile-%03d.smt", logfile_counter++);
+  char filename[sizeof("logfile-000.smt2")];
+  sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
   log_file = fopen(filename, "w");
 #else
   log_file = NULL;
@@ -452,6 +448,16 @@ SMT_expr SMTlib::SMT_mk_real0() {
 	std::string * res = new std::string("0.0");
 	return res;
 }
+
+#if SMT_SUPPORTS_DIVIDES
+// WORKS ONLY FOR CONSTANT a2
+SMT_expr SMTlib::SMT_mk_divides (SMT_expr a1, SMT_expr a2) {
+	std::ostringstream oss;
+	oss << "((_ divisible " <<  *((std::string*)a1) << ") " <<  *((std::string*)a2) << ")";
+	std::string * res = new std::string(oss.str());
+	return res;
+}
+#endif
 
 void SMTlib::SMT_print(SMT_expr a){
 	*Out << *((std::string*)a) << "\n";

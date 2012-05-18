@@ -8,6 +8,14 @@
 
 #include "SMT_manager.h"
 
+#define LOG_SMT 1
+#define MATHSAT 0
+#define Z3 1
+
+#if MATHSAT
+#define SMT_SUPPORTS_DIVIDES 1
+#endif
+
 class SMTlib: public SMT_manager {
 
 	private:
@@ -66,6 +74,10 @@ class SMTlib: public SMT_manager {
 		SMT_expr SMT_mk_le (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2);
+
+#if SMT_SUPPORTS_DIVIDES
+		SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
+#endif
 
 		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2);

@@ -158,7 +158,7 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  assert(!(value == 0));
 
 			  if (integer) {
-				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			    return man->SMT_mk_divides(modulo, linexpr_smt); // assumes scalar_smt is 0
 			  } else {
 #if SMT_HAS_WORKING_MODULO
 			    // This segfaults in Z3 3.8
@@ -169,7 +169,7 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			      SMT_expr intexpr = man->SMT_mk_real2int(linexpr_smt);
 			      std::vector<SMT_expr> args;
 			      args.push_back(test);
-			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(intexpr,modulo),scalar_smt));
+			      args.push_back( man->SMT_mk_divides(modulo, intexpr)); // assumes scalar_smt is zero
 			      return man->SMT_mk_and(args);
 			    }
 #else
