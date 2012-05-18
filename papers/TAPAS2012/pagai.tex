@@ -13,6 +13,8 @@
 \usepackage{algorithmic,algorithm}
 \usepackage{graphicx}
 \usepackage{color}
+\usepackage{tikz}
+
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
@@ -27,6 +29,29 @@
 \newcommand{\widening}{\mathop{\triangledown}}
 
 \def\newblock{\hskip .11em plus .33em minus .07em}
+
+\tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
+
+\usetikzlibrary{snakes,arrows,shapes,backgrounds,shadows,automata,patterns}
+%\usepgflibrary{snakes}
+
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{transition2}=[transition,rectangle,thick,dashed,
+  			  minimum size=4mm]
+\tikzstyle{PRstate}=[circle,double,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
+\tikzstyle{line}=[black,thick]
+
+\lstnewenvironment{C}
+{\lstset{language=C,
+		basicstyle=\ttfamily,
+		commentstyle=\textit,
+		showstringspaces=false}}
+{}
 
 % The following is enclosed to allow easy detection of differences in
 % ascii coding.
@@ -49,7 +74,7 @@
 
 \newcommand{\Nat}{{\mathbb N}}
 \newcommand{\Real}{{\mathbb R}}
-\def\lastname{Henry}
+\def\lastname{Henry, Monniaux \& Moy}
 \begin{document}
 \begin{frontmatter}
   \title{PAGAI : a path sensitive static analyser} 
@@ -120,8 +145,110 @@ programs, such as GNU projects.
 
 \section{Motivating Example}
 
-Exemple du boustrophedon ???
-These techniques make a precise analysis of the paths inside the program
+It is well know fact in abstract interpretation that the least upper bound of two or
+more abstract values in the abstract domain 
+may induce unrecoverable loss of precision. This operation typically occurs with
+if-then-else statements and loops.
+
+An example of program where such a loss of precision occurs is depicted in
+Figure \ref{example}. In this program, the loop body has two feasible paths that
+are executed alternatively, depending on a variable ``phase''. Such kind of
+programs often occur in reactive systems. 
+Classical abstract interpretation does not prove that $\lstinline|x| < 100$,
+because of the abstract union at control point $n_5$. 
+To cope with this problem, an idea is compute disjunctive invariants, i.e a
+union of values of the abstract domain. However, the number of terms in the
+disjunction may grow exponentially with the number of tests in the program.
+A second technique is to distinguish all the paths inside the loop, so that we
+compute least upper bounds only at the widening points. In this example, if we
+distinguish all the 9 paths of the loop, we prove $\lstinline|x| < 100$. Again,
+this path enumeration grows exponentially with the number of tests. In order to
+avoid this blowup, we use SMT-solving to keep these paths implicit and to
+compute them only if needed.
+
+\begin{figure}[!h]
+\begin{minipage}[c]{.49\linewidth}
+\begin{C}
+int x = 0;
+int t = 0;
+int phase = 0;
+
+while (t < 100) {
+   if (phase == 0) 
+      x = x+2;
+   if (phase == 1) 
+      x = x-1;
+   phase = 1-phase;
+   t++;
+}
+assert(x <= 100);
+\end{C}
+\end{minipage}
+\begin{minipage}[c]{.49\linewidth}
+\begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
+                    semithick,font=\footnotesize]
+
+	\node[PRstate] (n0) {$n$};
+	\node[PRstate] (n00) [below of=n0] {$n_0$};
+	\node[PRstate] (nf) [left of=n00] {$n_f$};
+	\node[state] (n1) [below of=n00] {$n_1$};
+	\node[state] (n3) [below of=n1] {$n_3$};
+	\node[state] (n2) [left of=n3] {$n_2$};
+	\node[state] (n4) [right of=n3] {$n_4$};
+	\node[state] (n5) [below of=n3] {$n_5$};
+	\node[state] (n7) [below of=n5] {$n_7$};
+	\node[state] (n6) [left of=n7] {$n_6$};
+	\node[state] (n8) [right of=n7] {$n_8$};
+	\node[state] (n9) [below of=n7] {$n_9$};
+
+  \path [transition] 
+		(n0) edge              node  {$\begin{array}{l}
+		x \leftarrow 0 \\
+		phase \leftarrow 1 
+		\end{array}$} (n00);
+  \path [transition] 
+        (n00)  edge              node {$t>=100$} (nf);
+  \path [transition] 
+        (n00)  edge              node {$t<100$} (n1);
+  \path [transition] 
+        (n1) edge			   node [left] {$phase,0?$~ ~ ~ $<$} (n2);
+  \path [transition] 
+        (n1)  edge              node {$>$} (n3);
+  \path [transition] 
+        (n1)  edge              node [right] {$=$} (n4);
+  \path [transition] 
+        (n3) edge              node  {} (n5);
+  \path [transition] 
+        (n2) edge			   node {} (n5);
+  \path [transition] 
+        (n4) edge			   node [right] {$x \leftarrow x+2$} (n5);
+  \path [transition] 
+        (n5) edge			   node [left] {$phase,1?$ ~ ~ ~$<$} (n6);
+  \path [transition] 
+        (n5) edge			   node {$>$} (n7);
+  \path [transition] 
+        (n5) edge			   node [right] {$=$} (n8);
+  \path [transition] 
+        (n6) edge              node {} (n9);
+  \path [transition] 
+        (n7) edge              node {} (n9);
+  \path [transition] 
+        (n8) edge              node [right] {$x \leftarrow x-1$} (n9);
+  \path [transition] 
+        (n9) edge [out=0, in=0, distance=4.3cm] node [right] {
+		$\begin{array}{l}
+			phase \leftarrow \\
+			1-phase \\
+			t \leftarrow \\
+			t+1
+		\end{array}$} (n00);
+
+\end{tikzpicture}
+\end{minipage}
+\caption{Example of program, where the loop behaviour vary depending on a variable $phase$.}
+\label{example}
+\end{figure}
+
 
 \section{Implementation}
 
@@ -165,6 +292,7 @@ lines of code, and their number of control points in $P_R$}
 \label{fig:projects}
 \end{table}
 
+
 \subsection{Analysis algorithm}
 \label{sec:analysis-algorithm}
 For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.
@@ -191,19 +319,13 @@ they are live at the associate control point.
 
 	\begin{definition}[Liveness by linearity]
 	A variable $v$ is \emph{live by linearity} at a control point $p$ if and
-	only if:
-	\begin{itemize}
-	\item 
-	its value is available at $p$, meaning that there is a path from the
-	point defining the variable to $p$,
-	\item one of these conditions holds:
+	only if one of these conditions holds:
 		\begin{itemize}
 		\item $v$ is live in $p$.
 		\item There is a variable $v'$, defined as a linear combination of other
 		variables $v_1, v_2, \dots, v_n$, so that $\exists i \in \{1,\dots,n\}, v = v_i$,
 		and $v'$ is live by linearity in $p$.
 		\end{itemize}
-	\end{itemize}
 	\end{definition}
 
 	Finally, a variable is a dimension in the abstract domain if and only if it
@@ -222,6 +344,14 @@ for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a lin
 
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
+\subsection{Use}
+
+PAGAI takes as input an LLVM bitcode file, and outputs an inductive invariant
+for each control point in $P_R$ (typically, the widening points).
+When a program contains \emph{assert} function call, PAGAI also outputs whether
+the statement has been proved.
+It is also possible to add some preconditions about the variables, etc, using a
+function \emph{assume}.
 \subsection{Limitations of the tool}
 
 Our tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
@@ -432,24 +562,8 @@ classical widening. We found that the improved version from
 \citet{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
 control points in $P_R$.
 
-\section{Conclusion and future prospects}
-Roughly, an analysis by abstract interpretation is defined by the choice of an iteration strategy and an abstract domain. In this article, we demonstrated that changes in the iteration algorithm can significantly improve precision, sometimes while improving analysis times.
+\section{Conclusion and future work}
 
-A common criticism of analysis techniques based on SMT-solving is that they
-do not scale up. Yet, our experiments show that, for numerical properties,
-they scale up to the size of typical functions and loops.
-It is however
-quite certain that, naively applied, they cannot scale to the kind of
-programs targeted by e.g. the Astr\'ee tool, that is, a dozens or hundreds
-of thousands of lines of code in a single loop operating over similar numbers
-of remanent variables.
-Actually, for such applications, only (quasi-)linear
-algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
-It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
-
-We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
-
-We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
 
 
 \phantomsection\addcontentsline{toc}{section}{References} 
