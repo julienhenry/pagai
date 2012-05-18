@@ -80,6 +80,16 @@ SMTlib::SMTlib() {
 		  perror("exec z3");
 		  exit(1);
 		}
+#elif CVC3
+		char * argv[4];
+		argv[0] = (char*)"cvc3";
+		argv[1] = (char*)"-lang";
+		argv[2] = (char*)"smt2";
+		argv[3] = NULL;
+		if (execvp("cvc3",argv)) {
+		  perror("exec cvc3");
+		  exit(1);
+		}
 #else
 		exit(1);
 #endif
@@ -95,6 +105,9 @@ SMTlib::SMTlib() {
 	}
 
 	//Enable model construction
+#if CVC3
+	pwrite("(set-logic AUFLIRA)\n");
+#else
 	pwrite("(set-option :produce-models true)\n");
 #if Z3
 	pwrite("(set-option :interactive-mode true)\n");
@@ -103,6 +116,7 @@ SMTlib::SMTlib() {
 	pwrite("(set-logic QF_UFLIRA)\n");
 #endif
 	pwrite("(set-option :print-success false)\n");
+#endif
 	//pwrite("(set-logic QF_LRA)\n");
 }
 

@@ -12,6 +12,7 @@
 #define MATHSAT 0
 #define Z3 1
 #define SMTINTERPOL 0
+#define CVC3 0
 
 #if MATHSAT || SMTINTERPOL
 #define SMT_SUPPORTS_DIVIDES 1
