@@ -275,7 +275,7 @@ more abstract domains (for instance, it can use a reduced product of polyhedra a
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
 through their C API.
-An implementation of communications with the SMT-solver by textual messages sent through a pipe following the SMT-Lib~2 standard \cite{BarST-SMTLIB,BarST-SMT-10} is underway, and now partially supports Z3 and SMTinterpol (plans include support for CVC4 and OpenSMT).
+An implementation of communications with the SMT-solver by textual messages sent through a pipe following the SMT-Lib~2 standard \cite{BarST-SMTLIB,BarST-SMT-10} is underway, and now partially supports Z3 and SMTinterpol (plans include support for e.g. CVC4 and OpenSMT).
 It is unfortunately impossible to ignore differences between solvers behind the supposedly standard interface, since different solvers may support slightly different sets of operators and settings and may return models in different formats.
 
 \begin{table}[!h]
@@ -304,7 +304,10 @@ lines of code, and their number of control points in $P_R$}
 
 \subsection{Analysis algorithm}
 \label{sec:analysis-algorithm}
-For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$. Note that the resulting set is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.
+For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$.
+The resulting \emph{feedback vertex set} is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.
+It would be possible to obtain a feedback vertex set minimal with respect to inclusion by successive removal of nodes; however obtaining one of minimal cardinality is a NP-complete problem.
+It is however unclear whether more advanced selection techniques would finally yield stronger invariants; the current simple scheme has the advantage that, when run over a control-flow graph obtained from a structured program, it marks heads of loops, which is a ``natural'' choice.
 
 LLVM bitcode is in \emph{static single assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
 LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
