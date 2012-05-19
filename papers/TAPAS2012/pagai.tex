@@ -128,6 +128,7 @@ This article introduces PAGAI, a new tool for fully automatic static analysis.
 PAGAI takes as input a program in the ``bitcode'' intermediate representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, a modern compilation framework.
 LLVM bitcode is a target for several industrial-strengh compilers, most notably Clang (supporting C, C++, Objective-C and Objective-C++) and llvm-gcc (supporting C, C++, Objective-C, Objective-C++, Fortran and Ada);
 furthermore, a growing number of analysis tools, testing tools, etc. are currently built around this platform (Calysto, KLEE, LAV, LLBMC).
+
 The output of PAGAI is a list of inductive invariants for a selected subset of the control nodes of the original program:
 for structured source programs, PAGAI will provide an inductive invariant for the head of every loop.
 
@@ -149,27 +150,31 @@ We thus conducted extensive experiments both on examples we produced ourselves (
 The ability to run on any C or C++ code, through the LLVM system, is especially useful for the latter: front-ends for many analysis tools put restrictions (e.g. no backward \lstinline|goto| instructions, no pointer arithmetic...), often satisfied by safety-critical embedded programs, but not by generic programs.
 
 \section{Motivating Example}
-
-It is well know in abstract interpretation that the least upper bound of two or
-more abstract values in the abstract domain 
-may induce unrecoverable loss of precision. This operation typically occurs with
-if-then-else statements and loops.
+In most forward abstract interpretation-based analyzes, when control flows from several nodes into a single node, the abstract value at that node is obtained by computing the least upper bound of the incoming abstract values in the abstract domain (in backward analysis, this occurs when control flows from a single node to several nodes).
+If the abstract domain is convex polyhedra, then this means computing the convex hull of the incoming polyhedra.
+Such an operation may induce unrecoverable loss of precision by introducing spurious states that cannot occur in concrete program runs.
 
 An example of program where such a loss of precision occurs is depicted in
-Figure \ref{example}. In this program, the loop body has two feasible paths that
-are executed alternatively, depending on a variable ``phase''. Such kind of
-programs often occur in reactive systems. 
-Classical abstract interpretation does not prove that $\lstinline|x| < 100$,
-because of the abstract union at control point $n_5$. 
-To cope with this problem, an idea is compute disjunctive invariants, i.e a
-union of values of the abstract domain. However, the number of terms in the
-disjunction may grow exponentially with the number of tests in the program.
-A second technique is to distinguish all the paths inside the loop, so that we
-compute least upper bounds only at the widening points. In this example, if we
-distinguish all the 9 paths of the loop, we prove $\lstinline|x| < 100$. Again,
-this path enumeration grows exponentially with the number of tests. In order to
-avoid this blowup, we use SMT-solving to keep these paths implicit and to
-compute them only if needed.
+Figure \ref{example}.
+In this program, the loop body has two feasible paths that
+are executed alternatively, depending on a variable ``phase''.
+Such programs, with active code paths depending on global ``mode'' or ``phase'' variables, often occur in reactive systems.
+
+Removing program point $n_0$ breaks all cycles; we are thus primarily concerned with obtaining an inductive invariant at that point.
+We consider the domain of convex polyhedra and thus wish to obtain this invariant as a polyhedron.
+Because convex polyhedra form a lattice of infinite height, we use Kleene iterations (pushing abstract values through control-flow edges) with a widening scheme, which ensures convergence in finite time to an inductive invariant, followed by decreasing (narrowing) iterations.
+
+At program point $n_5$, classical forward abstract interpretation with convex polyhedra computes the convex hull of three incoming polyhedra over variables $(\lstinline|phase|,\lstinline|x|,\lstinline|t|)$. This convex hull introduces extra states, unreachable in the concrete programs, for the analysis of the fragment from $n_5$ to~$n_9$. When analyzing the whole loop, these extra states prevent proving $x < 100$.
+
+To cope with this problem, an solution is compute disjunctive invariants at all intermediate nodes: at $n_5$, keep an explicit list of three polyhedra, and thus obtain a list of nine polyhedra at $n_9$. We pass the convex hull of these polyhedra to the widening operator at point $n_0$ (which operates on polyhedra, not on lists of polyhedra). The drawback is that the number of elements in the lists may grow exponentially with the number of successive tests.
+
+A second solution, equivalent to the preceding with respect to final results but different in its operation, is to distinguish all nine paths inside the loop (from $n_0$ to $n_0$), compute the final outcome of each path, and compute the convex hull of these outcomes.
+Again, the number of such paths is exponential in the number of tests.
+We therefore consider paths only if they will make the final convex hull grow.
+The next path to consider is obtained from a model of an arithmetic formula expressing this condition \cite{Monniaux_Gonnord_SAS11}; if this formula is unsatisfiable, this means there is no such path and thus the convex hull obtained truly is the one for all paths.
+The advantages of this method over the preceding one are twofold: there is no exponentially large list of abstract elements, and the satisfiability query for the formula is handed over to a \emph{satisfiability modulo theory} (SMT) solver.
+Modern SMT-solvers are very efficient; their caching mechanisms may, for instance, remember that taking a certain branch in the code is incompatible with taking another one (if a Boolean is associated with passing through each branch, then this is just a \emph{blocking clause} inside the underlying SAT-solver).
+The algorithms implemented in PAGAI are variants of this second approach.
 
 \begin{figure}[!h]
 \begin{minipage}[c]{.49\linewidth}
