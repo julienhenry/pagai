@@ -141,7 +141,7 @@ Textbook descriptions of abstract interpretation-based static analysis state tha
 In contrast, PAGAI abstracts straight-line sequences of statements en bloc, computing invariants only at points where control flow branches or merges.
 Furthermore, several algorithms implemented in PAGAI compute invariants only at the heads of loops (or, in general control-flow graph, at nodes forming a \emph{feedback vertex set}, whose removal breaks all cycles in the graph), expanding the rest of the control flow to a possibly exponential number of straight-line sequences of statements between the selected nodes.
 In order to avoid explicit enumerations of exponential sets, PAGAI uses decision procedures for arithmetic theories, based on the \emph{satisfiability modulo theory} (SMT) approach.
-Depending on the abstract domain in use and the arithmetic constructs found in the program statements, PAGAI may use a variety of SMT-solvers, including Z3 and Yices; work is underway for a generic SMTLIB2 interface allowing the connection of more solvers, including MathSAT, SMTinterpol and CVC4.
+
 % TODO refs
 
 The PAGAI tool is dedicated to experimenting new analysis algorithms.
@@ -262,22 +262,21 @@ assert(x <= 100);
 
 \section{Implementation}
 
-PAGAI is a prototype of intraprocedural static analyser, that implements our
+PAGAI is a prototype interprocedural static analyser, that implements our
 recent combined techniques \cite{Henry_Monniaux_Moy_SAS12}
-as well as the classical abstract interpretation algorithm, and the state-of-the-art
-techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided
-Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
+as well as the classical abstract interpretation algorithm, and the state-of-the-art techniques \emph{Path Focusing} \cite{Monniaux_Gonnord_SAS11} and \emph{Guided Static Analysis} \cite{DBLP:conf/sas/GopanR07}.
 
 Abstract domains are provided by the APRON library
 \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin
-Polka ``PK'' library), octagons, intervals, and linear congruences. It also has
-an interface with the Parma Polyhedra Library (CITATION!!), giving access to
-more abstract domains.
+Polka ``PK'' library), octagons, and products of intervals. It also has
+an interface with the Parma Polyhedra Library (TODO CITATION!!), giving access to
+more abstract domains (for instance, it can use a reduced product of polyhedra and linear congruences, producing invariants such as $0 \leq x \leq 1001 \land x \equiv 0 \pmod 7$).
+
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
-through their C API, and can also operate with any SMT-solver supporting the
-SMT-Lib 2 standard \cite{BarST-SMTLIB,BarST-SMT-10} through a pipe.
-
+through their C API.
+An implementation of communications with the SMT-solver by textual messages sent through a pipe following the SMT-Lib~2 standard \cite{BarST-SMTLIB,BarST-SMT-10} is underway, and now partially supports Z3 and SMTinterpol (plans include support for CVC4 and OpenSMT).
+It is unfortunately impossible to ignore differences between solvers behind the supposedly standard interface, since different solvers may support slightly different sets of operators and settings and may return models in different formats.
 
 \begin{table}[!h]
 	\tiny
