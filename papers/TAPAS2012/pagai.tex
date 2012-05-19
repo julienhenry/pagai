@@ -371,19 +371,39 @@ When a program contains \emph{assert} function call, PAGAI also outputs whether
 the statement has been proved.
 It is also possible to add some preconditions about the variables, etc, using a
 function \emph{assume}.
-\subsection{Limitations of the tool}
+
+\emph{Assert} and \emph{assume} are implemented as C macros. \lstinline|assert(x)| is roughly defined as \lstinline|if (! x) __assert_fail();|, and the tool just tests for the reachability of \lstinline|__assert_fail();|: if it is unreachable, then the assertion is true.
+
+\subsection{Current limitations of the tool}
 
 Our tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
-The remaining memory accesses are treated as undefined values, as are the return
-values of function calls. For better precision, we also apply function inlining
-to the program, and we unroll every loop once.
+The remaining memory accesses are treated as nondeterministic choices.
+
+The analysis is currently intraprocedural: function calls are ignored in a sound way (the return value is a nondeterministic choice, the value of all variables escaping from the local scope is discarded...).
+In order to increase precision, we apply function inlining as an LLVM optimization phase.
+Plans for interprocedural analysis include computing input/output summaries for functions as elements of the abstract domain (e.g. if the function operates over variables $x$ and $y$, then one could compute a polyhedron over $(x,y,x',y')$ encompassing all input-output pairs) or as more general formulas.
+
+Since it is often advantageous to distinguish whether a loop has been executed at least once,%
+\footnote{Consider the very simple loop \lstinline|for(int i=0; i<n; i++) {}|.
+The obvious loop invariant is $0 \leq \lstinline|i| \leq \lstinline|n|$, but it is valid only if $\lstinline|n| > 0$.
+One would thus need to use disjunctive loop invariants to obtain
+$0 \leq \lstinline|i| \leq \lstinline|n| \lor
+ (\lstinline|i|=0 \land \lstinline|n| \leq 0)$.
+It is much simpler to unroll the loop once.}
+we unroll every loop once, again with a LLVM optimization phase.
 
 Our tool currently assumes that integer variables are unbounded mathematical integers ($\ZZ$) and floating-point variables are real (or rational) numbers. Techniques for sound analysis of bounded integers, including with wraparound, and of floating-point operations have been developed in e.g. the Astr\'ee system \citep{ASTREE_ESOP05,ASTREE_PLDI03}, but porting these techniques to our iteration schemes using SMT-solving requires supplemental work.
+It is unclear whether one should use bitvector arithmetic inside the SMT formula, or use mathematical integer with explicit control splits for wraparound (e.g. an operation $z = x+y$ over $n$-bit signed integers would appear as the disjunction of three statements $z = x+y \land -2^{n-1} \leq x+y < 2^{n-1}$,
+$z = x+y+2^n \land -x+y < -2^{n-1}$,
+$z = x+y-2^n \land x+y \geq 2^{n-1}$).
 
 Our implementation of path-focusing currently does not use true acceleration
 techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
+We currently analyze each strongly connected component of the control-flow graph in topological order; thus each loop nest gets analyzed as a single fixed point.
+An alternative method would be to recursively decompose the strongly connected components (for structured programs, this amounts to reconstructing the nested loop structure) and summarize the inner loops before analyzing the outer loop.
+
 The analysis is currently only forward, even though nothing in the techniques
-implemented is specific to forward analysis.
+implemented is specific to forward analysis. A possible extension would therefore be backward analysis from the \lstinline|__assert_fail()| statements.
 
 \section{Experiments}
 \label{sec:experiments}
