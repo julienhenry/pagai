@@ -133,24 +133,20 @@ for structured source programs, PAGAI will provide an inductive invariant for th
 
 PAGAI is based on abstract interpretation, a general framework for fully automatic static analysis.
 PAGAI infers invariants of a selected form; by default it performs \emph{linear relation analysis}, which obtains invariants as conjunctions of linear inequalities (or, equivalently, convex polyhedra), but it also supports most of the abstract domains provided by the APRON library (products of intervals, octagons, linear congruences, and combinations thereof) through a runtime option.
+Depending on the algorithm (\emph{iteration strategy}) selected, PAGAI may also infer invariants as \emph{disjunctions} of elements of the abstract domain (e.g. unions of convex polyhedra).
 % TODO: citer des réfs sur APRON, les octogones etc.
 
+Textbook descriptions of abstract interpretation-based static analysis state that an inductive invariant is computed at every control point of the program.
+In contrast, PAGAI abstracts straight-line sequences of statements en bloc, computing invariants only at points where control flow branches or merges.
+Furthermore, several algorithms implemented in PAGAI compute invariants only at the heads of loops (or, in general control-flow graph, at nodes forming a \emph{feedback vertex set}, whose removal breaks all cycles in the graph), expanding the rest of the control flow to a possibly exponential number of straight-line sequences of statements between the selected nodes.
+In order to avoid explicit enumerations of exponential sets, PAGAI uses decision procedures for arithmetic theories, based on the \emph{satisfiability modulo theory} (SMT) approach.
+Depending on the abstract domain in use and the arithmetic constructs found in the program statements, PAGAI may use a variety of SMT-solvers, including Z3 and Yices; work is underway for a generic SMTLIB2 interface allowing the connection of more solvers, including MathSAT, SMTinterpol and CVC4.
+% TODO refs
 
-
-Abstract interpretation is a , which computes inductive invariants at various control points of an
-imperative program. Linear relation analysis (LRA) is an application of
-this framework, where the invariants are conjunctions of linear inequalities (or, equivalently, convex polyhedra), or, possibly, disjunctions of such conjunctions (or, equivalently, unions of convex polyhedra).
-
-Our tool is dedicated to experiment with various combination of analysis techniques
-by Abstract Interpretation.
-Indeed, depending on the iteration strategy, the choice of the abstract domain,
-etc, precision and cost of the analysis may hugely vary. 
-We experimentally investigate techniques that take benefits of the improvements in SMT solving
-to choose the iteration strategy of the Abstract Interpretation framework.
-
-Our platform allows to compare such state-of-the-art techniques and abstract domains on real life
-programs, such as GNU projects.
-
+The PAGAI tool is dedicated to experimenting new analysis algorithms.
+It allows independent selection of abstract domain and iteration strategy, and partially independent selection of decision procedure, and thus is well-suited for comparisons.
+We thus conducted extensive experiments both on examples we produced ourselves (sometimes inspired by industrial code) and on GNU programs.
+The ability to run on any C or C++ code, through the LLVM system, is especially useful for the latter: front-ends for many analysis tools put restrictions (e.g. no backward \lstinline|goto| instructions, no pointer arithmetic...), often satisfied by safety-critical embedded programs, but not by generic programs.
 
 \section{Motivating Example}
 
