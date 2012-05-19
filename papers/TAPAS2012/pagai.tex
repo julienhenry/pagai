@@ -7,7 +7,7 @@
 \fi
 
 \usepackage{amsmath}
-\usepackage{mathcomp,amsfonts,amssymb,MnSymbol}
+\usepackage{mathcomp,amsfonts,amssymb}
 \usepackage[authoryear]{natbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
@@ -95,15 +95,22 @@ color=blue]
     \href{Matthieu.Moy@grenoble-inp.fr} {\texttt{\normalshape
         Matthieu.Moy@grenoble-inp.fr}}} 
 \begin{abstract} 
-	We present design and implementation of PAGAI, a new static analyzer 
-	working over the LLVM compiler infrastructure, that computes inductive
-	invariants on the numerical variables of the program.
-	PAGAI implements various state-of-the-art techniques combining Abstract
-	Interpretation and Decision Procedures (SMT-solving), that allow to do a
-	precise analysis of the various paths in a program.
-	We thus can compare in time and precision the various combinations of
-	techniques and abstract domains. We conducted extensive experiments for
-	comparing these techniques on several benchmarks and GNU programs.
+	We describe the design and the implementation of PAGAI,
+        a new static analyzer working over the LLVM compiler infrastructure,
+        which computes inductive invariants on the numerical variables of the
+        analyzed program.
+
+	PAGAI implements various state-of-the-art algorithms combining abstract
+	interpretation and decision procedures (SMT-solving),
+        focusing on distinction of paths inside the control flow graph while
+        avoiding systematic exponential enumerations.
+        It is parametric in the abstract domain in use, the algorithm,
+        and the decision procedure.
+
+	We compared the time and precision of various combinations of
+	analysis algorithms and abstract domains, with extensive
+        experiments both on personal benchmarks and widely available
+        GNU programs.
 \end{abstract}
 \begin{keyword}
 	Static Analysis, Program Verification, Abstract Interpretation, Decision
@@ -111,12 +118,12 @@ color=blue]
 \end{keyword}
 \end{frontmatter}
 \section{Introduction}\label{intro}
-Static analysis aims at automatically computing properties on programs, such as
-the possible values of their variables during execution. This allows to show for
-instance that a program has no runtime error (such as arithmetic overflow,
-division by zero), to compute loop invariants, etc. The main applications of
-static analysis are compile-time optimisations, and the proof of safety
-properties in critical systems.
+Sound static analysis automatically computes properties on programs, such as the possible values of their variables during execution.
+Applications include:
+showing that a program has no runtime error (such as arithmetic overflow, division by zero, array access out of bounds), as in e.g. the Astrée analyzer \cite{ASTREE_ESOP05};
+computing invariants for use with assisted proof systems (such as the B method, Frama-C\footnote{http://www.frama-c.com/}), thereby lessening the burden on the user;
+computing invariants for advanced optimization techniques in compilation (e.g. showing that two array cells are distinct, in order to allow instruction reordering between assignments to these cells).
+
 Abstract Interpretation is a general framework for fully automatic static
 analysis, that computes inductive invariants at various control points of an
 imperative program. Linear Relation Analysis (LRA) is a direct application of
