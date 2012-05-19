@@ -124,20 +124,22 @@ showing that a program has no runtime error (such as arithmetic overflow, divisi
 computing invariants for use with assisted proof systems (such as the B method, Frama-C\footnote{http://www.frama-c.com/}), thereby lessening the burden on the user;
 computing invariants for advanced optimization techniques in compilation (e.g. showing that two array cells are distinct, in order to allow instruction reordering between assignments to these cells).
 
-Abstract Interpretation is a general framework for fully automatic static
-analysis, that computes inductive invariants at various control points of an
-imperative program. Linear Relation Analysis (LRA) is a direct application of
-this framework, that computes an upper-approximation of the set of the reachable
-states of a numerical program.
+This article introduces PAGAI, a new tool for fully automatic static analysis.
+PAGAI takes as input a program in the ``bitcode'' intermediate representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, a modern compilation framework.
+LLVM bitcode is a target for several industrial-strengh compilers, most notably Clang (supporting C, C++, Objective-C and Objective-C++) and llvm-gcc (supporting C, C++, Objective-C, Objective-C++, Fortran and Ada);
+furthermore, a growing number of analysis tools, testing tools, etc. are currently built around this platform (Calysto, KLEE, LAV, LLBMC).
+The output of PAGAI is a list of inductive invariants for a selected subset of the control nodes of the original program:
+for structured source programs, PAGAI will provide an inductive invariant for the head of every loop.
 
-This paper introduces PAGAI, a new tool for static analysis, that
-computes numerical invariants at the different control points of a program.
-This tool uses the internal representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673},
-which is a target for several industrial-strengh compilers, most notably Clang
-(supporting C,
-C++ and Objective-C) and llvm-gcc (supporting C, C++, Fortran and Ada).
-Several other verification tools already use the LLVM framework, such as
-Calysto, KLEE, LAV, LLBMC.
+PAGAI is based on abstract interpretation, a general framework for fully automatic static analysis.
+PAGAI infers invariants of a selected form; by default it performs \emph{linear relation analysis}, which obtains invariants as conjunctions of linear inequalities (or, equivalently, convex polyhedra), but it also supports most of the abstract domains provided by the APRON library (products of intervals, octagons, linear congruences, and combinations thereof) through a runtime option.
+% TODO: citer des réfs sur APRON, les octogones etc.
+
+
+
+Abstract interpretation is a , which computes inductive invariants at various control points of an
+imperative program. Linear relation analysis (LRA) is an application of
+this framework, where the invariants are conjunctions of linear inequalities (or, equivalently, convex polyhedra), or, possibly, disjunctions of such conjunctions (or, equivalently, unions of convex polyhedra).
 
 Our tool is dedicated to experiment with various combination of analysis techniques
 by Abstract Interpretation.
