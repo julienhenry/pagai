@@ -1,5 +1,5 @@
-@string{LNCS = {Lecture Notes in Computer Science}}
-@String{Springer = {Springer Verlag}}
+@string{LNCS = {LNCS}}
+@String{Springer = {Springer}}
 @string{acm = {ACM}}
 
 @inproceedings{DBLP:conf/pldi/GulwaniZ10,
@@ -14,11 +14,9 @@
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/pldi/2010,
-  editor    = {Benjamin G. Zorn and
+  feditor    = {Benjamin G. Zorn and
                Alexander Aiken},
-  title     = {Proceedings of the 2010 ACM SIGPLAN Conference on Programming
-               Language Design and Implementation, PLDI 2010, Toronto,
-               Ontario, Canada, June 5-10, 2010},
+  title     = {PLDI},
   booktitle = {PLDI},
   publisher = {ACM},
   year      = {2010},
@@ -127,7 +125,7 @@
 @proceedings{ESOP05,
   title =	 {Programming Languages and Systems (ESOP)},
   booktitle =	 {Programming Languages and Systems (ESOP)},
-  editor = {Shmuel ``Mooly'' Sagiv},
+  feditor = {Shmuel ``Mooly'' Sagiv},
   pages =	 {21--30},
   year =	 {2005},
   number =	 {3444},
@@ -147,14 +145,14 @@
   series = lncs,
   number = 6602,
   isbn = {978-3-642-19717-8},
-  editor = {Gilles Barthe},
+  feditor = {Gilles Barthe},
   pdf = {Gawlitza_Monniaux_ESOP11.pdf},
   abstract = {We consider the problem of computing numerical invariants of programs by abstract interpretation. Our method eschews two traditional sources of imprecision: (i) the use of widening operators for enforcing convergence within a finite number of iterations (ii) the use of merge operations (often, convex hulls) at the merge points of the control flow graph. It instead computes the least inductive invariant expressible in the domain at a restricted set of program points, and analyzes the rest of the code en bloc. We emphasize that we compute this inductive invariant precisely. For that we extend the strategy improvement algorithm of [Gawlitza and Seidl, 2007]. If we applied their method directly, we would have to solve an exponentially sized system of abstract semantic equations, resulting in memory exhaustion. Instead, we keep the system implicit and discover strategy improvements using SAT modulo real linear arithmetic (SMT). For evaluating strategies we use linear programming. Our algorithm has low polynomial space complexity and performs for contrived examples in the worst case exponentially many strategy improvement steps; this is unsurprising, since we show that the associated abstract reachability problem is Pi-p-2-complete.}}
 
 
 @InProceedings{Monniaux_Gonnord_SAS11,
   author = 	 {David Monniaux and Laure Gonnord},
-  editor = {Eran Yahav},
+  feditor = {Eran Yahav},
   title = 	 {Using bounded model checking to focus fixpoint iterations},
   booktitle = {Static analysis (SAS)},
   year = 	 2011,
@@ -190,13 +188,13 @@ In this article, we describe how to avoid such systematic exploration by focusin
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/sas/2007,
-  editor    = {Hanne Riis Nielson and
+  feditor    = {Hanne Riis Nielson and
                Gilberto Fil{\'e}},
   title     = {Static Analysis, 14th International Symposium, SAS 2007,
                Kongens Lyngby, Denmark, August 22-24, 2007, Proceedings},
   booktitle = {SAS},
-  publisher = {Springer},
-  series    = {Lecture Notes in Computer Science},
+  publisher = Springer,
+  series    = LNCS,
   volume    = {4634},
   year      = {2007},
   isbn      = {978-3-540-74060-5},
@@ -351,7 +349,7 @@ publisher={Kluwer}
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/cav/2009,
-  editor    = {Ahmed Bouajjani and
+  feditor    = {Ahmed Bouajjani and
                Oded Maler},
   title     = {Computer Aided Verification, 21st International Conference,
                CAV 2009, Grenoble, France, June 26 - July 2, 2009. Proceedings},
@@ -368,8 +366,7 @@ publisher={Kluwer}
 @inproceedings{Lattner:2004:LCF:977395.977673,
  author = {Lattner, Chris and Adve, Vikram},
  title = {{LLVM}: A Compilation Framework for Lifelong Program Analysis \& Transformation},
- booktitle = {Proceedings of the international symposium on Code generation and optimization: feedback-directed and runtime optimization},
- series = {CGO '04},
+ booktitle = {CGO},
  year = {2004},
  month = aug,
  isbn = {0-7695-2102-9},
@@ -410,7 +407,7 @@ publisher={Kluwer}
 @inproceedings{DBLP:conf/tacas/MouraB08,
   author    = {Leonardo Mendon\c{c}a de Moura and
                Nikolaj Bj{\o}rner},
-  title     = {Z3: An Efficient SMT Solver},
+  title     = {{Z3}: An Efficient {SMT} Solver},
   booktitle = {TACAS},
   year      = {2008},
   pages     = {337-340},
@@ -420,7 +417,7 @@ publisher={Kluwer}
 }
 
 @proceedings{DBLP:conf/tacas/2008,
-  editor    = {C. R. Ramakrishnan and
+  feditor    = {C. R. Ramakrishnan and
                Jakob Rehof},
   title     = {Tools and Algorithms for the Construction and Analysis of
                Systems, 14th International Conference, TACAS 2008, Held
@@ -428,8 +425,8 @@ publisher={Kluwer}
                Practice of Software, ETAPS 2008, Budapest, Hungary, March
                29-April 6, 2008. Proceedings},
   booktitle = {TACAS},
-  publisher = {Springer},
-  series    = {Lecture Notes in Computer Science},
+  publisher = Springer,
+  series    = LNCS,
   volume    = {4963},
   year      = {2008},
   isbn      = {978-3-540-78799-0},
@@ -449,13 +446,13 @@ publisher={Kluwer}
 }
 
 @proceedings{DBLP:conf/cav/2006,
-  editor    = {Thomas Ball and
+  feditor    = {Thomas Ball and
                Robert B. Jones},
   title     = {Computer Aided Verification, 18th International Conference,
                CAV 2006, Seattle, WA, USA, August 17-20, 2006, Proceedings},
   booktitle = {CAV},
-  publisher = {Springer},
-  series    = {Lecture Notes in Computer Science},
+  publisher = Springer,
+  series    = LNCS,
   volume    = {4144},
   year      = {2006},
   isbn      = {3-540-37406-X},
@@ -463,7 +460,7 @@ publisher={Kluwer}
 }
 
 @Book{Handbook_SAT,
-  editor = 	 {Armin Biere and Marijn Heule and van Maaren, Hans and Toby Walsh},
+  feditor = 	 {Armin Biere and Marijn Heule and van Maaren, Hans and Toby Walsh},
   title = 	 {Handbook of satisfiability},
   publisher = 	 {IOS Press},
   year = 	 2009,
@@ -488,7 +485,7 @@ publisher={Kluwer}
   year =	 2010,
   booktitle =	 {Proceedings of the 8th International Workshop on
                   Satisfiability Modulo Theories (Edinburgh, UK)},
-  editor =	 {A.~Gupta and D.~Kroening},
+  feditor =	 {A.~Gupta and D.~Kroening},
 }
 
 @PhdThesis{BourdonclePhd,
@@ -496,7 +493,7 @@ publisher={Kluwer}
   title = 	 {Sémantiques des Langages Impératifs d'Ordre Supérieur et Interprétation Abstraite},
   school = 	 {École Polytechnique},
   year = 	 1992,
-  url = {http://web.me.com/fbourdoncle/page4/page15/files/dissertation.pdf}
+  url = {http://tinyurl.com/BourdonclePhD-pdf}
 }
 
 @inproceedings{DBLP:conf/vmcai/Mine06,
@@ -513,14 +510,14 @@ publisher={Kluwer}
 
 
 @proceedings{DBLP:conf/vmcai/2006,
-  editor    = {E. Allen Emerson and
+  feditor    = {E. Allen Emerson and
                Kedar S. Namjoshi},
   title     = {Verification, Model Checking, and Abstract Interpretation,
                7th International Conference, VMCAI 2006, Charleston, SC,
                USA, January 8-10, 2006, Proceedings},
   booktitle = {VMCAI},
-  publisher = {Springer},
-  series    = {Lecture Notes in Computer Science},
+  publisher = Springer,
+  series    = LNCS,
   volume    = {3855},
   year      = {2006},
   isbn      = {3-540-31139-4},
@@ -541,7 +538,7 @@ publisher={Kluwer}
 
 
 @proceedings{DBLP:conf/sas/2006,
-  editor    = {Kwangkeun Yi},
+  feditor    = {Kwangkeun Yi},
   title     = {Static analysis (SAS)},
   booktitle = {Static analysis (SAS)},
   publisher = springer,
