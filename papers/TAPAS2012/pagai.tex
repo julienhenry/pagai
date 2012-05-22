@@ -1,5 +1,6 @@
 \documentclass{entcs} 
 \usepackage{entcsmacro}
+
 \usepackage{ifxetex}
 \ifxetex
 \else
@@ -184,7 +185,7 @@ Modern SMT-solvers are very efficient; their caching mechanisms may, for instanc
 The algorithms implemented in PAGAI are variants of this second approach.
 
 \begin{figure}[!h]
-\begin{minipage}[c]{.49\linewidth}
+\begin{minipage}[c]{.35\linewidth}
 \begin{C}
 int x = 0;
 int t = 0;
@@ -201,7 +202,7 @@ while (t < 100) {
 assert(x <= 100);
 \end{C}
 \end{minipage}
-\begin{minipage}[c]{.49\linewidth}
+\begin{minipage}[c]{.64\linewidth}
 \begin{tikzpicture}[->,>=stealth',auto,node distance=1.5cm,
                     semithick,font=\footnotesize]
 
