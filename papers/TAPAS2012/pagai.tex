@@ -509,8 +509,8 @@ In cases where the formula is expressed in too rich a logic for the SMT-solver t
 Neither is currently implemented in our tool.
 
 Table \ref{tab:time} gives the execution time of the different analysis
-techniques. It is interesting to see that \emph{Guided Static Analysis} and
-\emph{Path-focusing} are sometimes faster than the classical
+techniques. It is interesting to see that
+\emph{Path-focusing} is sometimes faster than the classical
 algorithm.
 This seems due to the fact that these algorithms start on a small subset
 of the graph, and then may need fewer iterations on the complete graph.
@@ -601,7 +601,19 @@ classical widening. We found that the improved version from
 \citet{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
 control points in $P_R$.
 
-\section{Conclusion and future work}
+It is not totally relevant to compare by inclusion the abstract values obtained
+by the various analysis techniques. Indeed, a slightly smaller invariant may not
+always be useful to prove the desired properties.
+A future work is thus to experiment with
+better comparison metrics, such as:
+\begin{itemize}
+	\item the number of \emph{assert} that have been proved in the code.
+		Unfortunately, it is difficult to find good benchmarks or real life
+		programs with many \emph{assert} statements.
+	\item the number of false alarms in a client analysis that detects array
+		bound violations, arithmetic overflows, etc.
+\end{itemize}
+
 
 
 
