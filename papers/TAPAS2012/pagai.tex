@@ -8,13 +8,12 @@
 
 \usepackage{amsmath}
 \usepackage{mathcomp,amsfonts,amssymb}
-\usepackage[authoryear]{natbib}
+\usepackage[sort,numbers]{natbib}
 \usepackage[mathscr]{euscript}
 \usepackage{algorithmic,algorithm}
 \usepackage{graphicx}
 \usepackage{color}
 \usepackage{tikz}
-
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
@@ -46,11 +45,13 @@
 color=blue]
 \tikzstyle{line}=[black,thick]
 
+\lstset{language=C,
+  basicstyle={\fontfamily{ppl}\selectfont}, % Palatino
+  commentstyle=\textit,
+  showstringspaces=false}
+
 \lstnewenvironment{C}
-{\lstset{language=C,
-		basicstyle=\ttfamily,
-		commentstyle=\textit,
-		showstringspaces=false}}
+{\lstset{language=C}}
 {}
 
 % The following is enclosed to allow easy detection of differences in
@@ -81,15 +82,20 @@ color=blue]
   \author{Julien Henry \thanksref{imag.fr}}
   \address{Universit\'e Joseph Fourier, VERIMAG\\
     Grenoble, France} 
-	\author{David Monniaux\thanksref{imag.fr}}
+
+  \begin{minipage}{0.45\textwidth}\begin{center}
+  \author{David Monniaux\thanksref{imag.fr}}
   \address{CNRS, VERIMAG\\
-    Grenoble, France} 
-	\author{Matthieu Moy\thanksref{grenoble-inp.fr}}
+    Grenoble, France}
+  \end{center}\end{minipage}
+  \begin{minipage}{0.45\textwidth}\begin{center}
+  \author{Matthieu Moy\thanksref{grenoble-inp.fr}}
   \address{Grenoble-INP, VERIMAG\\
     Grenoble, France} 
+  \end{center}\end{minipage}
 	
     \thanks[imag.fr]{Email:
-    \href{First Name.Last Name@imag.fr} {\texttt{\normalshape
+    \href{FirstName.LastName@imag.fr} {\texttt{\normalshape
         First Name.Last Name@imag.fr}}} 
     \thanks[grenoble-inp.fr]{Email:
     \href{Matthieu.Moy@grenoble-inp.fr} {\texttt{\normalshape
@@ -100,12 +106,12 @@ color=blue]
         which computes inductive invariants on the numerical variables of the
         analyzed program.
 
-	PAGAI implements various state-of-the-art algorithms combining abstract
-	interpretation and decision procedures (SMT-solving),
+	PAGAI implements various state-of-the-art algorithms combining
+        abstract interpretation and decision procedures (SMT-solving),
         focusing on distinction of paths inside the control flow graph while
         avoiding systematic exponential enumerations.
-        It is parametric in the abstract domain in use, the algorithm,
-        and the decision procedure.
+        It is parametric in the abstract domain in use, the iteration
+        algorithm, and the decision procedure.
 
 	We compared the time and precision of various combinations of
 	analysis algorithms and abstract domains, with extensive
@@ -120,34 +126,34 @@ color=blue]
 \section{Introduction}\label{intro}
 Sound static analysis automatically computes properties on programs, such as the possible values of their variables during execution.
 Applications include:
-showing that a program has no runtime error (such as arithmetic overflow, division by zero, array access out of bounds), as in e.g. the Astrée analyzer \cite{ASTREE_ESOP05};
-computing invariants for use with assisted proof systems (such as the B method, Frama-C\footnote{http://www.frama-c.com/}), thereby lessening the burden on the user;
+showing that a program cannot encounter a runtime error (such as arithmetic overflow, division by zero, array access out of bounds), as in e.g. the Astrée analyzer \cite{ASTREE_ESOP05};
+computing invariants for use with assisted proof systems (such as the B method), thereby lessening the burden on the user;
 computing invariants for advanced optimization techniques in compilation (e.g. showing that two array cells are distinct, in order to allow instruction reordering between assignments to these cells).
+All these applications need invariants on numerical quantities.
 
 This article introduces PAGAI, a new tool for fully automatic static analysis.
 PAGAI takes as input a program in the ``bitcode'' intermediate representation of LLVM\citep{LLVM_langref,Lattner:2004:LCF:977395.977673}, a modern compilation framework.
-LLVM bitcode is a target for several industrial-strengh compilers, most notably Clang (supporting C, C++, Objective-C and Objective-C++) and llvm-gcc (supporting C, C++, Objective-C, Objective-C++, Fortran and Ada);
+LLVM bitcode is a target for several industrial-strengh compilers, most notably Clang (supporting C, C++, Objective-C and Objective-C++) and llvm-gcc (supporting, in addition to these, Fortran and Ada);
 furthermore, a growing number of analysis tools, testing tools, etc. are currently built around this platform (Calysto, KLEE, LAV, LLBMC).
 
 The output of PAGAI is a list of inductive invariants for a selected subset of the control nodes of the original program:
 for structured source programs, PAGAI will provide an inductive invariant for the head of every loop.
 
 PAGAI is based on abstract interpretation, a general framework for fully automatic static analysis.
-PAGAI infers invariants of a selected form; by default it performs \emph{linear relation analysis}, which obtains invariants as conjunctions of linear inequalities (or, equivalently, convex polyhedra), but it also supports most of the abstract domains provided by the APRON library (products of intervals, octagons, linear congruences, and combinations thereof) through a runtime option.
-Depending on the algorithm (\emph{iteration strategy}) selected, PAGAI may also infer invariants as \emph{disjunctions} of elements of the abstract domain (e.g. unions of convex polyhedra).
-% TODO: citer des réfs sur APRON, les octogones etc.
+PAGAI infers invariants of a selected form; by default it performs \emph{linear relation analysis}, which obtains invariants as conjunctions of linear inequalities (or, equivalently, convex polyhedra), but it also supports other abstract domains through a runtime option.
+Depending on the \emph{iteration algorithm} selected, PAGAI may also infer invariants as \emph{disjunctions} of elements of the abstract domain (e.g. unions of convex polyhedra).
 
 Textbook descriptions of abstract interpretation-based static analysis state that an inductive invariant is computed at every control point of the program.
 In contrast, PAGAI abstracts straight-line sequences of statements en bloc, computing invariants only at points where control flow branches or merges.
 Furthermore, several algorithms implemented in PAGAI compute invariants only at the heads of loops (or, in general control-flow graph, at nodes forming a \emph{feedback vertex set}, whose removal breaks all cycles in the graph), expanding the rest of the control flow to a possibly exponential number of straight-line sequences of statements between the selected nodes.
 In order to avoid explicit enumerations of exponential sets, PAGAI uses decision procedures for arithmetic theories, based on the \emph{satisfiability modulo theory} (SMT) approach.
 
-% TODO refs
-
 The PAGAI tool is dedicated to experimenting new analysis algorithms.
 It allows independent selection of abstract domain and iteration strategy, and partially independent selection of decision procedure, and thus is well-suited for comparisons.
 We thus conducted extensive experiments both on examples we produced ourselves (sometimes inspired by industrial code) and on GNU programs.
+
 The ability to run on any C or C++ code, through the LLVM system, is especially useful for the latter: front-ends for many analysis tools put restrictions (e.g. no backward \lstinline|goto| instructions, no pointer arithmetic...), often satisfied by safety-critical embedded programs, but not by generic programs.
+Our tool suffers no such restrictions, though it may in some cases apply coarse abstractions which may possibly yield weak invariants.
 
 \section{Motivating Example}
 In most forward abstract interpretation-based analyzes, when control flows from several nodes into a single node, the abstract value at that node is obtained by computing the least upper bound of the incoming abstract values in the abstract domain (in backward analysis, this occurs when control flows from a single node to several nodes).
@@ -155,7 +161,7 @@ If the abstract domain is convex polyhedra, then this means computing the convex
 Such an operation may induce unrecoverable loss of precision by introducing spurious states that cannot occur in concrete program runs.
 
 An example of program where such a loss of precision occurs is depicted in
-Figure \ref{example}.
+Fig.~\ref{example}.
 In this program, the loop body has two feasible paths that
 are executed alternatively, depending on a variable ``phase''.
 Such programs, with active code paths depending on global ``mode'' or ``phase'' variables, often occur in reactive systems.
@@ -170,8 +176,8 @@ To cope with this problem, an solution is compute disjunctive invariants at all 
 
 A second solution, equivalent to the preceding with respect to final results but different in its operation, is to distinguish all nine paths inside the loop (from $n_0$ to $n_0$), compute the final outcome of each path, and compute the convex hull of these outcomes.
 Again, the number of such paths is exponential in the number of tests.
-We therefore consider paths only if they will make the final convex hull grow.
-The next path to consider is obtained from a model of an arithmetic formula expressing this condition \cite{Monniaux_Gonnord_SAS11}; if this formula is unsatisfiable, this means there is no such path and thus the convex hull obtained truly is the one for all paths.
+but we consider paths only if they will make the final convex hull grow.
+The next path to consider is obtained from a model of an arithmetic formula expressing this growth condition \cite{Monniaux_Gonnord_SAS11}; if this formula is unsatisfiable, this means there is no such path and thus the convex hull encompasses the outcome of all paths.
 The advantages of this method over the preceding one are twofold: there is no exponentially large list of abstract elements, and the satisfiability query for the formula is handed over to a \emph{satisfiability modulo theory} (SMT) solver.
 Modern SMT-solvers are very efficient; their caching mechanisms may, for instance, remember that taking a certain branch in the code is incompatible with taking another one (if a Boolean is associated with passing through each branch, then this is just a \emph{blocking clause} inside the underlying SAT-solver).
 The algorithms implemented in PAGAI are variants of this second approach.
@@ -269,14 +275,16 @@ as well as the classical abstract interpretation algorithm, and the state-of-the
 Abstract domains are provided by the APRON library
 \citep{DBLP:conf/cav/JeannetM09}, and include convex polyhedra (from the builtin
 Polka ``PK'' library), octagons, and products of intervals. It also has
-an interface with the Parma Polyhedra Library (TODO CITATION!!), giving access to
-more abstract domains (for instance, it can use a reduced product of polyhedra and linear congruences, producing invariants such as $0 \leq x \leq 1001 \land x \equiv 0 \pmod 7$).
+an interface with the Parma Polyhedra Library \cite{BagnaraHZ08SCP}, giving access to
+more abstract domains (e.g. a reduced product of polyhedra and linear congruences, producing invariants such as $0 \leq x \leq 1001 \land x \equiv 0 \pmod 7$).
 
-For SMT-solving, our analyzer uses Yices
-\cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
+For SMT-solving, our analyzer uses
+Yices \cite{DBLP:conf/cav/DutertreM06}
+or Microsoft Z3\cite{DBLP:conf/tacas/MouraB08}
 through their C API.
-An implementation of communications with the SMT-solver by textual messages sent through a pipe following the SMT-Lib~2 standard \cite{BarST-SMTLIB,BarST-SMT-10} is underway, and now partially supports Z3 and SMTinterpol (plans include support for e.g. CVC4 and OpenSMT).
-It is unfortunately impossible to ignore differences between solvers behind the supposedly standard interface, since different solvers may support slightly different sets of operators and settings and may return models in different formats.
+An implementation of communications with the SMT-solver by textual messages sent through a pipe following the SMT-Lib~2 standard \cite{BarST-SMTLIB,BarST-SMT-10} is underway, and now partially supports Z3 and SMTinterpol (plans include support for e.g. CVC4 and OpenSMT).%
+\footnote{%
+It is unfortunately impossible to ignore differences between solvers behind the supposedly standard interface, since different solvers may support slightly different sets of operators and settings and may return models in different formats.}
 
 \begin{table}[!h]
 	\tiny
@@ -305,19 +313,20 @@ lines of code, and their number of control points in $P_R$}
 \subsection{Analysis algorithm}
 \label{sec:analysis-algorithm}
 For each program, we distinguish a set $P_R = P_W$ of suitable widening points by a simple algorithm: for each procedure, compute the strongly connected components of its control-flow graph using Tarjan's algorithm; the targets of the back-edges of the depth-first search are added to~$P_R$.
-The resulting \emph{feedback vertex set} is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.
-It would be possible to obtain a feedback vertex set minimal with respect to inclusion by successive removal of nodes; however obtaining one of minimal cardinality is a NP-complete problem.
+The resulting \emph{feedback vertex set} is not necessarily minimal, but is sufficient to disconnect all cycles --- more sophisticated techniques are discussed in e.g. \citet{BourdonclePhd}.%
+\footnote{
+It would be possible to obtain a feedback vertex set minimal with respect to inclusion by successive removal of nodes; however obtaining one of minimal cardinality is a NP-complete problem.}
 It is however unclear whether more advanced selection techniques would finally yield stronger invariants; the current simple scheme has the advantage that, when run over a control-flow graph obtained from a structured program, it marks heads of loops, which is a ``natural'' choice.
 
 LLVM bitcode is in \emph{static single assignment} (SSA) form: a given scalar variable is given a value at a single syntactic point in the program. In concrete terms, an assignment \lstinline|x=2*x+1;| gets translated into a definition $x_2 = 2x_1+1$, with distinct variables $x_1$ and $x_2$ corresponding to the same original variable \lstinline|x| at different points in the program.
-Because LLVM generally assigns rather straightforward names (e.g. \lstinline|x.0| for the first renaming of variable \lstinline|x|), the user can map the invariants back to the original source code; an automatic back-to-source mapping, based on debugging information, is being developed.
+Because LLVM generally assigns rather straightforward names (e.g. \lstinline|x.0| for the first renaming of variable \lstinline|x|), the user can map the invariants back to the original source code; an automatic and more robust back-to-source mapping, based on debugging information, is being developed.
 
 LLVM makes it easy to follow definition-use and use-definition chains: for a given variable (say, $x_2$) one can immediately obtain its definition (say, $2x_1+1$).
 One may see conversion to SSA form as a static precomputation of some of the symbolic propagations proposed by \citet{DBLP:conf/vmcai/Mine06} to enhance the precision of analyses.
 
 SSA introduces $\phi$-functions at the head of a control code to define variables whose value depends on which incoming edge was last taken to reach this control node. For instance, for \lstinline|if (...) { x = 2*x+1; } else { x= 0; }|, then $x_2$ is defined as $\phi(2x_1+1,0)$.
 
-In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves may not be representable as arithmetic functions, because they are defined using $\phi$-functions, loads from memory, return values from function calls, or other numerical operations (e.g. bitwise operators) that are not representable with our class of basic arithmetic operations. We may even vary the class of arithmetic operations, for instance, by restricting ourselves to linear ones.
+In this framework, each variable is uniquely defined as an arithmetic ($+$, $-$, $\times$, $/$) function of other variables that themselves may not be representable as arithmetic functions, because they are defined using $\phi$-functions, loads from memory, return values from function calls, or other numerical operations (e.g. bitwise operators) that are not representable with our class of basic arithmetic operations. We may vary the class of arithmetic operations, for instance, by restricting ourselves to linear ones.
 
 This motivates a key implement decision of our tool: only those variables
 $v_1,\dots,v_n$ that are not defined by arithmetic operations are retained as
@@ -363,18 +372,19 @@ for instance, for \lstinline|y=x; z=x-y;| with precondition $x \in [0,1]$, a lin
 
 In the event that a node is reachable only by a single control-flow edge (which may occur because of dead code, or during the first phases of guided static analysis), the $\phi$ operation reduces to a copy of the values flowing from that edge. In this case, our tool just propagates symbolic values through the predecessor node, without introducing $\phi$-variables.
 
+
 \subsection{Use}
 
 PAGAI takes as input an LLVM bitcode file, and outputs an inductive invariant
 for each control point in $P_R$ (typically, the widening points).
-When a program contains \emph{assert} function call, PAGAI also outputs whether
+When a program contains an \lstinline|assert| function call, PAGAI also outputs whether
 the statement has been proved.
 It is also possible to add some preconditions about the variables, etc, using a
-function \emph{assume}.
+function \lstinline|assume|.
 
-\emph{Assert} and \emph{assume} are implemented as C macros. \lstinline|assert(x)| is roughly defined as \lstinline|if (! x) __assert_fail();|, and the tool just tests for the reachability of \lstinline|__assert_fail();|: if it is unreachable, then the assertion is true.
+\lstinline|assert| and \lstinline|assume| are implemented as C macros. \lstinline|assert(x)| is roughly defined as \lstinline|if (! x) __assert_fail();|, and the tool just tests for the reachability of \lstinline|__assert_fail();|: if it is unreachable, then the assertion is true.
 
-\subsection{Current limitations of the tool}
+\subsection{Current limitations of the tool, possible future works}
 
 Our tool currently only operates over scalar variables from the SSA representation and thus cannot directly cope with arrays or memory accessed through pointers. We therefore run it after the ``memory to registers'' (\texttt{mem2reg}) optimization phase in LLVM, which lifts most memory accesses to scalar variables.
 The remaining memory accesses are treated as nondeterministic choices.
@@ -399,9 +409,9 @@ $z = x+y-2^n \land x+y \geq 2^{n-1}$).
 
 Our implementation of path-focusing currently does not use true acceleration
 techniques, as proposed by \citet{Monniaux_Gonnord_SAS11}. Instead, it simply runs widening and narrowing iterations on a single path.
+
 We currently analyze each strongly connected component of the control-flow graph in topological order; thus each loop nest gets analyzed as a single fixed point.
 An alternative method would be to recursively decompose the strongly connected components (for structured programs, this amounts to reconstructing the nested loop structure) and summarize the inner loops before analyzing the outer loop.
-
 The analysis is currently only forward, even though nothing in the techniques
 implemented is specific to forward analysis. A possible extension would therefore be backward analysis from the \lstinline|__assert_fail()| statements.
 
@@ -412,24 +422,24 @@ We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
 
 \subsection{Precision of the various techniques}
-\label{sec:compare_techniques}
+% \label{sec:compare_techniques}
 
-\begin{figure}[h]
-  \begin{center}
-    \input{./gnuplot/techniques.tex}
-  \end{center} 
-  \vspace{-20pt}
-  \caption{Comparison of the abstract values obtained by classical abstract
-  interpretation (S), \emph{Guided Static
-  Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
-  (G+PF), and its version with disjunctive invariants (DIS).
-  The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
-$\supsetneq$ the percentage of invariants stronger with the right-side technique,
-and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
-neither greater nor smaller;
-the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
-  \label{fig:techniques}
-\end {figure}
+% \begin{figure}[h]
+%   \begin{center}
+%     \input{./gnuplot/techniques.tex}
+%   \end{center} 
+%   \vspace{-20pt}
+%   \caption{Comparison of the abstract values obtained by classical abstract
+%   interpretation (S), \emph{Guided Static
+%   Analysis} (G), \emph{Path-focused} technique (PF), our combined technique
+%   (G+PF), and its version with disjunctive invariants (DIS).
+%   The $\subsetneq$ bars gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side technique,
+% $\supsetneq$ the percentage of invariants stronger with the right-side technique,
+% and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e
+% neither greater nor smaller;
+% the code points where both invariants are equal make up the remaining percentage. See Tab.~\ref{tab:techniques} for details.}
+%   \label{fig:techniques}
+% \end {figure}
 
 
 \begin{table*}
@@ -478,7 +488,7 @@ $T_2$ are uncomparable for the inclusion ordering (the remainder of the
 control points are thus those for which both techniques give the same
 invariant). We use convex polyhedra as the abstract domain.
 
-Let us briefly comment the results given in more details in Table~\ref{tab:techniques} and Figure~\ref{fig:techniques}.
+Let us briefly comment the results given in more details in Table~\ref{tab:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
 result of the classical Abstract Interpretation in $2.72\%$ of the control points
 in $P_R$.
@@ -493,7 +503,7 @@ The analysis using disjunctive invariants greatly improves the
 precision of the analysis (for $12.06\%$ of the control points in $P_R$), at an
 acceptable time cost (see Table \ref{tab:time}).
 
-While experiencing with techniques that use SMT-solving, we encountered some
+While experimenting with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
 the SMT-solver is not able to decide the satisfiability of some SMT-formulae
 expressing the semantics of non-linear programs. 
@@ -502,7 +512,6 @@ In this case, we skipped the functions for which the SMT-solver returned the
 This limitation occurred very rarely in our experiments, except for the analysis
 of \emph{Lapack/Blas}, where 798 over the 1602 functions have been skipped.
 \emph{Lapack/Blas} implements matrix computations, which use floating-point multiplications.
-
 In cases where the formula is expressed in too rich a logic for the SMT-solver to deal with, a number of workarounds are possible, including:
 (i) \emph{Linearization}, as per \citet{DBLP:conf/vmcai/Mine06}, which overapproximates nonlinear semantics by linear semantics.
 (ii) Replacing the results of nonlinear operations by ``unknown''.
@@ -569,15 +578,13 @@ Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
 (GRID). The last column compares the domain of Convex Polyhedra with the
 improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
 using the classical widening operator (POLY). POLY and POLY* use the Parma
-Polyhedral Library \cite{PPL}.
+Polyhedral Library \cite{BagnaraHZ08SCP}.
 $\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
 \label{tab:domain}
 \end{table*}
 
 For each program and each pair $(D_1,D_2)$ of abstract domains, we compare by
-inclusion the invariants of the different control points in $P_R$ (where $P_R$
-is defined as in \ref{sec:compare_techniques}).
-The main results are given in Table \ref{tab:domain}.
+inclusion the invariants of the different control points in $P_R=P_W$ (Tab.~\ref{tab:domain}).
 
 Statistically, the domain of convex polyhedra gives the better results, but
 commonly yields weaker invariants than the domains of octagons/intervals;
@@ -601,13 +608,15 @@ classical widening. We found that the improved version from
 \citet{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
 control points in $P_R$.
 
-\section{Conclusion and future work}
-
-
-
 \phantomsection\addcontentsline{toc}{section}{References} 
-	\bibliographystyle{plainnat}
+{\newcommand{\issn}[1]{{\footnotesize ISSN \href{http://www.worldcat.org/issn/#1}{#1}}}
+\newcommand{\isbn}[1]{{\footnotesize ISBN \href{http://www.worldcat.org/isbn/#1}{#1}}}
+\newcommand{\doix}[1]{\href{http://dx.doi.org/#1}{#1}\endgroup}
+\newcommand{\doi}{\begingroup\footnotesize doi: \catcode`\_=13\def\_{\textunderscore}\doix}
+
+\bibliographystyle{dmplainnat}
 \bibliography{pagai}
+}
 \end{document}
 
 % Pour Emacs:
