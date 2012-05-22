@@ -17,8 +17,9 @@
 
 \usepackage{enumitem}
 \usepackage{dcolumn}
-
 \usepackage{listings}
+
+\hypersetup{pageanchor=false}
 
 \newcommand{\abstr}[1]{#1^\sharp}
 \newcommand{\parts}[1]{\mathscr{P}(#1)}
@@ -27,6 +28,7 @@
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\widening}{\mathop{\triangledown}}
 
+\def\arraystretch{1.2}
 \def\newblock{\hskip .11em plus .33em minus .07em}
 
 \tikzstyle{arrow}=[->,line width=.05cm,draw=red!90!blue!60!black]
@@ -73,9 +75,8 @@ color=blue]
 
 % A couple of exemplary definitions:
 
-\newcommand{\Nat}{{\mathbb N}}
-\newcommand{\Real}{{\mathbb R}}
 \def\lastname{Henry, Monniaux \& Moy}
+
 \begin{document}
 \begin{frontmatter}
   \title{PAGAI : a path sensitive static analyser} 
@@ -286,9 +287,8 @@ An implementation of communications with the SMT-solver by textual messages sent
 \footnote{%
 It is unfortunately impossible to ignore differences between solvers behind the supposedly standard interface, since different solvers may support slightly different sets of operators and settings and may return models in different formats.}
 
-\begin{table}[!h]
-	\tiny
-	\centering
+\begin{table}[!htb]
+\begin{center}
 \begin{tabular}{|l|r|r|} \hline
 	\multicolumn{1}{|c|}{Name} &
         \multicolumn{1}{c|}{kLOC} &
@@ -304,9 +304,11 @@ It is unfortunately impossible to ignore differences between solvers behind the 
 	tar & 73 & 1712\\
 	\hline
 \end{tabular}
+\end{center}
+
 \caption{List of analyzed open-source projects, with their respective number of
 lines of code, and their number of control points in $P_R$}
-\label{fig:projects}
+\label{tab:projects}
 \end{table}
 
 
@@ -345,12 +347,10 @@ they are live at the associated control point.
 	\begin{definition}[Liveness by linearity]
 	A variable $v$ is \emph{live by linearity} at a control point $p$ if and
 	only if one of these conditions holds:
-		\begin{itemize}
-		\item $v$ is live in $p$.
-		\item There is a variable $v'$, defined as a linear combination of other
+		(i) $v$ is live in $p$.
+        (ii) There is a variable $v'$, defined as a linear combination of other
 		variables $v_1, v_2, \dots, v_n$, so that $\exists i \in \{1,\dots,n\}, v = v_i$,
 		and $v'$ is live by linearity in $p$.
-		\end{itemize}
 	\end{definition}
 
 	Finally, a variable is a dimension in the abstract domain if and only if it
@@ -419,7 +419,7 @@ implemented is specific to forward analysis. A possible extension would therefor
 \label{sec:experiments}
 
 We conducted extensive experiments on real-life programs in order to compare the
-different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
+different techniques, mostly on open-source projects (Tab.~\ref{tab:projects}) written in C, C++ and Fortran.
 
 \subsection{Precision of the various techniques}
 % \label{sec:compare_techniques}
@@ -468,6 +468,7 @@ different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) w
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
  \hline
  \input{table1}
+\hline
 \end{tabular}
 \end{center}
 \caption{Result of the comparison of the various techniques described in this
@@ -476,7 +477,9 @@ paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
 disjunctive invariants (DIS). For
 instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
 over the classic Abstract interpretation algorithm.
-$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
+$\subsetneq$ (resp.~$\supsetneq$) gives the percentage of invariants stronger (more precise; smaller with respect to inclusion) with the left-side (resp. right-side) technique,
+and ``uncomparable'' gives the percentage of invariants that are uncomparable, i.e neither greater nor smaller;
+the code points where both invariants are equal make up the remaining percentage}
 \label{tab:techniques}
 \end{table*}
 
@@ -525,8 +528,8 @@ This seems due to the fact that these algorithms start on a small subset
 of the graph, and then may need fewer iterations on the complete graph.
 The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
 
-\begin{table}[!h]
-	\centering \tiny
+\begin{table}[!tb]
+\begin{center}\small
 \begin{tabular}{|l|r|r|r|r|r|} \hline
 	\multicolumn{1}{|c|}{Benchmark} &
         \multicolumn{1}{c|}{\textbf{S}} &
@@ -536,6 +539,7 @@ The techniques we introduce in this article are slower, but speed is still on th
 	\multicolumn{1}{c|}{\textbf{DIS}} \\ \hline
 	\input{table_time.tex} \hline
 \end{tabular}
+\end{center}
 \caption{Execution time for each technique, expressed in seconds}
 \label{tab:time}
 \end{table}
@@ -543,7 +547,7 @@ The techniques we introduce in this article are slower, but speed is still on th
 
 \subsection{Precision of Abstract Domains}
 \label{sec:compare_domains}
-\begin{table*}
+\begin{table}[!tb]
 	\tiny
 \begin{center}
 \setlength{\tabcolsep}{0.75ex}
@@ -579,9 +583,9 @@ Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
 improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
 using the classical widening operator (POLY). POLY and POLY* use the Parma
 Polyhedral Library \cite{BagnaraHZ08SCP}.
-$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Tab.~\ref{tab:techniques}.}
 \label{tab:domain}
-\end{table*}
+\end{table}
 
 For each program and each pair $(D_1,D_2)$ of abstract domains, we compare by
 inclusion the invariants of the different control points in $P_R=P_W$ (Tab.~\ref{tab:domain}).
