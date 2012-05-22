@@ -9,8 +9,8 @@
 #include "SMT_manager.h"
 
 #define LOG_SMT 0
-#define MATHSAT 1
-#define Z3 0
+#define MATHSAT 0
+#define Z3 1
 #define SMTINTERPOL 0
 #define CVC3 0
 
