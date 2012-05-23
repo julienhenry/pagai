@@ -8,7 +8,7 @@ YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=4.0
 Z3_ARCH=
-LLVM_VERSION=3.0
+LLVM_VERSION=3.1
 APRON_VERSION=2012-05-14
 PPL_VERSION=0.12.1
 CUDD_XCFLAGS=
@@ -131,7 +131,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		$(MAKE) && (patch bindings/ocaml/llvm/Makefile ../../../external/llvm-3.0.patch ; $(MAKE) install)
+		$(MAKE) && $(MAKE) install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
