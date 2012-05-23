@@ -33,25 +33,24 @@ Perhaps, the first area where the paper falls short of the mark is
 when it considers the idea in the context of what has already been done.
 Here the authors are missing many works that are very closely related.
 
+** TODO Sharma, Dillig and Aiken: CAV 2011 present a technique for multi-phase loops. 
 
-Sharma, Dillig and Aiken: CAV 2011 present a technique for multi-phase loops. 
+** TODO Balakrishnan, Sanakranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
 
-Balakrishnan, Sankaranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
-
-Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
+** TODO Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
 abstract interpretation to analyze the path. Thereafter, the analyzed path is blocked by computing a minimal set of edges that 
 guarantee the invariants of interest.
 
-There has been follow up work that includes predicates in the encoding by Kroening et al.
+** TODO There has been follow up work that includes predicates in the encoding by Kroening et al.
 
-There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
+** TODO There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
 
 I can think of at least these papers that are quite related. I am sure there are many more.
 
 The second area is in the experimental results. I do not understand how the techniques here could monolithically scale to a 150KLOC program. My guess is that the analysis is intraprocedural: 
 
-a. What does it do with the pointers?
-b. How does it deal with heap reachable cells through dynamic memory allocation?
+** TODO What does it do with the pointers?
+** TODO How does it deal with heap reachable cells through dynamic memory allocation?
 
 In the absence of these two, I am afraid the analysis will mostly deal with local variables, loop counters and such. Even though that is not trivial, it does not do justice to simply saying I analyzed a million lines of code using my technique :-)
 In short, reporting the size of the whole program is very misleading when the analyzer presumably does not do a whole program analysis. If this understanding is wrong, the paper must describe the implementation better.
@@ -109,12 +108,12 @@ this point in their conclusion.
 Additional comments:
 
 
-o In section 2.3, the CFG does not follow the control locations of
+** TODO In section 2.3, the CFG does not follow the control locations of
 the loop (fall-through edges).
 
-o Figure 3 is quite confusing. Can't you show it as a 100% stacked
+** TODO Figure 3 is quite confusing. Can't you show it as a 100% stacked
 bar chart?
 
-o page 9 - "p5 corresponds to the header of the main loop" -> p3
+** TODO page 9 - "p5 corresponds to the header of the main loop" -> p3
 
-o put all code samples in figures to make it easier to follow
+** TODO put all code samples in figures to make it easier to follow
