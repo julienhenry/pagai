@@ -228,14 +228,12 @@ A similar explosion occurs in disjunctive invariant generation, following \cite{
 Consider the program in Fig.~\ref{fig:gopan_reps_invariant}, taken from \cite{DBLP:conf/sas/GopanR07}.
 
 \begin{figure}
-%  \vspace{-1em}
   \begin{minipage}{.3\linewidth}
     \lstinputlisting[label=lst:gopan_reps]{gopan_reps.c}
   \end{minipage}
 \hfill
 \begin{minipage}{.5\linewidth}
 \includegraphics[scale=0.7]{gopan_reps}
-%\vspace{-1em}
 \begin{equation*}
 y \leq x \;\land\; y \leq 102-x \;\land\; y \geq 0.\label{eqn:triangle}
 \end{equation*}
@@ -254,7 +252,6 @@ Intuitively, this disappointing result is obtained because widening extrapolates
 Gopan and Reps' idea is to analyze the first phase of the loop with a widening and narrowing sequence, and thus obtain $0 \leq x \leq 50 \land y = x$, and then analyze the second phase, finally obtaining invariant~(\ref{eqn:triangle}); each phase is identified by the tests taken or not taken.
 
 The analysis starts by identifying the tests taken and not taken during the first iteration of the loop, starting in the loop initialization. The branches not taken are pruned from the loop body, yielding:
-\vspace{-.5em}
 \begin{lstlisting}[numbers=none]
   while(1) {
     if(x <= 50) y++;
@@ -263,7 +260,6 @@ The analysis starts by identifying the tests taken and not taken during the firs
     x++;
   }
 \end{lstlisting}
-\vspace{-.5em}
 
 Analyzing this loop using widening and narrowing on convex polyhedra
 or octagons yields the loop invariant $0 \leq x \leq 51 \land y = x$.
@@ -378,7 +374,6 @@ diagrams. We also maintain two sets of control points:
 	added to both $A$ and $A'$.
 \end{compactitem}
 
-\vspace{-1em}
 \begin{algorithm}
 	\caption{Guided static analysis on implicit multigraph}
 	\label{algo:combined}
@@ -386,7 +381,6 @@ diagrams. We also maintain two sets of control points:
 	\input{algo/algo-combined.tex}
 	\end{algorithmic}
 \end{algorithm}
-\vspace{-1em}
 
 
 We distinguish three phases in the main loop of the analysis:
@@ -442,13 +436,11 @@ meaning that the analysis of $p_i$ is finished.
 If we note $Succ(i)$ the set of indices $j$ such that $p_j \in P_R$ is a
 successor of $p_i$ in the expanded multigraph, and $X_i$ the abstract value
 associated to $p_i$ :
-%\vspace{-.5em}
 \[
 f(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg
 b_j^s \wedge X_i \wedge \displaystyle\bigvee_{j \in Succ(i)} (b_j^d \wedge
  \neg X_j)
-%\vspace{-.1em}
 \]
 The difference with~\cite{Monniaux_Gonnord_SAS11} is that we do not
 work on the entire transition graph but on a subset of it. Therefore we
@@ -482,17 +474,14 @@ and makes the invariant candidate of its destination grow.
 % À changer si on décide de ne plus distinguer $X^s$ et $X^d$
 We thus check the satisfiability of the formula
 $f'(p_i)$, where:
-%\vspace{-.5em}
 \[
 f'(p_i) = f(p_i)\wedge \neg P
-%\vspace{-1em}
 \]
 $X_j$ is updated using an abstract union when the point $p_j$ is the target of a new path. This way, further SMT queries do not
 compute other paths with the same source and destination if it is not needed
 (because these new paths would not make $X_j$ grow, hence would not be returned
 by the SMT solver).
 
-\vspace{-1em}
 \begin{algorithm}
 	\caption{ComputeNewPaths}
 	\label{algo:computepaths}
@@ -500,7 +489,6 @@ by the SMT solver).
 	\input{algo/compute-paths.tex}
 	\end{algorithmic}
 \end{algorithm}
-\vspace{-1em}
 
 When a new path has been found, it is immediately added into $P$. 
 We then have to add $p_i$ and $p_j$ into $A$ (since we do not apply widening in
@@ -697,7 +685,6 @@ disjunct that has to be chosen is the one for which the associate Boolean value
 $d_j$ is \emph{true} in the model. Then, we can easily compute the value of 
 $\sigma_i(j,k)$, thus know the index of the disjunct to join with.
 %
-\vspace{-.5em}
 \begin{equation*}
 g(p_i) = \rho \wedge b_i^s \wedge 
 \displaystyle\bigwedge_{j \in P_R \atop j \neq i} \neg b_j^s 
@@ -707,7 +694,6 @@ g(p_i) = \rho \wedge b_i^s \wedge
 \wedge
 \displaystyle\bigvee_{j \in Succ(i)}\!\!
 (b_j^d \wedge \bigwedge_{1 \leq k \leq m_i}\!\! (\neg X_{j,k}))
-\vspace{-.5em}
 \end{equation*}
 
 In our algorithm, the initialization of the abstract values slightly differs from
@@ -736,7 +722,6 @@ The \emph{Update} function can classically assign  $X_{i,\sigma_i(j,k)} \widenin
 proposed by \cite{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
 acceleration.
 
-\vspace{-1em}
 \begin{algorithm}[!h]
 \caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
 \label{algo:disjunctive}
@@ -752,7 +737,6 @@ acceleration.
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
-\vspace{-1em}
 
 We experimented with a heuristic
 of dynamic construction of the $\sigma_i$ functions, adapted from
