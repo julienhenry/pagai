@@ -33,9 +33,9 @@ Perhaps, the first area where the paper falls short of the mark is
 when it considers the idea in the context of what has already been done.
 Here the authors are missing many works that are very closely related.
 
-** TODO Sharma, Dillig and Aiken: CAV 2011 present a technique for multi-phase loops. 
+** DONE Sharma, Dillig and Aiken: CAV 2011 present a technique for multi-phase loops. 
 
-** TODO Balakrishnan, Sanakranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
+** DONE Balakrishnan, Sanakranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
 
 ** TODO Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
 abstract interpretation to analyze the path. Thereafter, the analyzed path is blocked by computing a minimal set of edges that 

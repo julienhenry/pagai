@@ -645,6 +645,11 @@ In this example, we see that our technique actually combines best of
 
 \section{Disjunctive Invariants}
 \label{sec:disjunctive}
+While many (most?) useful program invariants on numerical variables can be expressed as conjunctions of inequalities and congruences, it is sometimes necessary to introduce disjunctions.
+For instance, the loop \lstinline|for (int i=0; i<n; i++) {...}| has head invariant $0 \leq i \leq n \lor (i=0 \land n<0)$.
+For this very simple example, a simple syntactic transformation of the control structure (into \lstinline|i=0; if (i<n) do {...} while (i<n)|) is sufficient, but in more complex cases more advanced analyses are necessary
+\cite{DBLP:conf/emsoft/BalakrishnanSIG09,DBLP:journals/fmsd/Jeannet03,DBLP:conf/cav/SharmaDDA11,Monniaux_Bodin_APLAS11};
+in intuitive terms, they discover \emph{phases} or \emph{modes} in loops.
 
 Gulwani \& Zuleger \cite{DBLP:conf/pldi/GulwaniZ10} proposed a technique for computing disjunctive invariants, by
 distinguishing all the paths inside a loop. In
@@ -888,3 +893,9 @@ the code points where both invariants are equal make up the remaining percentage
 We compared the precision of different techniques and abstract domains by comparing the invariants for the inclusion ordering. A better metric is perhaps to take a client analysis --- such as the detection of overflows and array bound violations --- and compare the rates of alarms.
 
 We focused on numerical properties, because they are supported by easily available abstract libraries. Yet, in most programs, properties of data structures are important for proving interesting properties. Further investigations are needed not only on good abstractions for pointers (many are already known) but also on their conversion to SMT problems.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "implicitization_lmcs.tex"
+%%% reftex-cite-format: natbib
+%%% End: 
