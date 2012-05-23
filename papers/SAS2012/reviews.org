@@ -110,7 +110,7 @@ this point in their conclusion.
 Additional comments:
 
 
-** TODO In section 2.3, the CFG does not follow the control locations of
+** DONE In section 2.3, the CFG does not follow the control locations of
 the loop (fall-through edges).
 
 ** TODO Figure 3 is quite confusing. Can't you show it as a 100% stacked
