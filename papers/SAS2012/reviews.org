@@ -116,6 +116,6 @@ the loop (fall-through edges).
 ** TODO Figure 3 is quite confusing. Can't you show it as a 100% stacked
 bar chart?
 
-** TODO page 9 - "p5 corresponds to the header of the main loop" -> p3
+** DONE page 9 - "p5 corresponds to the header of the main loop" -> p3
 
 ** TODO put all code samples in figures to make it easier to follow
