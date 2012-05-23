@@ -1,0 +1,184 @@
+\documentclass{llncs}
+
+\usepackage{ifxetex}
+\ifxetex
+\else
+\usepackage[utf8]{inputenc}
+\fi
+
+\usepackage{amsmath}
+\usepackage{mathcomp,amsfonts,amssymb}
+\usepackage[mathscr]{euscript}
+\usepackage{algorithmic,algorithm}
+\usepackage{paralist}
+\usepackage{graphicx}
+%\usepackage{color}
+\usepackage{placeins}
+
+\usepackage{enumitem}
+\usepackage{dcolumn}
+\usepackage{rotating}
+
+\usepackage{listings}
+\lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2,breaklines=true,basicstyle={\rm\fontfamily{phv}\small\selectfont}}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{transition2}=[transition,rectangle,thick,dashed,
+  			  minimum size=4mm]
+\tikzstyle{PRstate}=[circle,double,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
+\tikzstyle{line}=[black,thick]
+
+\newcommand{\mytitle}{Succinct Representations for Abstract Interpretation}
+\usepackage[pdftitle={\mytitle},pdfauthor={Julien Henry, David Monniaux, Matthieu Moy}]{hyperref}
+
+\newcommand{\abstr}[1]{#1^\sharp}
+\newcommand{\parts}[1]{\mathscr{P}(#1)}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\widening}{\mathop{\triangledown}}
+
+\graphicspath{{figures/}{gnuplot/}}
+
+% commentaires dans les algorithmes crees avec le package algorithmic
+\renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
+
+\usepackage{ifthen}
+\newboolean{draft}
+%\setboolean{draft}{true}
+\setboolean{draft}{false}
+
+\ifthenelse{\boolean{draft}}{
+  \newcommand{\avirer}[1]{{\color{red} #1}}
+  \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+  \newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
+  \newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
+}{
+  \newcommand{\avirer}[1]{}
+  \newcommand{\MM}[1]{}
+  \newcommand{\JH}[1]{}
+  \newcommand{\DM}[1]{}
+}
+
+\title{\mytitle}
+\subtitle{Combined analysis algorithms and experimental evaluation}
+\author{Julien Henry\inst{1}\inst{2} \and David Monniaux\inst{1}\inst{3} \and Matthieu Moy\inst{1}\inst{4}}
+
+\institute{VERIMAG laboratory, Grenoble, France
+\and Université Joseph Fourier
+\and CNRS
+\and Grenoble-INP}
+
+\renewcommand{\baselinestretch}{1}
+
+\begin{document}
+\input{implicitization}
+
+\FloatBarrier
+
+\phantomsection\addcontentsline{toc}{section}{References} 
+\bibliographystyle{splncs03}
+\bibliography{implicitization}
+
+\appendix
+
+
+\MM{TODO: la partie appendix est laissée en chantier. A priori, on ne
+  mettra que les tableaux de chiffres sans les commentaires, et les
+  tableaux risquent de changer avec les avancées de Julien.}
+
+\section{Experimental Results}
+
+Experimental results of our tool on the benchmark presented in
+Fig~\ref{fig:projects} are given below. The precision of different
+techniques is given in Table~\ref{tab:techniques}. The precision of
+abstract domains and widening operators is given in
+Table~\ref{tab:domain}.
+
+\begin{sidewaystable}
+\begin{center}
+\setlength{\tabcolsep}{0.75ex}
+\begin{tabular}{|l
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
+\multicolumn{1}{|c|}{\textbf{Benchmark}}
+& \multicolumn{3}{c|}{\textbf{G/S}}
+& \multicolumn{3}{c|}{\textbf{PF/S}}
+& \multicolumn{3}{c|}{\textbf{PF/G}}
+& \multicolumn{3}{c|}{\textbf{G+PF/PF}}
+& \multicolumn{3}{c|}{\textbf{G+PF/G}}
+& \multicolumn{3}{c|}{\textbf{DIS/G+PF}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
+ \hline
+ \input{table1}
+\end{tabular}
+\end{center}
+\caption{Result of the comparison of the various techniques described in this
+paper: classic Abstract Interpretation (S), \emph{Guided Static Analysis} (G),
+\emph{Path-focusing} (PF), our combined technique (G+PF), and its version using
+disjunctive invariants (DIS). For
+instance, \textbf{G/S} compares the benefits of \emph{Guided Static Analysis}
+over the classic Abstract interpretation algorithm.
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
+\label{tab:techniques}
+\end{sidewaystable}
+
+\label{sec:compare_domains}
+\begin{sidewaystable}
+\begin{center}
+\setlength{\tabcolsep}{0.75ex}
+\begin{tabular}{|l
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}%
+|D{.}{.}{2}D{.}{.}{2}D{.}{.}{2}|} \hline
+\multicolumn{1}{|c|}{\textbf{Benchmark}}
+& \multicolumn{3}{c|}{\textbf{PK/OCT}}
+& \multicolumn{3}{c|}{\textbf{PK/BOX}}
+& \multicolumn{3}{c|}{\textbf{OCT/BOX}}
+& \multicolumn{3}{c|}{\textbf{PK/PKEQ}}
+& \multicolumn{3}{c|}{\textbf{PK/GRID}}
+& \multicolumn{3}{c|}{\textbf{POLY/POLY*}} \\ %\cline{2-16}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
+& \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.} \\
+ \hline
+ \input{table_domain.tex}
+\end{tabular}
+\end{center}
+\caption{Results of the comparison of the various abstract domains, when using
+the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK and
+POLY),
+Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear
+inequalities with linear congruences
+(GRID). The last column compares the domain of Convex Polyhedra with the
+improved widening operator from \cite{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
+using the classical widening operator (POLY). POLY and POLY* use the Parma
+Polyhedral Library \cite{PPL}.
+$\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Fig.~\ref{fig:techniques}.}
+\label{tab:domain}
+\end{sidewaystable}
+
+\end{document}
