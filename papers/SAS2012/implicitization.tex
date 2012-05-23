@@ -140,22 +140,20 @@ Consider the following program, adapted from \cite{Monniaux_Gonnord_SAS11}, wher
                     semithick,font=\footnotesize]
 
 	\node[PRstate] (n0) {$s$};
-	\node[state] (n1) [below left=of n0] {};
-	\node[state] (n2) [below right=of n0] {};
+	\node[state] (n0x) [below =of n0] {};
+	\node[state] (n1) [below left=of n0x] {};
 	\node[state] (n3) [below right=of n1] {};
 	\node[state] (n4) [below left=of n3] {};
-	\node[state] (n5) [below right=of n3] {};
 	\node[state] (n6) [below right=of n4] {};
 	\node[PRstate] (n7) [below =of n6] {$e$};
 
-  \path [transition] (n0) -- (n1);
-  \path [transition] (n0) -- (n2);
+  \path [transition] (n0) -- (n0x);
+  \path [transition] (n0x) -- (n1);
+  \path [transition] (n0x) edge[bend left] (n3);
   \path [transition] (n1) -- (n3);
-  \path [transition] (n2) -- (n3);
   \path [transition] (n3) -- (n4);
-  \path [transition] (n3) -- (n5);
+  \path [transition] (n3) edge[bend left] (n6);
   \path [transition] (n4) -- (n6);
-  \path [transition] (n5) -- (n6);
   \path [transition] (n6) -- (n7);
 \end{tikzpicture}
 \end{minipage} 

@@ -41,17 +41,18 @@ Here the authors are missing many works that are very closely related.
 abstract interpretation to analyze the path. Thereafter, the analyzed path is blocked by computing a minimal set of edges that 
 guarantee the invariants of interest.
 
-** TODO There has been follow up work that includes predicates in the encoding by Kroening et al.
+** DONE There has been follow up work that includes predicates in the encoding by Kroening et al.
+-> Lequel de Kroening?
 
-** TODO There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
+** DONE There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
 -> On ne cite pas, c'est trop éloigné.
 
 I can think of at least these papers that are quite related. I am sure there are many more.
 
 The second area is in the experimental results. I do not understand how the techniques here could monolithically scale to a 150KLOC program. My guess is that the analysis is intraprocedural: 
 
-** TODO What does it do with the pointers?
-** TODO How does it deal with heap reachable cells through dynamic memory allocation?
+** DONE What does it do with the pointers?
+** DONE How does it deal with heap reachable cells through dynamic memory allocation?
 
 In the absence of these two, I am afraid the analysis will mostly deal with local variables, loop counters and such. Even though that is not trivial, it does not do justice to simply saying I analyzed a million lines of code using my technique :-)
 In short, reporting the size of the whole program is very misleading when the analyzer presumably does not do a whole program analysis. If this understanding is wrong, the paper must describe the implementation better.
