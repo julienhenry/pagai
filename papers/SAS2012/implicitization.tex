@@ -823,6 +823,10 @@ Abstract domains are provided by the APRON library \cite{DBLP:conf/cav/JeannetM0
 For SMT-solving, our analyzer uses Yices
 \cite{DBLP:conf/cav/DutertreM06} or Microsoft Z3~\cite{DBLP:conf/tacas/MouraB08}.
 
+PAGAI currently neither models the memory heap nor performs interprocedural analysis. Instead, LLVM optimization phases are applied prior to analysis, in order to inline non-recursive function calls and lift certain memory accesses to operations on explicit numerical variables
+(e.g. \lstinline|y=t[0]*t[0];| preceded by \lstinline|t[0]=x;| without any aliased write in between is replaced by \lstinline|y=x*x;|).
+The remaining memory reads are considered as indeterminates, and memory writes are ignored; this is a sound abstraction.
+
 We conducted extensive experiments on real-life programs in order to compare the
 different techniques, mostly on open-source projects (Fig.~\ref{fig:projects}) written in C, C++ and Fortran.
 These results confirm that our combined technique improve the
