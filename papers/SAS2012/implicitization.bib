@@ -14,7 +14,7 @@
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/pldi/2010,
-  editor    = {Benjamin G. Zorn and
+  feditor    = {Benjamin G. Zorn and
                Alexander Aiken},
   title     = {Proceedings of the 2010 ACM SIGPLAN Conference on Programming
                Language Design and Implementation, PLDI 2010, Toronto,
@@ -127,7 +127,7 @@
 @proceedings{ESOP05,
   title =	 {Programming Languages and Systems (ESOP)},
   booktitle =	 {Programming Languages and Systems (ESOP)},
-  editor = {Shmuel ``Mooly'' Sagiv},
+  feditor = {Shmuel ``Mooly'' Sagiv},
   pages =	 {21--30},
   year =	 {2005},
   number =	 {3444},
@@ -147,14 +147,14 @@
   series = lncs,
   number = 6602,
   isbn = {978-3-642-19717-8},
-  editor = {Gilles Barthe},
+  feditor = {Gilles Barthe},
   pdf = {Gawlitza_Monniaux_ESOP11.pdf},
   abstract = {We consider the problem of computing numerical invariants of programs by abstract interpretation. Our method eschews two traditional sources of imprecision: (i) the use of widening operators for enforcing convergence within a finite number of iterations (ii) the use of merge operations (often, convex hulls) at the merge points of the control flow graph. It instead computes the least inductive invariant expressible in the domain at a restricted set of program points, and analyzes the rest of the code en bloc. We emphasize that we compute this inductive invariant precisely. For that we extend the strategy improvement algorithm of [Gawlitza and Seidl, 2007]. If we applied their method directly, we would have to solve an exponentially sized system of abstract semantic equations, resulting in memory exhaustion. Instead, we keep the system implicit and discover strategy improvements using SAT modulo real linear arithmetic (SMT). For evaluating strategies we use linear programming. Our algorithm has low polynomial space complexity and performs for contrived examples in the worst case exponentially many strategy improvement steps; this is unsurprising, since we show that the associated abstract reachability problem is Pi-p-2-complete.}}
 
 
 @InProceedings{Monniaux_Gonnord_SAS11,
   author = 	 {David Monniaux and Laure Gonnord},
-  editor = {Eran Yahav},
+  feditor = {Eran Yahav},
   title = 	 {Using bounded model checking to focus fixpoint iterations},
   booktitle = {Static analysis (SAS)},
   year = 	 2011,
@@ -180,7 +180,7 @@ In this article, we describe how to avoid such systematic exploration by focusin
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/sas/2007,
-  editor    = {Hanne Riis Nielson and
+  feditor    = {Hanne Riis Nielson and
                Gilberto Fil{\'e}},
   title     = {Static Analysis, 14th International Symposium, SAS 2007,
                Kongens Lyngby, Denmark, August 22-24, 2007, Proceedings},
@@ -341,7 +341,7 @@ publisher={Kluwer}
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/cav/2009,
-  editor    = {Ahmed Bouajjani and
+  feditor    = {Ahmed Bouajjani and
                Oded Maler},
   title     = {Computer Aided Verification, 21st International Conference,
                CAV 2009, Grenoble, France, June 26 - July 2, 2009. Proceedings},
@@ -358,8 +358,7 @@ publisher={Kluwer}
 @inproceedings{Lattner:2004:LCF:977395.977673,
  author = {Lattner, Chris and Adve, Vikram},
  title = {{LLVM}: A Compilation Framework for Lifelong Program Analysis \& Transformation},
- booktitle = {Proceedings of the international symposium on Code generation and optimization: feedback-directed and runtime optimization},
- series = {CGO '04},
+ booktitle = {CGO},
  year = {2004},
  month = aug,
  isbn = {0-7695-2102-9},
@@ -410,7 +409,7 @@ publisher={Kluwer}
 }
 
 @proceedings{DBLP:conf/tacas/2008,
-  editor    = {C. R. Ramakrishnan and
+  feditor    = {C. R. Ramakrishnan and
                Jakob Rehof},
   title     = {Tools and Algorithms for the Construction and Analysis of
                Systems, 14th International Conference, TACAS 2008, Held
@@ -439,7 +438,7 @@ publisher={Kluwer}
 }
 
 @proceedings{DBLP:conf/cav/2006,
-  editor    = {Thomas Ball and
+  feditor    = {Thomas Ball and
                Robert B. Jones},
   title     = {Computer Aided Verification, 18th International Conference,
                CAV 2006, Seattle, WA, USA, August 17-20, 2006, Proceedings},
@@ -495,7 +494,7 @@ publisher={Kluwer}
 
 
 @proceedings{DBLP:conf/vmcai/2006,
-  editor    = {E. Allen Emerson and
+  feditor    = {E. Allen Emerson and
                Kedar S. Namjoshi},
   title     = {Verification, Model Checking, and Abstract Interpretation,
                7th International Conference, VMCAI 2006, Charleston, SC,
@@ -523,7 +522,7 @@ publisher={Kluwer}
 
 
 @proceedings{DBLP:conf/sas/2006,
-  editor    = {Kwangkeun Yi},
+  feditor    = {Kwangkeun Yi},
   title     = {Static analysis (SAS)},
   booktitle = {Static analysis (SAS)},
   publisher = springer,
@@ -572,7 +571,7 @@ publisher={Kluwer}
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/cav/2011,
-  editor    = {Ganesh Gopalakrishnan and
+  feditor    = {Ganesh Gopalakrishnan and
                Shaz Qadeer},
   title     = {Computer Aided Verification - 23rd International Conference,
                CAV 2011, Snowbird, UT, USA, July 14-20, 2011. Proceedings},
@@ -600,7 +599,7 @@ publisher={Kluwer}
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 @proceedings{DBLP:conf/emsoft/2009,
-  editor    = {Samarjit Chakraborty and
+  feditor    = {Samarjit Chakraborty and
                Nicolas Halbwachs},
   title     = {Proceedings of the 9th ACM {\&} IEEE International conference
                on Embedded software, EMSOFT 2009, Grenoble, France, October
@@ -656,7 +655,7 @@ The same method can also be used to obtain disjunctive loop invariants.},
 }
 
 @proceedings{DBLP:conf/popl/2010,
-  editor    = {Manuel V. Hermenegildo and
+  feditor    = {Manuel V. Hermenegildo and
                Jens Palsberg},
   title     = {Proceedings of the 37th ACM SIGPLAN-SIGACT Symposium on
                Principles of Programming Languages, POPL 2010, Madrid,
