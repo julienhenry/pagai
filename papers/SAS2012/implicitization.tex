@@ -327,6 +327,9 @@ we can apply a widening/narrowing sequence, or even compute the transitive
 closure of the loop (or an approximation thereof, or its application to $X_i$)
 using abstract acceleration~\cite{DBLP:conf/sas/GonnordH06}.
 
+We assume that we can encode the concrete semantics of the program into the SMT formula, or at least an abstraction thereof at least as precise as the one applied by the abstract interpreter (in simple terms: we want to avoid the case where the SMT solver exhibits a possible path, but the static analyzer realizes that this path is infeasible; this would lead to nontermination, because the SMT solver would exhibit the same path on the next iteration).
+A workaround would be to apply \emph{satisfiability modulo path programs} \cite{DBLP:conf/popl/HarrisSIG10}: from each path ruled infeasible by abstract interpretation, extract a blocking clause for the SAT solver underlying the SMT-solver.
+
 \section{Guided Analysis over the Paths}
 \label{sec:guided_multigraph}
 
