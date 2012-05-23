@@ -1,0 +1,12 @@
+\WHILE{true}
+	\STATE $res \gets SmtSolve\left[
+	f(X^s) \wedge P
+	\right]$
+	\IF {$res = unsat$}
+		\STATE \textbf{break}
+	\ENDIF
+	\STATE Take the focus path $e$ from $p_i$ to $p_j$
+	\STATE Update $X_{p_j}$
+	\STATE $X^d_{p_j} \gets X^s_{p_j}$
+	\STATE $A \gets A \cup \{p_j\}$
+\ENDWHILE

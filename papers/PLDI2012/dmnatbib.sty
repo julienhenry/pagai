@@ -1,0 +1,10 @@
+\ProvidesPackage{dmnatbib}
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{natbib}}
+\ProcessOptions
+\RequirePackage{natbib}
+
+\newcommand{\doix}[1]{\href{http://dx.doi.org/#1}{#1}\endgroup}
+\newcommand{\doi}{doi: \begingroup\catcode`\_=13\def\_{\textunderscore}\doix}
+\newcommand{\isbn}[1]{ISBN \href{http://www.worldcat.org/isbn/#1}{#1}}
+\newcommand{\issn}[1]{ISSN \href{http://www.worldcat.org/issn/#1}{#1}}
+\newcommand{\biburlstyle}{\footnotesize~}

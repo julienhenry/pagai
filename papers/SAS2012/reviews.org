@@ -1,0 +1,122 @@
+* Review 1
+Overall rating:	4 (strong accept)
+Confidence:	4 (expert)
+Review:	The paper presents a novel technique for expressively representing path
+invariants in analysis of SSA programs.
+
+The paper leverages SMT techniques to encode paths implicitly, avoiding the
+explosion in the explicit representation except exactly when necessary: path
+enumeration is replaced with SMT queries.
+
+The paper reads extremely well and provides an elegant "classic" development in
+abstract interpretation.
+
+Well-chosen examples carefully illustrate the technique, the disadvantages of
+prior technique and the advantages of the proposed technique.
+
+For such clean theoretical work, the experimental evaluation is thorough and
+impressive.
+
+* Review 2
+Overall rating:	3 (weak accept)
+Confidence:	3 (high)
+Review:	The authors propose a technique to provide path sensitivity by distinguishing paths inside a loop. The idea is to 
+use SMT solvers and a technique called path focussing that uses a SMT formula encoding the program in SSA form 
+and the invariants at various locations to repeatedly find paths that have not been addressed by the current invariant
+candidate. This idea is extended to work inside loops to yield a path sensitive analysis along the lines of work by Gopan and Reps 
+or more recently by Gulwani et al. Experimental results comparing the size of the invariants are quite promising.
+
+I think the paper is clearly acceptable. It has a very good idea and is backed up by experimental results. 
+
+
+Perhaps, the first area where the paper falls short of the mark is 
+when it considers the idea in the context of what has already been done.
+Here the authors are missing many works that are very closely related.
+
+** DONE Sharma, Dillig and Aiken: CAV 2011 present a technique for multi-phase loops. 
+
+** DONE Balakrishnan, Sanakranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
+
+** DONE Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
+abstract interpretation to analyze the path. Thereafter, the analyzed path is blocked by computing a minimal set of edges that 
+guarantee the invariants of interest.
+
+** DONE There has been follow up work that includes predicates in the encoding by Kroening et al.
+-> Lequel de Kroening?
+
+** DONE There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
+-> On ne cite pas, c'est trop éloigné.
+
+I can think of at least these papers that are quite related. I am sure there are many more.
+
+The second area is in the experimental results. I do not understand how the techniques here could monolithically scale to a 150KLOC program. My guess is that the analysis is intraprocedural: 
+
+** DONE What does it do with the pointers?
+** DONE How does it deal with heap reachable cells through dynamic memory allocation?
+
+In the absence of these two, I am afraid the analysis will mostly deal with local variables, loop counters and such. Even though that is not trivial, it does not do justice to simply saying I analyzed a million lines of code using my technique :-)
+In short, reporting the size of the whole program is very misleading when the analyzer presumably does not do a whole program analysis. If this understanding is wrong, the paper must describe the implementation better.
+
+The authors must clearly report the min,max and average sizes of code chunks analyzed.
+
+Perhaps the analysis can be used to prove properties: static arrays are usually addressed by local loop counter variables. It is very much possible to say if these are within their bounds or not.
+What I am afraid the authors will find is that path sensitivity makes relatively minor difference in these properties for the programs
+considered. Where I feel it makes the most sense is in analyzing programs from embedded systems. As a suggestion for obtaining benchmarks that are appropriate for this work I suggest the authors take demonstration examples in Simulinlk/Stateflow and 
+use RT workshop to synthesize C code. The resulting programs can perhaps give some challenging benchmarks that are worth 
+attempting to tackle using these approaches.
+
+
+The first objection of not citing work should not be grounds for a rejection. The second objection can be fixed by changing the table and perhaps considering the benchmarks of the form alluded to in my review.
+
+* Review 3
+Overall rating:	4 (strong accept)
+Confidence:	3 (high)
+Review:	This is a nice paper and I enjoyed reading it. The makes two
+contributions:
+
+(1) it shows how to combine the guided static analysis algorithm of
+[13] with the (implicit) multigraph from [23]. The combination of
+these techniques is shown to be effective by experimental
+evaluation over real-world programs.
+
+(2) it shows how to improve the technique of [14] for computing
+disjunctive invariants by using SMT queries of the (implicit)
+representation of program paths.
+
+Pros:
+
+o The formulation provided in the paper is quite elegant and brings
+together ideas from several recent papers in the area. The ideas
+are explained nicely and their combination with the usage of
+implicit path representation and SMT queries seems elegant and
+useful.
+
+o The approach has been implemented and evaluated experimentally
+over 9 real-world benchmarks of significant size. The authors have
+implemented the original algorithms extended/improved by this work,
+and compared their results to the original algorithms.
+
+Cons:
+
+o The analysis of experimental results is lacking, probably due to
+the space restrictions.
+
+o Comparison of precision is based on inclusion order and not on a
+specific client, making it hard to determine the real cost/benefit
+of the added "precision". In their defense, the authors allude to
+this point in their conclusion.
+
+
+Additional comments:
+
+
+** DONE In section 2.3, the CFG does not follow the control locations of
+the loop (fall-through edges).
+
+** TODO Figure 3 is quite confusing. Can't you show it as a 100% stacked
+bar chart?
+DM: Je ne sais pas faire.
+
+** DONE page 9 - "p5 corresponds to the header of the main loop" -> p3
+
+** TODO put all code samples in figures to make it easier to follow

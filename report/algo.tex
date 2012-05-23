@@ -1,0 +1,82 @@
+\documentclass[a4paper,9pt]{article}
+
+\usepackage{mathcomp,amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{mathenv}
+\usepackage{algorithmic,algorithm}
+
+
+\newcommand{\widening}{\mathop{\triangledown}}
+
+\title{Static Analysis by Path Focusing}
+\author{Julien Henry}
+\date{2011}
+
+\begin{document}
+
+ \algsetup{indent=3em} 
+ \begin{algorithm}
+ \caption{Guided static analysis on implicit multigraph}
+\begin{algorithmic}%[1] 
+\STATE $A \gets \emptyset$
+\STATE $P \gets \emptyset$
+\FORALL {$p \in P_R / I_p \neq \emptyset$}
+	\STATE $A \gets A \cup p$
+\ENDFOR
+
+\WHILE{true}
+\STATE $A' \gets \emptyset$
+
+\STATE $P' \gets \emptyset$
+
+\WHILE{$A \neq \emptyset$}
+	\STATE Select $p_i \in A$
+	\STATE $A \gets A \setminus \{p_i\}$
+	\STATE // First only consider the paths already seen (in $P$)
+	\WHILE{true}
+		\STATE $res \gets SmtSolve\left[
+		f(X^s) \wedge P
+		\right]$
+		\IF {$res = unsat$}
+			\STATE \textbf{break}
+		\ENDIF
+		\STATE Take the focus path $e$ from $p_i$ to $p_j$
+		\STATE Update $X_{p_j}$
+		\STATE $X^d_{p_j} \gets X^s_{p_j}$
+		\STATE $A \gets A \cup \{p_j\}$
+	\ENDWHILE
+
+	\STATE // Check if there exists new feasible paths that have 
+	\STATE // never been computed and that make the invariant grow
+	\WHILE{true}
+		\STATE $res \gets SmtSolve\left[
+		 f(X^d) 
+		\right]$
+		\IF {$res = unsat$}
+			\STATE \textbf{break}
+		\ENDIF
+		\STATE Compute the path $e$
+		\STATE Update $X^d_{p_j}$
+		\STATE $P' \gets P' \cup \{e\}$
+		\STATE $A' \gets A' \cup \{p_i\}$
+	\ENDWHILE
+
+\ENDWHILE
+\STATE Narrow
+\IF {$P' = \emptyset$}
+	\STATE \textbf{break}
+\ENDIF
+\STATE // Add the new feasible paths to the graph and restart 
+\STATE $P \gets P \cup P'$
+\STATE $A \gets A'$
+\ENDWHILE
+
+\STATE \textbf{return} $\{X_{p_i},\ i \in P_R\}$
+\end{algorithmic}
+\end{algorithm}
+
+\bigskip
+
+\end{document}

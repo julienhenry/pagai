@@ -1,0 +1,26 @@
+\STATE $A' \gets \{p | P_R / I_p \neq \emptyset\}$
+\STATE $A \gets \emptyset$
+\STATE $P \gets \emptyset$ \COMMENT{Paths in the current subset}
+\FORALL{$p_i \in P_R$}
+	\STATE $X_i \gets I_{p_i}$ \label{alg=X-init}
+\ENDFOR 
+\WHILE{$A' \neq \emptyset$}
+
+\WHILE{$A' \neq \emptyset$} \label{alg=start-add-paths} 
+	\STATE Select $p_i \in A'$
+	\STATE $A' \gets A' \setminus \{p_i\}$
+	\STATE ComputeNewPaths($p_i$) \COMMENT{Update $A$, $A'$ and $P$}\label{alg=computeNewPaths}
+\ENDWHILE \label{alg=end-add-paths}
+
+\STATE \COMMENT{ascending iterations on $P$}
+\WHILE{$A \neq \emptyset$} \label{alg=start-ascending} 
+	\STATE Select $p_i \in A$
+	\STATE $A \gets A \setminus \{p_i\}$
+	\STATE PathFocusing($p_i$) \COMMENT{Update $A$ and $A'$\label{alg=pf}}
+	
+\ENDWHILE \label{alg=end-ascending}
+\STATE Narrow \label{alg=narrowing}
+\ENDWHILE
+
+\RETURN $\{X_i,\ i \in P_R\}$
+
