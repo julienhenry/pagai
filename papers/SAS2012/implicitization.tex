@@ -722,7 +722,7 @@ The \emph{Update} function can classically assign  $X_{i,\sigma_i(j,k)} \widenin
 proposed by \cite{Monniaux_Gonnord_SAS11}, with widening/narrowing sequence or
 acceleration.
 
-\begin{algorithm}[!h]
+\begin{algorithm}[!htb]
 \caption{Disjunctive invariant computation with implicit paths}\label{gulwani2}
 \label{algo:disjunctive}
 \begin{algorithmic}[1] 
@@ -834,7 +834,7 @@ Actually, for such applications, only (quasi-)linear
 algorithms scale up, and ``cheap'' abstract domains such as octagons ($O(n^3)$ where $n$ is the number of variables) are not applied to the full variable set, but to restricted subsets thereof.
 It thus seems reasonable that techniques such as considering ``packs'' of related variables, slicing, etc. may similarly help SMT-based techniques to scale to global analyses.
 
-\begin{table}[h!]\centering
+\begin{table}[!htb]\centering
       \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline
         \multicolumn{1}{|c|}{} &
         \multicolumn{2}{c|}{Size} &
@@ -856,7 +856,7 @@ It thus seems reasonable that techniques such as considering ``packs'' of relate
 \label{tab:time}
 \end{table}
 
-\begin{figure}[h!]%
+\begin{figure}[!htb]%
       \centering%
     \input{gnuplot/techniques.tex}
   \vspace{-20pt}
