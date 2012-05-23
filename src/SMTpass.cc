@@ -813,8 +813,10 @@ void SMTpass::visitInvokeInst (InvokeInst &I) {
 	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
 }
 
+#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
 void SMTpass::visitUnwindInst (UnwindInst &I) {
 }
+#endif
 
 void SMTpass::visitUnreachableInst (UnreachableInst &I) {
 }

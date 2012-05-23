@@ -4,6 +4,7 @@
 #include <queue>
 #include <vector>
 
+#include "llvm/Config/config.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
 #include "llvm/Constants.h"
@@ -220,7 +221,9 @@ class AIPass : public InstVisitor<AIPass> {
 		void visitSwitchInst (SwitchInst &I);
 		void visitIndirectBrInst (IndirectBrInst &I);
 		void visitInvokeInst (InvokeInst &I);
+#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
 		void visitUnwindInst (UnwindInst &I);
+#endif
 		void visitUnreachableInst (UnreachableInst &I);
 		void visitICmpInst (ICmpInst &I);
 		void visitFCmpInst (FCmpInst &I);
