@@ -1,0 +1,109 @@
+\documentclass[a4paper]{amsart}
+
+\usepackage{ifxetex}
+\ifxetex
+\else
+\usepackage[utf8]{inputenc}
+\fi
+
+\usepackage{amsmath}
+\usepackage{mathcomp,amsfonts,amssymb}
+\usepackage[mathscr]{euscript}
+\usepackage{algorithmic,algorithm}
+\usepackage{paralist}
+\usepackage{graphicx}
+%\usepackage{color}
+\usepackage{placeins}
+
+\usepackage{enumitem}
+\usepackage{dcolumn}
+
+\usepackage[numbers]{dmnatbib}
+
+\usepackage{listings}
+\lstset{language=C,mathescape=true,numbers=left,numbersep=0.8ex,tabsize=2,breaklines=true,basicstyle={\rm\fontfamily{phv}\small\selectfont}}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
+\tikzstyle{state}=[circle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{rstate}=[rectangle,fill=black!25,minimum size=13pt,inner sep=0pt]
+\tikzstyle{transition}=[rectangle,semithick,draw=black!75,
+  			  minimum size=4mm]
+\tikzstyle{transition2}=[transition,rectangle,thick,dashed,
+  			  minimum size=4mm]
+\tikzstyle{PRstate}=[circle,double,draw,fill=blue!15,minimum size=13pt,inner sep=0pt]
+\tikzstyle{polyhedra}=[blue!25,opacity=0.5,pattern=north west lines,pattern
+color=blue]
+\tikzstyle{line}=[black,thick]
+
+\newcommand{\mytitle}{Succinct Representations for Abstract Interpretation}
+\usepackage[pdftitle={\mytitle},pdfauthor={Julien Henry, David Monniaux, Matthieu Moy}]{hyperref}
+
+\newcommand{\abstr}[1]{#1^\sharp}
+\newcommand{\parts}[1]{\mathscr{P}(#1)}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\widening}{\mathop{\triangledown}}
+
+\graphicspath{{figures/}{gnuplot/}}
+
+% commentaires dans les algorithmes crees avec le package algorithmic
+\renewcommand{\algorithmiccomment}[1]{ {\color{gray} // #1}}
+
+\usepackage{ifthen}
+\newboolean{draft}
+%\setboolean{draft}{true}
+\setboolean{draft}{false}
+
+\ifthenelse{\boolean{draft}}{
+  \newcommand{\avirer}[1]{{\color{red} #1}}
+  \newcommand{\MM}[1]{{\color{blue} TODO(MM): #1}}
+  \newcommand{\JH}[1]{{\color{teal} TODO(JH): #1}}
+  \newcommand{\DM}[1]{{\color{violet} TODO(DM): #1}}
+}{
+  \newcommand{\avirer}[1]{}
+  \newcommand{\MM}[1]{}
+  \newcommand{\JH}[1]{}
+  \newcommand{\DM}[1]{}
+}
+
+\renewcommand{\baselinestretch}{1}
+
+\begin{document}
+\title[Succinct representations for abstract interpretation]{Succinct representations for abstract interpretation \\Combined analysis algorithms and experimental evaluation}
+%\thanks{\raisebox{-0.5em}{\includegraphics[height=1.5em]{ASOPT_officiel_nb}} This work was partially funded by ANR project ``ASOPT''}
+
+\author{Julien Henry}
+\address{J. Henry\\VERIMAG\\2 av de Vignate\\38610 Gières\\France}
+\email{Julien.Henry@imag.fr}
+\urladdr{http://www-verimag.imag.fr/~jhenry/}
+\thanks{Julien Henry is a graduate student at Université Joseph Fourier, VERIMAG laboratory. VERIMAG is a joint laboratory of Université Joseph Fourier, CNRS and Grenoble-INP}
+
+\author{David Monniaux}
+\address{D. Monniaux\\VERIMAG\\2 av de Vignate\\38610 Gières\\France}
+\email{David.Monniaux@imag.fr}
+\urladdr{http://www-verimag.imag.fr/~monniaux/}
+\thanks{David Monniaux is researcher at CNRS, VERIMAG laboratory}
+
+\author{Matthieu Moy}
+\address{M. Moy\\VERIMAG\\2 av de Vignate\\38610 Gières\\France}
+\email{Matthieu.Moy@grenoble-inp.fr}
+\urladdr{http://www-verimag.imag.fr/~moy/}
+\thanks{Matthieu Moy is assistant professor at Grenoble-INP, VERIMAG laboratory}
+
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\maketitle
+
+\input{implicitization}
+
+\FloatBarrier
+
+\bibliographystyle{dmplainnat}
+\bibliography{implicitization}
+\end{document}
