@@ -37,13 +37,14 @@ Here the authors are missing many works that are very closely related.
 
 ** DONE Balakrishnan, Sanakranarayanan, Ivancic and Gupta: EMSOFT 2009 present an idea that is similar but top-down. Instead of working to identify feasible paths incrementally starting from the empty set, their work prunes away infeasible paths top down. 
 
-** TODO Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
+** DONE Harris, Sankaranarayanan, Ivancic and Gupta: POPL 2010. The idea there is very similar to path focussing. The authors encode the set of "path programs" by winding up loops as an SMT formula. They then query for a path that is not yet covered and then use
 abstract interpretation to analyze the path. Thereafter, the analyzed path is blocked by computing a minimal set of edges that 
 guarantee the invariants of interest.
 
 ** TODO There has been follow up work that includes predicates in the encoding by Kroening et al.
 
 ** TODO There was work by Podelski et al. on a very similar idea in POPL 2010 called Counterexample-guided focus.
+-> On ne cite pas, c'est trop éloigné.
 
 I can think of at least these papers that are quite related. I am sure there are many more.
 
