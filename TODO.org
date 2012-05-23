@@ -53,6 +53,14 @@ Problème de minimiser C pour ordre d'inclusion tel que P(C) vrai.
 Méthode simple: retirer des termes tant que ça marche.
 Méthode plus "astucieuse" mais pas forcément plus efficace: une variante de diviser pour régner, cf réf dans (Monniaux, CAV 2010, §3.1).
 
+** Combinaison avec satisfiability modulo path programs
+http://pages.cs.wisc.edu/~wrharris/publications/Program_Analysis_via_Satisfiability_Modulo_Path_Programs.pdf
+http://pages.cs.wisc.edu/~wrharris/talks/smpp_popl_2010.pptx
+
+Idée: tu prends un chemin potentiel, tu passes l'analyse statique dessus, et si ça dit "pas possible" tu en déduis une blocking clause.
+
+Peut être utilisé (notamment pour intervalles flottants etc.) pour le cas où le SMT-solveur peut être plus abstrait que l'interprétation abstraite.
+
 * Applications
 ** Remontée de formules en tête de programme
 
