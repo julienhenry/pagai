@@ -383,7 +383,11 @@ the statement has been proved.
 It is also possible to add some preconditions about the variables, etc, using a
 function \lstinline|assume|.
 
-\lstinline|assert| and \lstinline|assume| are implemented as C macros. \lstinline|assert(x)| is roughly defined as \lstinline|if (! x) __assert_fail();|, and the tool just tests for the reachability of \lstinline|__assert_fail();|: if it is unreachable, then the assertion is true.
+\lstinline|assert| and \lstinline|assume| are implemented as C macros.
+\lstinline|assert(x)| is roughly defined as \lstinline|if (! x) __assert_fail();|, and the tool just tests for the reachability of \lstinline|__assert_fail();|: if it is unreachable, then the assertion is true.
+\lstinline|assume| works with the same principle, and is defined as \lstinline|if (! x) __assumption_declared()|. Since \lstinline|__assert_fail| and
+\lstinline|__assumption_declared| are \emph{noreturn} functions, the code after
+the test verifies \lstinline|x|.
 
 \subsection{Current limitations of the tool, possible future works}
 
@@ -494,18 +498,29 @@ invariant). We use convex polyhedra as the abstract domain.
 
 Let us briefly comment the results given in more details in Table~\ref{tab:techniques}.
 \emph{Guided Static Analysis} from \citet{DBLP:conf/sas/GopanR07} improves the
-result of the classical Abstract Interpretation in $2.72\%$ of the control points
+result of the classical Abstract Interpretation in $2.21\%$ of the control points
 in $P_R$.
-\emph{Path-focusing} from \citet{Monniaux_Gonnord_SAS11} gives
-statistically better results, and finds better invariants than \emph{Guided
-Static Analysis} in $9.89\%$ of the cases. However, it also loses precision in an
-important number ($2.68\%$) of control points.
+\emph{Path-focusing} from \citet{Monniaux_Gonnord_SAS11} 
+finds better invariants in $4.13\%$ of the control points.
+
+However, these two techniques also lose precision in an important number
+($4.64\%$ for G, $5.14\%$ for PF) of control points, and obtain worse results
+than the classical many times. This result is unexpected, and could be partially
+explained by bad behaviour of the widening operator.
+
+
 Finally, our combined technique gives the most promising results, since it is
-statistically more precise than the other techniques.
+statistically more precise than the other techniques. It improves the precision
+of the inductive invariant in $8.29\%$ to $9.86\%$ of the control points
+compared to the three previous techniques. Still, we obtain worse result in a
+non-negligible number of cases ($2.02\%$).
 
 The analysis using disjunctive invariants greatly improves the
-precision of the analysis (for $12.06\%$ of the control points in $P_R$), at an
-acceptable time cost (see Table \ref{tab:time}).
+precision of the analysis (for $14.46\%$ of the control points in $P_R$ compared
+to G+PF), at the expense of a higher time cost (see Table \ref{tab:time}).
+It also gives worse results in $6.85\%$ of the points, most probably because of
+a non optimal choice of the $\sigma$ function, detailed in
+\cite{Henry_Monniaux_Moy_SAS12}.
 
 While experimenting with techniques that use SMT-solving, we encountered some
 limitations due to non-linear arithmetic in the analyzed programs. Indeed, 
@@ -525,9 +540,10 @@ Table \ref{tab:time} gives the execution time of the different analysis
 techniques. It is interesting to see that
 \emph{Path-focusing} is sometimes faster than the classical
 algorithm.
-This seems due to the fact that these algorithms start on a small subset
-of the graph, and then may need fewer iterations on the complete graph.
-The techniques we introduce in this article are slower, but speed is still on the same order of magnitude as the older ones.
+This seems due to the fact that this algorithm
+computes inductive invariant on a small number of control points compared to
+classical approaches, thus leading to fewer operations over abstract values.
+
 
 \begin{table}[!tb]
 \begin{center}\small
@@ -564,8 +580,8 @@ The techniques we introduce in this article are slower, but speed is still on th
 & \multicolumn{3}{c|}{\textbf{PK/BOX}}
 & \multicolumn{3}{c|}{\textbf{OCT/BOX}}
 & \multicolumn{3}{c|}{\textbf{PK/PKEQ}}
-& \multicolumn{3}{c|}{\textbf{PK/GRID}}
-& \multicolumn{3}{c|}{\textbf{POLY*/POLY}} \\ %\cline{2-16}
+& \multicolumn{3}{c|}{\textbf{PK/PKGRID}}
+& \multicolumn{3}{c|}{\textbf{POLY/POLY*}} \\ %\cline{2-16}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
 & \multicolumn{1}{c}{$\subsetneq$} & \multicolumn{1}{c}{$\supsetneq$} & \multicolumn{1}{c|}{unc.}
@@ -579,11 +595,12 @@ The techniques we introduce in this article are slower, but speed is still on th
 \caption{Results of the comparison of the various abstract domains, when using
 the same technique (G+PF). We used as abstract domains Convex Polyhedra (PK and
 POLY),
-Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and linear congruences
-(GRID). The last column compares the domain of Convex Polyhedra with the
+Octagons (OCT), intervals (BOX), linear equalities (PKEQ) and the reduced
+product of NewPolka convex polyhedra with linear congruences
+from the Parma Polyhedra Library \cite{BagnaraHZ08SCP}.
+(PKGRID). The last column compares the domain of Convex Polyhedra with the
 improved widening operator from \citet{BagnaraHRZ05SCP} (POLY*), and Convex Polyhedra
-using the classical widening operator (POLY). POLY and POLY* use the Parma
-Polyhedral Library \cite{BagnaraHZ08SCP}.
+using the classical widening operator (POLY). POLY and POLY* use the PPL\cite{BagnaraHZ08SCP}.
 $\subsetneq$, $\supsetneq$ and ``unc.'' are defined as in Tab.~\ref{tab:techniques}.}
 \label{tab:domain}
 \end{table}
@@ -598,21 +615,25 @@ The Octagon domain appears to be much better than intervals; this is
 unsurprising since in most programs and libraries, bounds on loop indices are
 non constant: they depend on some parameters (array sizes etc.).
 
-The Lapack/Blas benchmarks are unusual compared to the other programs. These libraries perform matrix computations, using nested loops over indices; such programs are the prime target for polyhedral loop optimization techniques and it is therefore unsurprising that polyhedra perform very well over them.
+The Lapack/Blas benchmarks are unusual compared to the other programs. These
+libraries perform matrix computations, using nested loops over indices; such
+programs are the prime target for polyhedral loop optimization techniques and it
+is therefore unsurprising that polyhedra and octagons perform very well over them.
 
 The analysis of linear equalities (PKEQ) performs very fast compared
 to other abstract domains, but yields very imprecise invariants:
 it only detects relations of the form $\sum_i a_i x_i = C$ where $a_i$ and $C$ are constants.
-The comparison between the domain of convex polyhedra and linear congruences
-shows the percentage of points where the use of congruences refines the
-invariant. This is the case for $1.04\%$ of the control points in $P_R$.
+
+Using the reduced product of convex prolyhedra with linear congruences
+(PKGRID) improves the analysis by $2.52\%$. 
 
 Finally, we evaluated the benefits of the improved version of the widening
 operator for convex polyhedra from \citet{BagnaraHRZ05SCP}, compared to the
 classical widening. We found that the improved version from
-\citet{BagnaraHRZ05SCP} yields more precise invariants for $6.58\%$ of the
+\citet{BagnaraHRZ05SCP} yields more precise invariants for $3.70\%$ of the
 control points in $P_R$.
 
+\subsection{Future Work}
 It is not totally relevant to compare by inclusion the abstract values obtained
 by the various analysis techniques. Indeed, a slightly smaller invariant may not
 always be useful to prove the desired properties.
