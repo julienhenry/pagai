@@ -27,12 +27,14 @@ int SMTpass::nundef = 0;
 
 SMTpass::SMTpass() {
 	switch (getSMTSolver()) {
-		case Z3_MANAGER:
+		case API_Z3:
 			man = new z3_manager();
 			break;
-		case YICES_MANAGER: 
-			man = new SMTlib();
+		case API_YICES: 
+			man = new yices();
 			break;
+		default:
+			man = new SMTlib();
 	}
 }
 
@@ -58,10 +60,13 @@ void SMTpass::reset_SMTcontext() {
 	rho.clear();
 	delete man;
 	switch (getSMTSolver()) {
-		case Z3_MANAGER:
+		case API_Z3:
 			man = new z3_manager();
 			break;
-		case YICES_MANAGER: 
+		case API_YICES: 
+			man = new yices();
+			break;
+		default:
 			man = new SMTlib();
 			break;
 	}

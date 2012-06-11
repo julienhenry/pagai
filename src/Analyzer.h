@@ -7,10 +7,6 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/CFG.h"
 
-enum SMT_Solver {
-	Z3_MANAGER,
-	YICES_MANAGER
-};
 
 enum Apron_Manager_Type {
 	BOX,
@@ -32,11 +28,20 @@ enum Techniques {
 	LW_WITH_PF_DISJ
 };
 
+enum SMTSolver {
+	MATHSAT,
+	Z3,
+	SMTINTERPOL,
+	CVC3, 
+	API_Z3,
+	API_YICES
+};
+
 std::string TechniquesToString(Techniques t);
 
 std::string ApronManagerToString(Apron_Manager_Type D);
 
-SMT_Solver getSMTSolver();
+SMTSolver getSMTSolver();
 
 Techniques getTechnique();
 

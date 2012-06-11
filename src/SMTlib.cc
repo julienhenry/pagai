@@ -19,12 +19,12 @@
 
 SMTlib::SMTlib() {
 #ifdef LOG_SMT
-  static int logfile_counter = 0;
-  char filename[sizeof("logfile-000.smt2")];
-  sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
-  log_file = fopen(filename, "w");
+	static int logfile_counter = 0;
+	char filename[sizeof("logfile-000.smt2")];
+	sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
+	log_file = fopen(filename, "w");
 #else
-  log_file = NULL;
+	log_file = NULL;
 #endif
 
 	stack_level = 0;
@@ -54,45 +54,50 @@ SMTlib::SMTlib() {
 		dup2(rpipefd[1], STDOUT_FILENO);
 		close(wpipefd[0]);
 		close(rpipefd[1]);
-#if MATHSAT
-		char * argv[2];
-		argv[0] = (char*) "mathsat";
-		argv[1] = NULL;
-		if (execvp("mathsat",argv)) {
-		  perror("exec mathsat");
-		  exit(1);
+		switch (getSMTSolver()) {
+			case MATHSAT:
+				char * mathsat_argv[2];
+				mathsat_argv[0] = (char*) "mathsat";
+				mathsat_argv[1] = NULL;
+				if (execvp("mathsat",mathsat_argv)) {
+					perror("exec mathsat");
+					exit(1);
+				}
+				break;
+			case SMTINTERPOL:
+				char * smtinterpol_argv[2];
+				smtinterpol_argv[0] = (char*) "smtinterpol";
+				smtinterpol_argv[1] = NULL;
+				if (execvp("smtinterpol",smtinterpol_argv)) {
+					perror("exec smtinterpol");
+					exit(1);
+				}		
+				break;
+			case Z3:
+				char * z3_argv[4];
+				z3_argv[0] = (char*)"z3";
+				z3_argv[1] = (char*)"-smt2";
+				z3_argv[2] = (char*)"-in";
+				z3_argv[3] = NULL;
+				if (execvp("z3",z3_argv)) {
+					perror("exec z3");
+					exit(1);
+				}
+				break;
+			case CVC3:
+				char * cvc3_argv[4];
+				cvc3_argv[0] = (char*)"cvc3";
+				cvc3_argv[1] = (char*)"-lang";
+				cvc3_argv[2] = (char*)"smt2";
+				cvc3_argv[3] = NULL;
+				if (execvp("cvc3",cvc3_argv)) {
+					perror("exec cvc3");
+					exit(1);
+				}
+				break;
+			default:
+				exit(1);
 		}
-#elif SMTINTERPOL
-		char * argv[2];
-		argv[0] = (char*) "smtinterpol";
-		argv[1] = NULL;
-		if (execvp("smtinterpol",argv)) {
-		  perror("exec smtinterpol");
-		  exit(1);
-		}		
-#elif Z3
-		char * argv[4];
-		argv[0] = (char*)"z3";
-		argv[1] = (char*)"-smt2";
-		argv[2] = (char*)"-in";
-		argv[3] = NULL;
-		if (execvp("z3",argv)) {
-		  perror("exec z3");
-		  exit(1);
-		}
-#elif CVC3
-		char * argv[4];
-		argv[0] = (char*)"cvc3";
-		argv[1] = (char*)"-lang";
-		argv[2] = (char*)"smt2";
-		argv[3] = NULL;
-		if (execvp("cvc3",argv)) {
-		  perror("exec cvc3");
-		  exit(1);
-		}
-#else
-		exit(1);
-#endif
 	}
 	/* Parent : PAGAI */
 	close(wpipefd[0]);
@@ -100,25 +105,26 @@ SMTlib::SMTlib() {
 	input = fdopen(rpipefd[0],"r");
 	//setbuf(input, NULL);
 	if (input == NULL) {
-	  perror("fdopen");
-	  exit(1);
+		perror("fdopen");
+		exit(1);
 	}
 
 	//Enable model construction
-#if CVC3
-	pwrite("(set-logic AUFLIRA)\n");
-#else
-	pwrite("(set-option :produce-models true)\n");
-#if Z3
-	pwrite("(set-option :interactive-mode true)\n");
-#endif
-#if SMTINTERPOL
-	pwrite("(set-logic QF_UFLIRA)\n");
-#endif
-	pwrite("(set-option :print-success false)\n");
-#endif
+	if (getSMTSolver() == CVC3) {
+		pwrite("(set-logic AUFLIRA)\n");
+	} else {
+		pwrite("(set-option :produce-models true)\n");
+		if (getSMTSolver() == Z3) {
+			pwrite("(set-option :interactive-mode true)\n");
+		}
+		if (getSMTSolver() == SMTINTERPOL) {
+			pwrite("(set-logic QF_UFLIRA)\n");
+		}
+		pwrite("(set-option :print-success false)\n");
+	}
 	//pwrite("(set-logic QF_LRA)\n");
 }
+
 
 SMTlib::~SMTlib() {
 	pwrite("(exit)\n");
@@ -132,8 +138,8 @@ void SMTlib::pwrite(std::string s) {
 	DEBUG(*Out << "WRITING : " << s  << "\n";);
 	write(wpipefd[1], s.c_str(), strlen(s.c_str())); // DM pquoi pas s.length() ?
 	if (log_file) {
-	  fputs(s.c_str(), log_file);
-	  fflush(log_file);
+		fputs(s.c_str(), log_file);
+		fflush(log_file);
 	}
 }
 
@@ -315,7 +321,7 @@ SMT_expr SMTlib::SMT_mk_real (double x) {
 	std::ostringstream oss;
 	double intpart;
 	if (x == 0.0) { // necessary because printing -0.0 is an error
-	  oss << "0.0";
+		oss << "0.0";
 	}
 	else if (x < 0.0) {
 		oss << "(- " << -x;
@@ -448,19 +454,19 @@ SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr SMTlib::SMT_mk_int2real(SMT_expr a) {
-  exit(1);
+	exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real2int(SMT_expr a) {
-  exit(1);
+	exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_is_int(SMT_expr a) {
-  exit(1);
+	exit(1);
 	std::string * res = new std::string("true");
 	return res;
 }
@@ -497,8 +503,8 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		<< ")\n";
 	oss << "(check-sat)\n";
 	DEBUG(
-		*Out << "\n\n" << oss.str() << "\n\n";
-	);
+			*Out << "\n\n" << oss.str() << "\n\n";
+		 );
 	pwrite(oss.str());
 
 	ret = pread();
