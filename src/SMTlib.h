@@ -8,6 +8,12 @@
 
 #include "SMT_manager.h"
 
+#define LOG_SMT 0
+
+//#if MATHSAT || SMTINTERPOL
+//#define SMT_SUPPORTS_DIVIDES 1
+//#endif
+
 class SMTlib: public SMT_manager {
 
 	private:
@@ -25,11 +31,12 @@ class SMTlib: public SMT_manager {
 
 		int wpipefd[2]; // pipe from PAGAI to the SMT solver
 		int rpipefd[2]; // pipe from the SMT solver to PAGAI
-
+		FILE *input;
 
 		void pwrite(std::string s);
 		int pread();
 	
+		FILE *log_file;
 
 	public:
 		
@@ -65,6 +72,10 @@ class SMTlib: public SMT_manager {
 		SMT_expr SMT_mk_le (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_gt (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_ge (SMT_expr a1, SMT_expr a2);
+
+#if SMT_SUPPORTS_DIVIDES
+		SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
+#endif
 
 		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2);

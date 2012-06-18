@@ -15,18 +15,26 @@
 #include "apron.h"
 #include "Debug.h"
 
+/*
+DM: If set to 0, modulo (grid) constraints are not converted to SMT.
+    If set to 1, they are - this causes segfaults in Z3 3.8 (but not 4.0+).
+ */
+#define SMT_HAS_WORKING_MODULO 1
+
 using namespace std;
 
 int SMTpass::nundef = 0;
 
 SMTpass::SMTpass() {
 	switch (getSMTSolver()) {
-		case Z3_MANAGER:
+		case API_Z3:
 			man = new z3_manager();
 			break;
-		case YICES_MANAGER: 
-			man = new SMTlib();
+		case API_YICES: 
+			man = new yices();
 			break;
+		default:
+			man = new SMTlib();
 	}
 }
 
@@ -52,10 +60,13 @@ void SMTpass::reset_SMTcontext() {
 	rho.clear();
 	delete man;
 	switch (getSMTSolver()) {
-		case Z3_MANAGER:
+		case API_Z3:
 			man = new z3_manager();
 			break;
-		case YICES_MANAGER: 
+		case API_YICES: 
+			man = new yices();
+			break;
+		default:
 			man = new SMTlib();
 			break;
 	}
@@ -152,14 +163,10 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			  assert(!(value == 0));
 
 			  if (integer) {
-				  return man->SMT_mk_eq(man->SMT_mk_rem(linexpr_smt,modulo),scalar_smt);
+			    return man->SMT_mk_divides(modulo, linexpr_smt); // assumes scalar_smt is 0
 			  } else {
-#if 0
-			    return man->SMT_mk_true();
-#elif 1
-			    return man->SMT_mk_eq(man->SMT_mk_rem(man->SMT_mk_real2int(linexpr_smt),modulo),scalar_smt);
-#else
-			    // This segfaults. Perhaps bug in Z3.
+#if SMT_HAS_WORKING_MODULO
+			    // This segfaults in Z3 3.8
 			    SMT_expr test = man->SMT_mk_is_int(linexpr_smt);
 			    if (value == 1) {
 			      return test;
@@ -167,9 +174,11 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			      SMT_expr intexpr = man->SMT_mk_real2int(linexpr_smt);
 			      std::vector<SMT_expr> args;
 			      args.push_back(test);
-			      args.push_back(man->SMT_mk_eq(man->SMT_mk_rem(intexpr,modulo),scalar_smt));
+			      args.push_back( man->SMT_mk_divides(modulo, intexpr)); // assumes scalar_smt is zero
 			      return man->SMT_mk_and(args);
 			    }
+#else
+			    return man->SMT_mk_true();
 #endif
 			  }
             }
@@ -809,8 +818,10 @@ void SMTpass::visitInvokeInst (InvokeInst &I) {
 	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
 }
 
+#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
 void SMTpass::visitUnwindInst (UnwindInst &I) {
 }
+#endif
 
 void SMTpass::visitUnreachableInst (UnreachableInst &I) {
 }

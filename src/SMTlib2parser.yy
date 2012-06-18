@@ -41,6 +41,7 @@
 
 %token END 0
 %token MODEL
+%token UNSUPPORTED ERROR SUCCESS
 %token DEFINEFUN
 %token DIVIDE
 %token<bval> TRUE FALSE
@@ -62,14 +63,34 @@
 %%
 
 Smt:
-	 SAT 					{driver.ans = SAT;}
-	|UNSAT					{driver.ans = UNSAT;}
-	|UNKNOWN 				{driver.ans = UNKNOWN;}
-	|Model 					{driver.ans = SAT;}
+        successes Smt0 { YYACCEPT; };
+
+successes:
+        /* */ { }
+        | SUCCESS successes { }
+
+Smt0:
+	 SAT 					{driver.ans = SAT; }
+	|UNSAT					{driver.ans = UNSAT; }
+	|UNKNOWN 				{driver.ans = UNKNOWN; }
+	|Model 					{driver.ans = SAT; }
+	|Model_MathSAT 				{driver.ans = SAT; }
 	;
+
+Assoc_list:
+       Assoc Assoc_list
+       | /*empty*/
+       ;
+
+Assoc:
+	LEFTPAR VARNAME FunValue RIGHTPAR {
+	if ($3) { driver.model.insert(*$2); } }
 
 Model:
 	 LEFTPAR MODEL Model_list RIGHTPAR;
+
+Model_MathSAT:
+	LEFTPAR Assoc_list RIGHTPAR;
 
 Model_list:
 		  DefineFun Model_list

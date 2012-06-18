@@ -7,3 +7,9 @@ Makefile
 DOXYFILE
 html/
 latex/
+SMTlib2lexer.cc
+SMTlib2parser.cc
+SMTlib2parser.hh
+location.hh
+position.hh
+stack.hh

@@ -48,15 +48,27 @@ varname		{var}+
 
 "("					return(token::LEFTPAR);			
 ")"					return(token::RIGHTPAR);		
+ /* ")\n"	      yylloc->lines (yyleng); return(token::RIGHTPAR); */		
 "/"					return(token::DIVIDE);		
                 
 "unknown"			return(token::UNKNOWN);			
 "unsat"				return(token::UNSAT);			
-"sat"				return(token::SAT);				
+"sat"				return(token::SAT);
+"error"                         return(token::ERROR);
+"unsupported"                   return(token::UNSUPPORTED);
+"success"                       return(token::SUCCESS);
+
 "true"				return(token::TRUE);			
 "false"				return(token::FALSE);			
 "model"				return(token::MODEL);			
-                
+
+ /*
+"unknown\n"   yylloc->lines (yyleng); return(token::UNKNOWN);			
+"unsat\n"     yylloc->lines (yyleng); return(token::UNSAT);			
+"sat\n"	      yylloc->lines (yyleng); return(token::SAT);
+"model\n"     yylloc->lines (yyleng); return(token::MODEL);
+*/			
+         
 "Int"				return(token::TYPE);			
 "Real"				return(token::TYPE);			
 "Bool"				return(token::BOOLTYPE);			

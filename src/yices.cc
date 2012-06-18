@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <gmp.h>
 #include "yices_c.h"

@@ -3,14 +3,14 @@
 DEST=build
 DEST_LINKS=.
 
-CUDD_VERSION=2.4.2
-YICES_VERSION=1.0.31
+CUDD_VERSION=2.5.0
+YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_VERSION=2.19
+Z3_VERSION=4.0
 Z3_ARCH=
-LLVM_VERSION=2.9
-APRON_VERSION=0.9.10
-PPL_VERSION=0.11.2
+LLVM_VERSION=3.1
+APRON_VERSION=2012-05-14
+PPL_VERSION=0.12.1
 CUDD_XCFLAGS=
 
 ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
@@ -45,8 +45,8 @@ CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 Z3_ARCHIVE=z3$(Z3_ARCH)-$(Z3_VERSION).tar.gz
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).tar.gz
-CLANG_ARCHIVE=clang-$(LLVM_VERSION).tgz
-APRON_ARCHIVE=apron-$(APRON_VERSION).tgz
+CLANG_ARCHIVE=clang-$(LLVM_VERSION).tar.gz
+APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
 DEST_ABS=${shell mkdir -p "$(DEST)" && cd $(DEST) && pwd}
@@ -85,9 +85,8 @@ $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
-$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE) cudd.patch
+$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
-	(cd $(DEST)/"cudd-$(CUDD_VERSION)" && patch -p1) < ./cudd.patch
 	touch --no-create "$@"
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
@@ -123,10 +122,10 @@ $(Z3_COMPILED): $(DEST)/$(Z3_ARCHIVE)
 
 #### LLVM + Clang Installation
 $(DEST)/$(LLVM_ARCHIVE):
-	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/llvm-$(LLVM_VERSION).tgz" "$@"
+	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/$(LLVM_ARCHIVE)" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)"
+	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
 	touch --no-create "$@"
 
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
@@ -141,15 +140,15 @@ $(DEST)/$(CLANG_ARCHIVE):
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION) clang
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION).src clang
 	touch --no-create "$@"
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
-	$(DOWNLOAD) 'http://apron.cri.ensmp.fr/library/$(APRON_ARCHIVE)' "$@"
+	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/201/$(APRON_ARCHIVE)' "$@"
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)"
+	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
 	touch --no-create "$@"
 
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)

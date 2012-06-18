@@ -1,0 +1,11 @@
+--- bindings/ocaml/llvm/Makefile.old	2012-05-11 18:47:58.756428505 +0200
++++ bindings/ocaml/llvm/Makefile	2012-05-11 18:48:22.626428506 +0200
+@@ -30,7 +30,7 @@
+ $(OcamlDir)/META.llvm: META.llvm
+ 	$(Verb) $(CP) -f $< $@
+ 
+-install-meta:: $(ObjDir)/META.llvm
++install-meta:: $(OcamlDir)/META.llvm
+ 	$(Echo) "Install $(BuildMode) $(DestMETA)"
+ 	$(Verb) $(MKDIR) $(PROJ_libocamldir)
+ 	$(Verb) $(DataInstall) META.llvm "$(DestMETA)"

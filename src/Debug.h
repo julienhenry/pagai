@@ -4,6 +4,8 @@
 // Don't use LLVM's DEBUG statement
 #undef DEBUG
 
+//#define PRINT_DEBUG
+
 #ifdef PRINT_DEBUG
 #define DEBUG(X) do {X} while (0)
 #else

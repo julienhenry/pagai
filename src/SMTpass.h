@@ -6,6 +6,7 @@
 #include <list>
 #include <set>
 
+#include "llvm/Config/config.h"
 #include "llvm/Support/InstVisitor.h"
 
 #include "Analyzer.h"
@@ -167,7 +168,9 @@ class SMTpass : public InstVisitor<SMTpass> {
 		void visitSwitchInst (SwitchInst &I);
 		void visitIndirectBrInst (IndirectBrInst &I);
 		void visitInvokeInst (InvokeInst &I);
+#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
 		void visitUnwindInst (UnwindInst &I);
+#endif
 		void visitUnreachableInst (UnreachableInst &I);
 		void visitICmpInst (ICmpInst &I);
 		void visitFCmpInst (FCmpInst &I);

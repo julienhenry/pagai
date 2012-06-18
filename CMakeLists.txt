@@ -119,7 +119,7 @@ macro(add_cudd_library PROG LIB)
     "Required CUDD library '${LIB}' (i.e lib${LIB}) not found
 (I've searched in ${CUDD_PATH} and ${CUDD_PATH}/${LIB}).
 Please, install CUDD if needed and set \$CUDD_PATH accordingly."
-    "${CUDD_PATH}" "${CUDD_PATH}/${LIB}"
+    "${CUDD_PATH}" "${CUDD_PATH}/${LIB}" "${CUDD_PATH}/lib"
     )
 endmacro()
 

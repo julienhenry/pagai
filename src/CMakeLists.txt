@@ -41,9 +41,11 @@ link_directories(
 find_package(BISON)
 find_package(FLEX)
 BISON_TARGET(SMTlib2parser SMTlib2parser.yy
-	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2parser.cc)
+	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2parser.cc
+        COMPILE_FLAGS --report=state)
 FLEX_TARGET(SMTlib2lexer SMTlib2lexer.lex
-	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2lexer.cc)
+	${CMAKE_CURRENT_BINARY_DIR}/SMTlib2lexer.cc
+        COMPILE_FLAGS --always-interactive)
 ADD_FLEX_BISON_DEPENDENCY(SMTlib2lexer SMTlib2parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

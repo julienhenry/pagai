@@ -882,10 +882,12 @@ void AIPass::visitInvokeInst (InvokeInst &I){
 	visitInstAndAddVarIfNecessary(I);
 }
 
+#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
 void AIPass::visitUnwindInst (UnwindInst &I){
 	//*Out << "UnwindInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
+#endif
 
 void AIPass::visitUnreachableInst (UnreachableInst &I){
 	//*Out << "UnreachableInst\n" << I << "\n";	
