@@ -10,7 +10,7 @@ RESFILES=$(CFILES:%.c=res/%.res)
 all: $(BCFILES)
 
 bin/%.bc: %.c
-	$(COMPILE_LLVM) -i $*.c -o $@
+	$(COMPILE_LLVM) -g -i $*.c -o $@
 
 res/%.res: bin/%.bc
 	$(PAGAI_SH) -i bin/$*.bc -o $@
