@@ -12,7 +12,7 @@ for k in `seq 0 27` ; do
 	ALL[$k]=0
 done
 
-LATEX=0
+LATEX=1
 PRINT_TIME=0
 
 for dir in `ls` ; do
