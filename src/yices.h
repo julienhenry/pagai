@@ -60,6 +60,7 @@ class yices: public SMT_manager {
 		void pop_context();
 
 		void SMT_print(SMT_expr a);
+		void SMT_assert(SMT_expr a);
 		int SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
 };
 #endif

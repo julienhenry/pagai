@@ -302,6 +302,10 @@ void z3_manager::SMT_print(SMT_expr a){
 				(Z3_ast)a);
 }
 
+void z3_manager::SMT_assert(SMT_expr a){
+	Z3_assert_cnstr(ctx,(Z3_ast)a);
+}
+
 int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
 	int ret = 0;

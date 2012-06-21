@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 			{"domain2",  required_argument, 0, 'e'},
 			{"input",  required_argument, 0, 'i'},
 			{"output",    required_argument, 0, 'o'},
-			{"solver",    no_argument, 0, 's'},
+			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
 			{0, 0, 0, 0}
 		};

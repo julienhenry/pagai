@@ -115,8 +115,10 @@ void AIdis::computeFunction(Function * F) {
 		*Out << "Computing Pr...\n";
 	);
 	Pr::getPr(*F);
+
+	LSMT->push_context();
 	*Out << "Computing Rho...";
-	LSMT->getRho(*F);
+	LSMT->SMT_assert(LSMT->getRho(*F));
 	*Out << "OK\n";
 
 	// add all function's arguments into the environment of the first bb
@@ -154,6 +156,7 @@ void AIdis::computeFunction(Function * F) {
 			if (unknown) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
+				LSMT->pop_context();
 				return;
 			}
 		}
@@ -178,6 +181,7 @@ void AIdis::computeFunction(Function * F) {
 			step++;
 		}
 	}
+	LSMT->pop_context();
 }
 
 std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {

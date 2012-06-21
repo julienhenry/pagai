@@ -559,6 +559,10 @@ void SMTpass::pop_context() {
 	man->pop_context();
 }
 
+void SMTpass::SMT_assert(SMT_expr expr) {
+	man->SMT_assert(expr);
+}
+
 /// createSMTformula - create the smt formula that is described in the paper
 ///
 SMT_expr SMTpass::createSMTformula(
@@ -568,7 +572,7 @@ SMT_expr SMTpass::createSMTformula(
 	SMT_expr constraint) {
 	Function &F = *source->getParent();
 	std::vector<SMT_expr> formula;
-	formula.push_back(getRho(F));
+	//formula.push_back(getRho(F));
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(source,true));
 	formula.push_back(man->SMT_mk_expr_from_bool_var(bvar));

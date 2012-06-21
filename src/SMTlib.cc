@@ -495,6 +495,17 @@ void SMTlib::SMT_print(SMT_expr a){
 	*Out << *((std::string*)a) << "\n";
 }
 
+void SMTlib::SMT_assert(SMT_expr a){
+	std::ostringstream oss;
+	oss << "(assert "
+		<< *((std::string*)a)
+		<< ")\n";
+	DEBUG(
+			*Out << "\n\n" << oss.str() << "\n\n";
+		 );
+	pwrite(oss.str());
+}
+
 int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	int ret;
 	std::ostringstream oss;

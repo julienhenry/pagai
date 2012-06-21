@@ -98,8 +98,9 @@ void AIpf::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
+	LSMT->push_context();
 	*Out << "Computing Rho...";
-	LSMT->getRho(*F);
+	LSMT->SMT_assert(LSMT->getRho(*F));
 	*Out << "OK\n";
 
 	
@@ -129,6 +130,7 @@ void AIpf::computeFunction(Function * F) {
 		narrowingIter(n);
 		step++;
 	}
+	LSMT->pop_context();
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {

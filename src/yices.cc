@@ -242,6 +242,10 @@ void yices::SMT_print(SMT_expr a) {
 	*Out << "\n";
 }
 
+void yices::SMT_assert(SMT_expr a){
+	yices_assert(ctx,(yices_expr)a);
+}
+
 int yices::SMT_check(SMT_expr a, std::set<std::string> * true_booleans) {
 	//yices_pp_expr ((yices_expr)a);
 	yices_set_arith_only(1);

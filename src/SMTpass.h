@@ -115,6 +115,9 @@ class SMTpass : public InstVisitor<SMTpass> {
 		void push_context();
 		/// pop_context - pop the context of the SMT manager
 		void pop_context();
+
+		/// assert an expression in the solver
+		void SMT_assert(SMT_expr expr);
 		
 		/// createSMTformula - compute and return the SMT formula associated to
 		/// the BasicBlock source, as described in the paper
