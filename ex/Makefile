@@ -13,12 +13,15 @@ bin/%.bc: %.c
 	$(COMPILE_LLVM) -g -i $*.c -o $@
 
 res/%.res: bin/%.bc
-	$(PAGAI_SH) -i bin/$*.bc -o $@
+	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ "
 
-clean:
+realclean:
 	rm bin/*.bc
 	rm res/*.res
 
+clean:
+	rm res/*.res
+
 test: $(RESFILES)
-	mkdir res
+	if [ ! -d res ] ; then mkdir res; fi
 
