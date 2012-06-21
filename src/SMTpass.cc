@@ -36,6 +36,7 @@ SMTpass::SMTpass() {
 		default:
 			man = new SMTlib();
 	}
+	man->push_context();
 }
 
 SMTpass::~SMTpass() {
@@ -58,18 +59,8 @@ SMT_expr SMTpass::getRho(Function &F) {
 
 void SMTpass::reset_SMTcontext() {
 	rho.clear();
-	delete man;
-	switch (getSMTSolver()) {
-		case API_Z3:
-			man = new z3_manager();
-			break;
-		case API_YICES: 
-			man = new yices();
-			break;
-		default:
-			man = new SMTlib();
-			break;
-	}
+	man->pop_context();
+	man->push_context();
 }
 
 SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
