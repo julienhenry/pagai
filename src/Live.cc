@@ -49,6 +49,8 @@ bool Live::isUsedInPHIBlock(Value *V, BasicBlock *BB) {
 
 
 bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock) {
+	if (Argument * arg = dyn_cast<Argument>(V))
+		return true;
 	if (isLiveThroughBlock(V,BB,PHIblock)) {
 		return true;
 	} else {

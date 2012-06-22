@@ -73,7 +73,7 @@ fi
 if [ $OPT -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
 else
-	opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
+	opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
 fi
 
 if [ $GRAPH -eq 1 ] ; then
