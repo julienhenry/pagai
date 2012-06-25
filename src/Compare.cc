@@ -94,6 +94,8 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	P2.T = t2;
 	P1.D = getApronManager();
 	P2.D = getApronManager();
+	P1.N = useNewNarrowing();
+	P2.N = useNewNarrowing();
 	P1.TH = useThreshold();
 	P2.TH = useThreshold();
 
@@ -123,6 +125,7 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 	params P;
 	P.T = t;
 	P.D = getApronManager();
+	P.N = useNewNarrowing();
 	P.TH = useThreshold();
 	
 	if (Time.count(t)) {

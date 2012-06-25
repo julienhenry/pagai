@@ -43,7 +43,7 @@
 %token MODEL
 %token UNSUPPORTED ERROR SUCCESS
 %token DEFINEFUN
-%token DIVIDE
+%token DIVIDE MINUS
 %token<bval> TRUE FALSE
 %token SAT UNSAT UNKNOWN
 %token LEFTPAR RIGHTPAR
@@ -117,6 +117,7 @@ FunValue:
 		INTVALUE						{$$ = false;}
 		| REALVALUE						{$$ = false;}
 		| LEFTPAR DIVIDE REALVALUE REALVALUE RIGHTPAR {$$ = false;}
+		| LEFTPAR MINUS LEFTPAR DIVIDE REALVALUE REALVALUE RIGHTPAR RIGHTPAR {$$ = false;}
 		| BoolValue						{$$ = $1;}
 		| LEFTPAR FunValue RIGHTPAR		{$$ = $2;}
 		;
