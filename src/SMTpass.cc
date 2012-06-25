@@ -369,17 +369,12 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 		return man->SMT_mk_num((int)n);
 	} else if (isa<ConstantFP>(v)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(v);
-		double x = FP->getValueAPF().convertToDouble();
-		if (FP->isExactlyValue(x)) {
-			DEBUG(
-			*Out << "getValueExpr" << *v << " (exactly " << x << ")\n";
-			);
-		} else {
-			DEBUG(
-			*Out << "getValueExpr" << *v << " (NOT exactly " << x << ")\n";
-			);
-			float f = FP->getValueAPF().convertToFloat(); 
-			x = f;
+		APFloat APF = FP->getValueAPF();
+		double x;
+		if (FP->getType()->isFloatTy()) {
+			x = (double)APF.convertToFloat();
+		} else if (FP->getType()->isDoubleTy()) {
+			x = APF.convertToDouble();
 		}
 		return man->SMT_mk_real(x);
 	} else if (isa<UndefValue>(v)) {

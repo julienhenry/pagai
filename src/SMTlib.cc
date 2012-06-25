@@ -317,19 +317,67 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 	return res;
 }
 
+std::string num_to_string(std::string num,int exponent) {
+	switch (exponent) {
+		case 0:
+			return num;
+		default:
+			std::string r;
+			if (exponent > 0) {
+				r = "1";
+				for (int i = exponent; i > 0; i--) {
+					r.append("0");
+				}
+				r.append(".0");
+			} else {
+				r = "0.";
+				for (int i = exponent; i > 1; i--) {
+					r.append("0");
+				}
+				r.append("1");
+			}
+			std::ostringstream oss;
+			oss << "(* " << num << ".0 " << r << ")";
+			return oss.str();
+	}
+}
+
 SMT_expr SMTlib::SMT_mk_real (double x) {
 	std::ostringstream oss;
 	double intpart;
-	if (x == 0.0) { // necessary because printing -0.0 is an error
-		oss << "0.0";
+	bool is_neg = false;
+	bool is_zero = false;
+
+	mpf_t f;
+	mpf_init(f);
+	mpf_set_d(f,x);
+	switch (mpf_sgn(f)) {
+		case 0:
+			is_zero = true;
+			break;
+		case -1:
+			is_neg = true;
+			mpf_t fneg;
+			mpf_init(fneg);
+			mpf_abs(fneg,f);
+			mpf_set(f,fneg);
+			mpf_clear(fneg);
+			break;
+		default:
+			break;
 	}
-	else if (x < 0.0) {
-		oss << "(- " << -x;
-		if (modf(x, &intpart) == 0.0) oss << ".0";
-		oss << ")";
-	} else {
-		oss << x;
-		if (modf(x, &intpart) == 0.0) oss << ".0";
+	mp_exp_t expptr;
+	char * r = mpf_get_str(NULL,&expptr,10,0,f);
+	mpf_clear(f);
+	std::string num(r);
+	
+	if (is_zero)
+		oss << "0.0";
+	else {
+		if (is_neg) oss << "(- "; 
+		oss << num_to_string(num,expptr);
+		if (is_neg) oss << ")"; 
+		
 	}
 	std::string * res = new std::string(oss.str());
 	return res;
