@@ -73,11 +73,25 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 	SMT_expr val;
 	SMT_expr coefficient;
 
-	integer = false;
+	integer = true;
 	double value;
 	size_t i;
 	ap_var_t var;
 	ap_coeff_t* coeff;
+	
+	// first, we figure out if the expression has to be of type real instead of
+	// integer
+	// we iterate over the terms and find if there is some real variables
+	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
+		if (!((Value*)var)->getType()->isIntegerTy()) {
+			// check if the coeff associated to this non-int variable is != 0
+			// if it is, then the expression has to be of type real
+			coefficient = scalarToSmt(coeff->val.scalar,integer,value);
+			if (value != 0) {
+				integer = false;
+			}
+		}
+	}
 
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 
 		bool primed;
@@ -87,13 +101,12 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 			primed = false;
 		}
 		val = getValueExpr((Value*)var, primed);
-		if (((Value*)var)->getType()->isIntegerTy()) {
-			coefficient = scalarToSmt(coeff->val.scalar,true,value);
-			if (value != 0) 
-				integer = true;
-		} else {
-			coefficient = scalarToSmt(coeff->val.scalar,false,value);
+		
+		if ( !integer && ((Value*)var)->getType()->isIntegerTy()) {
+			val = man->SMT_mk_int2real(val);
 		}
+
+		coefficient = scalarToSmt(coeff->val.scalar,integer,value);
 		
 		if (value != 0) {
 			if (value == 1) {
@@ -197,6 +210,7 @@ SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
 		case AP_CONS_SUP: 
 			return man->SMT_mk_gt(texpr_smt,scalar_smt);
 		case AP_CONS_EQMOD:
+			// TODO : this is not correct 
 			return man->SMT_mk_eq(texpr_smt,scalar_smt);
 		case AP_CONS_DISEQ:
 			return man->SMT_mk_diseq(texpr_smt,scalar_smt);

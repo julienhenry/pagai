@@ -455,21 +455,21 @@ SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 
 SMT_expr SMTlib::SMT_mk_int2real(SMT_expr a) {
 	std::ostringstream oss;
-	oss << "to_real(" << *((std::string*)a) << ")";
+	oss << "(to_real " << *((std::string*)a) << ")";
 	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real2int(SMT_expr a) {
 	std::ostringstream oss;
-	oss << "to_int(" << *((std::string*)a) << ")";
+	oss << "(to_int " << *((std::string*)a) << ")";
 	std::string * res = new std::string(oss.str());
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_is_int(SMT_expr a) {
 	std::ostringstream oss;
-	oss << "is_int(" << *((std::string*)a) << ")";
+	oss << "(is_int " << *((std::string*)a) << ")";
 	std::string * res = new std::string("true");
 	return res;
 }
