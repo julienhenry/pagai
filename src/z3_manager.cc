@@ -220,7 +220,7 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 }
 
 
-SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
+SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
   assert(a1 != 0);
   assert(a2 != 0);
 	return Z3_mk_div(ctx,(Z3_ast)a1,(Z3_ast)a2);

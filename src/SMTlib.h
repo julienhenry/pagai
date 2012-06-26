@@ -77,7 +77,7 @@ class SMTlib: public SMT_manager {
 		SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
 #endif
 
-		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer = true);
 		SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2);
 
 		SMT_expr SMT_mk_int2real(SMT_expr a);

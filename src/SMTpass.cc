@@ -1001,8 +1001,10 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
-		case Instruction::FDiv: 
 			assign = man->SMT_mk_div(operands[0],operands[1]);
+			break;
+		case Instruction::FDiv: 
+			assign = man->SMT_mk_div(operands[0],operands[1],false);
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 

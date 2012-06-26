@@ -51,7 +51,7 @@ class SMT_manager {
 
 		virtual SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
 
-		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer = true) = 0;
 		virtual SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2) = 0;
 
 		virtual SMT_expr SMT_mk_int2real(SMT_expr a) = 0;

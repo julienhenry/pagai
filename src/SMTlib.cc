@@ -452,9 +452,15 @@ SMT_expr SMTlib::SMT_mk_mul (std::vector<SMT_expr> args){
 	}
 }
 
-SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
+
+SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
+	// the syntax in SMTlib 2 differs between integer and real division
 	std::ostringstream oss;
-	oss << "(div " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
+	if (integer)
+		oss << "(div ";
+	else
+		oss << "(/ ";
+	oss << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
 	std::string * res = new std::string(oss.str());
 	return res;
 }

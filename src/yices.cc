@@ -167,7 +167,7 @@ SMT_expr yices::SMT_mk_mul (std::vector<SMT_expr> args) {
 	}
 }
 
-SMT_expr yices::SMT_mk_div (SMT_expr a1, SMT_expr a2) {
+SMT_expr yices::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 	return NULL;
 }
 
