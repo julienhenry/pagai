@@ -753,11 +753,11 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 	BasicBlock * s = I.getSuccessor(0);
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(b,s));
 	SMT_expr eexpr = man->SMT_mk_expr_from_bool_var(evar);
-	SMT_expr components_and;
 
 	if (I.isUnconditional() || s == I.getSuccessor(1)) {
 		rho_components.push_back(man->SMT_mk_eq(eexpr,bexpr));
 	} else {
+		SMT_expr components_and;
 		std::vector<SMT_expr> components;
 		SMT_expr cond;
 		if (isa<CmpInst>(I.getOperand(0)))

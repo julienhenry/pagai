@@ -10,7 +10,6 @@
 typedef void* SMT_expr;
 typedef void* SMT_type;
 typedef void* SMT_var;
-typedef void* SMT_model;
 
 
 class SMT_manager {
