@@ -337,7 +337,7 @@ std::string num_to_string(std::string num,int exponent) {
 				r.append("1");
 			}
 			std::ostringstream oss;
-			oss << "(* " << num << ".0 " << r << ")";
+			oss << "(* 0." << num << " " << r << ")";
 			return oss.str();
 	}
 }
