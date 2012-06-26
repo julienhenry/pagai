@@ -318,9 +318,10 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 }
 
 std::string num_to_string(std::string num,int exponent) {
+	std::ostringstream oss;
 	switch (exponent) {
 		case 0:
-			return num;
+			oss << "0." << num;
 		default:
 			std::string r;
 			if (exponent > 0) {
@@ -336,10 +337,9 @@ std::string num_to_string(std::string num,int exponent) {
 				}
 				r.append("1");
 			}
-			std::ostringstream oss;
 			oss << "(* 0." << num << " " << r << ")";
-			return oss.str();
 	}
+	return oss.str();
 }
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
