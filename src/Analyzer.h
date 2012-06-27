@@ -25,6 +25,7 @@ enum Techniques {
 	GUIDED,
 	PATH_FOCUSING,
 	LW_WITH_PF,
+	COMBINED_INCR,
 	LW_WITH_PF_DISJ
 };
 

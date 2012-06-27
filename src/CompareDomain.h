@@ -63,6 +63,10 @@ void CompareDomain<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 			AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 			AU.addRequired<ModulePassWrapper<AIopt, 1> >();
 			break;
+		case COMBINED_INCR:
+			AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
+			AU.addRequired<ModulePassWrapper<AIopt_incr, 1> >();
+			break;
 		case SIMPLE:
 			AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 			AU.addRequired<ModulePassWrapper<AIClassic, 1> >();

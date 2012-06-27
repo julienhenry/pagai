@@ -46,6 +46,7 @@ void show_help() {
 		  * lw+pf (Henry, Monniaux & Moy, SAS'12), default\n \
 		  * s (simple abstract interpretation)\n \
 		  * dis (lw+pf, using disjunctive invariants)\n \
+		  * incr (s followed by lw+pf, results of s are injected in lw+pf)\n \
 		example: -t pf\n \
 --solver (-s) : select SMT Solver\n \
 		  * z3 (default)\n \
@@ -123,7 +124,9 @@ std::string TechniquesToString(Techniques t) {
 		case PATH_FOCUSING: 
 			return "PATH FOCUSING";
 		case LW_WITH_PF:
-			return "COMBINED TECHNIQUE";
+			return "COMBINED";
+		case COMBINED_INCR:
+			return "COMBINED INCR";
 		case SIMPLE:
 			return "CLASSIC";
 		case GUIDED:
@@ -198,6 +201,8 @@ bool setTechnique(char * t) {
 		technique = GUIDED;
 	} else if (!d.compare("dis")) {
 		technique = LW_WITH_PF_DISJ;
+	} else if (!d.compare("incr")) {
+		technique = COMBINED_INCR;
 	} else {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
 		return 1;
