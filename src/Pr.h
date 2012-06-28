@@ -38,6 +38,14 @@ class Pr : public ModulePass {
 				std::stack<Node*> * S,
 				std::set<BasicBlock*>* FPr);
 
+		bool computeLoopHeaders(Function &F,std::set<BasicBlock*>* FPr);
+		bool computeLoopHeaders_rec(
+				Function &F,
+				Node * n, 
+				int & N,
+				std::set<Node*> * S,
+				std::set<BasicBlock*>* FPr);
+
 		void minimize_Pr(Function &F);
 
 	public:
