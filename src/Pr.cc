@@ -119,18 +119,16 @@ bool Pr::computeLoopHeaders(Function &F,std::set<BasicBlock*>* FPr) {
 		index[Nodes[i]] = 0;
 	}
 	std::set<Node*> S;
-	int N = 1;
+	std::set<Node*> Seen;
 
-	computeLoopHeaders_rec(F,n,N,&S,FPr);
+	computeLoopHeaders_rec(F,n,&Seen,&S,FPr);
 	
 	return true;
 }
 
-bool Pr::computeLoopHeaders_rec(Function &F, Node * n, int & N,std::set<Node*> * S,std::set<BasicBlock*>* FPr) {
+bool Pr::computeLoopHeaders_rec(Function &F, Node * n,std::set<Node*> * Seen, std::set<Node*> * S,std::set<BasicBlock*>* FPr) {
 	Node * nsucc;
-	index[n]=N;
-	lowlink[n]=N;
-	N++;
+	Seen->insert(n);
 
 	if (S->count(n)) {
 		FPr->insert(n->bb);
@@ -146,7 +144,13 @@ bool Pr::computeLoopHeaders_rec(Function &F, Node * n, int & N,std::set<Node*> *
 		nsucc = Nodes[succ];
 		if (FPr->count(nsucc->bb))
 			continue;
-		computeLoopHeaders_rec(F,nsucc,N,&Set,FPr);
+		if (Seen->count(nsucc)) {
+			if (S->count(nsucc)) {
+				FPr->insert(nsucc->bb);
+			}
+			continue;
+		}
+		computeLoopHeaders_rec(F,nsucc,Seen,&Set,FPr);
 	}	
 	return true;
 }

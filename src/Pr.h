@@ -42,7 +42,7 @@ class Pr : public ModulePass {
 		bool computeLoopHeaders_rec(
 				Function &F,
 				Node * n, 
-				int & N,
+				std::set<Node*> * Seen,
 				std::set<Node*> * S,
 				std::set<BasicBlock*>* FPr);
 
