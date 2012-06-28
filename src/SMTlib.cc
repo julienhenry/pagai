@@ -322,6 +322,7 @@ std::string num_to_string(std::string num,int exponent) {
 	switch (exponent) {
 		case 0:
 			oss << "0." << num;
+			break;
 		default:
 			std::string r;
 			if (exponent > 0) {
