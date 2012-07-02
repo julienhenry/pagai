@@ -392,3 +392,8 @@ void z3_manager::push_context() {
 void z3_manager::pop_context() {
 	Z3_pop(ctx, 1);
 }
+
+bool z3_manager::interrupt() {
+  Z3_interrupt(ctx);
+  return true;
+}

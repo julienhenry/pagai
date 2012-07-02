@@ -67,6 +67,8 @@ class SMT_manager {
 		virtual void SMT_assert(SMT_expr a) = 0;
 		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
+		virtual bool interrupt();
+ 
 		static std::vector<SMT_expr> vec2(SMT_expr a1, SMT_expr a2) {
 		  std::vector<SMT_expr> vec;
 		  vec.push_back(a1);

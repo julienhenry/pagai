@@ -15,7 +15,6 @@
 #include "Debug.h"
 #include "SMTlib2driver.h"
 
-// MathSat uses a different model format
 
 SMTlib::SMTlib() {
 #ifdef LOG_SMT
@@ -32,8 +31,8 @@ SMTlib::SMTlib() {
 	int_type = new std::string("Int");
 	float_type = new std::string("Real");
 
-	pid_t cpid;
 	char buf;
+	solver_pid = 0;
 
 	if (pipe(rpipefd) == -1) {
 		exit(EXIT_FAILURE);
@@ -42,7 +41,7 @@ SMTlib::SMTlib() {
 		exit(EXIT_FAILURE);
 	}
 
-	cpid = fork();
+	pid_t cpid = fork();
 	if (cpid == -1) {
 		exit(EXIT_FAILURE);
 	}
@@ -99,7 +98,9 @@ SMTlib::SMTlib() {
 				exit(1);
 		}
 	}
+
 	/* Parent : PAGAI */
+	solver_pid = cpid;
 	close(wpipefd[0]);
 	close(rpipefd[1]);
 	input = fdopen(rpipefd[0],"r");
@@ -605,4 +606,9 @@ void SMTlib::pop_context() {
 	}
 	vars.clear();
 	vars.insert(tmpvars.begin(), tmpvars.end());
+}
+
+bool SMTlib::interrupt() {
+  kill(solver_pid, SIGINT);
+  return true;
 }
