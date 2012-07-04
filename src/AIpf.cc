@@ -171,7 +171,8 @@ void AIpf::computeNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID);
+		SMT_expr T = LSMT->man->SMT_mk_true();
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
@@ -281,7 +282,8 @@ void AIpf::narrowNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
+		SMT_expr T = LSMT->man->SMT_mk_true();
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out

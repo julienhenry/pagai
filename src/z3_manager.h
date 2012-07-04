@@ -16,7 +16,7 @@ class z3_manager: public SMT_manager {
 		Z3_context ctx;
 		std::map<std::string,SMT_var> vars;
 		std::map<SMT_var,SMT_type> types;
-		Z3_sort bool_type;
+		SMT_type bool_type;
 		SMT_expr int0, real0;
 
 	public:

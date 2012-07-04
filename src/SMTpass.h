@@ -128,7 +128,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 			BasicBlock * source, 
 			bool use_X_d, 
 			params t,
-			SMT_expr constraint = NULL);
+			SMT_expr constraint);
 
 		/// solve the SMT expression expr and return true iff expr is
 		/// satisfiable. In this case, path containts the path extracted from

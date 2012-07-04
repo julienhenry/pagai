@@ -28,8 +28,8 @@ SMTlib::SMTlib() {
 
 	stack_level = 0;
 
-	int_type = new std::string("Int");
-	float_type = new std::string("Real");
+	int_type.s = std::string("Int");
+	float_type.s = std::string("Real");
 
 	char buf;
 	solver_pid = 0;
@@ -170,18 +170,22 @@ int SMTlib::pread() {
 }
 
 SMT_expr SMTlib::SMT_mk_true(){
-	std::string * res = new std::string("true");
+	SMT_expr res;
+	res.s = std::string("true");
+	res.i = NULL;
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_false(){
-	std::string * res = new std::string("false");
+	SMT_expr res;
+	res.s = std::string("false");
 	return res;
 }
 
 SMT_var SMTlib::SMT_mk_bool_var(std::string name){
 	if (!vars.count(name)) {
-		std::string * res = new std::string(name);
+		SMT_var res;
+		res.s = name;
 		vars[name].var = res;
 		vars[name].stack_level = stack_level;
 
@@ -194,34 +198,37 @@ SMT_var SMTlib::SMT_mk_bool_var(std::string name){
 
 SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 	if (!vars.count(name)) {
-		std::string * res = new std::string(name);
+		SMT_var res;
+		res.s = name;
 		vars[name].var = res;
 		vars[name].stack_level = stack_level;
 		std::ostringstream oss;
-		oss << "(declare-fun " << name << " () " << *((std::string*)type) << ")\n";
+		oss << "(declare-fun " << name << " () " << type.s << ")\n";
 		pwrite(oss.str());
 	}
 	return vars[name].var;
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_bool_var(SMT_var var){
-	std::string * res = new std::string(*((std::string*)var));
+	SMT_expr res;
+	res.s = var.s;
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_var(SMT_var var){
-	std::string * res = new std::string(*((std::string*)var));
+	SMT_expr res;
+	res.s = var.s;
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_or (std::vector<SMT_expr> args){
-	std::string * res;
+	SMT_expr res;
 	switch (args.size()) {
 		case 0:
 			return SMT_mk_true();
 			break;
 		case 1:
-			res = new std::string(*((std::string*)args[0]));
+			res.s = args[0].s;
 			return res;
 			break;
 		default:
@@ -230,22 +237,22 @@ SMT_expr SMTlib::SMT_mk_or (std::vector<SMT_expr> args){
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				oss << *((std::string*)*b) << " ";
+				oss << (*b).s << " ";
 			}
 			oss << ")";
-			res = new std::string(oss.str());
+			res.s = oss.str();
 			return res;
 	}
 }
 
 SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
-	std::string * res;
+	SMT_expr res;
 	switch (args.size()) {
 		case 0:
 			return SMT_mk_true();
 			break;
 		case 1:
-			res = new std::string(*((std::string*)args[0]));
+			res.s = args[0].s;
 			return res;
 			break;
 		default:
@@ -254,56 +261,62 @@ SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				oss << *((std::string*)*b) << " ";
+				oss << (*b).s << " ";
 			}
 			oss << ")";
-			res = new std::string(oss.str());
+			res.s = oss.str();
 			return res;
 	}
 }
 
 SMT_expr SMTlib::SMT_mk_eq (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(= " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(not (= " << *((std::string*)a1) << " " << *((std::string*)a2) << "))";
-	std::string * res = new std::string(oss.str());
+	oss << "(not (= " << a1.s << " " << a2.s << "))";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){
+	SMT_expr res;
 	std::ostringstream oss;
 	oss << "(ite "
-		<< *((std::string*)c) << " "
-		<< *((std::string*)t) << " "
-		<< *((std::string*)e) << ")";
-	std::string * res = new std::string(oss.str());
+		<< c.s << " "
+		<< t.s << " "
+		<< e.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_not (SMT_expr a){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(not " << *((std::string*)a) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(not " << a.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_num (int n){
+	SMT_expr res;
 	std::ostringstream oss;
 	if (n < 0)
 		oss << "(- " << -n << ")";
 	else
 		oss << n;
-	std::string * res = new std::string(oss.str());
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
+	SMT_expr res;
 	std::ostringstream oss;
 	if (mpq_sgn(mpq) < 0) {
 		mpq_t nmpq;
@@ -314,7 +327,7 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 	} else {
 		oss << mpq;
 	}
-	std::string * res = new std::string(oss.str());
+	res.s = oss.str();
 	return res;
 }
 
@@ -345,6 +358,7 @@ std::string num_to_string(std::string num,int exponent) {
 }
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
+	SMT_expr res;
 	std::ostringstream oss;
 	double intpart;
 	bool is_neg = false;
@@ -381,41 +395,40 @@ SMT_expr SMTlib::SMT_mk_real (double x) {
 		if (is_neg) oss << ")"; 
 		
 	}
-	std::string * res = new std::string(oss.str());
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_sum (std::vector<SMT_expr> args){
-	std::string * res;
+	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			res.s = std::string("");
 			break;
 		case 1:
-			res = new std::string(*((std::string*)args[0]));
-			return res;
+			res.s = args[0].s;
 			break;
 		default:
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			std::ostringstream oss;
 			oss << "(+ "; 
 			for (; b != e; ++b) {
-				oss << *((std::string*)*b) << " ";
+				oss << (*b).s << " ";
 			}
 			oss << ")";
-			res = new std::string(oss.str());
-			return res;
+			res.s = oss.str();
 	}
+	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_sub (std::vector<SMT_expr> args){
-	std::string * res;
+	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			res.s = std::string("");
 			break;
 		case 1:
-			res = new std::string(*((std::string*)args[0]));
+			res.s = args[0].s;
 			return res;
 			break;
 		default:
@@ -423,22 +436,22 @@ SMT_expr SMTlib::SMT_mk_sub (std::vector<SMT_expr> args){
 			std::ostringstream oss;
 			oss << "(- "; 
 			for (; b != e; ++b) {
-				oss << *((std::string*)*b) << " ";
+				oss << (*b).s << " ";
 			}
 			oss << ")";
-			res = new std::string(oss.str());
-			return res;
+			res.s = oss.str();
 	}
+	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_mul (std::vector<SMT_expr> args){
-	std::string * res = new std::string("true");
+	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			return NULL;
+			res.s = std::string("");
 			break;
 		case 1:
-			res = new std::string(*((std::string*)args[0]));
+			res.s = args[0].s;
 			return res;
 			break;
 		default:
@@ -446,118 +459,131 @@ SMT_expr SMTlib::SMT_mk_mul (std::vector<SMT_expr> args){
 			std::ostringstream oss;
 			oss << "(* "; 
 			for (; b != e; ++b) {
-				oss << *((std::string*)*b) << " ";
+				oss << (*b).s << " ";
 			}
 			oss << ")";
-			res = new std::string(oss.str());
-			return res;
+			res.s = oss.str();
 	}
+	return res;
 }
 
 
 SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
+	SMT_expr res;
 	// the syntax in SMTlib 2 differs between integer and real division
 	std::ostringstream oss;
 	if (integer)
 		oss << "(div ";
 	else
 		oss << "(/ ";
-	oss << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(mod " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(mod " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(xor " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(xor " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(< " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(< " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_le (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(<= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(<= " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_gt (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(> " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(> " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(>= " << *((std::string*)a1) << " " << *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(>= " << a1.s << " " << a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_int2real(SMT_expr a) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(to_real " << *((std::string*)a) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(to_real " << a.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real2int(SMT_expr a) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(to_int " << *((std::string*)a) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "(to_int " << a.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_is_int(SMT_expr a) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "(is_int " << *((std::string*)a) << ")";
-	std::string * res = new std::string("true");
+	oss << "(is_int " << a.s << ")";
+	res.s = oss.str();
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_int0() {
-	std::string * res = new std::string("0");
+	SMT_expr res;
+	res.s = std::string("0");
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_real0() {
-	std::string * res = new std::string("0.0");
+	SMT_expr res;
+	res.s = std::string("0.0");
 	return res;
 }
 
 #if SMT_SUPPORTS_DIVIDES
 // WORKS ONLY FOR CONSTANT a2
 SMT_expr SMTlib::SMT_mk_divides (SMT_expr a1, SMT_expr a2) {
+	SMT_expr res;
 	std::ostringstream oss;
-	oss << "((_ divisible " <<  *((std::string*)a1) << ") " <<  *((std::string*)a2) << ")";
-	std::string * res = new std::string(oss.str());
+	oss << "((_ divisible " <<  a1.s << ") " <<  a2.s << ")";
+	res.s = oss.str();
 	return res;
 }
 #endif
 
 void SMTlib::SMT_print(SMT_expr a){
-	*Out << *((std::string*)a) << "\n";
+	*Out << a.s << "\n";
 }
 
 void SMTlib::SMT_assert(SMT_expr a){
 	std::ostringstream oss;
 	oss << "(assert "
-		<< *((std::string*)a)
+		<< a.s
 		<< ")\n";
 	DEBUG(
 			*Out << "\n\n" << oss.str() << "\n\n";
@@ -569,7 +595,7 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	int ret;
 	std::ostringstream oss;
 	oss << "(assert "
-		<< *((std::string*)a)
+		<< a.s
 		<< ")\n";
 	oss << "(check-sat)\n";
 	DEBUG(

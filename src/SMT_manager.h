@@ -7,9 +7,59 @@
 #include "gmp.h"
 #include "mpfr.h"
 
-typedef void* SMT_expr;
-typedef void* SMT_type;
-typedef void* SMT_var;
+
+class SMT_expr {
+	public:
+		std::string s;
+		void* i;
+
+		SMT_expr () {
+			s = std::string("");
+			i = NULL;
+		}
+
+		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {}
+
+		~SMT_expr(){}
+
+		bool is_empty() {
+			return i == NULL && s == "";
+		}
+};
+
+typedef struct _SMT_type {
+	std::string s;
+	void* i;
+} SMT_type;
+
+class SMT_var {
+	public:
+		std::string s;
+		void* i;
+	
+		int Compare (const SMT_var& v) const {
+			if (i < v.i)
+				return -1;
+			else if (i > v.i)
+				return 1;
+			else {
+				if (s < v.s)
+					return -1;
+				else if (s > v.s)
+					return 1;
+				else return 0;
+			}
+		}
+
+		bool operator == (const SMT_var& v) const {
+		   return !Compare(v);
+		}
+		
+		bool operator < (const SMT_var& v) const {
+		  return Compare(v)<0;   
+		}
+
+}; 
 
 
 class SMT_manager {

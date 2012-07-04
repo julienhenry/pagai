@@ -65,7 +65,8 @@ void SMTpass::reset_SMTcontext() {
 
 SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
 	// NOT IMPLEMENTED
-	return NULL;
+	SMT_expr NULL_expr;
+	return NULL_expr;
 }
 
 SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer) {
@@ -145,7 +146,7 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
 	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
 	//ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
-	SMT_expr scalar_smt = NULL;
+	SMT_expr scalar_smt;
 	bool integer;
 	SMT_expr linexpr_smt = linexpr1ToSmt(b, linexpr, integer);
 	if (integer || *constyp == AP_CONS_EQMOD)
@@ -190,7 +191,8 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 			return man->SMT_mk_diseq(linexpr_smt,scalar_smt);
 	}
 	// unreachable
-	return NULL;
+	SMT_expr NULL_expr;
+	return NULL_expr;
 }
 
 SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
@@ -216,7 +218,8 @@ SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
 			return man->SMT_mk_diseq(texpr_smt,scalar_smt);
 	}
 	// unreachable
-	return NULL;
+	SMT_expr NULL_expr;
+	return NULL_expr;
 }
 
 
@@ -224,7 +227,7 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 	std::vector<SMT_expr> disj;
 	int N = A->getMaxIndex();
 	if (insert_booleans) {
-		SMT_expr D[N+1];
+		std::vector<SMT_expr> D;
 		// we create a boolean predicate for each disjunct
 		for (int index = 0;index <= N; index++) {
 			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
@@ -330,6 +333,7 @@ SMT_var SMTpass::getVar(Value * v, bool primed) {
 
 SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	SMT_var var;
+	SMT_expr NULL_res;
 
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type(v, ap_type)) {
@@ -337,7 +341,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 		if (ap_type == AP_RTYPE_INT) {
 			// this is a boolean
 			// so we can create a boolean variable
-			SMT_expr cond = NULL;
+			SMT_expr cond;
 			if (isa<CmpInst>(v)) {
 				cond = computeCondition(dyn_cast<CmpInst>(v));
 			} else if (isa<PHINode>(v)) {
@@ -352,14 +356,14 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 					cond = man->SMT_mk_true();
 				}
 			} 
-			if (cond == NULL) {
+			if (cond.is_empty()) {
 				SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(v));
 				cond = man->SMT_mk_expr_from_bool_var(cvar);
 			}
 			return cond;
 		} else {
 			*Out << "ERROR: getValueExpr returns NULL\n";
-			return NULL;
+			return NULL_res;
 		}
 	}
 
@@ -390,7 +394,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 		var = getVar(v,primed);
 		return man->SMT_mk_expr_from_var(var);
 	}
-	return NULL;
+	return NULL_res;
 }
 
 /// getElementFromString - 
@@ -623,7 +627,7 @@ SMT_expr SMTpass::createSMTformula(
 		formula.push_back(man->SMT_mk_false());
 
 	// if constraint argument is specified, we insert it into our formula
-	if (constraint != NULL)
+	if (!constraint.is_empty())
 		formula.push_back(constraint);
 
 	return man->SMT_mk_and(formula);
@@ -702,6 +706,7 @@ SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 	op1 = getValueExpr(inst->getOperand(0), false);
 	op2 = getValueExpr(inst->getOperand(1), false);
 
+	SMT_expr NULL_res;
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
 			return man->SMT_mk_false();
@@ -740,9 +745,9 @@ SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
 			*Out << "ERROR : Unknown predicate\n";
-			return NULL;
+			return NULL_res;
 	}
-	return NULL;
+	return NULL_res;
 }
 
 void SMTpass::visitBranchInst (BranchInst &I) {
@@ -770,7 +775,7 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 		}
 
 		components.push_back(bexpr);
-		if (cond != NULL)
+		if (!cond.is_empty())
 			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
@@ -781,7 +786,7 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 		evar = man->SMT_mk_bool_var(getEdgeName(b,s));
 		eexpr = man->SMT_mk_expr_from_bool_var(evar);
 		components.push_back(bexpr);
-		if (cond != NULL)
+		if (!cond.is_empty())
 			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
@@ -969,7 +974,7 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	//primed[I.getParent()].insert(&I);
 	//exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
-	SMT_expr assign = NULL;	
+	SMT_expr assign;	
 	std::vector<SMT_expr> operands;
 	operands.push_back(getValueExpr(I.getOperand(0), false));
 	operands.push_back(getValueExpr(I.getOperand(1), false));
