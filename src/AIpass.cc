@@ -1068,18 +1068,6 @@ void AIPass::visitCallInst(CallInst &I){
 	//std::string fname = F->getName();
 	//*Out << "FOUND FUNCTION " << fname << "\n";
 	
-	//if (const DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(Insn)) {
-	if (const DbgValueInst *DVI = dyn_cast<DbgValueInst>(&I)) {
-		//DIVariable DV = DDI->getVariable();
-		//StringRef VarName = DV.getName();
-		const Value * val = DVI->getValue();
-		MDNode * md = DVI->getVariable();
-		if (const MDString * MDS = dyn_cast<MDString>(md->getOperand(2))) {
-			//*Out << MDS->getString().str() << "\n";
-		}
-	}
-
-
 	visitInstAndAddVarIfNecessary(I);
 }
 
