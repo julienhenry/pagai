@@ -83,8 +83,10 @@ Assoc_list:
        ;
 
 Assoc:
-	LEFTPAR VARNAME FunValue RIGHTPAR {
-	if ($3) { driver.model.insert(*$2); } }
+	LEFTPAR VARNAME FunValue RIGHTPAR	{
+											if ($3) { driver.model.insert(*$2); }
+											delete $2;
+										}
 
 Model:
 	 LEFTPAR MODEL Model_list RIGHTPAR;
@@ -100,9 +102,11 @@ Model_list:
 DefineFun:
 		 LEFTPAR DEFINEFUN FunName FunArgs FunType FunValue RIGHTPAR
 							{
-								if ($5 && $6) {
+								if ($5 && $6) 
 									driver.model.insert(*$3);
-									}
+								// FunName is associated to a string*, we
+								// have to delete it
+								delete $3;
 							}
 		 ;
 
@@ -129,7 +133,12 @@ BoolValue:
 
 Argslist:
 		/*empty*/
-			| VARNAME Argslist;
+			| VARNAME Argslist			{
+											// we delete the unused string*
+											// associated to VARNAME
+											delete $1;
+										}
+			;
 
 FunType:
 	   BOOLTYPE							{$$ = true;}
