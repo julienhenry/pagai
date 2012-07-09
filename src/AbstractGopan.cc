@@ -124,7 +124,7 @@ ap_lincons1_array_t AbstractGopan::to_lincons_array() {
 
 void AbstractGopan::meet_tcons_array(ap_tcons1_array_t* tcons) {
 
-	ap_environment_t * lcenv = common_environment(
+	ap_environment_t * lcenv = Expr::common_environment(
 			main->env,
 			ap_tcons1_array_envref(tcons));
 

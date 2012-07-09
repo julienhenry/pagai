@@ -108,22 +108,20 @@ void Node::add_var(Value * val) {
 	ap_var_t var = val; 
 	ap_texpr_rtype_t type;
 
-	if (get_ap_type(val,type)) {
+	if (Expr::get_ap_type(val,type)) {
 		return;
 	}
 
 	switch (type) {
 		case AP_RTYPE_INT:
 			intVar[val].insert(var);
-			env = ap_environment_alloc(&var,1,NULL,0);
 			break;
 		default:
 			realVar[val].insert(var);
-			env = ap_environment_alloc(NULL,0,&var,1);
 			break;
 	}
-	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	set_ap_expr(val,exp,this);
+	Expr exp(var);
+	Expr::set_expr(val,exp);
 }
 
 void Node::create_env(ap_environment_t ** env, Live * LV) {

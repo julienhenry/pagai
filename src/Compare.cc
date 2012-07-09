@@ -37,7 +37,7 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
-	ap_environment_t * cenv = intersect_environment(
+	ap_environment_t * cenv = Expr::intersect_environment(
 			A->main->env,
 			B->main->env);
 

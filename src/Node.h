@@ -11,15 +11,17 @@
 #include "ap_global1.h"
 
 #include "Analyzer.h"
+#include "Expr.h"
 
 using namespace llvm;
 
 class Abstract;
 class Live;
+class Expr;
 
 struct phivar {
 	std::vector<ap_var_t> name;
-	std::vector<ap_texpr1_t> expr;
+	std::vector<Expr> expr;
 };
 
 struct params {
@@ -67,7 +69,7 @@ class Node {
 		ap_environment_t * env;
 
 		/// environment of the Node : list of defined expressions
-		std::map<Value *,ap_texpr1_t *> Exprs;
+		std::map<Value *,Expr> Exprs;
 
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a
@@ -92,7 +94,6 @@ class Node {
 		/// create_env - creates an environment containing all live variables
 		/// that needs to be used as dimension in the abstract domain
 		void create_env(ap_environment_t ** env, Live * LV);
-
 };
 
 /// Nodes - Map that associate each BasicBlock of the Module with its Node

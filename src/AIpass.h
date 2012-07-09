@@ -203,14 +203,6 @@ class AIPass : public InstVisitor<AIPass> {
 		/// this array is computed in computeTransform
 		ap_lincons1_array_t threshold;
 
-		// create_constraints - this function is called by computeCondition
-		// it creates the constraint from its arguments and insert it into t_cons
-		void create_constraints(
-			ap_constyp_t constyp,
-			ap_texpr1_t * expr,
-			ap_texpr1_t * nexpr,
-			std::vector<ap_tcons1_array_t*> * t_cons);
-
 		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
 
 		void visitInstAndAddVarIfNecessary(Instruction &I);

@@ -89,7 +89,7 @@ void AbstractClassic::widening_threshold(Abstract * X, ap_lincons1_array_t* cons
 
 void AbstractClassic::meet_tcons_array(ap_tcons1_array_t* tcons) {
 
-	ap_environment_t * lcenv = common_environment(
+	ap_environment_t * lcenv = Expr::common_environment(
 			main->env,
 			ap_tcons1_array_envref(tcons));
 

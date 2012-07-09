@@ -336,7 +336,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	SMT_expr NULL_res;
 
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type(v, ap_type)) {
+	if (Expr::get_ap_type(v, ap_type)) {
 		// this may be a boolean
 		if (ap_type == AP_RTYPE_INT) {
 			// this is a boolean
@@ -693,7 +693,7 @@ SMT_expr SMTpass::computeCondition(PHINode * inst) {
 SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)inst->getOperand(0), ap_type)) {
+	if (Expr::get_ap_type((Value*)inst->getOperand(0), ap_type)) {
 		// the comparison is not between integers or reals
 		// we create an undeterministic choice variable
 		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(inst));
@@ -876,7 +876,7 @@ bool SMTpass::is_primed(BasicBlock * b, Instruction &I) {
 
 void SMTpass::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)&I, ap_type)) return;
+	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
@@ -969,7 +969,7 @@ void SMTpass::visitTerminatorInst (TerminatorInst &I) {
 
 void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	ap_texpr_rtype_t ap_type;
-	int t = get_ap_type((Value*)&I, ap_type);
+	int t = Expr::get_ap_type((Value*)&I, ap_type);
 
 	//primed[I.getParent()].insert(&I);
 	//exist_prime.insert(&I);
