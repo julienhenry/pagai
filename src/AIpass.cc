@@ -60,7 +60,6 @@ void AIPass::initFunction(Function * F) {
 		n = Nodes[i];
 		n->intVar.clear();
 		n->realVar.clear();
-		n->Exprs.clear();
 		n->env = ap_environment_alloc_empty();
 		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL

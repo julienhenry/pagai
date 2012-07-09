@@ -68,9 +68,6 @@ class Node {
 
 		ap_environment_t * env;
 
-		/// environment of the Node : list of defined expressions
-		std::map<Value *,Expr> Exprs;
-
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a
 		/// list of Values, that directly use this variable : if one of these
