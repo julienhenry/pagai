@@ -3,6 +3,7 @@
 #include "Expr.h"
 #include "AIpf.h"
 #include "AIopt.h"
+#include "AIopt_incr.h"
 #include "AIGopan.h"
 #include "AIGuided.h"
 #include "AIClassic.h"
@@ -24,6 +25,7 @@ const char * Compare::getPassName() const {
 Compare::Compare() : ModulePass(ID) {}
 
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
 	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 	AU.addRequired<ModulePassWrapper<AIpf, 0> >();
 	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
@@ -168,6 +170,7 @@ void Compare::printAllResults() {
 	printTime(PATH_FOCUSING);
 	printTime(LW_WITH_PF);
 	printTime(LW_WITH_PF_DISJ);
+	printTime(COMBINED_INCR);
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
@@ -206,6 +209,11 @@ void Compare::printAllResults() {
 			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].gt << " "
 			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].un << " "
 			<< "\n";
+	*Out	<< results[COMBINED_INCR][LW_WITH_PF].eq << " "
+			<< results[COMBINED_INCR][LW_WITH_PF].lt << " "
+			<< results[COMBINED_INCR][LW_WITH_PF].gt << " "
+			<< results[COMBINED_INCR][LW_WITH_PF].un << " "
+			<< "\n";
 }
 
 bool Compare::runOnModule(Module &M) {
@@ -238,6 +246,7 @@ bool Compare::runOnModule(Module &M) {
 		ComputeTime(PATH_FOCUSING,F);
 		ComputeTime(LW_WITH_PF,F);
 		ComputeTime(LW_WITH_PF_DISJ,F);
+		ComputeTime(COMBINED_INCR,F);
 
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
@@ -250,6 +259,7 @@ bool Compare::runOnModule(Module &M) {
 				compareTechniques(n,LW_WITH_PF,GUIDED);
 				compareTechniques(n,LW_WITH_PF,SIMPLE);
 				compareTechniques(n,LW_WITH_PF_DISJ,LW_WITH_PF);
+				compareTechniques(n,COMBINED_INCR,LW_WITH_PF);
 			}
 		}
 	}
@@ -260,6 +270,7 @@ bool Compare::runOnModule(Module &M) {
 	printResults(LW_WITH_PF,GUIDED);
 	printResults(LW_WITH_PF,SIMPLE);
 	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
+	printResults(COMBINED_INCR,LW_WITH_PF);
 
 	*Out << "\nFUNCTIONS:\n";
 	*Out << Function_number << "\n";

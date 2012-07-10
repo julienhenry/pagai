@@ -36,6 +36,11 @@ class SMT_var {
 	public:
 		std::string s;
 		void* i;
+
+		SMT_var () {
+			s = std::string("");
+			i = NULL;
+		}
 	
 		int Compare (const SMT_var& v) const {
 			if (i < v.i)

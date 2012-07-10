@@ -51,10 +51,8 @@ class AIopt_incr : public ModulePass, public AIPass {
 
 		void init()
 			{
-				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
-				passID.T = LW_WITH_PF;
-				//Passes[LW_WITH_PF] = passID;	
+				passID.T = COMBINED_INCR;
 			}
 
 		~AIopt_incr () {

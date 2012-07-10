@@ -231,7 +231,7 @@ SMT_expr SMTpass::AbstractDisjToSmt(BasicBlock * b, AbstractDisj * A, bool inser
 		// we create a boolean predicate for each disjunct
 		for (int index = 0;index <= N; index++) {
 			SMT_var dvar = man->SMT_mk_bool_var(getDisjunctiveIndexName(A,index));
-			D[index] = man->SMT_mk_expr_from_bool_var(dvar);
+			D.push_back(man->SMT_mk_expr_from_bool_var(dvar));
 		}
 		for (int index = 0;index <= N; index++) {
 			std::vector<SMT_expr> cunj;

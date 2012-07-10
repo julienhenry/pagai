@@ -106,7 +106,8 @@ void Abstract::assign_texpr_array(
 	std::vector<ap_texpr1_t> texpr;
 	std::vector<Expr>::iterator it = expr.begin(), et = expr.end();
 	for (; it != et; it++) {
-		ap_texpr1_t * exp = ap_texpr1_copy((*it).getExpr());
+		//ap_texpr1_t * exp = ap_texpr1_copy((*it).getExpr());
+		ap_texpr1_t * exp = (*it).getExpr();
 		texpr.push_back(*exp);
 	}
 	assign_texpr_array(&name[0],&texpr[0],name.size(),dest);

@@ -179,6 +179,7 @@ SMT_expr SMTlib::SMT_mk_true(){
 SMT_expr SMTlib::SMT_mk_false(){
 	SMT_expr res;
 	res.s = std::string("false");
+	res.i = NULL;
 	return res;
 }
 
@@ -212,12 +213,14 @@ SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 SMT_expr SMTlib::SMT_mk_expr_from_bool_var(SMT_var var){
 	SMT_expr res;
 	res.s = var.s;
+	res.i = NULL;
 	return res;
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_var(SMT_var var){
 	SMT_expr res;
 	res.s = var.s;
+	res.i = NULL;
 	return res;
 }
 

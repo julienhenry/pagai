@@ -14,6 +14,8 @@ std::map<Value*, ap_texpr1_t*> Exprs;
 std::map<ap_var_t, ap_texpr1_t*> Exprs_var;
 
 void Expr::set_expr(Value * val, Expr exp) {
+	if (Exprs.count(val))
+		ap_texpr1_free(Exprs[val]);
 	Exprs[val] = ap_texpr1_copy(exp.ap_expr);
 }
 
@@ -47,7 +49,7 @@ Expr::Expr(ap_var_t var) {
 	} else {
 		ap_expr = create_ap_expr(var);
 		Exprs_var[var] = ap_expr;
-		Exprs[(Value*)var] = ap_expr;
+		//Exprs[(Value*)var] = ap_texpr1_copy(ap_expr);
 	}
 }
 
@@ -68,6 +70,7 @@ Expr::Expr(const Expr &exp) {
 }
 
 Expr & Expr::operator= (const Expr & exp) {
+	ap_texpr1_free(ap_expr);
 	ap_expr = ap_texpr1_copy(exp.ap_expr);
 }
 
