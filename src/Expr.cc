@@ -41,16 +41,16 @@ Expr::Expr(Value * val) {
 		ap_expr = visit(*I);
 		return;
 	}
+	// in case the value is not a constant nor an Instruction (for instance, an
+	// Argument), we create a variable
+	ap_expr = create_ap_expr((ap_var_t)val);
 }
 
 Expr::Expr(ap_var_t var) {
-	if (Exprs_var.count(var)) {
-		ap_expr = ap_texpr1_copy(Exprs_var[var]);
-	} else {
-		ap_expr = create_ap_expr(var);
-		Exprs_var[var] = ap_expr;
-		//Exprs[(Value*)var] = ap_texpr1_copy(ap_expr);
+	if (! Exprs_var.count(var)) {
+		Exprs_var[var] = create_ap_expr(var);
 	}
+	ap_expr = ap_texpr1_copy(Exprs_var[var]);
 }
 
 Expr::Expr(ap_texpr_op_t op, Expr exp1, Expr exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round) {
