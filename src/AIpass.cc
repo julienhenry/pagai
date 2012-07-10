@@ -1049,6 +1049,8 @@ void AIPass::visitTerminatorInst (TerminatorInst &I){
 void AIPass::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[focuspath.back()];
 
+	ap_texpr_rtype_t ap_type;
+	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 	Expr exp(&I);
 
 	// this value may use some apron variables 

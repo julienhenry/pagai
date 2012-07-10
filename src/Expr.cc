@@ -536,7 +536,9 @@ ap_texpr1_t * Expr::visitInstAndAddVar(Instruction &I) {
 	ap_var_t var = (Value *) &I; 
 	ap_texpr_rtype_t ap_type;
 
-	if (get_ap_type((Value*)&I, ap_type)) return NULL;
+	if (get_ap_type((Value*)&I, ap_type)) {
+		return NULL;
+	}
 
 	if (ap_type == AP_RTYPE_INT) { 
 		env = ap_environment_alloc(&var,1,NULL,0);
