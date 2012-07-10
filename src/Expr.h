@@ -63,6 +63,12 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 		Expr(ap_texpr_op_t op, Expr exp1, Expr exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round);
 
+		// Overloaded copy assignment operator
+		Expr & operator= (const Expr & exp);
+
+		// clear all expressions stored in the internal map
+		static void clear_exprs();
+
 		// create_constraints - this function 
 		// creates the constraint from its arguments and insert it into t_cons
 		static void create_constraints (

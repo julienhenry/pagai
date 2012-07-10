@@ -14,7 +14,12 @@ std::map<Value*, ap_texpr1_t*> Exprs;
 std::map<ap_var_t, ap_texpr1_t*> Exprs_var;
 
 void Expr::set_expr(Value * val, Expr exp) {
-	Exprs[val] = exp.ap_expr;
+	Exprs[val] = ap_texpr1_copy(exp.ap_expr);
+}
+
+void Expr::clear_exprs() {
+	Exprs.clear();
+	Exprs_var.clear();
 }
 
 Expr::Expr(Value * val) {
@@ -55,9 +60,14 @@ Expr::Expr(ap_texpr_op_t op, Expr exp1, Expr exp2, ap_texpr_rtype_t type, ap_tex
 }
 
 Expr::~Expr() {
+	ap_texpr1_free(ap_expr);
 }
 
 Expr::Expr(const Expr &exp) {
+	ap_expr = ap_texpr1_copy(exp.ap_expr);
+}
+
+Expr & Expr::operator= (const Expr & exp) {
 	ap_expr = ap_texpr1_copy(exp.ap_expr);
 }
 
@@ -132,7 +142,7 @@ void Expr::create_constraints (
 		consarray = new ap_tcons1_array_t();
 		cons = ap_tcons1_make(
 				AP_CONS_SUP,
-				expr.ap_expr,
+				ap_texpr1_copy(expr.ap_expr),
 				ap_scalar_alloc_set_double(0));
 		*consarray = ap_tcons1_array_make(cons.env,1);
 		ap_tcons1_array_set(consarray,0,&cons);
@@ -150,7 +160,7 @@ void Expr::create_constraints (
 		consarray = new ap_tcons1_array_t();
 		cons = ap_tcons1_make(
 				constyp,
-				expr.ap_expr,
+				ap_texpr1_copy(expr.ap_expr),
 				ap_scalar_alloc_set_double(0));
 		*consarray = ap_tcons1_array_make(cons.env,1);
 		ap_tcons1_array_set(consarray,0,&cons);
@@ -506,7 +516,7 @@ ap_texpr1_t * Expr::visitBinaryOperator (BinaryOperator &I){
 	common_environment(&exp1,&exp2);
 
 	// we create the expression associated to the binary op
-	ap_texpr1_t * exp = ap_texpr1_binop(op, exp1.ap_expr, exp2.ap_expr, type, dir);
+	ap_texpr1_t * exp = ap_texpr1_binop(op, ap_texpr1_copy(exp1.ap_expr), ap_texpr1_copy(exp2.ap_expr), type, dir);
 	return exp;
 }
 

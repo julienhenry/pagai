@@ -352,6 +352,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// handled
 	focuspath.clear();
 	constraints.clear();
+	Expr::clear_exprs();
 	PHIvars.name.clear();
 	PHIvars.expr.clear();
 	PHIvars_prime.name.clear();
@@ -596,7 +597,6 @@ bool AIPass::computeCondition(	CmpInst * inst,
 	Expr exp1(op1);
 	Expr exp2(op2);
 	Expr::common_environment(&exp1,&exp2);
-
 
 	ap_texpr_rtype_t ap_type;
 	Expr::get_ap_type(op1,ap_type);
