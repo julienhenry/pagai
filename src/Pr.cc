@@ -192,7 +192,7 @@ void Pr::computePr(Function &F) {
 
 	//minimize_Pr(F);
 	if (!check_acyclic(F,FPr)) {
-		*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
+		//*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
 	}
 	
 	FW->insert(FPr->begin(),FPr->end());
