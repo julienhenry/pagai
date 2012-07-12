@@ -310,7 +310,10 @@ SMT_expr SMTlib::SMT_mk_not (SMT_expr a){
 SMT_expr SMTlib::SMT_mk_num (int n){
 	SMT_expr res;
 	std::ostringstream oss;
-	if (n < 0)
+        //std::cerr << "const " << n << std::endl;
+        if (n == -2147483648)
+                oss << "(- 2147483648)";
+	else if (n < 0)
 		oss << "(- " << -n << ")";
 	else
 		oss << n;
