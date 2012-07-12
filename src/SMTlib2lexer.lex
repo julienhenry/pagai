@@ -84,7 +84,13 @@ varname		{var}+
 						return(token::VARNAME);
 					}
 
-.          driver.error (*yylloc, "invalid character");
+"-"					return(token::MINUS);
+
+.					{
+						std::string errormsg("invalid character :");
+						errormsg.append(yytext);
+						driver.error (*yylloc, errormsg);
+					}
 
 <<EOF>>				{yyterminate();}
 %%

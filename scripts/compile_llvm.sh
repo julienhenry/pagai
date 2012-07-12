@@ -10,7 +10,8 @@ OPTION :
 
 	-o [FILE ]: name of the output file
 	-p        : print the llvm bytecode
-	-g        : generate the .dot CFG
+	-g        : debug version
+	-G        : generate the .dot CFG
 	-O        : apply optimisations to the bytecode
 "
 }
@@ -18,6 +19,7 @@ OPTION :
 PRINT=0
 GRAPH=0
 OPT=0
+DEBUG=0
 
 while getopts "hpgi:o:O" opt ; do
 	case $opt in
@@ -31,8 +33,11 @@ while getopts "hpgi:o:O" opt ; do
 		i)
 			FILENAME=$OPTARG
 			;;
-		g)
+		G)
 			GRAPH=1
+			;;
+		g)
+			DEBUG=1
 			;;
 		O)
 			OPT=1
@@ -60,11 +65,15 @@ if [ -z "$OUTPUT" ] ; then
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 
-clang -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+if [ $DEBUG -eq 1 ] ; then
+	clang -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+else
+	clang -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+fi
 if [ $OPT -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
 else
-	opt -mem2reg -lowerswitch -inline $OUTPUT -o $OUTPUT
+	opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
 fi
 
 if [ $GRAPH -eq 1 ] ; then

@@ -3,6 +3,7 @@
 
 #include "llvm/Instructions.h"
 #include "llvm/Support/CFG.h"
+#include "llvm/IntrinsicInst.h"
 
 #include "AIpass.h"
 #include "Pr.h"
@@ -59,7 +60,6 @@ void AIPass::initFunction(Function * F) {
 		n = Nodes[i];
 		n->intVar.clear();
 		n->realVar.clear();
-		n->Exprs.clear();
 		n->env = ap_environment_alloc_empty();
 		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL
@@ -352,6 +352,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	// handled
 	focuspath.clear();
 	constraints.clear();
+	Expr::clear_exprs();
 	PHIvars.name.clear();
 	PHIvars.expr.clear();
 	PHIvars_prime.name.clear();
@@ -387,12 +388,12 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 	// tmpenv contains all the environment of the starting invariant, plus the
 	// new environment variables that have been added along the path
-	ap_environment_t * tmpenv = common_environment(env,Xtemp.main->env);
+	ap_environment_t * tmpenv = Expr::common_environment(env,Xtemp.main->env);
 
 	Xtemp.change_environment(tmpenv);
 
 	// first, we assign the Phi variables defined during the path to the right expressions
-	Xtemp.assign_texpr_array(&PHIvars.name[0],&PHIvars.expr[0],PHIvars.name.size(),NULL);
+	Xtemp.assign_texpr_array(PHIvars.name,PHIvars.expr,NULL);
 
 	// We create an Abstract Value that will represent the set of constraints
 	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
@@ -431,7 +432,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 			DEBUG(
-					tcons1_array_print((*i)->front());
+					ap_tcons1_array_print((*i)->front());
 				 );
 			Xtemp.meet_tcons_array((*i)->front());
 
@@ -449,7 +450,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
 				DEBUG(
-						tcons1_array_print(*it);
+						ap_tcons1_array_print(*it);
 					 );
 				X2 = aman->NewAbstract(&Xtemp);
 				X2->meet_tcons_array(*it);
@@ -464,14 +465,14 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		delete *i;
 	}
 
-	Xtemp.assign_texpr_array(&PHIvars_prime.name[0],&PHIvars_prime.expr[0],PHIvars_prime.name.size(),NULL);
+	Xtemp.assign_texpr_array(PHIvars_prime.name,PHIvars_prime.expr,NULL);
 
 	DEBUG(
 			for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
 			ap_var_t name = PHIvars_prime.name[i];
-			ap_texpr1_t expr = PHIvars_prime.expr[i];
+			Expr expr = PHIvars_prime.expr[i];
 			*Out << "Assigning " << ap_var_to_string(name) << " = ";
-			texpr1_print(&expr);
+			expr.print();
 			*Out << "\n";
 			}
 		 );
@@ -580,50 +581,6 @@ void AIPass::insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Va
 	}
 }
 
-// create_constraints - this function is called by computeCondition
-// it creates the constraint from its arguments and insert it into t_cons
-void AIPass::create_constraints(
-		ap_constyp_t constyp,
-		ap_texpr1_t * expr,
-		ap_texpr1_t * nexpr,
-		std::vector<ap_tcons1_array_t*> * t_cons) {
-
-	ap_tcons1_t cons;
-	ap_tcons1_array_t * consarray;
-
-	if (constyp == AP_CONS_DISEQ) {
-		// we have a disequality constraint. We tranform it into 2 different
-		// constraints: < and >, in order to create further 2 abstract domain
-		// instead of one.
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				AP_CONS_SUP,
-				expr,
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
-		t_cons->push_back(consarray);
-
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				AP_CONS_SUP,
-				ap_texpr1_copy(nexpr),
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
-		t_cons->push_back(consarray);
-	} else {
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				constyp,
-				expr,
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
-		t_cons->push_back(consarray);
-	}
-}
-
 
 bool AIPass::computeCondition(	CmpInst * inst, 
 		bool result,
@@ -637,29 +594,16 @@ bool AIPass::computeCondition(	CmpInst * inst,
 	Value * op1 = inst->getOperand(0);
 	Value * op2 = inst->getOperand(1);
 
-	ap_texpr1_t * exp1 = get_ap_expr(n,op1);
-	ap_texpr1_t * exp2 = get_ap_expr(n,op2);
-	common_environment(&exp1,&exp2);
-
-	ap_texpr1_t * expr;
-	ap_texpr1_t * nexpr;
-	ap_texpr1_t * swap;
+	Expr exp1(op1);
+	Expr exp2(op2);
+	Expr::common_environment(&exp1,&exp2);
 
 	ap_texpr_rtype_t ap_type;
-	get_ap_type(op1,ap_type);
+	Expr::get_ap_type(op1,ap_type);
 
-	expr = ap_texpr1_binop(AP_TEXPR_SUB,
-			ap_texpr1_copy(exp1),
-			ap_texpr1_copy(exp2),
-			ap_type,
-			AP_RDIR_RND);
-
-	nexpr = ap_texpr1_binop(AP_TEXPR_SUB,
-			ap_texpr1_copy(exp2),
-			ap_texpr1_copy(exp1),
-			ap_type,
-			AP_RDIR_RND);
-
+	Expr expr(AP_TEXPR_SUB,exp1,exp2,ap_type,AP_RDIR_RND);
+	Expr nexpr(AP_TEXPR_SUB,exp2,exp1,ap_type,AP_RDIR_RND);
+	Expr swap(expr);
 
 	switch (inst->getPredicate()) {
 		case CmpInst::FCMP_FALSE:
@@ -683,7 +627,6 @@ bool AIPass::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_ULT: 
 		case CmpInst::ICMP_ULT: 
 		case CmpInst::ICMP_SLT: 
-			swap = expr;
 			expr = nexpr;
 			nexpr = swap;
 			constyp = AP_CONS_SUP; // > constraint
@@ -700,7 +643,6 @@ bool AIPass::computeCondition(	CmpInst * inst,
 		case CmpInst::FCMP_ULE:
 		case CmpInst::ICMP_ULE:
 		case CmpInst::ICMP_SLE:
-			swap = expr;
 			expr = nexpr;
 			nexpr = swap;
 			constyp = AP_CONS_SUPEQ; // >= constraint
@@ -727,10 +669,10 @@ bool AIPass::computeCondition(	CmpInst * inst,
 	}
 	if (result) {
 		// creating the TRUE constraints
-		create_constraints(constyp,expr,nexpr,cons);
+		Expr::create_constraints(constyp,expr,nexpr,cons);
 	} else {
 		// creating the FALSE constraints
-		create_constraints(nconstyp,nexpr,expr,cons);
+		Expr::create_constraints(nconstyp,nexpr,expr,cons);
 	}
 	return true;
 }
@@ -786,7 +728,7 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 
 			if (CmpInst * cmp = dyn_cast<CmpInst>(pv)) {
 				ap_texpr_rtype_t ap_type;
-				if (get_ap_type(cmp->getOperand(0), ap_type)) return false;
+				if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) return false;
 				res = computeCondition(cmp,result,cons);
 			} else if (ConstantInt * c = dyn_cast<ConstantInt>(pv)) {
 				res = computeConstantCondition(c,result,cons);
@@ -840,7 +782,7 @@ void AIPass::visitBranchInst (BranchInst &I){
 
 	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
 		ap_texpr_rtype_t ap_type;
-		if (get_ap_type(cmp->getOperand(0), ap_type)) {
+		if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) {
 			delete cons;
 			return;
 		}
@@ -934,7 +876,7 @@ void AIPass::visitPHINode (PHINode &I){
 	Node * nb;
 
 	ap_texpr_rtype_t ap_type;
-	if (get_ap_type((Value*)&I, ap_type)) return;
+	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 	DEBUG(
 			*Out << I << "\n";
 		 );
@@ -944,9 +886,9 @@ void AIPass::visitPHINode (PHINode &I){
 	// There is no need to introduce PHIvars...
 	if (I.getNumIncomingValues() == 1) {
 		pv = I.getIncomingValue(0);
-		ap_texpr1_t * expr = get_ap_expr(n,pv);
-		set_ap_expr(&I,expr,n);
-		ap_environment_t * env = expr->env;
+		Expr expr(pv);
+		Expr::set_expr(&I,expr);
+		ap_environment_t * env = expr.getEnv();
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 		return;
 	}
@@ -955,36 +897,35 @@ void AIPass::visitPHINode (PHINode &I){
 		if (pred == I.getIncomingBlock(i)) {
 			pv = I.getIncomingValue(i);
 			nb = Nodes[I.getIncomingBlock(i)];
-			ap_texpr1_t * expr = get_ap_expr(n,pv);
+			Expr expr(pv);
 
 			if (focusblock == focuspath.size()-1) {
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					PHIvars_prime.name.push_back((ap_var_t)&I);
-					PHIvars_prime.expr.push_back(*expr);
-					ap_environment_t * env = expr->env;
+					PHIvars_prime.expr.push_back(expr);
+					ap_environment_t * env = expr.getEnv();
 					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					DEBUG(
 							*Out << I << " is equal to ";
-							texpr1_print(expr);
+							expr.print();
 							*Out << "\n";
 						 );
 				}
 			} else {
-				if (expr == NULL) continue;
 				DEBUG(
 						*Out << I << " is equal to ";
-						texpr1_print(expr);
+						expr.print();
 						*Out << "\n";
 					 );
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					PHIvars.name.push_back((ap_var_t)&I);
-					PHIvars.expr.push_back(*expr);
+					PHIvars.expr.push_back(expr);
 				} else {
-					set_ap_expr(&I,expr,n);
+					Expr::set_expr(&I,expr);
 				}
-				ap_environment_t * env = expr->env;
+				ap_environment_t * env = expr.getEnv();
 				insert_env_vars_into_node_vars(env,n,(Value*)&I);
 			}
 		}
@@ -1066,7 +1007,7 @@ void AIPass::visitCallInst(CallInst &I){
 	//Function * F = I.getCalledFunction();
 	//std::string fname = F->getName();
 	//*Out << "FOUND FUNCTION " << fname << "\n";
-
+	
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -1108,64 +1049,15 @@ void AIPass::visitTerminatorInst (TerminatorInst &I){
 void AIPass::visitBinaryOperator (BinaryOperator &I){
 	Node * n = Nodes[focuspath.back()];
 
-	//*Out << "BinaryOperator\n" << I << "\n";	
-	ap_texpr_op_t op;
-	switch(I.getOpcode()) {
-		// Standard binary operators...
-		case Instruction::Add : 
-		case Instruction::FAdd: 
-			op = AP_TEXPR_ADD;
-			break;
-		case Instruction::Sub : 
-		case Instruction::FSub: 
-			op = AP_TEXPR_SUB;
-			break;
-		case Instruction::Mul : 
-		case Instruction::FMul: 
-			op = AP_TEXPR_MUL;
-			break;
-		case Instruction::UDiv: 
-		case Instruction::SDiv: 
-		case Instruction::FDiv: 
-			op = AP_TEXPR_DIV;
-			break;
-		case Instruction::URem: 
-		case Instruction::SRem: 
-		case Instruction::FRem: 
-			op = AP_TEXPR_MOD;
-			break;
-			// Logical operators
-		case Instruction::Shl : // Shift left  (logical)
-		case Instruction::LShr: // Shift right (logical)
-		case Instruction::AShr: // Shift right (arithmetic)
-		case Instruction::And :
-		case Instruction::Or  :
-		case Instruction::Xor :
-		case Instruction::BinaryOpsEnd:
-			// we consider the result is unknown
-			// so we create a new variable
-			visitInstAndAddVarIfNecessary(I);
-			return;
-	}
-	ap_texpr_rtype_t type;
-	get_ap_type(&I,type);
-	ap_texpr_rdir_t dir = AP_RDIR_RND;
-	Value * op1 = I.getOperand(0);
-	Value * op2 = I.getOperand(1);
-
-	ap_texpr1_t * exp1 = get_ap_expr(n,op1);
-	ap_texpr1_t * exp2 = get_ap_expr(n,op2);
-	common_environment(&exp1,&exp2);
-
-	// we create the expression associated to the binary op
-	ap_texpr1_t * exp = ap_texpr1_binop(op, exp1, exp2, type, dir);
-	set_ap_expr(&I,exp,n);
+	ap_texpr_rtype_t ap_type;
+	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
+	Expr exp(&I);
 
 	// this value may use some apron variables 
 	// we add these variables in the Node's variable structure, such that we
 	// remember that instruction I uses these variables
 	//
-	ap_environment_t * env = exp->env;
+	ap_environment_t * env = exp.getEnv();
 	insert_env_vars_into_node_vars(env,n,(Value*)&I);
 }
 
@@ -1181,23 +1073,17 @@ void AIPass::visitCastInst (CastInst &I){
 
 void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	Node * n = Nodes[focuspath.back()];
-	ap_environment_t* env = NULL;
 	ap_var_t var = (Value *) &I; 
 
 	ap_texpr_rtype_t ap_type;
+	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 
-	if (get_ap_type((Value*)&I, ap_type)) return;
+	Expr exp(&I);
 
 	if (!LV->isLiveByLinearityInBlock(&I,I.getParent(),false))
 		return;
 
-	if (ap_type == AP_RTYPE_INT) { 
-		env = ap_environment_alloc(&var,1,NULL,0);
-	} else {
-		env = ap_environment_alloc(NULL,0,&var,1);
-	}
-	ap_texpr1_t * exp = ap_texpr1_var(env,var);
-	set_ap_expr(&I,exp,n);
+	Expr::set_expr(&I,exp);
 	if (LV->isLiveByLinearityInBlock(&I,n->bb,true))
 		n->add_var((Value*)var);
 }

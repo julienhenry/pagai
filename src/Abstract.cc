@@ -53,7 +53,7 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 	bool res = true;
 	SMTpass * LSMT = SMTpass::getInstance();
 	std::vector<Abstract*> Join;
-	ap_environment_t * env = common_environment(main->env, A->main->env);
+	ap_environment_t * env = Expr::common_environment(main->env, A->main->env);
 	Join.push_back(aman->NewAbstract(this));
 	Join.push_back(aman->NewAbstract(A));
 	Abstract * J = aman->NewAbstract(this);
@@ -96,4 +96,19 @@ bool Abstract::is_leq(Abstract * d) {
 
 bool Abstract::is_eq(Abstract * d) {
 	return (compare(d) == 0);
+}
+
+void Abstract::assign_texpr_array(
+		std::vector<ap_var_t> name,
+		std::vector<Expr> expr,
+		ap_abstract1_t* dest) {
+		
+	std::vector<ap_texpr1_t> texpr;
+	std::vector<Expr>::iterator it = expr.begin(), et = expr.end();
+	for (; it != et; it++) {
+		//ap_texpr1_t * exp = ap_texpr1_copy((*it).getExpr());
+		ap_texpr1_t * exp = (*it).getExpr();
+		texpr.push_back(*exp);
+	}
+	assign_texpr_array(&name[0],&texpr[0],name.size(),dest);
 }

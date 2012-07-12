@@ -18,6 +18,7 @@
 
 #include "AIpf.h"
 #include "AIopt.h"
+#include "AIopt_incr.h"
 #include "AIGopan.h"
 #include "AIClassic.h"
 #include "AIdis.h"
@@ -136,6 +137,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			case LW_WITH_PF:
 				Passes.add(new CompareNarrowing<LW_WITH_PF>());
 				break;
+			case COMBINED_INCR:
+				Passes.add(new CompareNarrowing<COMBINED_INCR>());
+				break;
 			case SIMPLE:
 				Passes.add(new CompareNarrowing<SIMPLE>());
 				break;
@@ -156,6 +160,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				break;
 			case LW_WITH_PF:
 				Passes.add(new CompareDomain<LW_WITH_PF>());
+				break;
+			case COMBINED_INCR:
+				Passes.add(new CompareDomain<COMBINED_INCR>());
 				break;
 			case SIMPLE:
 				Passes.add(new CompareDomain<SIMPLE>());
@@ -178,6 +185,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				break;
 			case LW_WITH_PF:
 				AIPass = new ModulePassWrapper<AIopt, 0>();
+				break;
+			case COMBINED_INCR:
+				AIPass = new ModulePassWrapper<AIopt_incr, 0>();
 				break;
 			case SIMPLE:
 				AIPass = new ModulePassWrapper<AIClassic, 0>();

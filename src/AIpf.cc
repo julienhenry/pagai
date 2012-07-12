@@ -98,8 +98,9 @@ void AIpf::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
+	LSMT->push_context();
 	*Out << "Computing Rho...";
-	LSMT->getRho(*F);
+	LSMT->SMT_assert(LSMT->getRho(*F));
 	*Out << "OK\n";
 
 	
@@ -129,6 +130,7 @@ void AIpf::computeFunction(Function * F) {
 		narrowingIter(n);
 		step++;
 	}
+	LSMT->pop_context();
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
@@ -169,7 +171,8 @@ void AIpf::computeNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID);
+		SMT_expr T = LSMT->man->SMT_mk_true();
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
@@ -279,7 +282,8 @@ void AIpf::narrowNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID);
+		SMT_expr T = LSMT->man->SMT_mk_true();
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out

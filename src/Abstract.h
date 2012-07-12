@@ -8,9 +8,11 @@
 class Node;
 class SMTpass;
 class AbstractMan;
+class Expr;
 
 /// Base class of abstract domains
 class Abstract {
+
 
 	public:
 		ap_manager_t * man;
@@ -64,12 +66,19 @@ class Abstract {
 		//domain
 		virtual void canonicalize() = 0;
 
+
 		/// assign_texpr_array - assign a expression to a set of variables
 		virtual void assign_texpr_array(
 				ap_var_t* tvar, 
 				ap_texpr1_t* texpr, 
 				size_t size, 
 				ap_abstract1_t* dest) = 0;
+
+		/// assign_texpr_array - assign a expression to a set of variables
+		void assign_texpr_array(
+			std::vector<ap_var_t> name,
+			std::vector<Expr> expr,
+			ap_abstract1_t* dest);
 		
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values

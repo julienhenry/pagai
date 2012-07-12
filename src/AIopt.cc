@@ -108,8 +108,11 @@ void AIopt::computeFunction(Function * F) {
 		*Out << "Computing Pr...\n";
 	);
 	Pr::getPr(*F);
+	
+	LSMT->push_context();
+	
 	*Out << "Computing Rho...";
-	LSMT->getRho(*F);
+	LSMT->SMT_assert(LSMT->getRho(*F));
 	*Out << "OK\n";
 	
 
@@ -148,6 +151,7 @@ void AIopt::computeFunction(Function * F) {
 			if (unknown) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
+				LSMT->pop_context();
 				return;
 			}
 		}
@@ -175,6 +179,7 @@ void AIopt::computeFunction(Function * F) {
 		delete W;
 
 	}
+	LSMT->pop_context();
 }
 
 std::set<BasicBlock*> AIopt::getPredecessors(BasicBlock * b) const {

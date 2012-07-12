@@ -113,6 +113,48 @@ bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S,
 	return true;
 }
 
+bool Pr::computeLoopHeaders(Function &F,std::set<BasicBlock*>* FPr) {
+	Node * n = Nodes[&F.front()];
+	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+		index[Nodes[i]] = 0;
+	}
+	std::set<Node*> S;
+	std::set<Node*> Seen;
+
+	computeLoopHeaders_rec(F,n,&Seen,&S,FPr);
+	
+	return true;
+}
+
+bool Pr::computeLoopHeaders_rec(Function &F, Node * n,std::set<Node*> * Seen, std::set<Node*> * S,std::set<BasicBlock*>* FPr) {
+	Node * nsucc;
+	Seen->insert(n);
+
+	if (S->count(n)) {
+		FPr->insert(n->bb);
+		return true;
+	}
+		
+	std::set<Node*> Set;
+	Set.insert(S->begin(),S->end());
+	Set.insert(n);
+
+	for (succ_iterator s = succ_begin(n->bb), E = succ_end(n->bb); s != E; ++s) {
+		BasicBlock * succ = *s;
+		nsucc = Nodes[succ];
+		if (FPr->count(nsucc->bb))
+			continue;
+		if (Seen->count(nsucc)) {
+			if (S->count(nsucc)) {
+				FPr->insert(nsucc->bb);
+			}
+			continue;
+		}
+		computeLoopHeaders_rec(F,nsucc,Seen,&Set,FPr);
+	}	
+	return true;
+}
+
 // computePr - computes the set Pr of BasicBlocks
 // for the moment - Pr = Pw + blocks with a ret inst
 void Pr::computePr(Function &F) {
@@ -138,16 +180,20 @@ void Pr::computePr(Function &F) {
 	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
 
 
-	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
-		b = i;
-		if (LI->isLoopHeader(b)) {
-			FPr->insert(b);
-		}
-	}
+	computeLoopHeaders(F,FPr);
+//	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+//		b = i;
+//		if (LI->isLoopHeader(b)) {
+//			FPr->insert(b);
+//		}
+//	}
 	Pr_set[&F] = FPr;
 	Assert_set[&F] = FAssert;
 
 	//minimize_Pr(F);
+	if (!check_acyclic(F,FPr)) {
+		*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
+	}
 	
 	FW->insert(FPr->begin(),FPr->end());
 	Pw_set[&F] = FW;

@@ -9,14 +9,10 @@
 #include "SMT_manager.h"
 
 #define LOG_SMT 0
-#define MATHSAT 0
-#define Z3 1
-#define SMTINTERPOL 0
-#define CVC3 0
 
-#if MATHSAT || SMTINTERPOL
-#define SMT_SUPPORTS_DIVIDES 1
-#endif
+//#if MATHSAT || SMTINTERPOL
+//#define SMT_SUPPORTS_DIVIDES 1
+//#endif
 
 class SMTlib: public SMT_manager {
 
@@ -41,6 +37,8 @@ class SMTlib: public SMT_manager {
 		int pread();
 	
 		FILE *log_file;
+
+		pid_t solver_pid;
 
 	public:
 		
@@ -81,7 +79,7 @@ class SMTlib: public SMT_manager {
 		SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
 #endif
 
-		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer = true);
 		SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2);
 
 		SMT_expr SMT_mk_int2real(SMT_expr a);
@@ -95,6 +93,8 @@ class SMTlib: public SMT_manager {
 		void pop_context();
 
 		void SMT_print(SMT_expr a);
+		void SMT_assert(SMT_expr a);
 		int SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
+		bool interrupt();
 };
 #endif

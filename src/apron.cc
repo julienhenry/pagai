@@ -37,10 +37,10 @@ char* ap_var_to_string(ap_var_t var) {
 	found=name.find_first_of("%");
 	if (found!=std::string::npos) {
 		name = name.substr(found);
-		found=name.find_first_of(" ");
-		if (found!=std::string::npos) {
-			name.resize(found);
-		}
+	}
+	found=name.find_first_of(" ");
+	if (found!=std::string::npos) {
+		name.resize(found);
 	}
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());

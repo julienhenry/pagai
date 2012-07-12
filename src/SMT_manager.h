@@ -7,10 +7,64 @@
 #include "gmp.h"
 #include "mpfr.h"
 
-typedef void* SMT_expr;
-typedef void* SMT_type;
-typedef void* SMT_var;
-typedef void* SMT_model;
+
+class SMT_expr {
+	public:
+		std::string s;
+		void* i;
+
+		SMT_expr () {
+			s = std::string("");
+			i = NULL;
+		}
+
+		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {}
+
+		~SMT_expr(){}
+
+		bool is_empty() {
+			return i == NULL && s == "";
+		}
+};
+
+typedef struct _SMT_type {
+	std::string s;
+	void* i;
+} SMT_type;
+
+class SMT_var {
+	public:
+		std::string s;
+		void* i;
+
+		SMT_var () {
+			s = std::string("");
+			i = NULL;
+		}
+	
+		int Compare (const SMT_var& v) const {
+			if (i < v.i)
+				return -1;
+			else if (i > v.i)
+				return 1;
+			else {
+				if (s < v.s)
+					return -1;
+				else if (s > v.s)
+					return 1;
+				else return 0;
+			}
+		}
+
+		bool operator == (const SMT_var& v) const {
+		   return !Compare(v);
+		}
+		
+		bool operator < (const SMT_var& v) const {
+		  return Compare(v)<0;   
+		}
+
+}; 
 
 
 class SMT_manager {
@@ -51,7 +105,7 @@ class SMT_manager {
 
 		virtual SMT_expr SMT_mk_divides (SMT_expr a1, SMT_expr a2);
 
-		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer = true) = 0;
 		virtual SMT_expr SMT_mk_rem (SMT_expr a1, SMT_expr a2) = 0;
 
 		virtual SMT_expr SMT_mk_int2real(SMT_expr a) = 0;
@@ -65,8 +119,11 @@ class SMT_manager {
 		virtual void pop_context() = 0;
 
 		virtual void SMT_print(SMT_expr a) = 0;
+		virtual void SMT_assert(SMT_expr a) = 0;
 		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
+		virtual bool interrupt();
+ 
 		static std::vector<SMT_expr> vec2(SMT_expr a1, SMT_expr a2) {
 		  std::vector<SMT_expr> vec;
 		  vec.push_back(a1);

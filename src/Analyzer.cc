@@ -7,7 +7,7 @@
 #include "Analyzer.h" 
 #include "Debug.h" 
 
-SMT_Solver manager;
+SMTSolver Solver;
 Techniques technique;
 bool compare;
 bool compare_Domain;
@@ -25,8 +25,8 @@ std::map<Techniques,int> Passes;
 void show_help() {
         std::cout << "Usage :\n \
 \tpagai -h OR pagai [options]  -i <filename> \n \
--h : help\n \
--d : abstract domain\n \
+--help (-h) : help\n \
+--domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
 		   * oct (Octagons)\n \
@@ -36,30 +36,37 @@ void show_help() {
 		   * ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS’2003)\n \
 		   * ppl_grid (PPL grids)\n \
 		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
-		example of option: -d box\n \
--i : input file\n \
--t : use a specific technique\n \
+		example: -d box\n \
+--input (-i) : input file\n \
+--technique (-t) : use a specific technique\n \
 		possible techniques:\n \
-		  * lw (Lookahead Widening)\n \
-		  * g (Guided Static Analysis)\n \
-		  * pf (Path Focusing)\n \
-		  * lw+pf (combination of Lookahead Widening and Path Focusing), default\n \
+		  * lw (Lookahead Widening, Gopan & Reps, SAS'06)\n \
+		  * g (Guided Static Analysis, Gopan & Reps, SAS'07)\n \
+		  * pf (Path Focusing, Monniaux & Gonnord, SAS'11)\n \
+		  * lw+pf (Henry, Monniaux & Moy, SAS'12), default\n \
 		  * s (simple abstract interpretation)\n \
 		  * dis (lw+pf, using disjunctive invariants)\n \
-		example of option: -t pf\n \
+		  * incr (s followed by lw+pf, results of s are injected in lw+pf)\n \
+		example: -t pf\n \
+--solver (-s) : select SMT Solver\n \
+		  * z3 (default)\n \
+		  * mathsat\n \
+		  * smtinterpol\n \
+		  * cvc3\n \
+		  * z3_api (deprecated)\n \
+		  * yices_api (deprecated)\n \
 -n : new version of narrowing (only for s technique)\n \
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
--c : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
--C : compare two abstract domains using the same technique\n \
+--compare (-c) : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
+--comparedomains (-C) : compare two abstract domains using the same technique\n \
           example: ./pagai -i <filename> -C --domain box --domain2 pkeq -t pf\n \
-	\n \
--f : only outputs the SMTpass formula\n \
--y : use Yices instead of the Z3 SMT-solver\n";
+--printformula (-f) : only outputs the SMTpass formula\n \
+";
 }
 
-SMT_Solver getSMTSolver() {
-	return manager;
+SMTSolver getSMTSolver() {
+	return Solver;
 }
 
 Techniques getTechnique() {
@@ -117,7 +124,9 @@ std::string TechniquesToString(Techniques t) {
 		case PATH_FOCUSING: 
 			return "PATH FOCUSING";
 		case LW_WITH_PF:
-			return "COMBINED TECHNIQUE";
+			return "COMBINED";
+		case COMBINED_INCR:
+			return "COMBINED INCR";
 		case SIMPLE:
 			return "CLASSIC";
 		case GUIDED:
@@ -192,8 +201,32 @@ bool setTechnique(char * t) {
 		technique = GUIDED;
 	} else if (!d.compare("dis")) {
 		technique = LW_WITH_PF_DISJ;
+	} else if (!d.compare("incr")) {
+		technique = COMBINED_INCR;
 	} else {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
+		return 1;
+	}
+	return 0;
+}
+
+bool setSolver(char * t) {
+	std::string d;
+	d.assign(t);
+	if (!d.compare("z3")) {
+		Solver = Z3;
+	} else if (!d.compare("mathsat")) {
+		Solver = MATHSAT;
+	} else if (!d.compare("smtinterpol")) {
+		Solver = SMTINTERPOL;
+	} else if (!d.compare("cvc3")) {
+		Solver = CVC3;
+	} else if (!d.compare("z3_api")) {
+		Solver = API_Z3;
+	} else if (!d.compare("yices_api")) {
+		Solver = API_YICES;
+	} else {
+		std::cout << "Wrong parameter defining the solver\n";
 		return 1;
 	}
 	return 0;
@@ -212,7 +245,7 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 
 	filename=NULL;
-	manager = Z3_MANAGER;
+	Solver = Z3;
 	ap_manager[0] = PK;
 	ap_manager[1] = PK;
 	Narrowing[0] = false;
@@ -237,18 +270,19 @@ int main(int argc, char* argv[]) {
 			   We distinguish them by their indices. */
 			{"compare",     no_argument,       0, 'c'},
 			{"technique",  required_argument,       0, 't'},
+			{"comparedomains",  required_argument,       0, 'C'},
 			{"domain",  required_argument, 0, 'd'},
 			{"domain2",  required_argument, 0, 'e'},
 			{"input",  required_argument, 0, 'i'},
 			{"output",    required_argument, 0, 'o'},
-			{"yices",    no_argument, 0, 'y'},
+			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
 			{0, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:ycCft:d:e:nNMT",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:s:cCft:d:e:nNMT",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -300,14 +334,17 @@ int main(int argc, char* argv[]) {
         case 'o':
             outputname = optarg;
             break;
-        case 'y':
-            manager = YICES_MANAGER;
+        case 's':
+            arg = optarg;
+			if (setSolver(arg)) {
+				bad_use = true;
+			}
             break;
         case 'f':
             onlyrho = true;
             break;
         case '?':
-            std::cout << "Error : Unknown option" << optopt << "\n";
+            std::cout << "Error : Unknown option " << optopt << "\n";
             bad_use = true;
         }   
     } 
