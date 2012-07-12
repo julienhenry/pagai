@@ -79,7 +79,7 @@ SMT_expr yices::SMT_mk_or (std::vector<SMT_expr> args) {
 	std::vector<yices_expr> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
+		assert((*b).i != 0);
 		arguments.push_back((yices_expr)(*b).i);
 	}
 	switch (arguments.size()) {
@@ -100,7 +100,7 @@ SMT_expr yices::SMT_mk_and (std::vector<SMT_expr> args) {
 	std::vector<yices_expr> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
+		assert((*b).i != 0);
 		arguments.push_back((yices_expr)(*b).i);
 	}
 	switch (arguments.size()) {
@@ -170,7 +170,7 @@ SMT_expr yices::SMT_mk_sum (std::vector<SMT_expr> args) {
 	std::vector<yices_expr> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
+		assert((*b).i != 0);
 		arguments.push_back((yices_expr)(*b).i);
 	}
 	switch (arguments.size()) {
@@ -191,7 +191,7 @@ SMT_expr yices::SMT_mk_sub (std::vector<SMT_expr> args) {
 	std::vector<yices_expr> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
+		assert((*b).i != 0);
 		arguments.push_back((yices_expr)(*b).i);
 	}
 	switch (arguments.size()) {
@@ -212,7 +212,7 @@ SMT_expr yices::SMT_mk_mul (std::vector<SMT_expr> args) {
 	std::vector<yices_expr> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
+		assert((*b).i != 0);
 		arguments.push_back((yices_expr)(*b).i);
 	}
 	switch (arguments.size()) {
