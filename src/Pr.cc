@@ -208,8 +208,9 @@ void Pr::computePr(Function &F) {
 				Function * cF = c->getCalledFunction();
 				if (cF != NULL) {
 					std::string fname = cF->getName();
-					std::string assert_fail ("__assert_fail");
-					if (fname.compare(assert_fail) == 0) {
+					static const std::string assert_fail ("__assert_fail");
+					static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
+					if (fname.compare(assert_fail) == 0 || fname.compare(undefined_behavior_trap) == 0) {
 						FPr->insert(b);
 						FAssert->insert(b);
 					}
