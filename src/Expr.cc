@@ -72,6 +72,7 @@ Expr::Expr(const Expr &exp) {
 Expr & Expr::operator= (const Expr & exp) {
 	ap_texpr1_free(ap_expr);
 	ap_expr = ap_texpr1_copy(exp.ap_expr);
+	return *this;
 }
 
 ap_texpr1_t * Expr::getExpr() {

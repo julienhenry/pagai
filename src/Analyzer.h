@@ -56,6 +56,9 @@ bool onlyOutputsRho();
 
 char* getFilename();
 
+bool definedMain();
+std::string getMain();
+
 Apron_Manager_Type getApronManager();
 Apron_Manager_Type getApronManager(int i);
 

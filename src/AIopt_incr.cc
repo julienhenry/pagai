@@ -48,12 +48,9 @@ bool AIopt_incr::runOnModule(Module &M) {
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 
-		sys::TimeValue * time = new sys::TimeValue(0,0);
-		*time = sys::TimeValue::now();
-		Total_time[passID][F] = time;
-		
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
+		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"
@@ -63,6 +60,10 @@ bool AIopt_incr::runOnModule(Module &M) {
 		Out->resetColor();
 		LSMT->reset_SMTcontext();
 
+		sys::TimeValue * time = new sys::TimeValue(0,0);
+		*time = sys::TimeValue::now();
+		Total_time[passID][F] = time;
+		
 		initFunction(F);
 
 

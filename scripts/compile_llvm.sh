@@ -66,9 +66,9 @@ if [ -z "$OUTPUT" ] ; then
 fi
 
 if [ $DEBUG -eq 1 ] ; then
-	clang -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+	clang -fcatch-undefined-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
 else
-	clang -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+	clang -fcatch-undefined-behavior -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT

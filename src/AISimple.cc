@@ -112,6 +112,7 @@ bool AISimple::runOnModule(Module &M) {
 		
 		// if the function is only a declaration, do nothing
 		if (F->empty()) continue;
+		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out << "\n\n\n"

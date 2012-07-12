@@ -14,6 +14,8 @@ bool compare_Domain;
 bool compare_Narrowing;
 bool onlyrho;
 bool bagnara_widening;
+bool defined_main;
+std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
 bool Threshold[2];
@@ -26,6 +28,7 @@ void show_help() {
         std::cout << "Usage :\n \
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
+--main <name> (-m) : only analyze the function <name>\n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -232,6 +235,20 @@ bool setSolver(char * t) {
 	return 0;
 }
 
+bool setMain(char * m) {
+	main_function.assign(m);
+	defined_main = true;
+	return 0;
+}
+
+bool definedMain() {
+	return defined_main;
+}
+
+std::string getMain() {
+	return main_function;
+}
+
 std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
@@ -257,6 +274,7 @@ int main(int argc, char* argv[]) {
 	compare_Domain = false;
 	compare_Narrowing = false;
 	onlyrho = false;
+	defined_main = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
@@ -274,6 +292,7 @@ int main(int argc, char* argv[]) {
 			{"domain",  required_argument, 0, 'd'},
 			{"domain2",  required_argument, 0, 'e'},
 			{"input",  required_argument, 0, 'i'},
+			{"main",  required_argument, 0, 'm'},
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
@@ -282,7 +301,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:s:cCft:d:e:nNMT",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "hDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
         switch (o) {
         case 'h':
             help = true;
@@ -299,6 +318,12 @@ int main(int argc, char* argv[]) {
         case 't':
             arg = optarg;
 			if (setTechnique(arg)) {
+				bad_use = true;
+			}
+            break;
+        case 'm':
+            arg = optarg;
+			if (setMain(arg)) {
 				bad_use = true;
 			}
             break;
