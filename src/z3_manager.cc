@@ -54,7 +54,6 @@ SMT_var z3_manager::SMT_mk_bool_var(std::string name){
 }
 
 SMT_var z3_manager::SMT_mk_var(std::string name, SMT_type type){
-	assert(type != 0);
 	if (!vars.count(name)) {
 		char * cstr = new char [name.size()+1];
 		strcpy (cstr, name.c_str());
@@ -66,14 +65,12 @@ SMT_var z3_manager::SMT_mk_var(std::string name, SMT_type type){
 }
 
 SMT_expr z3_manager::SMT_mk_expr_from_bool_var(SMT_var var){
-	assert(var != 0);
 	SMT_expr res;
 	res.i = Z3_mk_const(ctx,(Z3_symbol)var.i,(Z3_sort)bool_type.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_expr_from_var(SMT_var var){
-	assert(var != 0);
 	SMT_expr res;
 	res.i = Z3_mk_const(ctx,(Z3_symbol)var.i,(Z3_sort)types[var].i);
 	return res;
@@ -83,7 +80,6 @@ SMT_expr z3_manager::SMT_mk_or (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
 		arguments.push_back((Z3_ast)(*b).i);
 	}
 	switch (arguments.size()) {
@@ -104,7 +100,6 @@ SMT_expr z3_manager::SMT_mk_and (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
 		arguments.push_back((Z3_ast)(*b).i);
 	}
 	switch (args.size()) {
@@ -122,30 +117,22 @@ SMT_expr z3_manager::SMT_mk_and (std::vector<SMT_expr> args){
 }
 
 SMT_expr z3_manager::SMT_mk_eq (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_eq(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	return SMT_mk_not(SMT_mk_eq(a1,a2));
 }
 
 SMT_expr z3_manager::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){
-	assert(c != 0);
-	assert(t != 0);
-	assert(e != 0);
 	SMT_expr res;
 	res.i = Z3_mk_ite(ctx,(Z3_ast)c.i,(Z3_ast)t.i,(Z3_ast)e.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_not (SMT_expr a){
-	assert(a != 0);
 	SMT_expr res;
 	res.i = Z3_mk_not(ctx,(Z3_ast)a.i);
 	return res;
@@ -188,7 +175,6 @@ SMT_expr z3_manager::SMT_mk_sum (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
 		arguments.push_back((Z3_ast)(*b).i);
 	}
 	switch (args.size()) {
@@ -209,7 +195,6 @@ SMT_expr z3_manager::SMT_mk_sub (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
 		arguments.push_back((Z3_ast)(*b).i);
 	}
 	switch (args.size()) {
@@ -230,7 +215,6 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 	std::vector<Z3_ast> arguments;
 	std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 	for (; b != e; ++b) {
-		assert(*b != 0);
 		arguments.push_back((Z3_ast)(*b).i);
 	}
 	switch (args.size()) {
@@ -249,77 +233,60 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 
 
 SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_div(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_rem(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_xor(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_lt(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_le (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_le(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_gt (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_gt(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
-	assert(a1 != 0);
-	assert(a2 != 0);
 	SMT_expr res;
 	res.i = Z3_mk_ge(ctx,(Z3_ast)a1.i,(Z3_ast)a2.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_int2real(SMT_expr a) {
-	assert(a != 0);
 	SMT_expr res;
 	res.i = Z3_mk_int2real(ctx, (Z3_ast) a.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_real2int(SMT_expr a) {
-	assert(a != 0);
 	SMT_expr res;
 	res.i = Z3_mk_real2int(ctx, (Z3_ast) a.i);
 	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_is_int(SMT_expr a) {
-	assert(a != 0);
 	SMT_expr res;
 	assert(Z3_get_sort_kind(ctx, Z3_get_sort(ctx, (Z3_ast) a.i)) == Z3_REAL_SORT);
 	res.i = Z3_mk_is_int(ctx, (Z3_ast) a.i);
@@ -335,7 +302,6 @@ SMT_expr z3_manager::SMT_mk_real0() {
 }
 
 void z3_manager::SMT_print(SMT_expr a){
-	assert(a != 0);
 
 	std::ostringstream oss;
 	oss << "\"" << getFilename() << "\"";
