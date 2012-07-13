@@ -210,7 +210,10 @@ void Pr::computePr(Function &F) {
 					std::string fname = cF->getName();
 					static const std::string assert_fail ("__assert_fail");
 					static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
-					if (fname.compare(assert_fail) == 0 || fname.compare(undefined_behavior_trap) == 0) {
+					static const std::string gnat_rcheck ("__gnat_rcheck_");
+					if (fname.compare(assert_fail) == 0
+					    || fname.compare(undefined_behavior_trap) == 0
+					    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
 						FPr->insert(b);
 						FAssert->insert(b);
 					}
