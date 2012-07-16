@@ -15,6 +15,7 @@
 #include "apron.h"
 #include "Expr.h"
 #include "SMTpass.h"
+#include "Analyzer.h"
 
 using namespace llvm;
 
@@ -24,8 +25,12 @@ ap_var_operations_t var_op_manager;
 ///
 char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
-
-	std::string name = SMTpass::getVarName(val);
+	std::string name;
+	if (useSourceName()) {
+		name = std::string("TODO");
+	} else {
+		name = SMTpass::getVarName(val);
+	}
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());
 	return cname;

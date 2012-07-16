@@ -15,6 +15,7 @@ bool compare_Narrowing;
 bool onlyrho;
 bool bagnara_widening;
 bool defined_main;
+bool use_source_name;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -90,6 +91,10 @@ bool compareNarrowing() {
 
 bool onlyOutputsRho() {
 	return onlyrho;
+}
+
+bool useSourceName() {
+	return use_source_name;
 }
 
 char* getFilename() {
@@ -275,6 +280,7 @@ int main(int argc, char* argv[]) {
 	compare_Narrowing = false;
 	onlyrho = false;
 	defined_main = false;
+	use_source_name = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
@@ -296,13 +302,17 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
+			{"source-name",    no_argument, 0, 'S'},
 			{0, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "hDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
         switch (o) {
+        case 'S':
+            use_source_name = true;
+            break;
         case 'h':
             help = true;
             break;

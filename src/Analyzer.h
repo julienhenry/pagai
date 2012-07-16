@@ -54,6 +54,8 @@ bool compareNarrowing();
 
 bool onlyOutputsRho();
 
+bool useSourceName();
+
 char* getFilename();
 
 bool definedMain();
