@@ -1,6 +1,7 @@
 #include "BoolSimpl.h"
 #include <iostream>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include <llvm/Constants.h>
 
 using namespace llvm;
 
@@ -17,7 +18,7 @@ void BoolSimpl::visitAnd(BinaryOperator &I) {
 	    BinaryOperator::Create(BinaryOperator::And,
 	      cop0 -> getOperand(0),
 	      cop1 -> getOperand(0),
-	      "and", &I),
+	      "andb", &I),
 	    cop0 -> getDestTy(),
             false,
             "postcast"));
@@ -25,7 +26,18 @@ void BoolSimpl::visitAnd(BinaryOperator &I) {
 }
 
 void BoolSimpl::visitICmpInst(ICmpInst &I) {
-  // std::cerr << "cmp" << std::endl;
+  Value *op0 = I.getOperand(0), *op1 = I.getOperand(1);
+  if (CastInst *cop0 = dyn_cast<CastInst>(op0))
+    if (ConstantInt *cop1 = dyn_cast<ConstantInt>(op1))
+      if (cop0 -> getSrcTy() -> isIntegerTy(1) &&
+	  cop1 -> isZero())
+	if (Instruction *src  = dyn_cast<Instruction>(cop0 -> getOperand(0)))
+	  switch (I.getPredicate()) {
+	  case ICmpInst::ICMP_NE:
+	    ReplaceInstWithInst(&I, src -> clone());
+	    std::cerr << "replace NE" << std::endl;
+	    break;
+	  }
 }
 
 bool BoolSimpl::runOnBasicBlock(BasicBlock &bb) {
