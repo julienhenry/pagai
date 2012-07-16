@@ -166,7 +166,23 @@ void AbstractClassic::print(bool only_main) {
 	}
 
 	ap_environment_fdump(tmp,main->env);
+#if 1
 	ap_abstract1_fprint(tmp,man,main);
+#else
+	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
+	size_t size = ap_tcons1_array_size(&tcons_array);
+	if (ap_abstract1_is_bottom(man,main)) {
+		fprintf(tmp,"UNREACHABLE\n");
+	} else if (size == 0) {
+		fprintf(tmp,"TOP\n");
+	} else {
+		for (size_t k = 0; k < size; k++) {
+			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+			ap_tcons1_fprint(tmp,&cons);
+			fprintf(tmp,"\n");
+		}
+	}
+#endif
 	fseek(tmp,0,SEEK_SET);
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
