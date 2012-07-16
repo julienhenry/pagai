@@ -25,6 +25,46 @@ void BoolSimpl::visitAnd(BinaryOperator &I) {
       }
 }
 
+void BoolSimpl::visitOr(BinaryOperator &I) {
+  Value *op0 = I.getOperand(0), *op1 = I.getOperand(1);
+  if (CastInst *cop0 = dyn_cast<CastInst>(op0))
+    if (CastInst *cop1 = dyn_cast<CastInst>(op1))
+      if (cop0 -> isIntegerCast() &&
+	  cop1 -> isIntegerCast() &&
+	  cop0 -> getSrcTy() == cop1 -> getSrcTy()) {
+	std::cerr << "replace OR" << std::endl;
+	ReplaceInstWithInst(&I,
+	  CastInst::CreateIntegerCast(
+	    BinaryOperator::Create(BinaryOperator::Or,
+	      cop0 -> getOperand(0),
+	      cop1 -> getOperand(0),
+	      "orb", &I),
+	    cop0 -> getDestTy(),
+            false,
+            "postcast"));
+      }
+}
+
+void BoolSimpl::visitXor(BinaryOperator &I) {
+  Value *op0 = I.getOperand(0), *op1 = I.getOperand(1);
+  if (CastInst *cop0 = dyn_cast<CastInst>(op0))
+    if (CastInst *cop1 = dyn_cast<CastInst>(op1))
+      if (cop0 -> isIntegerCast() &&
+	  cop1 -> isIntegerCast() &&
+	  cop0 -> getSrcTy() == cop1 -> getSrcTy()) {
+	std::cerr << "replace XOR" << std::endl;
+	ReplaceInstWithInst(&I,
+	  CastInst::CreateIntegerCast(
+	    BinaryOperator::Create(BinaryOperator::Xor,
+	      cop0 -> getOperand(0),
+	      cop1 -> getOperand(0),
+	      "xorb", &I),
+	    cop0 -> getDestTy(),
+            false,
+            "postcast"));
+      }
+}
+
 void BoolSimpl::visitICmpInst(ICmpInst &I) {
   Value *op0 = I.getOperand(0), *op1 = I.getOperand(1);
   if (CastInst *cop0 = dyn_cast<CastInst>(op0))
