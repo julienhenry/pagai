@@ -16,18 +16,27 @@
 #include "Expr.h"
 #include "SMTpass.h"
 #include "Analyzer.h"
-
+#include "Info.h"
+#include "recoverName.h"
 using namespace llvm;
 
+extern recoverName RN;
 ap_var_operations_t var_op_manager;
 
 /// ap_var_to_string - new to_string function for the var_op_manager
 ///
 char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
+
 	std::string name;
 	if (useSourceName()) {
-		name = std::string("TODO");
+		const Value * val1=val;	
+		Info* IN=RN.getMDInfos(val1);	
+		if(IN!=NULL) {
+		 	name=IN->getName();
+		} else {
+			name = SMTpass::getVarName(val);
+		}
 	} else {
 		name = SMTpass::getVarName(val);
 	}
