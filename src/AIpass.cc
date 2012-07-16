@@ -13,10 +13,11 @@
 #include "Live.h"
 #include "Node.h"
 #include "Debug.h"
-
+#include "recoverName.h"
 using namespace llvm;
 
 AIPass * CurrentAIpass = NULL;
+recoverName RN;
 
 void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	A.push(n);
@@ -53,7 +54,7 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-
+	RN.process(F);
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		//resetting parameters
