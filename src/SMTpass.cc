@@ -307,15 +307,37 @@ const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 
 const std::string SMTpass::getValueName(Value * v, bool primed) {
 	std::ostringstream name;
-	char * var = ap_var_to_string((ap_var_t)v);
+	std::string var = getVarName(v);
 	if (primed)
 		name << "x_prime_" << var << "_";
 	else
 		name << "x_" << var << "_";
-	free(var);
 	return name.str();
 }
 
+const std::string SMTpass::getVarName(Value * v) {
+	std::string s_string;
+	raw_string_ostream * s = new raw_string_ostream(s_string);
+
+	if (v->hasName()) {
+		*s << v->getName();
+	} else {
+		*s << *v;
+	}
+	
+	std::string & name = s->str();
+	size_t found;
+	found=name.find_first_of("%");
+	if (found!=std::string::npos) {
+		name = name.substr(found);
+	}
+	found=name.find_first_of(" ");
+	if (found!=std::string::npos) {
+		name.resize(found);
+	}
+	delete s;
+	return name;
+}
 
 SMT_type SMTpass::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {

@@ -14,6 +14,7 @@
 
 #include "apron.h"
 #include "Expr.h"
+#include "SMTpass.h"
 
 using namespace llvm;
 
@@ -23,28 +24,10 @@ ap_var_operations_t var_op_manager;
 ///
 char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
-	std::string s_string;
-	raw_string_ostream * s = new raw_string_ostream(s_string);
 
-	if (val->hasName()) {
-		*s << val->getName();
-	} else {
-		*s << *val;
-	}
-	
-	std::string & name = s->str();
-	size_t found;
-	found=name.find_first_of("%");
-	if (found!=std::string::npos) {
-		name = name.substr(found);
-	}
-	found=name.find_first_of(" ");
-	if (found!=std::string::npos) {
-		name.resize(found);
-	}
+	std::string name = SMTpass::getVarName(val);
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());
-	delete s;
 	return cname;
 }
 

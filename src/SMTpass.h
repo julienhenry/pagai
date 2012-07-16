@@ -48,6 +48,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		static const std::string getValueName(Value * v, bool primed);
 
+
 		/// getValueExpr - get the expression associated to a value
 		SMT_expr getValueExpr(Value * v, bool primed);
 
@@ -110,6 +111,9 @@ class SMTpass : public InstVisitor<SMTpass> {
 		/// getRho - get the SMT formula Rho. Rho is computed only once
 		SMT_expr getRho(Function &F);
 
+		// returns a name for a string
+		// this name is unique for the Value *
+		static const std::string getVarName(Value * v);
 
 		/// push_context - push the context of the SMT manager
 		void push_context();
