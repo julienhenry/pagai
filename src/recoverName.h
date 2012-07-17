@@ -51,6 +51,7 @@ class recoverName {
 		static int process(Function* F);
 		static int getBasicBlockLineNo(BasicBlock* BB);
 		static int getBasicBlockColumnNo(BasicBlock* BB);
+		static std::string getSourceFileName();
 };
 
 #endif

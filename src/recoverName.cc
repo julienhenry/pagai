@@ -1,5 +1,8 @@
-#include "recoverName.h"
 #include<algorithm>
+
+#include "recoverName.h"
+#include "Debug.h"
+
 #define MAX 0xFFFFFFFF
 
 // map M1 for pass1 and M2 for pass2
@@ -302,7 +305,9 @@ bool recoverName::heyPHINode(
 		}
 		else if(ret1.first==ret1.second)
 		{
-			*Out<<"foo..\n";
+			DEBUG(
+				*Out<<"foo..\n";
+			);
 		}
 		
 		for(it=ret1.first;it!=ret1.second;it++)
@@ -359,4 +364,10 @@ void recoverName::pass2(Function *F) {
 			}
 		}
 	}
+}
+
+std::string recoverName::getSourceFileName() {
+	//TODO
+	std::string s;
+	return s;
 }
