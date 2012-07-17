@@ -1,29 +1,44 @@
 #include "recoverName.h"
 #include<algorithm>
-
+#define MAX 0xFFFFFFFF
 Info* recoverName::getMDInfos(const Value* V)
 {
-	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
-	ret1=M.equal_range(V);
+	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1,ret2;
+	ret1=M1.equal_range(V);ret2=M2.equal_range(V);
 	std::multimap<const Value*,Info*>::iterator it;
-	it=ret1.first;
+	if(ret2.first!=ret2.second)
+		it=ret2.first;
+	else
+		it=ret1.first;
 	//it++;
 	return (it)->second;
 }
 
 int recoverName::process(Function *F)
 {
-	M.clear();
+	M1.clear();M2.clear();
 	pass1(F);	
 	pass2(F);
 
 	//to display the multimap for Function *F..
 	std::multimap<const Value*,Info*>::iterator itt;
-	for ( itt=M.begin() ; itt != M.end(); itt++ )
+	*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+	for ( itt=M1.begin() ; itt != M1.end(); itt++ )
 	{
 		*Out<< *(*itt).first << " => ";//(*itt).second->display(); *Out<<"\n";
 		Info* IN=getMDInfos(itt->first);
-		IN->display(); *Out<<"\n";
+		(*itt).second->display();
+		//IN->display(); 
+		*Out<<"\n";
+	}
+	*Out<<"Map2\n";
+	for ( itt=M2.begin() ; itt != M2.end(); itt++ )
+	{
+		*Out<< *(*itt).first << " => ";//(*itt).second->display(); *Out<<"\n";
+		Info* IN=getMDInfos(itt->first);
+		(*itt).second->display();
+		//IN->display(); 
+		*Out<<"\n";
 	}
 	
 	return 1;
@@ -32,8 +47,19 @@ int recoverName::process(Function *F)
 int recoverName::getBasicBlockLineNo(BasicBlock* BB)
 {
 	std::map<BasicBlock*,int>::iterator it;
-	it=BBM.find(BB);
-	if(it!=BBM.end())
+	it=BBM1.find(BB);
+	if(it!=BBM1.end())
+	{
+		return it->second;
+	}
+	else
+		return -1;
+}
+int recoverName::getBasicBlockColumnNo(BasicBlock* BB)
+{
+	std::map<BasicBlock*,int>::iterator it;
+	it=BBM2.find(BB);
+	if(it!=BBM2.end())
 	{
 		return it->second;
 	}
@@ -133,21 +159,38 @@ void recoverName::pass1(Function *F)
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
 	{
 		bool bbLineFlag=false;
-		
+		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
 		{
-			if(!bbLineFlag && I->hasMetadata())
+			if(I->hasMetadata())
 			{
 				SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
 				I->getAllMetadata(MDs);
 
 				SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin();
-				if(MDNode *BlockMD=dyn_cast<MDNode>((MI->second)->getOperand(2)))
+				if(MDNode *BlockMD=dyn_cast<MDNode>(MI->second))
 				{
-					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(2)))
+					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0)))
 					{
-						BBM.insert(std::make_pair(bb,BBLineNo->getZExtValue())); //BasicBlock LineNo. stored in a map
-						bbLineFlag=true;
+						bblineNo=BBLineNo->getZExtValue();
+						//BBM1.insert(std::make_pair(bb,BBLineNo->getZExtValue())); //BasicBlock LineNo. stored in a map
+						//bbLineFlag=true;
+					}
+					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1)))
+					{
+						bbcolumnNo=BBColumnNo->getZExtValue();
+						//BBM2.insert(std::make_pair(bb,BBColumnNo->getZExtValue())); //BasicBlock ColumnNo. stored in a map
+						//bbLineFlag=true;
+					}
+
+					if(bblineNo<bblineNoMin)
+					{
+						bblineNoMin=bblineNo;
+						bbcolumnNoMin=bbcolumnNo;
+					}
+					else if(bblineNo==bblineNoMin && bbcolumnNo<bbcolumnNoMin)
+					{
+						bbcolumnNoMin=bbcolumnNo;
 					}
 				}
 			}
@@ -174,7 +217,7 @@ void recoverName::pass1(Function *F)
 					std::multimap<const Value*,Info*>::iterator it;
 					bool check=true;
 
-					ret1=M.equal_range(BCVar);
+					ret1=M1.equal_range(BCVar);
 					for(it=ret1.first;it!=ret1.second;it++)
 					{
 						if(varInfo->isEqual(it->second))
@@ -186,12 +229,14 @@ void recoverName::pass1(Function *F)
 					if(check)
 					{
 						std::pair<const Value*,Info*>hi=std::make_pair(BCVar,varInfo);
-						M.insert(hi);
+						M1.insert(hi);
 					}
 					dbgInstFlag=false;
 				}
 			}
 		}
+		BBM1.insert(std::make_pair(bb,bblineNoMin));
+		BBM2.insert(std::make_pair(bb,bbcolumnNoMin));
 	}	
 }
 
@@ -214,45 +259,50 @@ bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PH
 	std::multimap<const Value*,Info*>::iterator it;
 	
 	Value* BCVar=PHIN->getIncomingValue(0);
-	
-	ret1=M.equal_range(BCVar);
+	ret1=M1.equal_range(BCVar);
+	ret2=M2.equal_range(BCVar);
 	bool one=true;
-	if(ret1.first==ret1.second)
+	if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
 	{
-		if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
+		if(ret2.first==ret2.second)
 		{
 			one=heyPHINode(PHIN2,PHIvector,v);
 		}
-		else
-			*Out<<"foo..\n";
 	}
-	else
+	else if(ret1.first==ret1.second)
 	{
-		for(it=ret1.first;it!=ret1.second;it++)
-			v.push_back(it->second);
+		*Out<<"foo..\n";
 	}
 
+	for(it=ret1.first;it!=ret1.second;it++)
+		v.push_back(it->second);
+	for(it=ret2.first;it!=ret2.second;it++)
+		v.push_back(it->second);
+	
 	int numIncomingValues=PHIN->getNumIncomingValues();
 	for(int i=1;i<numIncomingValues;i++)
 	{
 		BCVar=PHIN->getIncomingValue(i);
-		ret1=M.equal_range(BCVar);
+		ret1=M1.equal_range(BCVar);	
+		ret2=M2.equal_range(BCVar);
 		bool two=true;
-		if(ret1.first==ret1.second)
+		if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
 		{
-			if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
+			if(ret2.first==ret2.second)
 			{
-				two=heyPHINode(PHIN2,PHIvector,v2);
+				two=heyPHINode(PHIN2,PHIvector,v);
 			}
-			else
-				*Out<<"foo..\n";
 		}
-		else
+		else if(ret1.first==ret1.second)
 		{
-			for(it=ret1.first;it!=ret1.second;it++)
-				v2.push_back(it->second);
+			*Out<<"foo..\n";
 		}
-
+		
+		for(it=ret1.first;it!=ret1.second;it++)
+			v2.push_back(it->second);
+		for(it=ret2.first;it!=ret2.second;it++)
+			v2.push_back(it->second);
+		
 		if(i==1 && !one && two)
 			v.assign(v2.begin(),v2.end());
 		else if(v.size() && v2.size())
@@ -267,9 +317,9 @@ bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PH
 			myV.clear();
 		}
 
-		/*
-		 
-		*Out<<"Intersection :";
+		
+		/* 
+		*Out<<"Intersection :"<<*PHIN;
 						// *Out<<"Size="<<myV.size()<<"\n";
 						//if(myV.size()>1)
 						for(vx=v.begin();vx!=v.end();vx++)
@@ -277,8 +327,8 @@ bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PH
 							(*vx)->display();						
 							*Out<<" ";
 						}
-		*Out<<"\n";
-		*/			
+		*Out<<"\n";*/
+		
 	}
 	return true;
 }
@@ -299,8 +349,9 @@ void recoverName::pass2(Function *F)
 
 				for(vx=v.begin();vx!=v.end();vx++)
 				{
+					// *Out<<"HI ";(*vx)->display();*Out<<"\n";
 					std::pair<const Value*,Info*>hi=std::make_pair(PHIN,*vx);
-					M.insert(hi);
+					M2.insert(hi);
 				}
 			}
 		}

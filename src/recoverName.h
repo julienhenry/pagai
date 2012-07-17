@@ -36,9 +36,9 @@ class compare_1
 
 class recoverName
 {
-	std::multimap<const Value*,Info*> M;
-	std::map<BasicBlock*,int> BBM; //Basic Block Mapping to the starting line no. of basicblock in original code.
-	void pass1(Function*F);
+	std::multimap<const Value*,Info*> M1,M2;// map M1 for pass1 and M2 for pass2
+	std::map<BasicBlock*,int> BBM1,BBM2; //Basic Block Mapping to the starting line no. and column no. of basicblock in original code.
+	void pass1(Function *F);
 	void pass2(Function *F);
 	bool heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PHIvector,std::vector<Info*>& v);
 	
@@ -46,6 +46,7 @@ class recoverName
 	Info* getMDInfos(const Value* V);
 	int process(Function* F);
 	int getBasicBlockLineNo(BasicBlock* BB);
+	int getBasicBlockColumnNo(BasicBlock* BB);
 };
 
 #endif
