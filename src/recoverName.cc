@@ -1,6 +1,10 @@
 #include "recoverName.h"
 #include<algorithm>
 #define MAX 0xFFFFFFFF
+
+std::multimap<const Value*,Info*> M1,M2;// map M1 for pass1 and M2 for pass2
+std::map<BasicBlock*,int> BBM1,BBM2; //Basic Block Mapping to the starting line no. and column no. of basicblock in original code.
+
 Info* recoverName::getMDInfos(const Value* V)
 {
 	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1,ret2;

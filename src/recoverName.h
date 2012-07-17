@@ -16,37 +16,38 @@ using namespace llvm;
 class compare_1
 {
 	public:
-	bool operator()(Info* x,Info* y)
-	{
-		if(x->getLineNo() == y->getLineNo())
+		bool operator()(Info* x,Info* y)
 		{
-			int compareVal=(x->getName()).compare(y->getName());
-			if(compareVal)
-				return (compareVal < 0);
-			else
+			if(x->getLineNo() == y->getLineNo())
 			{
-				compareVal=(x->getType()).compare(y->getType());
-				return (compareVal < 0);
+				int compareVal=(x->getName()).compare(y->getName());
+				if(compareVal)
+					return (compareVal < 0);
+				else
+				{
+					compareVal=(x->getType()).compare(y->getType());
+					return (compareVal < 0);
+				}
 			}
+			else
+				return (x->getLineNo() < y->getLineNo());
 		}
-		else
-			return (x->getLineNo() < y->getLineNo());
-	}
 };
 
-class recoverName
-{
-	std::multimap<const Value*,Info*> M1,M2;// map M1 for pass1 and M2 for pass2
-	std::map<BasicBlock*,int> BBM1,BBM2; //Basic Block Mapping to the starting line no. and column no. of basicblock in original code.
-	void pass1(Function *F);
-	void pass2(Function *F);
-	bool heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PHIvector,std::vector<Info*>& v);
-	
+class recoverName {
+	private :
+		static void pass1(Function *F);
+		static void pass2(Function *F);
+		static bool heyPHINode(
+				const PHINode *PHIN,
+				std::vector<const PHINode*>& PHIvector,
+				std::vector<Info*>& v);
+
 	public:
-	Info* getMDInfos(const Value* V);
-	int process(Function* F);
-	int getBasicBlockLineNo(BasicBlock* BB);
-	int getBasicBlockColumnNo(BasicBlock* BB);
+		static Info* getMDInfos(const Value* V);
+		static int process(Function* F);
+		static int getBasicBlockLineNo(BasicBlock* BB);
+		static int getBasicBlockColumnNo(BasicBlock* BB);
 };
 
 #endif

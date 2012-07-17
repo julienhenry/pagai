@@ -17,7 +17,6 @@
 using namespace llvm;
 
 AIPass * CurrentAIpass = NULL;
-recoverName RN;
 
 void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	A.push(n);
@@ -54,7 +53,7 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	RN.process(F);
+	recoverName::process(F);
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		//resetting parameters
@@ -94,8 +93,8 @@ void AIPass::printResult(Function * F) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			if (useSourceName()) {
-				*Out << "(Line No : "<<RN.getBasicBlockLineNo(b)<<")\n";
-				*Out << "(Column No : "<<RN.getBasicBlockColumnNo(b)<<")\n";
+				*Out << "(Line No : "<<recoverName::getBasicBlockLineNo(b)<<")\n";
+				*Out << "(Column No : "<<recoverName::getBasicBlockColumnNo(b)<<")\n";
 			}
 			Out->resetColor();
 			//n->X_i[passID]->print(true);

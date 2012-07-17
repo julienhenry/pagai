@@ -20,7 +20,6 @@
 #include "recoverName.h"
 using namespace llvm;
 
-extern recoverName RN;
 ap_var_operations_t var_op_manager;
 
 /// ap_var_to_string - new to_string function for the var_op_manager
@@ -31,10 +30,11 @@ char* ap_var_to_string(ap_var_t var) {
 	std::string name;
 	if (useSourceName()) {
 		const Value * val1=val;	
-		Info* IN=RN.getMDInfos(val1);	
-		if(IN!=NULL) {
+		Info* IN = recoverName::getMDInfos(val1);	
+		if(IN != NULL) {
 		 	name=IN->getName();
 		} else {
+			*Out << "IN == NULL\n";
 			name = SMTpass::getVarName(val);
 		}
 	} else {
