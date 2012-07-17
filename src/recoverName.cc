@@ -2,11 +2,14 @@
 #include<algorithm>
 #define MAX 0xFFFFFFFF
 
-std::multimap<const Value*,Info*> M1,M2;// map M1 for pass1 and M2 for pass2
-std::map<BasicBlock*,int> BBM1,BBM2; //Basic Block Mapping to the starting line no. and column no. of basicblock in original code.
+// map M1 for pass1 and M2 for pass2
+std::multimap<const Value*,Info*> M1,M2;
 
-Info* recoverName::getMDInfos(const Value* V)
-{
+//Basic Block Mapping to the starting line no. and column no. of basicblock in
+//original code.
+std::map<BasicBlock*,int> BBM1,BBM2; 
+
+Info* recoverName::getMDInfos(const Value* V) {
 	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1,ret2;
 	ret1=M1.equal_range(V);ret2=M2.equal_range(V);
 	std::multimap<const Value*,Info*>::iterator it;
@@ -18,8 +21,7 @@ Info* recoverName::getMDInfos(const Value* V)
 	return (it)->second;
 }
 
-int recoverName::process(Function *F)
-{
+int recoverName::process(Function *F) {
 	M1.clear();M2.clear();
 	pass1(F);	
 	pass2(F);
@@ -48,8 +50,7 @@ int recoverName::process(Function *F)
 	return 1;
 }
 
-int recoverName::getBasicBlockLineNo(BasicBlock* BB)
-{
+int recoverName::getBasicBlockLineNo(BasicBlock* BB) {
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM1.find(BB);
 	if(it!=BBM1.end())
@@ -59,8 +60,8 @@ int recoverName::getBasicBlockLineNo(BasicBlock* BB)
 	else
 		return -1;
 }
-int recoverName::getBasicBlockColumnNo(BasicBlock* BB)
-{
+
+int recoverName::getBasicBlockColumnNo(BasicBlock* BB) {
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM2.find(BB);
 	if(it!=BBM2.end())
@@ -71,8 +72,7 @@ int recoverName::getBasicBlockColumnNo(BasicBlock* BB)
 		return -1;
 }
 
-Info* resolveMetDescriptor(MDNode* md)
-{
+Info* resolveMetDescriptor(MDNode* md) {
 	std::string name,type;
 	int lineNo,tag;
 	int varNameLoc,lineNoLoc,typeLoc;
@@ -153,8 +153,7 @@ Info* resolveMetDescriptor(MDNode* md)
 	return NULL;
 }
 
-void recoverName::pass1(Function *F)
-{
+void recoverName::pass1(Function *F) {
 	MDNode * md; 
 	
 	*Out<<"Function:"<<F->getName()<<"\n";
@@ -244,8 +243,11 @@ void recoverName::pass1(Function *F)
 	}	
 }
 
-bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PHIvector,std::vector<Info*>& v)
-{
+bool recoverName::heyPHINode(
+		const PHINode *PHIN,
+		std::vector<const PHINode*>& PHIvector,
+		std::vector<Info*>& v) {
+
 	std::vector<Info*> v2,myV(10);
 	std::vector<Info*>::iterator vit,vx;
 	
@@ -259,7 +261,8 @@ bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PH
 	}
 	PHIvector.push_back(PHIN);
 
-	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1,ret2;
+	std::pair<std::multimap<const Value*,Info*>::iterator,
+		std::multimap<const Value*,Info*>::iterator> ret1,ret2;
 	std::multimap<const Value*,Info*>::iterator it;
 	
 	Value* BCVar=PHIN->getIncomingValue(0);
@@ -337,12 +340,9 @@ bool recoverName::heyPHINode(const PHINode *PHIN,std::vector<const PHINode*>& PH
 	return true;
 }
 
-void recoverName::pass2(Function *F)
-{
-	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
-	{	
-		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
-		{
+void recoverName::pass2(Function *F) {
+	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {	
+		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
 			if(const PHINode *PHIN=dyn_cast<PHINode>(I)) //for each PHI Instruction
 			{
 				std::vector<const PHINode*> PHIvector;
@@ -351,8 +351,7 @@ void recoverName::pass2(Function *F)
 
 				heyPHINode(PHIN,PHIvector,v);
 
-				for(vx=v.begin();vx!=v.end();vx++)
-				{
+				for(vx=v.begin();vx!=v.end();vx++) {
 					// *Out<<"HI ";(*vx)->display();*Out<<"\n";
 					std::pair<const Value*,Info*>hi=std::make_pair(PHIN,*vx);
 					M2.insert(hi);
