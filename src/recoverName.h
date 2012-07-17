@@ -1,15 +1,18 @@
 #ifndef _RECOVERNAME_H
 #define _RECOVERNAME_H
 
-#include "llvm/Module.h"
-#include<map>
-#include "llvm/Support/InstIterator.h"
-#include "Info.h"
-#include <llvm/Constants.h>
-#include "llvm/IntrinsicInst.h"
-#include<iostream>
 #include <set>
-#define LLVM_DEBUG_VERSION 720896
+#include<map>
+
+#include "llvm/Module.h"
+#include "llvm/Support/InstIterator.h"
+#include "llvm/Constants.h"
+#include "llvm/IntrinsicInst.h"
+#include "llvm/Support/Dwarf.h"
+
+#include "Info.h"
+
+#define LLVM_DEBUG_VERSION LLVMDebugVersion
 
 using namespace llvm;
 
