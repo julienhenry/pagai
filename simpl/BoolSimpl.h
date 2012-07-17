@@ -12,6 +12,9 @@ class BoolSimpl : public BasicBlockPass,
   BoolSimpl() : BasicBlockPass(ID) {}
 
   void visitICmpInst(ICmpInst &I);
+  void visitAnd(BinaryOperator &I);
+  void visitOr(BinaryOperator &I);
+  void visitXor(BinaryOperator &I);
 
   virtual bool runOnBasicBlock(BasicBlock &F);
 };
