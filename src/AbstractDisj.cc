@@ -274,10 +274,14 @@ ap_lincons1_array_t AbstractDisj::to_lincons_array(int index) {
 }
 
 void AbstractDisj::print(bool only_main) {
+	*Out << *this;
+}
+
+void AbstractDisj::display(llvm::raw_ostream &stream) const {
 	int k = 0;
-	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
+	std::vector<Abstract*>::const_iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++, k++) {
-		*Out << "Disjunct " << k << "\n";
-		(*it)->print(only_main);
+		stream << "Disjunct " << k << "\n";
+		(*it)->display(stream);
 	}
 }

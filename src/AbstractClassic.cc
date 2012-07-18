@@ -158,7 +158,11 @@ ap_lincons1_array_t AbstractClassic::to_lincons_array() {
 }
 
 void AbstractClassic::print(bool only_main) {
+	*Out << *this;
+}
 
+
+void AbstractClassic::display(llvm::raw_ostream &stream) const {
 	FILE* tmp = tmpfile();
 	if (tmp == NULL) {
 		*Out << "ERROR WHEN PRINTING ABSTRACT VALUE\n";
@@ -186,6 +190,6 @@ void AbstractClassic::print(bool only_main) {
 	fseek(tmp,0,SEEK_SET);
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
-		*Out << c;
+		stream << c;
 	fclose(tmp);
 }

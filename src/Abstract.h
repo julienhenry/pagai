@@ -98,5 +98,10 @@ class Abstract {
 
 		/// print - print the abstract domain on standard output
 		virtual void print(bool only_main = false) = 0;
+
+		virtual void display(llvm::raw_ostream &stream) const = 0;
 };
+
+llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, Abstract const& A);
+
 #endif
