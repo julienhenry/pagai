@@ -30,6 +30,7 @@ void show_help() {
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
+--source-name : output with the variable names from the source file instead of LLVM's names\n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
