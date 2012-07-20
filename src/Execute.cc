@@ -209,7 +209,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	//Out->flush();
 	//delete FDOut;
-	//delete Out;
+	if (OutputFilename != "") {
+		delete Out;
+	}
 	//delete AIPass;
 	//delete LoopInfoPass;
 }

@@ -56,6 +56,10 @@ bool onlyOutputsRho();
 
 bool useSourceName();
 
+bool OutputAnnotatedFile();
+char* getAnnotatedFilename();
+char* getSourceFilename();
+
 char* getFilename();
 
 bool definedMain();

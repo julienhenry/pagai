@@ -80,6 +80,8 @@ bool AIpf::runOnModule(Module &M) {
 		ClearPathtreeMap(V);
 	}
 	LSMT->reset_SMTcontext();
+	if (OutputAnnotatedFile())
+		generateAnnotatedFile(F->getParent());
 	return false;
 }
 

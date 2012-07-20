@@ -163,17 +163,20 @@ void AbstractClassic::print(bool only_main) {
 }
 
 
-void AbstractClassic::display(llvm::raw_ostream &stream) const {
+void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) const {
 #if 1
 	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
 	size_t size = ap_tcons1_array_size(&tcons_array);
 	if (ap_abstract1_is_bottom(man,main)) {
+		if (left != NULL) stream << *left;
 		stream << "UNREACHABLE\n";
 	} else if (size == 0) {
+		if (left != NULL) stream << *left;
 		stream << "TOP\n";
 	} else {
 		for (size_t k = 0; k < size; k++) {
 			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+			if (left != NULL) stream << *left;
 			stream << cons << "\n";
 		}
 	}
