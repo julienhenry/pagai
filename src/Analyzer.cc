@@ -34,6 +34,8 @@ void show_help() {
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
 --source-name : output with the variable names from the source file instead of LLVM's names\n \
+--annotated : specify the name of the outputted annotated source file\n \
+--source : specify the path and name of the source file (in C, C++,etc.) \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -301,6 +303,8 @@ int main(int argc, char* argv[]) {
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
+	annotatedFilename = NULL;
+	sourceFilename = NULL;
 
 	static struct option long_options[] =
 		{
@@ -390,6 +394,7 @@ int main(int argc, char* argv[]) {
             break;
         case 'a':
 			output_annotated = true;
+            use_source_name = true;
             annotatedFilename = optarg;
             break;
         case 'A':
@@ -408,7 +413,11 @@ int main(int argc, char* argv[]) {
             std::cout << "Error : Unknown option " << optopt << "\n";
             bad_use = true;
         }   
-    } 
+    }
+	 if (annotatedFilename != NULL && sourceFilename == NULL) {
+        std::cout << "ERROR : You must specify the source Filename\n\n";
+		bad_use = true;
+	 }
     if (!help) {
         if (!filename) {
             std::cout << "No input file specified\n";
