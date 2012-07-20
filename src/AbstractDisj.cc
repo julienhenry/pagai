@@ -277,7 +277,7 @@ void AbstractDisj::print(bool only_main) {
 	*Out << *this;
 }
 
-void AbstractDisj::display(llvm::raw_ostream &stream) const {
+void AbstractDisj::display(llvm::raw_ostream &stream, std::string * left) const {
 	int k = 0;
 	std::vector<Abstract*>::const_iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++, k++) {

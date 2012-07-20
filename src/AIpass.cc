@@ -1,9 +1,12 @@
 #include <vector>
 #include <list>
+#include <fstream>
 
 #include "llvm/Instructions.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/IntrinsicInst.h"
+#include "llvm/Support/system_error.h"
+#include "llvm/LinkAllVMCore.h"
 
 #include "AIpass.h"
 #include "Pr.h"
@@ -83,7 +86,107 @@ void AIPass::initFunction(Function * F) {
 	//*Out << *F;
 }
 
+						
+void format_string(std::string & left) {
+	int k;
+	for (k = 0; k < left.size(); k++) {
+		if (left[k] != '\t')
+			left[k] = ' '; 
+	}
+}
+
+void AIPass::generateAnnotatedFile(Module * M) {
+	//std::string OutputFilename("arraysum_int_annotated.c");
+	std::string OutputFilename(getAnnotatedFilename());
+	// open the output stream
+	llvm::raw_ostream *Output;
+	raw_fd_ostream *FDOut = NULL;
+	std::string error;
+	FDOut = new raw_fd_ostream(OutputFilename.c_str(), error);
+	if (!error.empty()) {
+		errs() << error << '\n';
+		delete FDOut;
+		return;
+	}
+	Output = new formatted_raw_ostream(*FDOut, formatted_raw_ostream::DELETE_STREAM);
+
+	// Make sure that the Output file gets unlinked from the disk if we get a
+	// SIGINT
+	sys::RemoveFileOnSignal(sys::Path(OutputFilename));
+
+	// compute a map associating a (line,column) to a basicblock
+	// the map is ordered, so that we can use an iterator for displaying the
+	// invariant for the basicblock when needed
+	std::multimap<std::pair<int,int>,BasicBlock*> BasicBlock_position; 
+	Function * F;
+	BasicBlock * b;
+	for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
+		F = mIt;
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+			b = i;
+			int l = recoverName::getBasicBlockLineNo(b);
+			int c = recoverName::getBasicBlockColumnNo(b);
+			BasicBlock_position.insert( 
+					std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
+				);
+			*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
+		}
+	}
+
+	// now, we open the source file in read mode, and the output file in write
+	// mode
+    std::ifstream sourceFile(getSourceFilename());
+	int lineNo = 0;
+	int columnNo;
+
+	std::multimap<std::pair<int,int>,BasicBlock*>::iterator Iit, Iet;
+	Iit = BasicBlock_position.begin();
+	Iet = BasicBlock_position.end();
+
+	while (Iit->first.first < 0) Iit++;
+
+    if ( sourceFile )
+    {
+        std::string line;
+
+        while ( std::getline( sourceFile, line ) )
+        {
+			lineNo++;
+			columnNo = 1;
+			string::iterator it = line.begin(); 
+			while (it < line.end()) {
+				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
+					// here, we can print an invariant !
+					b = Iit->second;
+					if (Nodes[b]->X_s[passID] != NULL) {
+						// compute the left padding
+						std::string left = line.substr(0,columnNo-1);
+						// format string in order to remove undesired characters
+						format_string(left);
+						*Output << "/* invariant:\n"; 
+						Nodes[b]->X_s[passID]->display(*Output,&left);
+						*Output << left << "*/\n";
+						*Output << left;
+					} 
+					Iit++;
+				}
+				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
+					continue;
+				} else {
+					*Output << *it;
+					columnNo++;
+					it++;
+				}
+			}
+			*Output << "\n";
+        }
+    }
+	delete Output;
+}
+
 void AIPass::printResult(Function * F) {
+	if (OutputAnnotatedFile())
+		generateAnnotatedFile(F->getParent());
 	BasicBlock * b;
 	Node * n;
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {

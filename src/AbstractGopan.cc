@@ -226,7 +226,7 @@ void AbstractGopan::print(bool only_main) {
 	*Out << *this;
 }
 
-void AbstractGopan::display(llvm::raw_ostream &stream) const {
+void AbstractGopan::display(llvm::raw_ostream &stream,  std::string * left) const {
 	FILE* tmp = tmpfile();
 	if (tmp == NULL) return;
 
