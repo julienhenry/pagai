@@ -81,6 +81,7 @@ void AIPass::initFunction(Function * F) {
 		}
 	}
 
+	*Out<<"Function:"<<F->getName()<<"\n";
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		printBasicBlock(i);
 	//*Out << *F;
@@ -129,7 +130,9 @@ void AIPass::generateAnnotatedFile(Module * M) {
 			BasicBlock_position.insert( 
 					std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
 				);
+			DEBUG(
 			*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
+			);
 		}
 	}
 
@@ -193,8 +196,6 @@ void AIPass::generateAnnotatedFile(Module * M) {
 }
 
 void AIPass::printResult(Function * F) {
-	if (OutputAnnotatedFile())
-		generateAnnotatedFile(F->getParent());
 	BasicBlock * b;
 	Node * n;
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {

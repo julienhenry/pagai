@@ -93,6 +93,8 @@ bool AIdis::runOnModule(Module &M) {
 		S.clear();
 
 	}
+	if (OutputAnnotatedFile())
+		generateAnnotatedFile(F->getParent());
 	return 0;
 }
 

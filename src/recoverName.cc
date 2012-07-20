@@ -34,33 +34,44 @@ Info* recoverName::getMDInfos(const Value* V) //retrieve appropriate Info* mappe
 //pass1 and pass2 create maps M1 and M2 for all const Value* present in Function* passed to process function.
 int recoverName::process(Function *F) 
 { 
-	M1.clear();
-	M2.clear();
+	//M1.clear();
+	//M2.clear();
 
-	*Out<<"Function:"<<F->getName()<<"\n";
 	pass1(F);	
 	pass2(F);
 
 	std::multimap<const Value*,Info*>::iterator itt;
 
 	//simply displaying the multimaps M1 and M2 created for Function *F..
+	DEBUG(
 	*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+	);
 	for ( itt=M1.begin() ; itt != M1.end(); itt++ )
 	{
+		DEBUG(
 		*Out<< *(*itt).first << " => ";
+		);
 		Info* IN=getMDInfos(itt->first);
+		DEBUG(
 		(*itt).second->display();
 		//IN->display(); 
 		*Out<<"\n";
+		);
 	}
+	DEBUG(
 	*Out<<"Map2\n";
+	);
 	for ( itt=M2.begin() ; itt != M2.end(); itt++ )
 	{
+		DEBUG(
 		*Out<< *(*itt).first << " => ";
+		);
 		Info* IN=getMDInfos(itt->first);
+		DEBUG(
 		(*itt).second->display();
 		//IN->display(); 
 		*Out<<"\n";
+		);
 	}
 	return 1;
 }

@@ -132,6 +132,8 @@ bool AISimple::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		printResult(F);
 	}
+	if (OutputAnnotatedFile())
+		generateAnnotatedFile(F->getParent());
 	return 0;
 }
 
