@@ -9,7 +9,7 @@
 
 extern llvm::raw_ostream *Out;
 
-//Info class holds information about a variable and provides necessary functions.
+//Info class holds information about a variable in original source-code and provides necessary functions.
 class Info
 {
 	std::string name;

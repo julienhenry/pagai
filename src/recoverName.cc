@@ -8,33 +8,46 @@
 // map M1 for pass1 and M2 for pass2
 std::multimap<const Value*,Info*> M1,M2;
 
-//Basic Block Mapping to the starting line no. and column no. of basicblock in
-//original code.
+//Basic Block Mapping: 
+//BBM1 maps a basic block to starting line no. in original source code
+//BBM2 maps a basic block to column no. in original code.
 std::map<BasicBlock*,int> BBM1,BBM2; 
 
-Info* recoverName::getMDInfos(const Value* V) {
+Info* recoverName::getMDInfos(const Value* V) //retrieve appropriate Info* mapped to a const Value* from the maps.
+{
 	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1,ret2;
-	ret1=M1.equal_range(V);ret2=M2.equal_range(V);
+	ret1=M1.equal_range(V);
+	ret2=M2.equal_range(V);
 	std::multimap<const Value*,Info*>::iterator it;
+
+	//if a Value* is present in Map M2, we return the corresponding Info* mapped to it
+	//else we return the mapped Info* from M1. NOTE:In this case, a NULL value can also be returned. 
 	if(ret2.first!=ret2.second)
 		it=ret2.first;
-	else
+	else 
 		it=ret1.first;
-	//it++;
+	
 	return (it)->second;
 }
 
-int recoverName::process(Function *F) {
-	M1.clear();M2.clear();
+//process function involves calling two functions 'pass1' and then 'pass2', passing the argument Function*
+//pass1 and pass2 create maps M1 and M2 for all const Value* present in Function* passed to process function.
+int recoverName::process(Function *F) 
+{ 
+	M1.clear();
+	M2.clear();
+
+	*Out<<"Function:"<<F->getName()<<"\n";
 	pass1(F);	
 	pass2(F);
 
-	//to display the multimap for Function *F..
 	std::multimap<const Value*,Info*>::iterator itt;
+
+	//simply displaying the multimaps M1 and M2 created for Function *F..
 	*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
 	for ( itt=M1.begin() ; itt != M1.end(); itt++ )
 	{
-		*Out<< *(*itt).first << " => ";//(*itt).second->display(); *Out<<"\n";
+		*Out<< *(*itt).first << " => ";
 		Info* IN=getMDInfos(itt->first);
 		(*itt).second->display();
 		//IN->display(); 
@@ -43,13 +56,12 @@ int recoverName::process(Function *F) {
 	*Out<<"Map2\n";
 	for ( itt=M2.begin() ; itt != M2.end(); itt++ )
 	{
-		*Out<< *(*itt).first << " => ";//(*itt).second->display(); *Out<<"\n";
+		*Out<< *(*itt).first << " => ";
 		Info* IN=getMDInfos(itt->first);
 		(*itt).second->display();
 		//IN->display(); 
 		*Out<<"\n";
 	}
-	
 	return 1;
 }
 
@@ -75,6 +87,8 @@ int recoverName::getBasicBlockColumnNo(BasicBlock* BB) {
 		return -1;
 }
 
+//this functions collects required information about a variable from a MDNode*, creates the corresponding object 
+//of type Info* and returns it.
 Info* resolveMetDescriptor(MDNode* md) {
 	std::string name,type;
 	int lineNo,tag;
@@ -96,75 +110,75 @@ Info* resolveMetDescriptor(MDNode* md) {
 						break;
 		}	
 	}	
-	if(assigned){
-	if (const MDString * MDS1 = dyn_cast<MDString>(md->getOperand(varNameLoc))) 
+	if(assigned)
 	{
-		name=MDS1->getString().str();
-    } 		
-	if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(md->getOperand(lineNoLoc)))
-	{
-		lineNo=LineNo->getZExtValue();	
-	}
-
-	bool foundTypeName=false;
-	if(const MDNode *Type=dyn_cast<MDNode>(md->getOperand(typeLoc))) 
-	{
-		if(Type->getOperand(2)!=NULL){
-			if(const MDString *MDS2 = dyn_cast<MDString>(Type->getOperand(2))) 
-			{
-				type=MDS2->getString().str();
-    		}}
-		//using the tag value to find type name..
-		else if(const ConstantInt *Tag = dyn_cast<ConstantInt>(Type->getOperand(0)))
+		if (const MDString * MDS1 = dyn_cast<MDString>(md->getOperand(varNameLoc))) 
 		{
-			tag=Tag->getZExtValue()-LLVM_DEBUG_VERSION;
-			switch(tag)
+			name=MDS1->getString().str();
+    	} 		
+		if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(md->getOperand(lineNoLoc)))
+		{
+			lineNo=LineNo->getZExtValue();	
+		}
+
+		if(const MDNode *Type=dyn_cast<MDNode>(md->getOperand(typeLoc))) 
+		{
+			if(Type->getOperand(2)!=NULL){
+				if(const MDString *MDS2 = dyn_cast<MDString>(Type->getOperand(2))) 
+				{
+					type=MDS2->getString().str();
+    			}}
+		//using the tag value to find type name..
+			else if(const ConstantInt *Tag = dyn_cast<ConstantInt>(Type->getOperand(0)))
 			{
-				case 36: //DW_TAG_base_type
-						type="base_type";
-						break;
-				case 16: //DW_TAG_reference_type 
-						type="reference_type";
-						break;
-				case 15: //DW_TAG_pointer_type 
-						type="pointer_type";
-						break;
-				case 5: //DW_TAG_formal_parameter
-						type="formal_parameter";
-						break;
-				case 13: //DW_TAG_member
-						type="member";
-						break;
-				case 22: //DW_TAG_typedef
-						type="typedef";
-						break;
-				case 38: //DW_TAG_const_type
-						type="const_type";
-						break;
-				case 53: //DW_TAG_volatile_type 
-						type="volatile_type";
-						break;
-				case 55: //DW_TAG_restrict_type
-						type="restrict_type";
-						break;
-				default: type="Unknown_type!!";
+				tag=Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+				switch(tag)
+				{
+					case 36: //DW_TAG_base_type
+							type="base_type";
+							break;
+					case 16: //DW_TAG_reference_type 
+							type="reference_type";
+							break;
+					case 15: //DW_TAG_pointer_type 
+							type="pointer_type";
+							break;
+					case 5: //DW_TAG_formal_parameter
+							type="formal_parameter";
+							break;
+					case 13: //DW_TAG_member
+							type="member";
+							break;
+					case 22: //DW_TAG_typedef
+							type="typedef";
+							break;
+					case 38: //DW_TAG_const_type
+							type="const_type";
+							break;
+					case 53: //DW_TAG_volatile_type 
+							type="volatile_type";
+							break;
+					case 55: //DW_TAG_restrict_type
+							type="restrict_type";
+							break;
+					default: type="Unknown_type!!";
+				}
 			}
 		}
+		Info *obj=new Info(name,lineNo,type);
+		return obj;
 	}
-	Info *obj=new Info(name,lineNo,type);
-	return obj;}
 	return NULL;
 }
 
+//'pass1' reads llvm.dbg.declare and llvm.dbg.value instructions, maps bitcode variables(of type Value*)
+//to original source variable(of type Info*) and stores them in multimap M1
 void recoverName::pass1(Function *F) {
 	MDNode * md; 
-	
-	*Out<<"Function:"<<F->getName()<<"\n";
 	const Value* BCVar;
 	
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
 	{
-		bool bbLineFlag=false;
 		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
 		{
@@ -179,16 +193,11 @@ void recoverName::pass1(Function *F) {
 					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0)))
 					{
 						bblineNo=BBLineNo->getZExtValue();
-						//BBM1.insert(std::make_pair(bb,BBLineNo->getZExtValue())); //BasicBlock LineNo. stored in a map
-						//bbLineFlag=true;
 					}
 					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1)))
 					{
 						bbcolumnNo=BBColumnNo->getZExtValue();
-						//BBM2.insert(std::make_pair(bb,BBColumnNo->getZExtValue())); //BasicBlock ColumnNo. stored in a map
-						//bbLineFlag=true;
 					}
-
 					if(bblineNo<bblineNoMin)
 					{
 						bblineNoMin=bblineNo;
@@ -200,6 +209,8 @@ void recoverName::pass1(Function *F) {
 					}
 				}
 			}
+
+			//now to check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
 			bool dbgInstFlag=false;
 			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I))
 			{
@@ -220,19 +231,19 @@ void recoverName::pass1(Function *F) {
 				if(varInfo!=NULL)
 				{
 					std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
-					std::multimap<const Value*,Info*>::iterator it;
-					bool check=true;
-
 					ret1=M1.equal_range(BCVar);
-					for(it=ret1.first;it!=ret1.second;it++)
+
+					bool ifAlreadyMapped=false;
+					//this is to check and avoid duplicate entries in the map M1 
+					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++)
 					{
 						if(varInfo->isEqual(it->second))
 						{
-							check=false;
+							ifAlreadyMapped=true;
 							break;
 						}
 					}
-					if(check)
+					if(!ifAlreadyMapped)
 					{
 						std::pair<const Value*,Info*>hi=std::make_pair(BCVar,varInfo);
 						M1.insert(hi);
@@ -246,12 +257,14 @@ void recoverName::pass1(Function *F) {
 	}	
 }
 
-bool recoverName::heyPHINode(
+//this functions evaluates a const PHINode* passed as argument, to compute its mapping to the corresponding Info*
+//and stores them in std::vector<Info*> passed by reference to the function.
+bool recoverName::evaluatePHINode(
 		const PHINode *PHIN,
-		std::vector<const PHINode*>& PHIvector,
+		std::vector<const PHINode*>& PHIvector, //stores PHINodes that have already been evaluated
 		std::vector<Info*>& v) {
 
-	std::vector<Info*> v2,myV(10);
+	std::vector<Info*> v2,intersectVector(10);
 	std::vector<Info*>::iterator vit,vx;
 	
 	std::vector<const PHINode*>::iterator PHIvit;
@@ -265,23 +278,28 @@ bool recoverName::heyPHINode(
 	PHIvector.push_back(PHIN);
 
 	std::pair<std::multimap<const Value*,Info*>::iterator,
-		std::multimap<const Value*,Info*>::iterator> ret1,ret2;
+	std::multimap<const Value*,Info*>::iterator> ret1,ret2;
 	std::multimap<const Value*,Info*>::iterator it;
 	
 	Value* BCVar=PHIN->getIncomingValue(0);
 	ret1=M1.equal_range(BCVar);
 	ret2=M2.equal_range(BCVar);
-	bool one=true;
-	if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
+	bool notAlreadyEvaluated1=true;
+
+	//if the operand BCVar of the original PHINode is also a PHINode, then we first check if there is a mapping for BCVar in the map M2
+	//if there is no such mapping in M2 for BCVar(which is of type PHINode), then we first call evaluatePHINode function on BCVar.  
+	if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar)) 
 	{
 		if(ret2.first==ret2.second)
 		{
-			one=heyPHINode(PHIN2,PHIvector,v);
+			notAlreadyEvaluated1=evaluatePHINode(PHIN2,PHIvector,v);
 		}
 	}
 	else if(ret1.first==ret1.second)
 	{
-		*Out<<"foo..\n";
+		DEBUG(
+			*Out<<"The argument "<<*BCVar<<" to the PHINode "<<*PHIN<<" has an empty mapping to any original source-variable !\n";
+		);
 	}
 
 	for(it=ret1.first;it!=ret1.second;it++)
@@ -295,18 +313,21 @@ bool recoverName::heyPHINode(
 		BCVar=PHIN->getIncomingValue(i);
 		ret1=M1.equal_range(BCVar);	
 		ret2=M2.equal_range(BCVar);
-		bool two=true;
+		bool notAlreadyEvaluated2=true;
+
+		//if the operand BCVar of the original PHINode is also a PHINode, then we first check if there is a mapping for BCVar in the map M2
+		//if there is no such mapping in M2 for BCVar(which is of type PHINode), then we first call evaluatePHINode function on BCVar. 
 		if(const PHINode *PHIN2=dyn_cast<PHINode>(BCVar))
 		{
 			if(ret2.first==ret2.second)
 			{
-				two=heyPHINode(PHIN2,PHIvector,v);
+				notAlreadyEvaluated2=evaluatePHINode(PHIN2,PHIvector,v);
 			}
 		}
 		else if(ret1.first==ret1.second)
 		{
 			DEBUG(
-				*Out<<"foo..\n";
+				*Out<<"The argument "<<*BCVar<<" to the PHINode "<<*PHIN<<" has an empty mapping to any original source-variable !\n";
 			);
 		}
 		
@@ -315,36 +336,41 @@ bool recoverName::heyPHINode(
 		for(it=ret2.first;it!=ret2.second;it++)
 			v2.push_back(it->second);
 		
-		if(i==1 && !one && two)
-			v.assign(v2.begin(),v2.end());
+		if(i==1 && !notAlreadyEvaluated1 && notAlreadyEvaluated2) //this to consider the case when the first operand of a PHINode is also a PHINOde and on which the evaluatePHINode
+			v.assign(v2.begin(),v2.end());//function has already been called i.e. that first operand(of type const PHINode*) is already present in 
+											//'PHIvector'
 		else if(v.size() && v2.size())
 		{
 			compare_1 compObj;
 			sort(v.begin(),v.end(),compObj);
 			sort(v2.begin(),v2.end(),compObj);
+
+			//intersection of vectors v and v2 is taken and stored in intersectVector 
+			vit=set_intersection(v.begin(),v.end(),v2.begin(),v2.end(),intersectVector.begin(),compare_1());
 						
-			vit=set_intersection(v.begin(),v.end(),v2.begin(),v2.end(),myV.begin(),compare_1());
-						
-			v.assign(myV.begin(),vit);
-			myV.clear();
+			v.assign(intersectVector.begin(),vit); //since the intersection is taken repeatedly, intersection of two vectors is stored back  
+												   //in the first vector
+			
+			intersectVector.clear();//clear the intersection vector for next iteration
 		}
 
-		
+		//in case you want to display the intersection computed, remove the '/*' & '*/'below.. 
 		/* 
-		*Out<<"Intersection :"<<*PHIN;
-						// *Out<<"Size="<<myV.size()<<"\n";
-						//if(myV.size()>1)
+						*Out<<"Intersection :"<<*PHIN;
 						for(vx=v.begin();vx!=v.end();vx++)
 						{
 							(*vx)->display();						
 							*Out<<" ";
 						}
-		*Out<<"\n";*/
+						*Out<<"\n";
+		*/
 		
 	}
 	return true;
 }
 
+//function pass2 simply calls evaluatePHINode function on every Instruction of type PHINode* and stores them alongwith
+//the computed Info* objects in the map M2
 void recoverName::pass2(Function *F) {
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {	
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
@@ -354,10 +380,10 @@ void recoverName::pass2(Function *F) {
 				std::vector<Info*> v;
 				std::vector<Info*>::iterator vx;
 
-				heyPHINode(PHIN,PHIvector,v);
+				evaluatePHINode(PHIN,PHIvector,v);
 
 				for(vx=v.begin();vx!=v.end();vx++) {
-					// *Out<<"HI ";(*vx)->display();*Out<<"\n";
+					// *Out<<"variable inserted in map M2 : ";(*vx)->display();*Out<<"\n";
 					std::pair<const Value*,Info*>hi=std::make_pair(PHIN,*vx);
 					M2.insert(hi);
 				}

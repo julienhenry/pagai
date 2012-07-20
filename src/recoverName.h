@@ -41,7 +41,7 @@ class recoverName {
 	private :
 		static void pass1(Function *F);
 		static void pass2(Function *F);
-		static bool heyPHINode(
+		static bool evaluatePHINode(
 				const PHINode *PHIN,
 				std::vector<const PHINode*>& PHIvector,
 				std::vector<Info*>& v);
