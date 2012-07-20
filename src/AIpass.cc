@@ -156,7 +156,7 @@ void AIPass::generateAnnotatedFile(Module * M) {
         {
 			lineNo++;
 			columnNo = 1;
-			string::iterator it = line.begin(); 
+			std::string::iterator it = line.begin(); 
 			while (it < line.end()) {
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
 					// here, we can print an invariant !
