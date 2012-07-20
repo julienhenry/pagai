@@ -16,12 +16,15 @@ bool onlyrho;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
+bool output_annotated;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
 bool Threshold[2];
 llvm::raw_ostream *Out;
 char* filename;
+char* annotatedFilename;
+char* sourceFilename;
 int npass;
 std::map<Techniques,int> Passes;
 
@@ -30,6 +33,7 @@ void show_help() {
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
+--source-name : output with the variable names from the source file instead of LLVM's names\n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -95,6 +99,18 @@ bool onlyOutputsRho() {
 
 bool useSourceName() {
 	return use_source_name;
+}
+
+bool OutputAnnotatedFile() {
+	return output_annotated;
+}
+
+char* getAnnotatedFilename() {
+	return annotatedFilename;
+}
+
+char* getSourceFilename() {
+	return sourceFilename;
 }
 
 char* getFilename() {
@@ -281,6 +297,7 @@ int main(int argc, char* argv[]) {
 	onlyrho = false;
 	defined_main = false;
 	use_source_name = false;
+	output_annotated = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
@@ -303,12 +320,14 @@ int main(int argc, char* argv[]) {
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
 			{"source-name",    no_argument, 0, 'S'},
+			{"annotated",    required_argument, 0, 'a'},
+			{"source",    required_argument, 0, 'A'},
 			{0, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "a:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
         switch (o) {
         case 'S':
             use_source_name = true;
@@ -368,6 +387,13 @@ int main(int argc, char* argv[]) {
             break;
         case 'o':
             outputname = optarg;
+            break;
+        case 'a':
+			output_annotated = true;
+            annotatedFilename = optarg;
+            break;
+        case 'A':
+            sourceFilename = optarg;
             break;
         case 's':
             arg = optarg;

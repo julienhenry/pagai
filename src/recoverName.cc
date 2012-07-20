@@ -182,7 +182,7 @@ void recoverName::pass1(Function *F) {
 		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
 		{
-			if(I->hasMetadata())
+			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I))
 			{
 				SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
 				I->getAllMetadata(MDs);

@@ -223,23 +223,19 @@ void AbstractGopan::meet(Abstract* A) {
 }
 
 void AbstractGopan::print(bool only_main) {
+	*Out << *this;
+}
 
+void AbstractGopan::display(llvm::raw_ostream &stream,  std::string * left) const {
 	FILE* tmp = tmpfile();
 	if (tmp == NULL) return;
 
-	if (!only_main)
-		fprintf(tmp,"MAIN VALUE:\n");
 	ap_environment_fdump(tmp,main->env);
 	ap_abstract1_fprint(tmp,man,main);
 
-	if (!only_main) {
-		fprintf(tmp,"PILOT VALUE:\n");
-		ap_environment_fdump(tmp,pilot->env);
-		ap_abstract1_fprint(tmp,man,pilot);
-	}
 	fseek(tmp,0,SEEK_SET);
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
-		*Out << c;
+		stream << c;
 	fclose(tmp);
 }

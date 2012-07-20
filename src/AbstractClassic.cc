@@ -8,6 +8,7 @@
 #include "AbstractClassic.h"
 #include "Node.h"
 #include "Expr.h"
+#include "apron.h"
 #include "Analyzer.h"
 
 AbstractClassic::AbstractClassic(ap_manager_t* _man, ap_environment_t * env) {
@@ -34,14 +35,14 @@ AbstractClassic::~AbstractClassic() {
 
 /// set_top - sets the abstract to top on the environment env
 void AbstractClassic::set_top(ap_environment_t * env) {
-		ap_abstract1_clear(man,main);
-		*main = ap_abstract1_top(man,env);
+	ap_abstract1_clear(man,main);
+	*main = ap_abstract1_top(man,env);
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
 void AbstractClassic::set_bottom(ap_environment_t * env) {
-		ap_abstract1_clear(man,main);
-		*main = ap_abstract1_bottom(man,env);
+	ap_abstract1_clear(man,main);
+	*main = ap_abstract1_bottom(man,env);
 }
 
 void AbstractClassic::change_environment(ap_environment_t * env) {
@@ -70,7 +71,7 @@ void AbstractClassic::widening(Abstract * X) {
 	Xmain = ap_abstract1_join(man,false,X->main,main);
 	Xmain_widening = ap_abstract1_widening(man,X->main,&Xmain);
 	ap_abstract1_clear(man,&Xmain);
-	
+
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
@@ -82,7 +83,7 @@ void AbstractClassic::widening_threshold(Abstract * X, ap_lincons1_array_t* cons
 	Xmain = ap_abstract1_join(man,false,X->main,main);
 	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons);
 	ap_abstract1_clear(man,&Xmain);
-	
+
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
@@ -120,12 +121,12 @@ void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> 
 	ap_abstract1_clear(man,main);
 
 	ap_abstract1_t  Xmain[size];
-	
+
 	for (unsigned i=0; i < size; i++) {
 		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
 		delete X_pred[i];
 	}
-	
+
 	if (size > 1) {
 		*main = ap_abstract1_join_array(man,Xmain,size);	
 		for (unsigned i=0; i < size; i++) {
@@ -158,7 +159,29 @@ ap_lincons1_array_t AbstractClassic::to_lincons_array() {
 }
 
 void AbstractClassic::print(bool only_main) {
+	*Out << *this;
+}
 
+
+void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) const {
+#if 1
+	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
+	size_t size = ap_tcons1_array_size(&tcons_array);
+	if (ap_abstract1_is_bottom(man,main)) {
+		if (left != NULL) stream << *left;
+		stream << "UNREACHABLE\n";
+	} else if (size == 0) {
+		if (left != NULL) stream << *left;
+		stream << "TOP\n";
+	} else {
+		for (size_t k = 0; k < size; k++) {
+			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+			if (left != NULL) stream << *left;
+			stream << cons << "\n";
+		}
+	}
+
+#else
 	FILE* tmp = tmpfile();
 	if (tmp == NULL) {
 		*Out << "ERROR WHEN PRINTING ABSTRACT VALUE\n";
@@ -166,26 +189,11 @@ void AbstractClassic::print(bool only_main) {
 	}
 
 	ap_environment_fdump(tmp,main->env);
-#if 1
 	ap_abstract1_fprint(tmp,man,main);
-#else
-	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
-	size_t size = ap_tcons1_array_size(&tcons_array);
-	if (ap_abstract1_is_bottom(man,main)) {
-		fprintf(tmp,"UNREACHABLE\n");
-	} else if (size == 0) {
-		fprintf(tmp,"TOP\n");
-	} else {
-		for (size_t k = 0; k < size; k++) {
-			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
-			ap_tcons1_fprint(tmp,&cons);
-			fprintf(tmp,"\n");
-		}
-	}
-#endif
 	fseek(tmp,0,SEEK_SET);
 	char c;
 	while ((c = (char)fgetc(tmp))!= EOF)
-		*Out << c;
+		stream << c;
 	fclose(tmp);
+#endif
 }

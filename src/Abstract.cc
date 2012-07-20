@@ -112,3 +112,9 @@ void Abstract::assign_texpr_array(
 	}
 	assign_texpr_array(&name[0],&texpr[0],name.size(),dest);
 }
+
+
+llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, Abstract const& A) {
+	A.display(stream);
+    return stream;
+}

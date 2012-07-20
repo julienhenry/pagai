@@ -127,5 +127,7 @@ class AbstractDisj: public Abstract {
 
 		/// print - print the abstract domain on standard output
 		void print(bool only_main = false);
+
+		void display(llvm::raw_ostream &stream, std::string * left = NULL) const;
 };
 #endif
