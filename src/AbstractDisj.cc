@@ -280,8 +280,13 @@ void AbstractDisj::print(bool only_main) {
 void AbstractDisj::display(llvm::raw_ostream &stream, std::string * left) const {
 	int k = 0;
 	std::vector<Abstract*>::const_iterator it = disj.begin(), et = disj.end();
-	for (; it != et; it++, k++) {
-		stream << "Disjunct " << k << "\n";
-		(*it)->display(stream);
+	if (disj.size() == 1)
+			disj[0]->display(stream,left);
+	else {
+		for (; it != et; it++, k++) {
+			if (left != NULL) stream << *left;
+			stream << "Disjunct " << k << "\n";
+			(*it)->display(stream,left);
+		}
 	}
 }

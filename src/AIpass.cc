@@ -163,9 +163,17 @@ void AIPass::generateAnnotatedFile(Module * M) {
 						std::string left = line.substr(0,columnNo-1);
 						// format string in order to remove undesired characters
 						format_string(left);
-						*Output << "/* invariant:\n"; 
-						Nodes[b]->X_s[passID]->display(*Output,&left);
-						*Output << left << "*/\n";
+						if (Pr::getAssert(*b->getParent())->count(b)) {
+							if (Nodes[b]->X_s[passID]->is_bottom()) {
+								*Output << "/* assert OK */\n"; 
+							} else {
+								*Output << "/* assert not proved */\n"; 
+							}
+						} else {
+							*Output << "/* invariant:\n"; 
+							Nodes[b]->X_s[passID]->display(*Output,&left);
+							*Output << left << "*/\n";
+						}
 						*Output << left;
 					} 
 					Iit++;
