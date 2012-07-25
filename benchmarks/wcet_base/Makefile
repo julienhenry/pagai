@@ -6,6 +6,7 @@ ABSROOT=$(PWD)/$(ROOT)
 CFILES=${wildcard *.c}
 BCFILES=$(CFILES:%.c=bin/%.bc)
 RESFILES=$(CFILES:%.c=res/%.res)
+ANNOTATEDFILES=$(CFILES:%.c=annotated/%.c)
 
 all: $(BCFILES)
 
@@ -14,6 +15,9 @@ bin/%.bc: %.c
 
 res/%.res: bin/%.bc
 	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ "
+
+annotated/%.c: bin/%.bc %.c
+	$(PAGAI_SH) -i bin/$*.bc -a " -o /tmp/output.txt --source $*.c --annotated $@ "
 
 realclean:
 	rm bin/*.bc
@@ -24,4 +28,7 @@ clean:
 
 test: $(RESFILES)
 	if [ ! -d res ] ; then mkdir res; fi
+
+annotated: $(ANNOTATEDFILES)
+	if [ ! -d annotated ] ; then mkdir annotated; fi
 
