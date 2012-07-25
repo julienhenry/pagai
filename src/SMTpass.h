@@ -81,6 +81,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 		
 		/// computeCondition - compute and return the expression associated to a
 		/// condition
+		SMT_expr computeCondition(Constant * inst);
 		SMT_expr computeCondition(PHINode * inst);
 		SMT_expr computeCondition(CmpInst * inst);
 

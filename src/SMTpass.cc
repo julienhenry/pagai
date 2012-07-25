@@ -712,6 +712,13 @@ SMT_expr SMTpass::computeCondition(PHINode * inst) {
 	return construct_phi_ite(*inst,0,inst->getNumIncomingValues());
 }
 
+SMT_expr SMTpass::computeCondition(Constant * inst) {
+	if (inst->isNullValue())
+		return man->SMT_mk_false();
+	else
+		return man->SMT_mk_true();
+}
+
 SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 
 	ap_texpr_rtype_t ap_type;
@@ -789,8 +796,10 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 		SMT_expr cond;
 		if (isa<CmpInst>(I.getOperand(0)))
 			cond = computeCondition(dyn_cast<CmpInst>(I.getOperand(0)));
-		else if (isa<PHINode>(I.getOperand(0))) {
+		else if (isa<PHINode>(I.getOperand(0))) 
 			cond = computeCondition(dyn_cast<PHINode>(I.getOperand(0)));
+		else if (isa<Constant>(I.getOperand(0))) {
+			cond = computeCondition(dyn_cast<Constant>(I.getOperand(0)));
 		} else {
 			SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(I.getOperand(0)));
 			cond = man->SMT_mk_expr_from_bool_var(cvar);

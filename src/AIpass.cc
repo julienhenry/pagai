@@ -17,6 +17,7 @@
 #include "Node.h"
 #include "Debug.h"
 #include "recoverName.h"
+
 using namespace llvm;
 
 AIPass * CurrentAIpass = NULL;
@@ -813,31 +814,29 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 		bool result,
 		std::vector<ap_tcons1_array_t*> * cons) {
 
-	// this is always true
-	return false;
+	bool is_null = inst->isNullValue();
+	if ((is_null && result) || (is_null && result)) {
+		// we create a unsat constraint
+		// such as one of the successor is unreachable
+		ap_tcons1_t tcons;
+		ap_tcons1_array_t * consarray;
+		ap_environment_t * env = ap_environment_alloc_empty();
+		consarray = new ap_tcons1_array_t();
+		tcons = ap_tcons1_make(
+				AP_CONS_EQ,
+				ap_texpr1_cst_scalar_double(env,1.),
+				ap_scalar_alloc_set_double(0.));
+		*consarray = ap_tcons1_array_make(tcons.env,1);
+		ap_tcons1_array_set(consarray,0,&tcons);
+		
+		// condition is always false
+		cons->push_back(consarray);
+		return true;
+	} else {
+		// there is no constraint 
+		return false;
+	}
 
-	//	if (result) {
-	//		// always true
-	//		return false;
-	//	}
-
-	//	// we create a unsat constraint
-	//	// such as one of the successor is unreachable
-	//	ap_tcons1_t tcons;
-	//	ap_tcons1_array_t * consarray;
-	//	ap_environment_t * env = ap_environment_alloc_empty();
-	//	consarray = new ap_tcons1_array_t();
-	//	tcons = ap_tcons1_make(
-	//			AP_CONS_SUP,
-	//			ap_texpr1_cst_scalar_double(env,1.),
-	//			ap_scalar_alloc_set_double(0.));
-	//	*consarray = ap_tcons1_array_make(tcons.env,1);
-	//	ap_tcons1_array_set(consarray,0,&tcons);
-	//	
-	//	if (inst->isZero() && !result) {
-	//		// condition is always false
-	//		cons->push_back(consarray);
-	//	}
 }
 
 bool AIPass::computePHINodeCondition(PHINode * inst, 
