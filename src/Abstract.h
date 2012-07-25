@@ -52,6 +52,7 @@ class Abstract {
 
 		/// is_bottom - return true iff the abstract value is at bottom
 		virtual bool is_bottom() = 0;
+		virtual bool is_top() = 0;
 
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.

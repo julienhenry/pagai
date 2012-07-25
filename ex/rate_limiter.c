@@ -1,6 +1,6 @@
+#include <pagai_assert.h>
 
 extern int input();
-extern void assume(int predicate);
 
 void rate_limiter() {
   int x_old;

@@ -36,6 +36,9 @@ class AbstractClassic: public Abstract {
 		/// is_bottom - return true iff the abstract value is at bottom
 		bool is_bottom();
 
+		/// is_top - return true iff the abstract value is at top
+		bool is_top();
+
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		void widening(Abstract * X);

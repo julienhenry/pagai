@@ -157,6 +157,14 @@ bool AbstractDisj::is_bottom() {
 	return true;
 }
 
+bool AbstractDisj::is_top() {
+	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
+	for (; it != et; it++) {
+		if ((*it)->is_top()) return true;
+	}
+	return false;
+}
+
 bool AbstractDisj::is_bottom(int index) {
 	SetNDisjunct(index);
 	return disj[index]->is_bottom();

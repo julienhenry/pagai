@@ -72,6 +72,10 @@ bool AbstractGopan::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);
 }
 
+bool AbstractGopan::is_top() {
+	return ap_abstract1_is_top(man,main);
+}
+
 /// widening - Compute the widening operation according to the Gopan & Reps
 /// approach
 void AbstractGopan::widening(Abstract * X) {

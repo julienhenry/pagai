@@ -75,6 +75,10 @@ class AbstractDisj: public Abstract {
 		bool is_bottom();
 		bool is_bottom(int index);
 
+		/// is_top - return true iff one of the disjunct is at top
+		bool is_top();
+		
+
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		void widening(Abstract * X);

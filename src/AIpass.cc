@@ -180,9 +180,15 @@ void AIPass::generateAnnotatedFile(Module * M) {
 								*Output << "/* UNDEFINED BEHAVIOUR */\n"; 
 							}
 						} else {
-							*Output << "/* invariant:\n"; 
-							Nodes[b]->X_s[passID]->display(*Output,&left);
-							*Output << left << "*/\n";
+							if (!Nodes[b]->X_s[passID]->is_top()) {
+								if (Nodes[b]->X_s[passID]->is_bottom()) {
+									*Output << "/* UNREACHABLE */"; 
+								} else {
+									*Output << "/* invariant:\n"; 
+									Nodes[b]->X_s[passID]->display(*Output,&left);
+									*Output << left << "*/\n";
+								}
+							}
 						}
 						*Output << left;
 					} 
