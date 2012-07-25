@@ -22,6 +22,7 @@ class Pr : public ModulePass {
 		static std::map<Function*,std::set<BasicBlock*>*> Pw_set;
 
 		static std::map<Function*,std::set<BasicBlock*>*> Assert_set;
+		static std::map<Function*,std::set<BasicBlock*>*> UndefBehaviour_set;
 
 		std::map<Node*,int> index;
 		std::map<Node*,int> lowlink;
@@ -74,6 +75,7 @@ class Pr : public ModulePass {
 		static std::set<BasicBlock*>* getPw(Function &F);
 
 		static std::set<BasicBlock*>* getAssert(Function &F);
+		static std::set<BasicBlock*>* getUndefinedBehaviour(Function &F);
 
 		static bool inPw(BasicBlock * b);
 

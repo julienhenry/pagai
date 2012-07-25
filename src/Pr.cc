@@ -20,6 +20,7 @@ const char * Pr::getPassName() const {
 std::map<Function*,std::set<BasicBlock*>*> Pr::Pr_set;
 std::map<Function*,std::set<BasicBlock*>*> Pr::Pw_set;
 std::map<Function*,std::set<BasicBlock*>*> Pr::Assert_set;
+std::map<Function*,std::set<BasicBlock*>*> Pr::UndefBehaviour_set;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_succ;
 std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_pred;
 
@@ -44,6 +45,10 @@ std::set<BasicBlock*>* Pr::getPw(Function &F) {
 
 std::set<BasicBlock*>* Pr::getAssert(Function &F) {
 	return Assert_set[&F];
+}
+
+std::set<BasicBlock*>* Pr::getUndefinedBehaviour(Function &F) {
+	return UndefBehaviour_set[&F];
 }
 
 bool Pr::inPw(BasicBlock * b) {
@@ -176,6 +181,7 @@ void Pr::computePr(Function &F) {
 	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
 	std::set<BasicBlock*> * FW = new std::set<BasicBlock*>();
 	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
+	std::set<BasicBlock*> * FUndefBehaviour = new std::set<BasicBlock*>();
 	BasicBlock * b;
 	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
 
@@ -189,6 +195,7 @@ void Pr::computePr(Function &F) {
 //	}
 	Pr_set[&F] = FPr;
 	Assert_set[&F] = FAssert;
+	UndefBehaviour_set[&F] = FUndefBehaviour;
 
 	//minimize_Pr(F);
 	if (!check_acyclic(F,FPr)) {
@@ -211,11 +218,14 @@ void Pr::computePr(Function &F) {
 					static const std::string assert_fail ("__assert_fail");
 					static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
 					static const std::string gnat_rcheck ("__gnat_rcheck_");
-					if (fname.compare(assert_fail) == 0
-					    || fname.compare(undefined_behavior_trap) == 0
-					    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
+					if (fname.compare(assert_fail) == 0) {
 						FPr->insert(b);
 						FAssert->insert(b);
+					}
+					if (fname.compare(undefined_behavior_trap) == 0
+					    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
+						FPr->insert(b);
+						FUndefBehaviour->insert(b);
 					}
 				}
 			}

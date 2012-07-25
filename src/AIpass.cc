@@ -172,6 +172,12 @@ void AIPass::generateAnnotatedFile(Module * M) {
 							} else {
 								*Output << "/* assert not proved */\n"; 
 							}
+						} else if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
+							if (Nodes[b]->X_s[passID]->is_bottom()) {
+								*Output << "/* no possible undefined behaviour */\n"; 
+							} else {
+								*Output << "/* UNDEFINED BEHAVIOUR */\n"; 
+							}
 						} else {
 							*Output << "/* invariant:\n"; 
 							Nodes[b]->X_s[passID]->display(*Output,&left);
@@ -218,6 +224,16 @@ void AIPass::printResult(Function * F) {
 				} else {
 					Out->changeColor(raw_ostream::RED,true);
 					*Out << "ASSERT FAILED\n";
+				}
+				Out->resetColor();
+			}
+			if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
+				if (n->X_s[passID]->is_bottom()) {
+					Out->changeColor(raw_ostream::GREEN,true);
+					*Out << "No possible undefined behaviour\n";
+				} else {
+					Out->changeColor(raw_ostream::RED,true);
+					*Out << "UNDEFINED BEHAVIOUR\n";
 				}
 				Out->resetColor();
 			}
