@@ -88,7 +88,7 @@ void AIPass::initFunction(Function * F) {
 	//*Out << *F;
 }
 
-						
+
 void format_string(std::string & left) {
 	int k;
 	for (k = 0; k < left.size(); k++) {
@@ -130,16 +130,16 @@ void AIPass::generateAnnotatedFile(Module * M) {
 			int c = recoverName::getBasicBlockColumnNo(b);
 			BasicBlock_position.insert( 
 					std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
-				);
+					);
 			DEBUG(
-			*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
-			);
+					*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
+				 );
 		}
 	}
 
 	// now, we open the source file in read mode, and the output file in write
 	// mode
-    std::ifstream sourceFile(getSourceFilename());
+	std::ifstream sourceFile(getSourceFilename());
 	int lineNo = 0;
 	int columnNo;
 
@@ -149,12 +149,12 @@ void AIPass::generateAnnotatedFile(Module * M) {
 
 	while (Iit->first.first < 0) Iit++;
 
-    if ( sourceFile )
-    {
-        std::string line;
+	if ( sourceFile )
+	{
+		std::string line;
 
-        while ( std::getline( sourceFile, line ) )
-        {
+		while ( std::getline( sourceFile, line ) )
+		{
 			lineNo++;
 			columnNo = 1;
 			std::string::iterator it = line.begin(); 
@@ -206,8 +206,8 @@ void AIPass::generateAnnotatedFile(Module * M) {
 				}
 			}
 			*Output << "\n";
-        }
-    }
+		}
+	}
 	delete Output;
 }
 
@@ -216,12 +216,19 @@ std::string getUndefinedBehaviourElement(BasicBlock * b, int pos) {
 	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 		Instruction * I = i;
 		if (CallInst * CI = dyn_cast<CallInst>(I)) {
-			Value * arg = CI->getArgOperand(pos);
-			if (ConstantExpr * exp = dyn_cast<ConstantExpr>(arg)) {
-				GlobalVariable * op = dyn_cast<GlobalVariable>(exp->getOperand(0));
-				ConstantDataArray * Init = dyn_cast<ConstantDataArray>(op->getInitializer());
-				res = Init->getAsCString().str();
-				return res;
+			// we can access the information only if the function called is
+			// undefined_behavior_trap_handler
+			Function * cF = CI->getCalledFunction();
+			static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
+			std::string fname = cF->getName();
+			if (fname.compare(undefined_behavior_trap) == 0) {
+				Value * arg = CI->getArgOperand(pos);
+				if (ConstantExpr * exp = dyn_cast<ConstantExpr>(arg)) {
+					GlobalVariable * op = dyn_cast<GlobalVariable>(exp->getOperand(0));
+					ConstantDataArray * Init = dyn_cast<ConstantDataArray>(op->getInitializer());
+					res = Init->getAsCString().str();
+					return res;
+				}
 			}
 		}
 	}
@@ -700,14 +707,14 @@ bool AIPass::computeWideningSeed(Function * F) {
 				Xseed->join_array(Xtemp->main->env,Join);
 				if (Xseed->compare(Succ->X_s[passID]) == 1) {
 					DEBUG(
-						*Out << "n\n";
-						n->X_s[passID]->print();
-						*Out << "Xtemp\n";
-						Xtemp->print();
-						*Out << "Succ\n";
-						Succ->X_s[passID]->print();
-						*Out << "SEED FOUND: " << *(n->bb) << "\n";
-					);
+							*Out << "n\n";
+							n->X_s[passID]->print();
+							*Out << "Xtemp\n";
+							Xtemp->print();
+							*Out << "Succ\n";
+							Succ->X_s[passID]->print();
+							*Out << "SEED FOUND: " << *(n->bb) << "\n";
+						 );
 					Join.clear();
 					Join.push_back(aman->NewAbstract(Xtemp));
 					Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
@@ -865,7 +872,7 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 				ap_scalar_alloc_set_double(0.));
 		*consarray = ap_tcons1_array_make(tcons.env,1);
 		ap_tcons1_array_set(consarray,0,&tcons);
-		
+
 		// condition is always false
 		cons->push_back(consarray);
 		return true;
@@ -1175,7 +1182,7 @@ void AIPass::visitCallInst(CallInst &I){
 	//Function * F = I.getCalledFunction();
 	//std::string fname = F->getName();
 	//*Out << "FOUND FUNCTION " << fname << "\n";
-	
+
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -1259,8 +1266,8 @@ void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 
 void AIPass::ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree) {
 	for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
-		it != et;
-		it++) {
+			it != et;
+			it++) {
 		delete (*it).second;
 	}
 	pathtree.clear();
