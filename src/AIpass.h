@@ -109,6 +109,9 @@ class AIPass : public InstVisitor<AIPass> {
 		/// objects, and computing the strongly connected components.
 		void initFunction(Function * F);
 		
+		std::string getUndefinedBehaviourPosition(BasicBlock * b);
+		std::string getUndefinedBehaviourMessage(BasicBlock * b);
+
 		void generateAnnotatedFile(Module * M);
 
 		void printResult(Function * F);

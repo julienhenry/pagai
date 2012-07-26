@@ -51,6 +51,10 @@ std::set<BasicBlock*>* Pr::getUndefinedBehaviour(Function &F) {
 	return UndefBehaviour_set[&F];
 }
 
+bool Pr::inPr(BasicBlock * b) {
+	return Pr_set[b->getParent()]->count(b);
+}
+
 bool Pr::inPw(BasicBlock * b) {
 	return Pw_set[b->getParent()]->count(b);
 }

@@ -77,6 +77,7 @@ class Pr : public ModulePass {
 		static std::set<BasicBlock*>* getAssert(Function &F);
 		static std::set<BasicBlock*>* getUndefinedBehaviour(Function &F);
 
+		static bool inPr(BasicBlock * b);
 		static bool inPw(BasicBlock * b);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of

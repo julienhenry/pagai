@@ -162,7 +162,7 @@ void AIPass::generateAnnotatedFile(Module * M) {
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
 					// here, we can print an invariant !
 					b = Iit->second;
-					if (Nodes[b]->X_s[passID] != NULL) {
+					if (Nodes[b]->X_s[passID] != NULL && Pr::inPr(b)) {
 						// compute the left padding
 						std::string left = line.substr(0,columnNo-1);
 						// format string in order to remove undesired characters
@@ -175,9 +175,12 @@ void AIPass::generateAnnotatedFile(Module * M) {
 							}
 						} else if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
 							if (Nodes[b]->X_s[passID]->is_bottom()) {
-								*Output << "/* no possible undefined behaviour */\n"; 
+								//*Output << "/* no possible undefined behaviour */\n"; 
 							} else {
-								*Output << "/* UNDEFINED BEHAVIOUR */\n"; 
+								*Output << "/* UNDEFINED BEHAVIOUR\n"; 
+								*Output << left << getUndefinedBehaviourPosition(b) << " : ";
+								*Output << getUndefinedBehaviourMessage(b) << " */\n";
+								*Output << left;
 							}
 						} else {
 							if (!Nodes[b]->X_s[passID]->is_top()) {
@@ -188,9 +191,9 @@ void AIPass::generateAnnotatedFile(Module * M) {
 									Nodes[b]->X_s[passID]->display(*Output,&left);
 									*Output << left << "*/\n";
 								}
+								*Output << left;
 							}
 						}
-						*Output << left;
 					} 
 					Iit++;
 				}
@@ -206,6 +209,31 @@ void AIPass::generateAnnotatedFile(Module * M) {
         }
     }
 	delete Output;
+}
+
+std::string getUndefinedBehaviourElement(BasicBlock * b, int pos) {
+	std::string res("");
+	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
+		Instruction * I = i;
+		if (CallInst * CI = dyn_cast<CallInst>(I)) {
+			Value * arg = CI->getArgOperand(pos);
+			if (ConstantExpr * exp = dyn_cast<ConstantExpr>(arg)) {
+				GlobalVariable * op = dyn_cast<GlobalVariable>(exp->getOperand(0));
+				ConstantDataArray * Init = dyn_cast<ConstantDataArray>(op->getInitializer());
+				res = Init->getAsCString().str();
+				return res;
+			}
+		}
+	}
+	return res;
+}
+
+std::string AIPass::getUndefinedBehaviourPosition(BasicBlock * b) {
+	return getUndefinedBehaviourElement(b,3);
+}
+
+std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
+	return getUndefinedBehaviourElement(b,4);
 }
 
 void AIPass::printResult(Function * F) {
@@ -235,12 +263,15 @@ void AIPass::printResult(Function * F) {
 				Out->resetColor();
 			}
 			if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
+				//
+				//
 				if (n->X_s[passID]->is_bottom()) {
 					Out->changeColor(raw_ostream::GREEN,true);
 					*Out << "No possible undefined behaviour\n";
 				} else {
 					Out->changeColor(raw_ostream::RED,true);
 					*Out << "UNDEFINED BEHAVIOUR\n";
+					*Out << getUndefinedBehaviourMessage(b) << "\n";
 				}
 				Out->resetColor();
 			}
