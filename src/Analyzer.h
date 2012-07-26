@@ -32,6 +32,7 @@ enum Techniques {
 enum SMTSolver {
 	MATHSAT,
 	Z3,
+	Z3_QFNRA,
 	SMTINTERPOL,
 	CVC3, 
 	API_Z3,

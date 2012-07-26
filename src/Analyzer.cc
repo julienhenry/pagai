@@ -60,6 +60,7 @@ void show_help() {
 		example: -t pf\n \
 --solver (-s) : select SMT Solver\n \
 		  * z3 (default)\n \
+		  * z3_qfnra\n \
 		  * mathsat\n \
 		  * smtinterpol\n \
 		  * cvc3\n \
@@ -241,6 +242,8 @@ bool setSolver(char * t) {
 	d.assign(t);
 	if (!d.compare("z3")) {
 		Solver = Z3;
+	} else if (!d.compare("z3_qfnra")) {
+		Solver = Z3_QFNRA;
 	} else if (!d.compare("mathsat")) {
 		Solver = MATHSAT;
 	} else if (!d.compare("smtinterpol")) {

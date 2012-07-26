@@ -73,6 +73,7 @@ SMTlib::SMTlib() {
 				}		
 				break;
 			case Z3:
+			case Z3_QFNRA:
 				char * z3_argv[4];
 				z3_argv[0] = (char*)"z3";
 				z3_argv[1] = (char*)"-smt2";
@@ -115,7 +116,7 @@ SMTlib::SMTlib() {
 		pwrite("(set-logic AUFLIRA)\n");
 	} else {
 		pwrite("(set-option :produce-models true)\n");
-		if (getSMTSolver() == Z3) {
+		if (getSMTSolver() == Z3 || getSMTSolver() == Z3_QFNRA) {
 			pwrite("(set-option :interactive-mode true)\n");
 		}
 		if (getSMTSolver() == SMTINTERPOL) {
@@ -346,19 +347,28 @@ std::string num_to_string(std::string num,int exponent) {
 		default:
 			std::string r;
 			if (exponent > 0) {
-				r = "1";
-				for (int i = exponent; i > 0; i--) {
-					r.append("0");
+				int k;
+				for (k = 0; k < exponent; k++) {
+					if (k >= num.size())
+						oss << "0";
+					else
+						oss << num[k];
 				}
-				r.append(".0");
+				oss << ".";
+				if (k >= num.size())
+					oss << "0";
+				else
+					for (; k < num.size(); k++) {
+						oss << num[k];
+					}
 			} else {
 				r = "0.";
-				for (int i = exponent; i > 1; i--) {
+				for (int i = -exponent; i > 1; i--) {
 					r.append("0");
 				}
 				r.append("1");
+				oss << "(* 0." << num << " " << r << ")";
 			}
-			oss << "(* 0." << num << " " << r << ")";
 	}
 	return oss.str();
 }
@@ -603,7 +613,11 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	oss << "(assert "
 		<< a.s
 		<< ")\n";
-	oss << "(check-sat)\n";
+	if (getSMTSolver() == Z3_QFNRA) {
+		oss << "(check-sat-using qfnra)\n";
+	} else {
+		oss << "(check-sat)\n";
+	}
 	DEBUG(
 			*Out << "\n\n" << oss.str() << "\n\n";
 		 );
