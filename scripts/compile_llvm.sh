@@ -66,8 +66,10 @@ if [ -z "$OUTPUT" ] ; then
 fi
 
 if [ $DEBUG -eq 1 ] ; then
+	echo clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
 	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
 else
+	echo clang -fcatch-undefined-c99-behavior -emit-llvm -I ..  -c $FILENAME -o $OUTPUT
 	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then

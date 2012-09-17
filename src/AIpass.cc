@@ -57,7 +57,9 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	recoverName::process(F);
+	if (useSourceName()) {
+		recoverName::process(F);
+	}
 	// we create the Node objects associated to each basicblock
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		//resetting parameters
