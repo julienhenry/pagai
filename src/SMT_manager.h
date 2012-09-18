@@ -6,7 +6,7 @@
 #include <set>
 #include "gmp.h"
 #include "mpfr.h"
-
+#include "Debug.h"
 
 class SMT_expr {
 	public:
@@ -16,14 +16,24 @@ class SMT_expr {
 		SMT_expr () {
 			s = std::string("");
 			i = NULL;
+			*Out << "CONSTRUCTOR\n";
 		}
 
-		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {}
+		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {
+		*Out << "CONSTRUCTOR\n";
+		}
 
-		~SMT_expr(){}
+		~SMT_expr(){ *Out << "DESTRUCTOR\n"; s.clear();}
 
 		bool is_empty() {
 			return i == NULL && s == "";
+		}
+
+		SMT_expr& operator=(const SMT_expr &e) {
+			s.clear();
+			s = e.s;
+			i = e.i;
+			return *this;
 		}
 };
 
@@ -41,7 +51,7 @@ class SMT_var {
 			s = std::string("");
 			i = NULL;
 		}
-	
+
 		int Compare (const SMT_var& v) const {
 			if (i < v.i)
 				return -1;
@@ -57,11 +67,11 @@ class SMT_var {
 		}
 
 		bool operator == (const SMT_var& v) const {
-		   return !Compare(v);
+			return !Compare(v);
 		}
-		
+
 		bool operator < (const SMT_var& v) const {
-		  return Compare(v)<0;   
+			return Compare(v)<0;   
 		}
 
 }; 
@@ -123,12 +133,12 @@ class SMT_manager {
 		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
 		virtual bool interrupt();
- 
+
 		static std::vector<SMT_expr> vec2(SMT_expr a1, SMT_expr a2) {
-		  std::vector<SMT_expr> vec;
-		  vec.push_back(a1);
-		  vec.push_back(a2);
-		  return vec;
+			std::vector<SMT_expr> vec;
+			vec.push_back(a1);
+			vec.push_back(a2);
+			return vec;
 		}
 };
 

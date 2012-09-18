@@ -11,6 +11,7 @@ OPTION :
 	-o [FILE ]: name of the output file
 	-p        : print the llvm bytecode
 	-g        : debug version
+	-I        : inline functions
 	-G        : generate the .dot CFG
 	-O        : apply optimisations to the bytecode
 "
@@ -20,8 +21,9 @@ PRINT=0
 GRAPH=0
 OPT=0
 DEBUG=0
+INLINE=0
 
-while getopts "hpgi:o:O" opt ; do
+while getopts "hpgi:o:OI" opt ; do
 	case $opt in
 		h)
 			usage
@@ -29,6 +31,9 @@ while getopts "hpgi:o:O" opt ; do
             ;;
         p)
 			PRINT=1
+            ;;
+        I)
+			INLINE=1
             ;;
 		i)
 			FILENAME=$OPTARG
@@ -73,9 +78,16 @@ else
 	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then
+	INLINE=1
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
 else
 	opt -mem2reg -lowerswitch $OUTPUT -o $OUTPUT
+fi
+
+if [ $INLINE -eq 1 ] ; then
+	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
+	opt -internalize $OUTPUT -o $OUTPUT
+	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
 fi
 
 if [ $GRAPH -eq 1 ] ; then

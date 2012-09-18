@@ -550,6 +550,7 @@ void SMTpass::computeRhoRec(Function &F,
 
 	if (instructions.size() > 0) {
 		bpredicate = man->SMT_mk_and(instructions);
+		instructions.clear();
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
 		bvar_exp = man->SMT_mk_not(bvar_exp);
 		std::vector<SMT_expr> implies;
@@ -571,6 +572,7 @@ void SMTpass::computeRho(Function &F) {
 		computeRhoRec(F,b,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
+	rho_components.clear();
 
 	// Pr_pred has already been computed, but not Pr_succ
 	// Now, we can easily compute Pr_succ
@@ -820,6 +822,7 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 		if (!cond.is_empty())
 			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
+		components.clear();
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
 	}
 }
