@@ -16,14 +16,12 @@ class SMT_expr {
 		SMT_expr () {
 			s = std::string("");
 			i = NULL;
-			*Out << "CONSTRUCTOR\n";
 		}
 
 		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {
-		*Out << "CONSTRUCTOR\n";
 		}
 
-		~SMT_expr(){ *Out << "DESTRUCTOR\n"; s.clear();}
+		~SMT_expr(){s.clear();}
 
 		bool is_empty() {
 			return i == NULL && s == "";
