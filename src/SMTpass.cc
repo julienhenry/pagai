@@ -3,6 +3,10 @@
 #include <iostream>
 #include <string>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
+
 #include "llvm/Support/CFG.h"
 #include "llvm/Constants.h"
 
@@ -22,6 +26,12 @@ DM: If set to 0, modulo (grid) constraints are not converted to SMT.
 #define SMT_HAS_WORKING_MODULO 1
 
 using namespace std;
+using namespace boost;
+
+std::map<BasicBlock*,int> NodeNames;
+std::map<int,BasicBlock*> NodeAddress;
+
+int CurrentNodeName;
 
 int SMTpass::nundef = 0;
 
@@ -37,6 +47,7 @@ SMTpass::SMTpass() {
 			man = new SMTlib();
 	}
 	man->push_context();
+	CurrentNodeName = 0;
 }
 
 SMTpass::~SMTpass() {
@@ -44,11 +55,18 @@ SMTpass::~SMTpass() {
 }
 
 SMTpass * instance = NULL;
+SMTpass * instanceforAbstract = NULL;
 
 SMTpass * SMTpass::getInstance() {
 	if (instance == NULL)
 		instance = new SMTpass();
 	return instance;
+}
+
+SMTpass * SMTpass::getInstanceForAbstract() {
+	if (instanceforAbstract == NULL)
+		instanceforAbstract = new SMTpass();
+	return instanceforAbstract;
 }
 
 SMT_expr SMTpass::getRho(Function &F) {
@@ -284,6 +302,21 @@ const std::string SMTpass::getUndeterministicChoiceName(Value * v) {
 	return name.str();
 }
 
+const std::string SMTpass::getNodeSubName(BasicBlock * b) {
+	if (NodeNames.count(b) == 0) {
+		NodeNames[b] = CurrentNodeName;
+		NodeAddress[CurrentNodeName] = b;
+		CurrentNodeName++;
+	}
+    std::ostringstream oss;
+    oss << NodeNames[b];
+    return oss.str();
+}
+
+BasicBlock * SMTpass::getNodeBasicBlock(std::string name) {
+	return NodeAddress[boost::lexical_cast<int>(name)];
+}
+
 const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
 	std::ostringstream name;
 	std::set<BasicBlock*> * FPr = Pr::getPr(*(b->getParent()));
@@ -295,13 +328,18 @@ const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
 	} else {
 		name << "b_";
 	}
-	name << b;
+
+	name << getNodeSubName(b);
 	return name.str();
 }
 
 const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
 	std::ostringstream name;
-	name << "t_" << b1 << "_" << b2;
+	name 
+		<< "t_" 
+		<< getNodeSubName(b1)
+		<< "_" 
+		<< getNodeSubName(b2);
 	return name.str();
 }
 
@@ -440,19 +478,15 @@ void SMTpass::getElementFromString(
 	dest = NULL;
 	start = false;
 
+	vector<std::string> fields;
+	split( fields, name, is_any_of( "_" ) );
+
 	// case 1 : this is an edge
 	found = name.find(edge);
 	if (found!=std::string::npos) {
 		isEdge = true;
-		std::string source = name.substr (2,9);
-		std::string destination = name.substr (12,9);
-		std::istringstream srcStream(source);
-		std::istringstream destStream(destination);
-		
-		srcStream >> std::hex >> address;
-		src = (BasicBlock*)address;
-		destStream >> std::hex >> address;
-		dest = (BasicBlock*)address;
+		src = getNodeBasicBlock(fields[1]);
+		dest = getNodeBasicBlock(fields[2]);
 		return;
 	}
 	isEdge = false;
@@ -473,23 +507,17 @@ void SMTpass::getElementFromString(
 	std::string nodename;
 	// case 3 : this is a node
 	found = name.find(simple_node);
-	if (found==std::string::npos) {
+	if (found!=std::string::npos) {
+		// this is a node of the form b_*
+		src = getNodeBasicBlock(fields[1]);
+	} else {
 		found = name.find(source_node);
 		if (found==std::string::npos) found = name.find(dest_node);
 		else start = true;
 		if (found!=std::string::npos) {
-			nodename = name.substr (3,9);
+			src = getNodeBasicBlock(fields[1]);
 		}
-	} else {
-		nodename = name.substr (2,9);
 	}
-
-	if (found != std::string::npos) {
-		std::istringstream srcStream(nodename);
-		srcStream >> std::hex >> address;
-		src = (BasicBlock*)address;
-	}
-
 }
 
 void SMTpass::computeRhoRec(Function &F, 

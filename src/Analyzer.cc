@@ -150,6 +150,8 @@ std::string TechniquesToString(Techniques t) {
 			return "LOOKAHEAD WIDENING";
 		case PATH_FOCUSING: 
 			return "PATH FOCUSING";
+		case PATH_FOCUSING_INCR: 
+			return "PATH FOCUSING INCR";
 		case LW_WITH_PF:
 			return "COMBINED";
 		case COMBINED_INCR:
@@ -220,6 +222,8 @@ bool setTechnique(char * t) {
 		technique = LOOKAHEAD_WIDENING;
 	} else if (!d.compare("pf")) {
 		technique = PATH_FOCUSING;
+	} else if (!d.compare("pf_incr")) {
+		technique = PATH_FOCUSING_INCR;
 	} else if (!d.compare("lw+pf")) {
 		technique = LW_WITH_PF;
 	} else if (!d.compare("s")) {

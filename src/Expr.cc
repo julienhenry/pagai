@@ -20,7 +20,14 @@ void Expr::set_expr(Value * val, Expr exp) {
 }
 
 void Expr::clear_exprs() {
+	std::map<Value*, ap_texpr1_t*>::iterator it = Exprs.begin(), et = Exprs.end();
+	for (; it != et; it++)
+		ap_texpr1_free((*it).second);
 	Exprs.clear();
+
+	std::map<ap_var_t, ap_texpr1_t*>::iterator itt = Exprs_var.begin(), ett = Exprs_var.end();
+	for (; itt != ett; itt++)
+		ap_texpr1_free((*itt).second);
 	Exprs_var.clear();
 }
 

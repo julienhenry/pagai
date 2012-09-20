@@ -7,6 +7,7 @@
 #include "ModulePassWrapper.h"
 #include "SMTpass.h"
 #include "AIpf.h"
+#include "AIpf_incr.h"
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIGuided.h"
@@ -78,6 +79,10 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 		case PATH_FOCUSING:
 			AU.addRequired<ModulePassWrapper<AIpf, 0> >();
 			AU.addRequired<ModulePassWrapper<AIpf, 1> >();
+			break;
+		case PATH_FOCUSING_INCR:
+			AU.addRequired<ModulePassWrapper<AIpf_incr, 0> >();
+			AU.addRequired<ModulePassWrapper<AIpf_incr, 1> >();
 			break;
 		case LW_WITH_PF:
 			AU.addRequired<ModulePassWrapper<AIopt, 0> >();

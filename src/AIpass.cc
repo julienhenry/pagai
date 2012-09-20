@@ -90,7 +90,6 @@ void AIPass::initFunction(Function * F) {
 	//*Out << *F;
 }
 
-
 void format_string(std::string & left) {
 	int k;
 	for (k = 0; k < left.size(); k++) {

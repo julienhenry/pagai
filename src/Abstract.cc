@@ -4,7 +4,7 @@
 #include "Expr.h"
 
 int Abstract::compare(Abstract * d) {
-	SMTpass * LSMT = SMTpass::getInstance();
+	SMTpass * LSMT = SMTpass::getInstanceForAbstract();
 	bool f = false;
 	bool g = false;
 

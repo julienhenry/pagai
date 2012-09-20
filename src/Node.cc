@@ -56,6 +56,7 @@ Node::~Node() {
 			it++) {
 		delete (*it).second;
 	}
+	ap_environment_free(env);
 }
 
 /// computeSCC - compute the strongly connected components and the loop 

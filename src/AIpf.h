@@ -1,5 +1,5 @@
-#ifndef _AI_H
-#define _AI_H
+#ifndef _AIPF_H
+#define _AIPF_H
 
 #include <queue>
 #include <vector>

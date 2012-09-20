@@ -106,6 +106,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 		SMT_manager * man;
 
 		static SMTpass * getInstance();
+		static SMTpass * getInstanceForAbstract();
 
 		void reset_SMTcontext();
 
@@ -151,6 +152,9 @@ class SMTpass : public InstVisitor<SMTpass> {
 
 		/// gets the name of the node associated to a specific basicblock
 		static const std::string getNodeName(BasicBlock* b, bool src);
+
+		static const std::string getNodeSubName(BasicBlock* b);
+		static BasicBlock * getNodeBasicBlock(std::string name);
 
 		/// @{
 		/// @name XToSmt - transform an apron object of type X into an SMT

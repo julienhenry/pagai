@@ -184,6 +184,7 @@ void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) con
 			stream << cons << "\n";
 		}
 	}
+	ap_tcons1_array_clear(&tcons_array);
 
 #else
 	FILE* tmp = tmpfile();

@@ -17,6 +17,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 
 #include "AIpf.h"
+#include "AIpf_incr.h"
 #include "AIopt.h"
 #include "AIopt_incr.h"
 #include "AIGopan.h"
@@ -134,6 +135,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			case PATH_FOCUSING:
 				Passes.add(new CompareNarrowing<PATH_FOCUSING>());
 				break;
+			case PATH_FOCUSING_INCR:
+				Passes.add(new CompareNarrowing<PATH_FOCUSING_INCR>());
+				break;
 			case LW_WITH_PF:
 				Passes.add(new CompareNarrowing<LW_WITH_PF>());
 				break;
@@ -157,6 +161,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				break;
 			case PATH_FOCUSING:
 				Passes.add(new CompareDomain<PATH_FOCUSING>());
+				break;
+			case PATH_FOCUSING_INCR:
+				Passes.add(new CompareDomain<PATH_FOCUSING_INCR>());
 				break;
 			case LW_WITH_PF:
 				Passes.add(new CompareDomain<LW_WITH_PF>());
@@ -182,6 +189,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				break;
 			case PATH_FOCUSING:
 				AIPass = new ModulePassWrapper<AIpf, 0>();
+				break;
+			case PATH_FOCUSING_INCR:
+				AIPass = new ModulePassWrapper<AIpf_incr, 0>();
 				break;
 			case LW_WITH_PF:
 				AIPass = new ModulePassWrapper<AIopt, 0>();
