@@ -217,6 +217,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		delete (*it).second;
 	}
 
+	Pr::releaseMemory();
+
 	//Out->flush();
 	//delete FDOut;
 	if (OutputFilename != "") {

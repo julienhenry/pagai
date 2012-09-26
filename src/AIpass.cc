@@ -61,6 +61,7 @@ void AIPass::initFunction(Function * F) {
 		recoverName::process(F);
 	}
 	// we create the Node objects associated to each basicblock
+	Pr * FPr = Pr::getInstance(F);
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		//resetting parameters
 		n = Nodes[i];
@@ -71,7 +72,7 @@ void AIPass::initFunction(Function * F) {
 		if (LSMT == NULL
 				||dynamic_cast<AISimple*>(this)
 				||dynamic_cast<AIGuided*>(this)
-				|| Pr::getPr(*F)->count(i)) {
+				|| FPr->getPr()->count(i)) {
 			n->X_s[passID] = aman->NewAbstract(man,n->env);
 			n->X_d[passID] = aman->NewAbstract(man,n->env);
 			n->X_i[passID] = aman->NewAbstract(man,n->env);
@@ -163,18 +164,19 @@ void AIPass::generateAnnotatedFile(Module * M) {
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
 					// here, we can print an invariant !
 					b = Iit->second;
-					if (Nodes[b]->X_s[passID] != NULL && Pr::inPr(b)) {
+					Pr * FPr = Pr::getInstance(b->getParent());
+					if (Nodes[b]->X_s[passID] != NULL && FPr->inPr(b)) {
 						// compute the left padding
 						std::string left = line.substr(0,columnNo-1);
 						// format string in order to remove undesired characters
 						format_string(left);
-						if (Pr::getAssert(*b->getParent())->count(b)) {
+						if (FPr->getAssert()->count(b)) {
 							if (Nodes[b]->X_s[passID]->is_bottom()) {
 								*Output << "/* assert OK */\n"; 
 							} else {
 								*Output << "/* assert not proved */\n"; 
 							}
-						} else if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
+						} else if (FPr->getUndefinedBehaviour()->count(b)) {
 							if (Nodes[b]->X_s[passID]->is_bottom()) {
 								//*Output << "/* no possible undefined behaviour */\n"; 
 							} else {
@@ -247,10 +249,11 @@ std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
 void AIPass::printResult(Function * F) {
 	BasicBlock * b;
 	Node * n;
+	Pr * FPr = Pr::getInstance(F);
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		n = Nodes[b];
-		if (Pr::getPr(*b->getParent())->count(b) && ignoreFunction.count(F) == 0) {
+		if (FPr->inPr(b) && ignoreFunction.count(F) == 0) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			if (useSourceName()) {
@@ -260,7 +263,7 @@ void AIPass::printResult(Function * F) {
 			Out->resetColor();
 			//n->X_i[passID]->print(true);
 			n->X_s[passID]->print(true);
-			if (Pr::getAssert(*b->getParent())->count(b)) {
+			if (FPr->inAssert(b)) {
 				if (n->X_s[passID]->is_bottom()) {
 					Out->changeColor(raw_ostream::GREEN,true);
 					*Out << "ASSERT OK\n";
@@ -270,7 +273,7 @@ void AIPass::printResult(Function * F) {
 				}
 				Out->resetColor();
 			}
-			if (Pr::getUndefinedBehaviour(*b->getParent())->count(b)) {
+			if (FPr->inUndefBehaviour(b)) {
 				//
 				//
 				if (n->X_s[passID]->is_bottom()) {
@@ -327,6 +330,7 @@ void AIPass::printPath(std::list<BasicBlock*> path) {
 
 bool AIPass::copy_Xd_to_Xs(Function * F) {
 	BasicBlock * b;
+	Pr * FPr = Pr::getInstance(F);
 	ap_environment_t * env = ap_environment_alloc_empty();
 	bool res = false;
 
@@ -334,7 +338,7 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
 				|| dynamic_cast<AIGuided*>(this)
-				|| Pr::getPr(*F)->count(i)) {
+				|| FPr->inPr(i)) {
 
 			if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
 				res = true;
@@ -353,13 +357,14 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 
 void AIPass::copy_Xs_to_Xf(Function * F) {
 	BasicBlock * b;
+	Pr * FPr = Pr::getInstance(F);
 	ap_environment_t * env = ap_environment_alloc_empty();
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
 				|| dynamic_cast<AIGuided*>(this)
-				|| Pr::getPr(*F)->count(i)) {
+				|| FPr->inPr(i)) {
 
 			delete Nodes[b]->X_f[passID];
 			Nodes[b]->X_f[passID] = aman->NewAbstract(Nodes[b]->X_s[passID]);
@@ -369,13 +374,14 @@ void AIPass::copy_Xs_to_Xf(Function * F) {
 
 void AIPass::copy_Xf_to_Xs(Function * F) {
 	BasicBlock * b;
+	Pr * FPr = Pr::getInstance(F);
 	ap_environment_t * env = ap_environment_alloc_empty();
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		if (dynamic_cast<AISimple*>(this)
 				|| dynamic_cast<AIGuided*>(this)
-				|| Pr::getPr(*F)->count(i)) {
+				|| FPr->inPr(i)) {
 
 			delete Nodes[b]->X_s[passID];
 			Nodes[b]->X_s[passID] = aman->NewAbstract(Nodes[b]->X_f[passID]);
@@ -678,6 +684,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 	Abstract * Xtemp;
 	Node * n;
 	Node * Succ;
+	Pr * FPr = Pr::getInstance(F);
 	std::list<BasicBlock*> path;
 	bool found = false;
 
@@ -687,7 +694,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 		for (std::set<BasicBlock*>::iterator s = Succs.begin(), E = Succs.end(); s != E; ++s) {
 
 			// to be candidate, the transition should go to a widening point
-			if (!Pr::inPw(*s)) continue;
+			if (!FPr->inPw(*s)) continue;
 
 			path.clear();
 			path.push_back(n->bb);

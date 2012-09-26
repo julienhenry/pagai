@@ -29,7 +29,6 @@ const char * AIopt_incr::getPassName() const {
 
 void AIopt_incr::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 }
@@ -68,7 +67,8 @@ bool AIopt_incr::runOnModule(Module &M) {
 
 
 		// we create the new pathtree
-		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
+		Pr * FPr = Pr::getInstance(F);
+		std::set<BasicBlock*>* Pr = FPr->getPr();
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
@@ -109,11 +109,6 @@ void AIopt_incr::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
-	DEBUG(
-		*Out << "Computing Pr...\n";
-	);
-	Pr::getPr(*F);
-	
 	LSMT->push_context();
 	
 	*Out << "Computing Rho...";
@@ -186,9 +181,10 @@ void AIopt_incr::computeFunction(Function * F) {
 		ascendingIter(n, F, true);
 
 		// we set X_d abstract values to bottom for narrowing
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
+			if (FPr->inPr(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
@@ -208,11 +204,13 @@ void AIopt_incr::computeFunction(Function * F) {
 }
 
 std::set<BasicBlock*> AIopt_incr::getPredecessors(BasicBlock * b) const {
-	return Pr::getPrPredecessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrPredecessors(b);
 }
 
 std::set<BasicBlock*> AIopt_incr::getSuccessors(BasicBlock * b) const {
-	return Pr::getPrSuccessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrSuccessors(b);
 }
 
 void AIopt_incr::computeNewPaths(Node * n) {
@@ -225,7 +223,8 @@ void AIopt_incr::computeNewPaths(Node * n) {
 	}
 
 	// first, we set X_d abstract values to X_s
-	std::set<BasicBlock*> successors = Pr::getPrSuccessors(n->bb);
+	Pr * FPr = Pr::getInstance(n->bb->getParent());
+	std::set<BasicBlock*> successors = FPr->getPrSuccessors(n->bb);
 	for (std::set<BasicBlock*>::iterator it = successors.begin(),
 			et = successors.end();
 			it != et;
@@ -384,7 +383,8 @@ void AIopt_incr::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 				if (W->exist(path)) {
 					if (use_threshold)
 						Xtemp->widening_threshold(Succ->X_s[passID],&threshold);

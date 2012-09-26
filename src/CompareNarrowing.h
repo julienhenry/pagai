@@ -101,7 +101,6 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 			AU.addRequired<ModulePassWrapper<AIdis, 1> >();
 			break;
 	}
-	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -225,7 +224,8 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
+			Pr * FPr = Pr::getInstance(F);
+			if (FPr->getPw()->count(b)) {
 
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";

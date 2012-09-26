@@ -98,7 +98,6 @@ std::set<BasicBlock*> AISimple::getSuccessors(BasicBlock * b) const {
 void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();
-	AU.addRequired<Pr>();
 }
 
 bool AISimple::runOnModule(Module &M) {
@@ -185,7 +184,8 @@ void AISimple::computeNode(Node * n) {
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		if (Pr::inPw(Succ->bb)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);
@@ -201,6 +201,7 @@ void AISimple::computeNode(Node * n) {
 			Xtemp->meet(Succ->X_f[passID]);
 		}
 
+		Xtemp->print();Succ->X_s[passID]->print();
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
 			if (succ_bottom) {

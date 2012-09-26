@@ -1,7 +1,6 @@
 #include "llvm/Support/CFG.h"
 
 #include "GenerateSMT.h"
-#include "Pr.h"
 #include "Analyzer.h"
 #include "Live.h"
 #include "Node.h"
@@ -28,13 +27,12 @@ GenerateSMT::~GenerateSMT() {
 }
 
 void GenerateSMT::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 	AU.setPreservesAll();
 }
 
 bool GenerateSMT::runOnFunction(Function &F) {
-	Pr::getPr(F);
+
 	LSMT->getRho(F);
 
 	LSMT->man->SMT_print(LSMT->getRho(F));

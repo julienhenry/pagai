@@ -28,7 +28,6 @@ const char * AIGuided::getPassName() const {
 
 void AIGuided::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 }
 
@@ -104,11 +103,6 @@ void AIGuided::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
-	DEBUG(
-		*Out << "Computing Pr...\n";
-	);
-	Pr::getPr(*F);
-
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -148,9 +142,10 @@ void AIGuided::computeFunction(Function * F) {
 		ascendingIter(n, F, true);
 
 		// we set X_d abstract values to bottom for narrowing
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
+			if (FPr->getPr()->count(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
@@ -314,7 +309,8 @@ void AIGuided::computeNode(Node * n) {
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		if (Pr::inPw(Succ->bb)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);

@@ -81,7 +81,6 @@ void CompareDomain<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 			AU.addRequired<ModulePassWrapper<AIdis, 1> >();
 			break;
 	}
-	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -116,7 +115,8 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
+			Pr * FPr = Pr::getInstance(F);
+			if (FPr->getPw()->count(b)) {
 				// TODO
 				params P1, P2;
 				P1.T = T;

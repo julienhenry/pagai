@@ -4,88 +4,93 @@
 #include <map>
 #include <set>
 
-#include "llvm/Module.h"
-#include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
 #include "Node.h"
 
 using namespace llvm;
 
 /// @brief Pr computation pass
-class Pr : public ModulePass {
+
+
+class Pr {
 
 	private:
+		Function * F;
+
 		/// associate to each formula its set of Pr nodes
-		static std::map<Function*,std::set<BasicBlock*>*> Pr_set;
+		std::set<BasicBlock*> Pr_set;
 
 		/// widening points (subset of Pr where we apply widening)
-		static std::map<Function*,std::set<BasicBlock*>*> Pw_set;
+		std::set<BasicBlock*> Pw_set;
 
-		static std::map<Function*,std::set<BasicBlock*>*> Assert_set;
-		static std::map<Function*,std::set<BasicBlock*>*> UndefBehaviour_set;
+		std::set<BasicBlock*> Assert_set;
+		std::set<BasicBlock*> UndefBehaviour_set;
 
 		std::map<Node*,int> index;
 		std::map<Node*,int> lowlink;
 		std::map<Node*,bool> isInStack;
 
 		/// compute the set Pr for a function
-		void computePr(Function &F);
+		void computePr();
 
-		bool check_acyclic(Function &F,std::set<BasicBlock*>* FPr);
+		bool check_acyclic(std::set<BasicBlock*>* FPr);
 		bool check_acyclic_rec(
-				Function &F,
 				Node * n, 
 				int & N,
 				std::stack<Node*> * S,
 				std::set<BasicBlock*>* FPr);
 
-		bool computeLoopHeaders(Function &F,std::set<BasicBlock*>* FPr);
+		bool computeLoopHeaders(std::set<BasicBlock*>* FPr);
 		bool computeLoopHeaders_rec(
-				Function &F,
 				Node * n, 
 				std::set<Node*> * Seen,
 				std::set<Node*> * S,
 				std::set<BasicBlock*>* FPr);
 
-		void minimize_Pr(Function &F);
+		void minimize_Pr();
+
+		// private constructor
+		Pr(Function * F);
 
 	public:
 		static char ID;	
 
-		Pr();
+		static Pr * getInstance(Function * F);
+
+		static void releaseMemory();
+
 		~Pr();
-
-		const char *getPassName() const;
-
-		void getAnalysisUsage(AnalysisUsage &AU) const;
-
-		bool runOnModule(Module &M);
 
 		/// associate to each basicBlock its successors in Pr
 		/// WARNING : this set is filled by SMTpass
-		static std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
+		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_succ;
 		/// associate to each basicBlock its predecessors in Pr
 		/// WARNING : this set is filled by SMTpass
-		static std::map<BasicBlock*,std::set<BasicBlock*> > Pr_pred;
+		std::map<BasicBlock*,std::set<BasicBlock*> > Pr_pred;
 
 		/// getPr - get the set Pr. The set Pr is computed only once
-		static std::set<BasicBlock*>* getPr(Function &F);
+		std::set<BasicBlock*>* getPr();
 
 		/// getPw - get the set Pw. The set Pw is computed only once
-		static std::set<BasicBlock*>* getPw(Function &F);
+		std::set<BasicBlock*>* getPw();
 
-		static std::set<BasicBlock*>* getAssert(Function &F);
-		static std::set<BasicBlock*>* getUndefinedBehaviour(Function &F);
+		std::set<BasicBlock*>* getAssert();
+		std::set<BasicBlock*>* getUndefinedBehaviour();
 
-		static bool inPr(BasicBlock * b);
-		static bool inPw(BasicBlock * b);
+		bool inPr(BasicBlock * b);
+		bool inPw(BasicBlock * b);
+		bool inAssert(BasicBlock * b);
+		bool inUndefBehaviour(BasicBlock * b);
 
 		/// getPrPredecessors - returns a set containing all the predecessors of
 		/// b in Pr
-		static std::set<BasicBlock*> getPrPredecessors(BasicBlock * b);
+		std::set<BasicBlock*> getPrPredecessors(BasicBlock * b);
 
 		/// getPrPredecessors - returns a set containing all the successors of
 		/// b in Pr
-		static std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
+		std::set<BasicBlock*> getPrSuccessors(BasicBlock * b);
 };
+
+extern std::map<Function *, Pr *> PR_instances;
+
 #endif

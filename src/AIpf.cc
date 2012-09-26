@@ -27,7 +27,6 @@ const char * AIpf::getPassName() const {
 
 void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 }
 
@@ -62,7 +61,8 @@ bool AIpf::runOnModule(Module &M) {
 		initFunction(F);
 		
 		// we create the new pathtree
-		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
+		Pr * FPr = Pr::getInstance(F);
+		std::set<BasicBlock*>* Pr = FPr->getPr();
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
@@ -138,11 +138,13 @@ void AIpf::computeFunction(Function * F) {
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
-	return Pr::getPrPredecessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrPredecessors(b);
 }
 
 std::set<BasicBlock*> AIpf::getSuccessors(BasicBlock * b) const {
-	return Pr::getPrSuccessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrSuccessors(b);
 }
 
 void AIpf::computeNode(Node * n) {
@@ -233,7 +235,8 @@ void AIpf::computeNode(Node * n) {
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(Xtemp->main->env,Join);
 
-		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 			if (use_threshold)
 				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
 			else

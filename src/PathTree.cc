@@ -31,7 +31,8 @@ PathTree::PathTree(BasicBlock * Start) {
 
 	// we compute all the levels of the BDD
 	Function * F = Start->getParent();
-	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	Pr * FPr = Pr::getInstance(F);
+	std::set<BasicBlock*> * Pr = FPr->getPr();
 	std::set<BasicBlock*> seen;
 	createBDDVars(Start,Pr,BddVarStart,&seen,true);
 }

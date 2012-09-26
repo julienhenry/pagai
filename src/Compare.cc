@@ -31,7 +31,6 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
-	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -248,10 +247,11 @@ bool Compare::runOnModule(Module &M) {
 		ComputeTime(LW_WITH_PF_DISJ,F);
 		ComputeTime(COMBINED_INCR,F);
 
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
+			if (FPr->getPw()->count(b)) {
 				compareTechniques(n,GUIDED,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,GUIDED);
