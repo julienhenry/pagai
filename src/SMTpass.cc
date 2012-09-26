@@ -282,7 +282,6 @@ SMT_expr SMTpass::AbstractToSmt(BasicBlock * b, Abstract * A) {
 	size_t n = ap_lincons1_array_size(&lincons_array);
 	for (size_t i = 0; i < n; i++) {
 		lincons = ap_lincons1_array_get(&lincons_array,i);
-		ap_lincons1_fprint(stdout,&lincons);
 		constraints.push_back(lincons1ToSmt(b,lincons));
 	}
 	ap_lincons1_array_clear(&lincons_array);
