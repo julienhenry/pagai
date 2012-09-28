@@ -77,8 +77,8 @@ class Abstract {
 
 		/// assign_texpr_array - assign a expression to a set of variables
 		void assign_texpr_array(
-			std::vector<ap_var_t> name,
-			std::vector<Expr> expr,
+			std::vector<ap_var_t> * name,
+			std::vector<Expr> * expr,
 			ap_abstract1_t* dest);
 		
 		/// join_array - the abstract value becomes the join of a set of

@@ -35,10 +35,32 @@ class SMT_expr {
 		}
 };
 
-typedef struct _SMT_type {
-	std::string s;
-	void* i;
-} SMT_type;
+class SMT_type {
+	public:
+		std::string s;
+		void* i;
+
+		SMT_type () {
+			s = std::string("");
+			i = NULL;
+		}
+
+		SMT_type (const SMT_type& t): s(t.s), i(t.i) {
+		}
+
+		~SMT_type(){s.clear();}
+
+		bool is_empty() {
+			return i == NULL && s == "";
+		}
+
+		SMT_type& operator=(const SMT_type &t) {
+			s.clear();
+			s = t.s;
+			i = t.i;
+			return *this;
+		}
+};
 
 class SMT_var {
 	public:

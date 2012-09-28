@@ -28,9 +28,8 @@ SMTlib::SMTlib() {
 
 	stack_level = 0;
 
-	int_type.s = std::string("Int");
-	float_type.s = std::string("Real");
-
+	int_type.s = "Int";
+	float_type.s = "Real";
 	char buf;
 	solver_pid = 0;
 
@@ -127,7 +126,6 @@ SMTlib::SMTlib() {
 	//pwrite("(set-logic QF_LRA)\n");
 }
 
-
 SMTlib::~SMTlib() {
 	pwrite("(exit)\n");
 	close(wpipefd[1]); /* Reader will see EOF */
@@ -138,7 +136,10 @@ SMTlib::~SMTlib() {
 
 void SMTlib::pwrite(std::string s) {
 	DEBUG(*Out << "WRITING : " << s  << "\n";);
-	write(wpipefd[1], s.c_str(), strlen(s.c_str())); // DM pquoi pas s.length() ?
+	// DM pquoi pas s.length() ?
+	if (!write(wpipefd[1], s.c_str(), strlen(s.c_str()))) {
+		*Out << "ERROR WHEN TRYING TO WRITE IN THE SMT-LIB PIPE\n";
+	}
 	if (log_file) {
 		fputs(s.c_str(), log_file);
 		fflush(log_file);

@@ -75,6 +75,7 @@ bool AIdis::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+		TerminateFunction();
 
 		// we delete the previous pathtree
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -130,9 +131,10 @@ void AIdis::computeFunction(Function * F) {
 	// first abstract value is top
 	ap_environment_t * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
+	ap_environment_free(env);
 
 	while (!A_prime.empty()) 
 			A_prime.pop();
@@ -253,7 +255,7 @@ void AIdis::computeNewPaths(Node * n) {
 			*Out << "START\n";
 			Xtemp->print();
 		);
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		DEBUG(
 			*Out << "XTEMP\n";
 			Xtemp->print();
@@ -337,7 +339,7 @@ void AIdis::loopiter(
 			);
 
 			Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
-			computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
+			computeTransform(SuccDis->man_disj,n,*path,Xtemp);
 			DEBUG(
 				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
 				SuccDis->print();
@@ -420,7 +422,7 @@ void AIdis::computeNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		int Sigma = sigma(path,index,Xtemp,true);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -526,7 +528,7 @@ void AIdis::narrowNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		
 		int Sigma = sigma(path,index,Xtemp,false);
 

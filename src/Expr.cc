@@ -96,11 +96,12 @@ void Expr::print() {
 
 ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 	ap_texpr1_t * res = NULL;
+	ap_environment_t * emptyenv = ap_environment_alloc_empty();
 	if (isa<ConstantInt>(val)) {
 		ConstantInt * Int = dyn_cast<ConstantInt>(val);
 		// it is supposed we use signed int
 		int64_t i = Int->getSExtValue();
-		res = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),i);
+		res = ap_texpr1_cst_scalar_int(emptyenv,i);
 	} 
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
@@ -109,16 +110,17 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 			float f = FP->getValueAPF().convertToFloat(); 
 			x = f;
 		}
-		res = ap_texpr1_cst_scalar_double(ap_environment_alloc_empty(),x);
+		res = ap_texpr1_cst_scalar_double(emptyenv,x);
 	}
 	if (isa<ConstantPointerNull>(val)) {
-		res = ap_texpr1_cst_scalar_int(ap_environment_alloc_empty(),0);
+		res = ap_texpr1_cst_scalar_int(emptyenv,0);
 	}
 	if (isa<UndefValue>(val)) {
 		res = create_ap_expr((ap_var_t)val);
 	}
 	if (res == NULL)
 		res = create_ap_expr((ap_var_t)val);
+	ap_environment_free(emptyenv);
 	return res;
 }
 
@@ -133,13 +135,15 @@ ap_texpr1_t * Expr::create_ap_expr(ap_var_t var) {
 	} else {
 		env = ap_environment_alloc(NULL,0,&var,1);
 	}
-	return ap_texpr1_var(env,var);
+	ap_texpr1_t * res = ap_texpr1_var(env,var);
+	ap_environment_free(env);
+	return res;
 }
 
 void Expr::create_constraints (
 	ap_constyp_t constyp,
-	Expr expr,
-	Expr nexpr,
+	Expr * expr,
+	Expr * nexpr,
 	std::vector<ap_tcons1_array_t*> * t_cons
 	) {
 	
@@ -153,7 +157,7 @@ void Expr::create_constraints (
 		consarray = new ap_tcons1_array_t();
 		cons = ap_tcons1_make(
 				AP_CONS_SUP,
-				ap_texpr1_copy(expr.ap_expr),
+				ap_texpr1_copy(expr->ap_expr),
 				ap_scalar_alloc_set_double(0));
 		*consarray = ap_tcons1_array_make(cons.env,1);
 		ap_tcons1_array_set(consarray,0,&cons);
@@ -162,7 +166,7 @@ void Expr::create_constraints (
 		consarray = new ap_tcons1_array_t();
 		cons = ap_tcons1_make(
 				AP_CONS_SUP,
-				ap_texpr1_copy(nexpr.ap_expr),
+				ap_texpr1_copy(nexpr->ap_expr),
 				ap_scalar_alloc_set_double(0));
 		*consarray = ap_tcons1_array_make(cons.env,1);
 		ap_tcons1_array_set(consarray,0,&cons);
@@ -171,7 +175,7 @@ void Expr::create_constraints (
 		consarray = new ap_tcons1_array_t();
 		cons = ap_tcons1_make(
 				constyp,
-				ap_texpr1_copy(expr.ap_expr),
+				ap_texpr1_copy(expr->ap_expr),
 				ap_scalar_alloc_set_double(0));
 		*consarray = ap_tcons1_array_make(cons.env,1);
 		ap_tcons1_array_set(consarray,0,&cons);
@@ -189,8 +193,8 @@ void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
 			(*exp1)->env,
 			(*exp2)->env);
 	// we extend the environments such that both expressions have the same one
-	*exp1 = ap_texpr1_extend_environment(*exp1,lcenv);
-	*exp2 = ap_texpr1_extend_environment(*exp2,lcenv);
+	ap_texpr1_extend_environment_with(*exp1,lcenv);
+	ap_texpr1_extend_environment_with(*exp2,lcenv);
 	ap_environment_free(lcenv);
 }
 
@@ -227,14 +231,18 @@ ap_environment_t * Expr::intersect_environment(
 		ap_environment_t * env2) {
 	ap_environment_t * lcenv = common_environment(env1,env2);
 	ap_environment_t * intersect = ap_environment_copy(lcenv);	
+	ap_environment_t * tmp = NULL;	
 
 	for (size_t i = 0; i < lcenv->intdim + lcenv->realdim; i++) {
 		ap_var_t var = ap_environment_var_of_dim(lcenv,(ap_dim_t)i);
 		if (!ap_environment_mem_var(env1,var) || !ap_environment_mem_var(env2,var)) {
 			//size_t size = intersect->intdim + intersect->realdim;
-			intersect = ap_environment_remove(intersect,&var,1);
+			tmp = ap_environment_remove(intersect,&var,1);
+			ap_environment_free(intersect);
+			intersect = tmp;
 		}	
 	}	
+	ap_environment_free(lcenv);
 	return intersect;
 }
 
@@ -554,5 +562,11 @@ ap_texpr1_t * Expr::visitInstAndAddVar(Instruction &I) {
 		env = ap_environment_alloc(NULL,0,&var,1);
 	}
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
+	ap_environment_free(env);
 	return exp;
+}
+
+
+void Expr::tcons1_array_deep_clear(ap_tcons1_array_t * array) {
+	ap_tcons1_array_clear(array);
 }

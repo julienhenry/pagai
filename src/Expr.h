@@ -73,8 +73,8 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		// creates the constraint from its arguments and insert it into t_cons
 		static void create_constraints (
 			ap_constyp_t constyp,
-			Expr expr,
-			Expr nexpr,
+			Expr * expr,
+			Expr * nexpr,
 			std::vector<ap_tcons1_array_t*> * t_cons);
 
 		/// common_environment - modifies the two expression by giving them the same
@@ -137,5 +137,7 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		/// @}
 		//
 		ap_texpr1_t * visitInstAndAddVar(Instruction &I);
+
+		static void tcons1_array_deep_clear(ap_tcons1_array_t * array);
 };
 #endif

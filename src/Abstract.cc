@@ -1,12 +1,24 @@
 #include "SMTpass.h"
 #include "Abstract.h"
 #include "AbstractGopan.h"
+#include "AbstractClassic.h"
 #include "Expr.h"
 
 int Abstract::compare(Abstract * d) {
-	SMTpass * LSMT = SMTpass::getInstanceForAbstract();
 	bool f = false;
 	bool g = false;
+	if (dynamic_cast<AbstractClassic*>(d) 
+		&& dynamic_cast<AbstractClassic*>(this)) {
+		if (ap_abstract1_is_eq(man,main,d->main))
+			return 0;
+		if (ap_abstract1_is_leq(man,main,d->main))
+			return 1;
+		if (ap_abstract1_is_leq(man,d->main,main))
+			return -1;
+		return -2;
+	}
+
+	SMTpass * LSMT = SMTpass::getInstanceForAbstract();
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,this);
@@ -99,18 +111,18 @@ bool Abstract::is_eq(Abstract * d) {
 }
 
 void Abstract::assign_texpr_array(
-		std::vector<ap_var_t> name,
-		std::vector<Expr> expr,
+		std::vector<ap_var_t> * name,
+		std::vector<Expr> * expr,
 		ap_abstract1_t* dest) {
 		
 	std::vector<ap_texpr1_t> texpr;
-	std::vector<Expr>::iterator it = expr.begin(), et = expr.end();
+	std::vector<Expr>::iterator it = expr->begin(), et = expr->end();
 	for (; it != et; it++) {
 		//ap_texpr1_t * exp = ap_texpr1_copy((*it).getExpr());
 		ap_texpr1_t * exp = (*it).getExpr();
 		texpr.push_back(*exp);
 	}
-	assign_texpr_array(&name[0],&texpr[0],name.size(),dest);
+	assign_texpr_array(&(*name)[0],&texpr[0],name->size(),dest);
 }
 
 

@@ -11,6 +11,17 @@ std::map<params,std::map<Function*,sys::TimeValue *> > Total_time;
 std::map<params,std::map<Function*,int> > asc_iterations;
 std::map<params,std::map<Function*,int> > desc_iterations;
 
+void ReleaseTimingData() {
+	std::map<params,std::map<Function*,sys::TimeValue *> >::iterator it = Total_time.begin(), et = Total_time.end();
+	for (; it!=et; it++) {
+		std::map<Function*,sys::TimeValue*> * m = &(*it).second;
+		std::map<Function*,sys::TimeValue*>::iterator I = m->begin(), E = m->end();
+		for (; I!=E; I++) {
+			delete (*I).second;
+		}
+	}
+}
+
 //struct timeval Now() { 
 //	struct timeval tp; 
 //	gettimeofday(&tp,NULL); 

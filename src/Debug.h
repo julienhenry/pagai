@@ -29,11 +29,13 @@ using namespace llvm;
 extern int n_paths;
 extern int n_totalpaths;
 
-extern std::map<params,std::map<Function*,sys::TimeValue *> > Total_time;
+extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time;
 
 // count the number of ascending iterations
 extern std::map<params,std::map<Function*,int> > asc_iterations;
 // count the number of descending iterations
 extern std::map<params,std::map<Function*,int> > desc_iterations;
+
+extern void ReleaseTimingData();
 
 #endif

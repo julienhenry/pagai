@@ -27,38 +27,58 @@ class Node;
 /// Apron Manager, SMTpass solver, ...).
 class AIPass : public InstVisitor<AIPass> {
 	public:
-		/// LV - result of the Live pass
-		Live * LV;
-		
 		/// id of the pass
 		params passID;
-
 	protected:
-		/// LSMT - result of the SMTpass pass
-		SMTpass * LSMT;
+		/// LV - result of the Live pass
+		Live * LV;
+
+		/// threshold - array of lincons we use to do widening with threshold
+		/// this array is computed in computeTransform
+		ap_lincons1_array_t threshold;
+		/// true iff threshold is empty and cannot be cleared
+		bool threshold_empty;
+
+		/// Set to true when the analysis fails (timeout, ...)
+		bool unknown;
+
+		/// when true, apply Halbwach's narrowing
+		bool NewNarrowing;
+
+		/// when true, apply widening with threshold
+		/// instead of classic widening
+		bool use_threshold;
+
+		/// focuspath - path we focus on
+		std::vector<BasicBlock*> focuspath;
+		/// index in focuspath of the focuspath's basicblock we are working on
+		unsigned focusblock;
+		
+		/// list of all the constraints that need to be satisfied 
+		//along the path
+		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
+
+		/// set of Phi variables with their associated expression, 
+		/// that are defined at the last basicblock of the path
+		phivar PHIvars_prime;
+		
+		/// set of Phi variables with their associated expression, 
+		/// that are defined at the "middle" of the path 
+		/// (i.e. not at the last basicblock)
+		phivar PHIvars;
 
 		/// A - list of active Nodes, that still have to be computed
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A;
 		/// is_computed - remember the Nodes that don't need to be recomputed.
 		/// This is used to remove duplicates in the A list.
 		std::map<Node*,bool> is_computed;
-	
 		/// man - apron manager we use along the pass
 		ap_manager_t* man;
 
 		/// aman - manager that creates abstract values
 		AbstractMan* aman;
-
-		void loopiter(
-			Node * n, 
-			Abstract * &Xtemp,
-			std::list<BasicBlock*> * path,
-			bool &only_join,
-			PathTree * const U,
-			PathTree * const V);
-	
-		/// delete all pathtrees inside the map and clear the map
-		void ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree);
+		/// LSMT - result of the SMTpass pass
+		SMTpass * LSMT;
 
 	public:
 
@@ -84,77 +104,55 @@ class AIPass : public InstVisitor<AIPass> {
 
 		void init() {
 				init_apron();
-				threshold = ap_lincons1_array_make(
-					ap_environment_alloc_empty(),0
-				);
+				ap_environment_t * env = ap_environment_alloc_empty();
+				threshold = ap_lincons1_array_make(env,0);
+				ap_environment_free(env);
 		}
 
 		virtual ~AIPass () {
 				ap_manager_free(man);
+				if (!threshold_empty)
+					ap_lincons1_array_clear(&threshold);
 			}
 
+	protected:
+		
 		virtual void computeFunction(Function * F) = 0;
 
-		/// Set to true when the analysis fails (timeout, ...)
-		bool unknown;
+		/// computeNode - compute and update the Abstract value of the Node n
+		/// This function should update the set A of active nodes to
+		/// reflect changes performed on Node n.
+		virtual void computeNode(Node * n) = 0;
 
-		/// when true, apply Halbwach's narrowing
-		bool NewNarrowing;
-
-		/// when true, apply widening with threshold
-		/// instead of classic widening
-		bool use_threshold;
-
-		/// initFunction - initialize the function by creating the Node
-		/// objects, and computing the strongly connected components.
-		void initFunction(Function * F);
+		/// narrowNode - apply narrowing at node n
+		/// This function should update the set A of active nodes to
+		/// reflect changes performed on Node n.
+		virtual void narrowNode(Node * n) = 0;
 		
-		std::string getUndefinedBehaviourPosition(BasicBlock * b);
-		std::string getUndefinedBehaviourMessage(BasicBlock * b);
+		/// Basic abstract interpretation ascending iterations
+		/// (iterates over the nodes, calling computeNode for each of
+		/// them)
+		virtual void ascendingIter(Node * n, Function * F, bool dont_reset = false);
 
-		void generateAnnotatedFile(Module * M);
+		/// Narrowing algorithm (iterates over the nodes, calling
+		/// narrowNode() for each of them)
+		virtual void narrowingIter(Node * n);
 
-		void printResult(Function * F);
-
-		/// printBasicBlock - print a basicBlock on standard output
-		static void printBasicBlock(BasicBlock * b);
-
-		/// printPath - print a path on standard output
-		static void printPath(std::list<BasicBlock*> path);
+		void loopiter(
+			Node * n, 
+			Abstract * &Xtemp,
+			std::list<BasicBlock*> * path,
+			bool &only_join,
+			PathTree * const U,
+			PathTree * const V);
 	
-		/// computeEnv - compute the new environment of Node n, based on 
-		/// its intVar and RealVar maps
-		void computeEnv(Node * n);
-		
-		/// focuspath - path we focus on
-		std::vector<BasicBlock*> focuspath;
-		/// index in focuspath of the focuspath's basicblock we are working on
-		unsigned focusblock;
-		
-		/// list of all the constraints that need to be satisfied 
-		//along the path
-		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
-
-		/// set of Phi variables with their associated expression, 
-		/// that are defined at the last basicblock of the path
-		phivar PHIvars_prime;
-		
-		/// set of Phi variables with their associated expression, 
-		/// that are defined at the "middle" of the path 
-		/// (i.e. not at the last basicblock)
-		phivar PHIvars;
-	
-		/// computes the set of predecessors for a BasicBlock
-		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
-
-		/// computes the set of Successors for a BasicBlock
-		virtual std::set<BasicBlock*> getSuccessors(BasicBlock * b) const = 0;
+		/// delete all pathtrees inside the map and clear the map
+		void ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree);
 
 		/// copy the elements in X_d into X_s abstract values
 		/// return true iff there there some Xd values that were not equal to Xs
+		/// same principle for the two other functions
 		bool copy_Xd_to_Xs(Function * F);
-
-		///
 		void copy_Xs_to_Xf(Function * F);
 		void copy_Xf_to_Xs(Function * F);
 
@@ -164,31 +162,16 @@ class AIPass : public InstVisitor<AIPass> {
 			AbstractMan * aman,
 			Node * n, 
 			std::list<BasicBlock*> path, 
-			Abstract &Xtemp);
+			Abstract *Xtemp);
 
 		/// compute Seeds for Halbwach's narrowing
 		/// returns true iff one ore more seeds have been found
 		bool computeWideningSeed(Function * F);
 
-		/// Basic abstract interpretation ascending iterations
-		/// (iterates over the nodes, calling computeNode for each of
-		/// them)
-		virtual void ascendingIter(Node * n, Function * F, bool dont_reset = false);
-
-		/// computeNode - compute and update the Abstract value of the Node n
-		/// This function should update the set A of active nodes to
-		/// reflect changes performed on Node n.
-		virtual void computeNode(Node * n) = 0;
+		/// computeEnv - compute the new environment of Node n, based on 
+		/// its intVar and RealVar maps
+		void computeEnv(Node * n);
 		
-		/// Narrowing algorithm (iterates over the nodes, calling
-		/// narrowNode() for each of them)
-		virtual void narrowingIter(Node * n);
-
-		/// narrowNode - apply narrowing at node n
-		/// This function should update the set A of active nodes to
-		/// reflect changes performed on Node n.
-		virtual void narrowNode(Node * n) = 0;
-
 		/// computeCondition - creates the constraint arrays resulting from a
 		/// comparison instruction.
 		bool computeCondition(CmpInst * inst, 
@@ -203,13 +186,39 @@ class AIPass : public InstVisitor<AIPass> {
 				bool result,
 				std::vector<ap_tcons1_array_t*> * cons);
 
-
-		/// threshold - array of lincons we use to do widening with threshold
-		/// this array is computed in computeTransform
-		ap_lincons1_array_t threshold;
-
 		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
 
+		/// initFunction - initialize the function by creating the Node
+		/// objects, and computing the strongly connected components.
+		void initFunction(Function * F);
+
+		/// TerminateFunction - free internal data after the analysis of a
+		/// function
+		/// Has to be called after the analysis of each function
+		void TerminateFunction();
+		
+		/// outputs the result of the analysis
+		void printResult(Function * F);
+		
+		std::string getUndefinedBehaviourPosition(BasicBlock * b);
+		std::string getUndefinedBehaviourMessage(BasicBlock * b);
+
+		void generateAnnotatedFile(Module * M);
+
+
+		/// printBasicBlock - print a basicBlock on standard output
+		static void printBasicBlock(BasicBlock * b);
+
+		/// printPath - print a path on standard output
+		static void printPath(std::list<BasicBlock*> path);
+	
+		/// computes the set of predecessors for a BasicBlock
+		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
+
+		/// computes the set of Successors for a BasicBlock
+		virtual std::set<BasicBlock*> getSuccessors(BasicBlock * b) const = 0;
+
+	public:
 		void visitInstAndAddVarIfNecessary(Instruction &I);
 		/// @{
 		/// @name Visit methods

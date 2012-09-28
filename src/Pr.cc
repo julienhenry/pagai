@@ -195,9 +195,9 @@ void Pr::computePr() {
 				Function * cF = c->getCalledFunction();
 				if (cF != NULL) {
 					std::string fname = cF->getName();
-					static const std::string assert_fail ("__assert_fail");
-					static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
-					static const std::string gnat_rcheck ("__gnat_rcheck_");
+					const std::string assert_fail ("__assert_fail");
+					const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
+					const std::string gnat_rcheck ("__gnat_rcheck_");
 					if (fname.compare(assert_fail) == 0) {
 						Pr_set.insert(b);
 						Assert_set.insert(b);

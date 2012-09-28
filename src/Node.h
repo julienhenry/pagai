@@ -51,7 +51,17 @@ class Node {
 		int lowlink;
 		bool isInStack;
 		void computeSCC_rec(int & n,std::stack<Node*> * S);
+		ap_environment_t * env;
 	public:
+
+		/// constructors
+		Node(BasicBlock * _bb);
+		~Node();
+
+		/// methods for getting and setting internal apron environment
+		ap_environment_t * getEnv();
+		void setEnv(ap_environment_t * e);
+		
 		/// bb - BasicBlock associated to the Node
 		BasicBlock * bb;
 		/// sccId identifies the strongly connected component the node is in
@@ -66,7 +76,6 @@ class Node {
 		std::map<params,Abstract*> X_i;
 		std::map<params,Abstract*> X_f;
 
-		ap_environment_t * env;
 
 		/// intVar - contains all the int variables that have to be used as
 		/// dimensions for the abstract value. Each variable is associated to a
@@ -78,9 +87,6 @@ class Node {
 		/// realVar - same as intVar, but for real variables
 		std::map<Value*,std::set<ap_var_t> > realVar;
 
-	public:
-		Node(BasicBlock * _bb);
-		~Node();
 
 		/// computeSCC - compute the strongly connected components of the CFG 
 		void computeSCC();
@@ -90,7 +96,7 @@ class Node {
 		
 		/// create_env - creates an environment containing all live variables
 		/// that needs to be used as dimension in the abstract domain
-		void create_env(ap_environment_t ** env, Live * LV);
+		ap_environment_t * create_env(Live * LV);
 };
 
 /// Nodes - Map that associate each BasicBlock of the Module with its Node

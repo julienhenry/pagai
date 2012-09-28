@@ -101,7 +101,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		Out = &llvm::outs();
 		Out->SetUnbuffered();
 	}
-
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
 
@@ -218,6 +217,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 
 	Pr::releaseMemory();
+	SMTpass::releaseMemory();
+	ReleaseTimingData();
+	Expr::clear_exprs();
 
 	//Out->flush();
 	//delete FDOut;

@@ -69,6 +69,13 @@ SMTpass * SMTpass::getInstanceForAbstract() {
 	return instanceforAbstract;
 }
 
+void SMTpass::releaseMemory() {
+	if (instance != NULL)
+		delete instance;
+	if (instanceforAbstract != NULL)
+		delete instanceforAbstract;
+}
+
 SMT_expr SMTpass::getRho(Function &F) {
 	if (!rho.count(&F))
 		computeRho(F);

@@ -81,6 +81,7 @@ bool AIopt_incr::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+		TerminateFunction();
 
 		// deleting the pathtrees
 		ClearPathtreeMap(pathtree);
@@ -147,9 +148,10 @@ void AIopt_incr::computeFunction(Function * F) {
 	// first abstract value is top
 	ap_environment_t * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
+	ap_environment_free(env);
 	
 	while (!A_prime.empty()) 
 			A_prime.pop();
@@ -270,7 +272,7 @@ void AIopt_incr::computeNewPaths(Node * n) {
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 		Succ->X_s[passID]->change_environment(Xtemp->main->env);
 
 		Join.clear();
@@ -364,7 +366,7 @@ void AIopt_incr::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
@@ -473,7 +475,7 @@ void AIopt_incr::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON TO JOIN\n";

@@ -34,12 +34,12 @@ void AISimple::computeFunc(Function * F) {
 	// first abstract value is top
 	ap_environment_t * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 	n->X_i[passID]->set_top(env);
 	n->X_f[passID]->set_top(env);
-
+	ap_environment_free(env);
 	ascendingIter(n, F);
 
 	narrowingIter(n);
@@ -130,6 +130,7 @@ bool AISimple::runOnModule(Module &M) {
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		printResult(F);
+		TerminateFunction();
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
@@ -171,7 +172,7 @@ void AISimple::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -201,7 +202,6 @@ void AISimple::computeNode(Node * n) {
 			Xtemp->meet(Succ->X_f[passID]);
 		}
 
-		Xtemp->print();Succ->X_s[passID]->print();
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
 			if (succ_bottom) {
@@ -221,7 +221,6 @@ void AISimple::computeNode(Node * n) {
 		);
 	}
 }
-
 
 void AISimple::narrowNode(Node * n) {
 	Abstract * Xtemp;
@@ -255,7 +254,7 @@ void AISimple::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		desc_iterations[passID][n->bb->getParent()]++;
 

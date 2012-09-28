@@ -59,6 +59,15 @@ Node::~Node() {
 	ap_environment_free(env);
 }
 
+ap_environment_t * Node::getEnv() {
+	return env;
+}
+
+void Node::setEnv(ap_environment_t * e) {
+	ap_environment_free(env);
+	env = ap_environment_copy(e);
+}
+
 /// computeSCC - compute the strongly connected components and the loop 
 /// heads of the graph.
 ///
@@ -125,7 +134,8 @@ void Node::add_var(Value * val) {
 	Expr::set_expr(val,exp);
 }
 
-void Node::create_env(ap_environment_t ** env, Live * LV) {
+ap_environment_t * Node::create_env(Live * LV) {
+	ap_environment_t * env;
 	std::set<ap_var_t> Sintvars;
 	std::set<ap_var_t> Srealvars;
 
@@ -160,12 +170,11 @@ void Node::create_env(ap_environment_t ** env, Live * LV) {
 		j++;
 	}
 
-	if (*env != NULL)
-		ap_environment_free(*env);
-	*env = ap_environment_alloc(intvars,Sintvars.size(),realvars,Srealvars.size());
+	env = ap_environment_alloc(intvars,Sintvars.size(),realvars,Srealvars.size());
 	
 	free(intvars);
 	free(realvars);
+	return env;
 }
 
 bool NodeCompare::operator() (Node * n1, Node * n2) {

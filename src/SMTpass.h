@@ -107,6 +107,7 @@ class SMTpass : public InstVisitor<SMTpass> {
 
 		static SMTpass * getInstance();
 		static SMTpass * getInstanceForAbstract();
+		static void releaseMemory();
 
 		void reset_SMTcontext();
 
