@@ -67,6 +67,8 @@ char* getFilename();
 bool definedMain();
 std::string getMain();
 
+bool quiet_mode();
+
 Apron_Manager_Type getApronManager();
 Apron_Manager_Type getApronManager(int i);
 

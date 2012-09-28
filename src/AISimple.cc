@@ -113,12 +113,14 @@ bool AISimple::runOnModule(Module &M) {
 		if (F->empty()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
+		if (!quiet_mode()) {
+			Out->changeColor(raw_ostream::BLUE,true);
+			*Out << "\n\n\n"
+					<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 		LSMT = SMTpass::getInstance();
 		LSMT->reset_SMTcontext();
 

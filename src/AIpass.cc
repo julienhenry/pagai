@@ -87,10 +87,11 @@ void AIPass::initFunction(Function * F) {
 	}
 	ap_environment_free(empty_env);
 
-	*Out<<"Function:"<<F->getName()<<"\n";
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-		printBasicBlock(i);
-	//*Out << *F;
+	if (!quiet_mode()) {
+		*Out<<"Function:"<<F->getName()<<"\n";
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+			printBasicBlock(i);
+	}
 }
 
 void AIPass::TerminateFunction() {
@@ -264,6 +265,7 @@ std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
 }
 
 void AIPass::printResult(Function * F) {
+	if (quiet_mode()) return;
 	BasicBlock * b;
 	Node * n;
 	Pr * FPr = Pr::getInstance(F);

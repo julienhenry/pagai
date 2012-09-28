@@ -51,12 +51,14 @@ bool AIopt_incr::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
+		if (!quiet_mode()) {
+			Out->changeColor(raw_ostream::BLUE,true);
+			*Out << "\n\n\n"
+					<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
@@ -111,8 +113,9 @@ void AIopt_incr::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 
 	LSMT->push_context();
-	
-	*Out << "Computing Rho...";
+
+	if (!quiet_mode())
+		*Out << "Computing Rho...";
 	LSMT->SMT_assert(LSMT->getRho(*F));
 
 	/////
@@ -134,7 +137,8 @@ void AIopt_incr::computeFunction(Function * F) {
 	}
 
 	/////
-	*Out << "OK\n";
+	if (!quiet_mode())
+		*Out << "OK\n";
 	
 
 	// add all function's arguments into the environment of the first bb

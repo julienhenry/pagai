@@ -49,8 +49,8 @@ macro(configure_llvm PROG)
     set(ERROR_OCCURED ON PARENT_SCOPE)
   endif()
 
-  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN}
-    OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  #execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN} OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags OUTPUT_VARIABLE LLVM_CXXFLAGS)
   # CMake doesn't like newline in CXXFLAGS, and there's at least a
   # trailing \n in llvm-config's output.
   STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")

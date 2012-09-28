@@ -13,6 +13,7 @@ bool compare;
 bool compare_Domain;
 bool compare_Narrowing;
 bool onlyrho;
+bool quiet;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
@@ -36,6 +37,7 @@ void show_help() {
 --source-name : output with the variable names from the source file instead of LLVM's names\n \
 --annotated : specify the name of the outputted annotated source file\n \
 --source : specify the path and name of the source file (in C, C++,etc.) \n \
+--quiet (-q) : quiet mode : does not print anything \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -279,6 +281,10 @@ std::string getMain() {
 	return main_function;
 }
 
+bool quiet_mode() {
+	return quiet;
+} 
+
 std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
@@ -305,6 +311,7 @@ int main(int argc, char* argv[]) {
 	compare_Narrowing = false;
 	onlyrho = false;
 	defined_main = false;
+	quiet = false;
 	use_source_name = false;
 	output_annotated = false;
 	n_totalpaths = 0;
@@ -330,6 +337,7 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
+			{"quiet",    no_argument, 0, 'q'},
 			{"source-name",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
@@ -338,8 +346,11 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "a:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
         switch (o) {
+        case 'q':
+			quiet = true;
+            break;
         case 'S':
             use_source_name = true;
             break;
