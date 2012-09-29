@@ -7,6 +7,10 @@
 int Abstract::compare(Abstract * d) {
 	bool f = false;
 	bool g = false;
+
+//if enabled, we have errors because the two abstracts may not have the same
+//environment
+#if 0
 	if (dynamic_cast<AbstractClassic*>(d) 
 		&& dynamic_cast<AbstractClassic*>(this)) {
 		if (ap_abstract1_is_eq(man,main,d->main))
@@ -17,6 +21,7 @@ int Abstract::compare(Abstract * d) {
 			return -1;
 		return -2;
 	}
+#endif
 
 	SMTpass * LSMT = SMTpass::getInstanceForAbstract();
 
@@ -65,11 +70,13 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 	bool res = true;
 	SMTpass * LSMT = SMTpass::getInstance();
 	std::vector<Abstract*> Join;
-	ap_environment_t * env = Expr::common_environment(main->env, A->main->env);
+	Environment env_this(this);
+	Environment env_A(A);
+	Environment * cenv = Environment::common_environment(&env_this,&env_A);
 	Join.push_back(aman->NewAbstract(this));
 	Join.push_back(aman->NewAbstract(A));
 	Abstract * J = aman->NewAbstract(this);
-	J->join_array(env,Join);
+	J->join_array(cenv,Join);
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,this);
@@ -85,6 +92,7 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 		res = false;
 	}
 	LSMT->pop_context();
+	delete cenv;
 	delete J;
 	return res;
 }
@@ -112,17 +120,24 @@ bool Abstract::is_eq(Abstract * d) {
 
 void Abstract::assign_texpr_array(
 		std::vector<ap_var_t> * name,
-		std::vector<Expr> * expr,
+		std::vector<Expr*> * expr,
 		ap_abstract1_t* dest) {
 		
 	std::vector<ap_texpr1_t> texpr;
-	std::vector<Expr>::iterator it = expr->begin(), et = expr->end();
+	std::vector<Expr*>::iterator it = expr->begin(), et = expr->end();
 	for (; it != et; it++) {
 		//ap_texpr1_t * exp = ap_texpr1_copy((*it).getExpr());
-		ap_texpr1_t * exp = (*it).getExpr();
+		ap_texpr1_t * exp = (*it)->getExpr();
 		texpr.push_back(*exp);
 	}
 	assign_texpr_array(&(*name)[0],&texpr[0],name->size(),dest);
+
+	// TODO : FREE expr
+	for (it = expr->begin(), et = expr->end(); it != et; it++) {
+		delete *it;
+	}
+	name->clear();
+	expr->clear();
 }
 
 

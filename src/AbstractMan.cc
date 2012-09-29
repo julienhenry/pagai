@@ -5,7 +5,7 @@
 #include "AbstractGopan.h"
 #include "AbstractDisj.h"
 
-Abstract * AbstractManClassic::NewAbstract(ap_manager_t * man, ap_environment_t * env) {
+Abstract * AbstractManClassic::NewAbstract(ap_manager_t * man, Environment * env) {
 	return new AbstractClassic(man,env);
 }
 
@@ -13,7 +13,7 @@ Abstract * AbstractManClassic::NewAbstract(Abstract * A) {
 	return new AbstractClassic(A);
 }
 
-Abstract * AbstractManGopan::NewAbstract(ap_manager_t * man, ap_environment_t * env) {
+Abstract * AbstractManGopan::NewAbstract(ap_manager_t * man, Environment * env) {
 	return new AbstractGopan(man,env);
 }
 
@@ -21,7 +21,7 @@ Abstract * AbstractManGopan::NewAbstract(Abstract * A) {
 	return new AbstractGopan(A);
 }
 
-Abstract * AbstractManDisj::NewAbstract(ap_manager_t * man, ap_environment_t * env) {
+Abstract * AbstractManDisj::NewAbstract(ap_manager_t * man, Environment * env) {
 	return new AbstractDisj(man,env,0);
 }
 

@@ -38,12 +38,13 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
-	ap_environment_t * cenv = Expr::intersect_environment(
-			A->main->env,
-			B->main->env);
+	Environment A_env(A);
+	Environment B_env(B);
+	Environment * cenv = Environment::intersection(&A_env,&B_env);
 
 	A->change_environment(cenv);
 	B->change_environment(cenv);
+	delete cenv;
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);

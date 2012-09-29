@@ -9,8 +9,8 @@
 #include "Expr.h"
 #include "Analyzer.h"
 
-AbstractGopan::AbstractGopan(ap_manager_t* _man, ap_environment_t * env) {
-	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
+AbstractGopan::AbstractGopan(ap_manager_t* _man, Environment * env) {
+	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env->getEnv()));
 	pilot = main;
 	man = _man;
 }
@@ -39,33 +39,33 @@ AbstractGopan::~AbstractGopan() {
 }
 
 /// set_top - sets the abstract to top on the environment env
-void AbstractGopan::set_top(ap_environment_t * env) {
+void AbstractGopan::set_top(Environment * env) {
 	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
 		delete pilot;
 	}
 	ap_abstract1_clear(man,main);
-	*main = ap_abstract1_top(man,env);
+	*main = ap_abstract1_top(man,env->getEnv());
 	pilot = main;
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
-void AbstractGopan::set_bottom(ap_environment_t * env) {
+void AbstractGopan::set_bottom(Environment * env) {
 	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
 		delete pilot;
 	}
 	ap_abstract1_clear(man,main);
-	*main = ap_abstract1_bottom(man,env);
+	*main = ap_abstract1_bottom(man,env->getEnv());
 	pilot = main;
 }
 
-void AbstractGopan::change_environment(ap_environment_t * env) {
+void AbstractGopan::change_environment(Environment * env) {
 
-	if (!ap_environment_is_eq(env,main->env))
-		*main = ap_abstract1_change_environment(man,true,main,env,false);
-	if (pilot != main && !ap_environment_is_eq(env,pilot->env))
-		*pilot = ap_abstract1_change_environment(man,true,pilot,env,false);
+	if (!ap_environment_is_eq(env->getEnv(),main->env))
+		*main = ap_abstract1_change_environment(man,true,main,env->getEnv(),false);
+	if (pilot != main && !ap_environment_is_eq(env->getEnv(),pilot->env))
+		*pilot = ap_abstract1_change_environment(man,true,pilot,env->getEnv(),false);
 }
 
 bool AbstractGopan::is_bottom() {
@@ -114,7 +114,7 @@ void AbstractGopan::widening(Abstract * X) {
 
 /// widening with threshold is not implemented. We do a classical widening
 /// instead
-void AbstractGopan::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
+void AbstractGopan::widening_threshold(Abstract * X, Constraint_array* cons) {
 	widening(X);
 }
 
@@ -126,19 +126,19 @@ ap_lincons1_array_t AbstractGopan::to_lincons_array() {
 	return ap_abstract1_to_lincons_array(man,main);
 }
 
-void AbstractGopan::meet_tcons_array(ap_tcons1_array_t* tcons) {
+void AbstractGopan::meet_tcons_array(Constraint_array* tcons) {
 
-	ap_environment_t * lcenv = Expr::common_environment(
-			main->env,
-			ap_tcons1_array_envref(tcons));
+	Environment main_env(this);
+	Environment cons_env(tcons);
+	Environment * lcenv = Environment::common_environment(&main_env,&cons_env);
 
 	if (pilot != main) {
-		*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv,false);
-		*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons);
+		*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv->getEnv(),false);
+		*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons->to_tcons1_array());
 	}
 
-	*main = ap_abstract1_change_environment(man,true,main,lcenv,false);
-	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons);
+	*main = ap_abstract1_change_environment(man,true,main,lcenv->getEnv(),false);
+	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
 
 }
 
@@ -168,15 +168,15 @@ void AbstractGopan::assign_texpr_array(
 			dest);
 }
 
-void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
+void AbstractGopan::join_array(Environment * env, std::vector<Abstract*> X_pred) {
 	size_t size = X_pred.size();
 
 	ap_abstract1_t  Xmain[size];
 	ap_abstract1_t  Xpilot[size];
 	
 	for (unsigned i=0; i < size; i++) {
-		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
-		Xpilot[i] = ap_abstract1_change_environment(man,false,X_pred[i]->pilot,env,false);
+		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env->getEnv(),false);
+		Xpilot[i] = ap_abstract1_change_environment(man,false,X_pred[i]->pilot,env->getEnv(),false);
 		delete X_pred[i];
 	}
 	
@@ -205,7 +205,7 @@ void AbstractGopan::join_array(ap_environment_t * env, std::vector<Abstract*> X_
 	}
 }
 
-void AbstractGopan::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
+void AbstractGopan::join_array_dpUcm(Environment *env, Abstract* n) {
 	ap_abstract1_t Xmain;
 	ap_abstract1_t Xpilot;
 	Xmain = ap_abstract1_join(man,false,main,n->main);

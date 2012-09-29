@@ -9,6 +9,8 @@ class Node;
 class SMTpass;
 class AbstractMan;
 class Expr;
+class Environment;
+class Constraint_array;
 
 /// Base class of abstract domains
 class Abstract {
@@ -28,13 +30,13 @@ class Abstract {
 		virtual ~Abstract() {};
 
 		/// set_top - the abstract domain is set to top
-		virtual void set_top(ap_environment_t * env) = 0;
+		virtual void set_top(Environment * env) = 0;
 
 		/// set_top - the abstract domain is set to bottom
-		virtual void set_bottom(ap_environment_t * env) = 0;
+		virtual void set_bottom(Environment * env) = 0;
 
 		/// change_environment - change the environment of the abstract value
-		virtual void change_environment(ap_environment_t * env) = 0;
+		virtual void change_environment(Environment * env) = 0;
 
 		/// compare the abstract value with another one
 		/// return 0 in equal
@@ -57,11 +59,11 @@ class Abstract {
 		/// widening - applies the widening operator, according to its
 		/// definition in the domain.
 		virtual void widening(Abstract * X) = 0;
-		virtual void widening_threshold(Abstract * X, ap_lincons1_array_t* cons) = 0;
+		virtual void widening_threshold(Abstract * X, Constraint_array* cons) = 0;
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints
-		virtual void meet_tcons_array(ap_tcons1_array_t* tcons) = 0;
+		virtual void meet_tcons_array(Constraint_array* tcons) = 0;
 
 		/// canonicalize - canonicalize the apron representation of the abstract 
 		//domain
@@ -78,14 +80,14 @@ class Abstract {
 		/// assign_texpr_array - assign a expression to a set of variables
 		void assign_texpr_array(
 			std::vector<ap_var_t> * name,
-			std::vector<Expr> * expr,
+			std::vector<Expr*> * expr,
 			ap_abstract1_t* dest);
 		
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
-		virtual void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) = 0;
+		virtual void join_array(Environment * env, std::vector<Abstract*> X_pred) = 0;
 
-		virtual void join_array_dpUcm(ap_environment_t *env, Abstract* n) = 0;
+		virtual void join_array_dpUcm(Environment *env, Abstract* n) = 0;
 
 		virtual void meet(Abstract* A) = 0;
 		

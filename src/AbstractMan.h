@@ -3,12 +3,13 @@
 
 #include "ap_global1.h"
 #include "Abstract.h"
+#include "Environment.h"
 
 /// class that creates Abstract objects
 class AbstractMan {
 
 	public:
-	virtual Abstract * NewAbstract(ap_manager_t * man, ap_environment_t * env) = 0;
+	virtual Abstract * NewAbstract(ap_manager_t * man, Environment * env) = 0;
 	virtual Abstract * NewAbstract(Abstract * A) = 0;
 };
 
@@ -16,7 +17,7 @@ class AbstractMan {
 class AbstractManClassic : public AbstractMan {
 	
 	public:
-	Abstract * NewAbstract(ap_manager_t * man, ap_environment_t * env);
+	Abstract * NewAbstract(ap_manager_t * man, Environment * env);
 	Abstract * NewAbstract(Abstract * A);
 };
 
@@ -24,7 +25,7 @@ class AbstractManClassic : public AbstractMan {
 class AbstractManGopan : public AbstractMan {
 
 	public:
-	Abstract * NewAbstract(ap_manager_t * man, ap_environment_t * env);
+	Abstract * NewAbstract(ap_manager_t * man, Environment * env);
 	Abstract * NewAbstract(Abstract * A);
 };
 
@@ -32,7 +33,7 @@ class AbstractManGopan : public AbstractMan {
 class AbstractManDisj : public AbstractMan {
 
 	public:
-	Abstract * NewAbstract(ap_manager_t * man, ap_environment_t * env);
+	Abstract * NewAbstract(ap_manager_t * man, Environment * env);
 	Abstract * NewAbstract(Abstract * A);
 };
 #endif

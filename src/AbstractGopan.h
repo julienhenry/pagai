@@ -17,7 +17,7 @@ class AbstractGopan : public Abstract {
 
 	public:
 
-		AbstractGopan(ap_manager_t* _man, ap_environment_t * env);
+		AbstractGopan(ap_manager_t* _man, Environment * env);
 
 		/// copy constructor : duplicates the abstract domain
 		AbstractGopan(Abstract* A);
@@ -25,13 +25,13 @@ class AbstractGopan : public Abstract {
 		~AbstractGopan();
 
 		/// set_top - the abstract domain is set to top
-		void set_top(ap_environment_t * env);
+		void set_top(Environment * env);
 
 		/// set_top - the abstract domain is set to bottom
-		void set_bottom(ap_environment_t * env);
+		void set_bottom(Environment * env);
 
 		/// change_environment - change the environment of the abstract value
-		void change_environment(ap_environment_t * env);
+		void change_environment(Environment * env);
 
 		/// is_bottom - return true iff this is bottom
 		bool is_bottom();
@@ -43,11 +43,11 @@ class AbstractGopan : public Abstract {
 		/// definition in the domain.
 		void widening(Abstract * X);
 
-		void widening_threshold(Abstract * X, ap_lincons1_array_t* cons);
+		void widening_threshold(Abstract * X, Constraint_array* cons);
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints
-		void meet_tcons_array(ap_tcons1_array_t* tcons);
+		void meet_tcons_array(Constraint_array* tcons);
 
 		/// canonicalize - canonicalize the apron representation of the abstract 
 		//domain
@@ -62,8 +62,8 @@ class AbstractGopan : public Abstract {
 		
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
-		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
-		void join_array_dpUcm(ap_environment_t *env, Abstract* n);
+		void join_array(Environment * env, std::vector<Abstract*> X_pred);
+		void join_array_dpUcm(Environment *env, Abstract* n);
 
 		void meet(Abstract* A);
 

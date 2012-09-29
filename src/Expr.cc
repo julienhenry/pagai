@@ -13,10 +13,10 @@
 std::map<Value*, ap_texpr1_t*> Exprs;
 std::map<ap_var_t, ap_texpr1_t*> Exprs_var;
 
-void Expr::set_expr(Value * val, Expr exp) {
+void Expr::set_expr(Value * val, Expr * exp) {
 	if (Exprs.count(val))
 		ap_texpr1_free(Exprs[val]);
-	Exprs[val] = ap_texpr1_copy(exp.ap_expr);
+	Exprs[val] = ap_texpr1_copy(exp->ap_expr);
 }
 
 void Expr::clear_exprs() {
@@ -31,26 +31,25 @@ void Expr::clear_exprs() {
 	Exprs_var.clear();
 }
 
-Expr::Expr(Value * val) {
+ap_texpr1_t * Expr::create_expression(Value * val) {
 	ap_expr = NULL;
 
 	if (Exprs.count(val)) {
 		ap_expr = ap_texpr1_copy(Exprs[val]);
-		return;
-	}
-
-	if (isa<Constant>(val)) {
+	} else if (isa<Constant>(val)) {
 		ap_expr = create_ap_expr(dyn_cast<Constant>(val));
-		return;
-	}
-
-	if (Instruction * I = dyn_cast<Instruction>(val)) {
+	} else if (Instruction * I = dyn_cast<Instruction>(val)) {
 		ap_expr = visit(*I);
-		return;
+	} else {
+		// in case the value is not a constant nor an Instruction (for instance, an
+		// Argument), we create a variable
+		ap_expr = create_ap_expr((ap_var_t)val);
 	}
-	// in case the value is not a constant nor an Instruction (for instance, an
-	// Argument), we create a variable
-	ap_expr = create_ap_expr((ap_var_t)val);
+	return ap_expr;
+}
+
+Expr::Expr(Value * val) {
+	ap_expr = create_expression(val);
 }
 
 Expr::Expr(ap_var_t var) {
@@ -60,10 +59,10 @@ Expr::Expr(ap_var_t var) {
 	ap_expr = ap_texpr1_copy(Exprs_var[var]);
 }
 
-Expr::Expr(ap_texpr_op_t op, Expr exp1, Expr exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round) {
+Expr::Expr(ap_texpr_op_t op, Expr * exp1, Expr * exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round) {
 	ap_expr = ap_texpr1_binop(op,
-			ap_texpr1_copy(exp1.ap_expr),
-			ap_texpr1_copy(exp2.ap_expr),
+			ap_texpr1_copy(exp1->ap_expr),
+			ap_texpr1_copy(exp2->ap_expr),
 			type,
 			round);
 }
@@ -76,6 +75,15 @@ Expr::Expr(const Expr &exp) {
 	ap_expr = ap_texpr1_copy(exp.ap_expr);
 }
 
+Expr::Expr(Expr * exp) {
+	ap_expr = ap_texpr1_copy(exp->ap_expr);
+}
+		
+Expr::Expr(double d) {
+	Environment env;
+	ap_expr = ap_texpr1_cst_scalar_double(env.getEnv(),d);
+}
+
 Expr & Expr::operator= (const Expr & exp) {
 	ap_texpr1_free(ap_expr);
 	ap_expr = ap_texpr1_copy(exp.ap_expr);
@@ -86,8 +94,8 @@ ap_texpr1_t * Expr::getExpr() {
 	return ap_expr;
 }
 
-ap_environment_t * Expr::getEnv() {
-	return ap_expr->env;
+Environment * Expr::getEnv() {
+	return new Environment(ap_expr->env);
 }
 
 void Expr::print() {
@@ -144,106 +152,43 @@ void Expr::create_constraints (
 	ap_constyp_t constyp,
 	Expr * expr,
 	Expr * nexpr,
-	std::vector<ap_tcons1_array_t*> * t_cons
+	std::vector<Constraint_array*> * t_cons
 	) {
 	
-	ap_tcons1_t cons;
-	ap_tcons1_array_t * consarray;
+	Constraint * cons;
+	Constraint_array * consarray;
 	
 	if (constyp == AP_CONS_DISEQ) {
 		// we have a disequality constraint. We tranform it into 2 different
 		// constraints: < and >, in order to create further 2 abstract domain
 		// instead of one.
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				AP_CONS_SUP,
-				ap_texpr1_copy(expr->ap_expr),
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
+		consarray = new Constraint_array();
+		cons = new Constraint(AP_CONS_SUP, expr,NULL);
+		consarray->add_constraint(cons);
 		t_cons->push_back(consarray);
 
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				AP_CONS_SUP,
-				ap_texpr1_copy(nexpr->ap_expr),
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
+		consarray = new Constraint_array();
+		cons = new Constraint(AP_CONS_SUP, nexpr,NULL);
+		consarray->add_constraint(cons);
 		t_cons->push_back(consarray);
+
 	} else {
-		consarray = new ap_tcons1_array_t();
-		cons = ap_tcons1_make(
-				constyp,
-				ap_texpr1_copy(expr->ap_expr),
-				ap_scalar_alloc_set_double(0));
-		*consarray = ap_tcons1_array_make(cons.env,1);
-		ap_tcons1_array_set(consarray,0,&cons);
+		consarray = new Constraint_array();
+		cons = new Constraint(constyp, expr,NULL);
+		consarray->add_constraint(cons);
 		t_cons->push_back(consarray);
 	}
 }
 
-/// common_environment = modifies exp1 and exp2 such that 
-/// they have the same common environment
-///
-void Expr::common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2) {
-
-	// we compute the least common environment for the two expressions
-	ap_environment_t* lcenv = common_environment(
-			(*exp1)->env,
-			(*exp2)->env);
-	// we extend the environments such that both expressions have the same one
-	ap_texpr1_extend_environment_with(*exp1,lcenv);
-	ap_texpr1_extend_environment_with(*exp2,lcenv);
-	ap_environment_free(lcenv);
-}
-
-ap_environment_t * Expr::common_environment(
-		ap_environment_t * env1, 
-		ap_environment_t * env2) {
-
-	ap_dimchange_t * dimchange1 = NULL;
-	ap_dimchange_t * dimchange2 = NULL;
-	ap_environment_t * lcenv = ap_environment_lce(
-			env1,
-			env2,
-			&dimchange1,
-			&dimchange2);
-
-	if (dimchange1 != NULL)
-		ap_dimchange_free(dimchange1);
-	if (dimchange2 != NULL)
-		ap_dimchange_free(dimchange2);
-
-	return lcenv;
-}
-
 void Expr::common_environment(Expr* exp1, Expr* exp2) {
-	ap_texpr1_t * texpr1 = exp1->ap_expr;
-	ap_texpr1_t * texpr2 = exp2->ap_expr;
-	common_environment(&texpr1,&texpr2);
-	exp1->ap_expr = texpr1;
-	exp2->ap_expr = texpr2;
-}
-
-ap_environment_t * Expr::intersect_environment(
-		ap_environment_t * env1, 
-		ap_environment_t * env2) {
-	ap_environment_t * lcenv = common_environment(env1,env2);
-	ap_environment_t * intersect = ap_environment_copy(lcenv);	
-	ap_environment_t * tmp = NULL;	
-
-	for (size_t i = 0; i < lcenv->intdim + lcenv->realdim; i++) {
-		ap_var_t var = ap_environment_var_of_dim(lcenv,(ap_dim_t)i);
-		if (!ap_environment_mem_var(env1,var) || !ap_environment_mem_var(env2,var)) {
-			//size_t size = intersect->intdim + intersect->realdim;
-			tmp = ap_environment_remove(intersect,&var,1);
-			ap_environment_free(intersect);
-			intersect = tmp;
-		}	
-	}	
-	ap_environment_free(lcenv);
-	return intersect;
+	Environment * common = Environment::common_environment(exp1,exp2);
+	ap_texpr1_t * exp1_new = ap_texpr1_extend_environment(exp1->ap_expr,common->getEnv());
+	ap_texpr1_t * exp2_new = ap_texpr1_extend_environment(exp2->ap_expr,common->getEnv());
+	ap_texpr1_free(exp1->ap_expr);
+	ap_texpr1_free(exp2->ap_expr);
+	exp1->ap_expr = exp1_new;
+	exp2->ap_expr = exp2_new;
+	delete common;
 }
 
 int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
@@ -276,21 +221,6 @@ int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 	return 0;
 }
 
-void Expr::environment_print(ap_environment_t * env) {
-
-	FILE* tmp = tmpfile();
-	if (tmp == NULL) {
-		*Out << "ERROR: tmpfile has not been created\n";
-		return;
-	}
-
-	ap_environment_fdump(tmp,env);
-	fseek(tmp,0,SEEK_SET);
-	char c;
-	while ((c = (char)fgetc(tmp))!= EOF)
-		*Out << c;
-	fclose(tmp);
-}
 
 void Expr::texpr1_print(ap_texpr1_t * expr) {
 
@@ -530,12 +460,14 @@ ap_texpr1_t * Expr::visitBinaryOperator (BinaryOperator &I){
 	Value * op1 = I.getOperand(0);
 	Value * op2 = I.getOperand(1);
 
-	Expr exp1(op1);
-	Expr exp2(op2);
-	common_environment(&exp1,&exp2);
+	ap_texpr1_t * exp1 = create_expression(op1);
+	ap_texpr1_t * exp2 = create_expression(op2);
+	Environment::common_environment(exp1,exp2);
 
 	// we create the expression associated to the binary op
-	ap_texpr1_t * exp = ap_texpr1_binop(op, ap_texpr1_copy(exp1.ap_expr), ap_texpr1_copy(exp2.ap_expr), type, dir);
+	ap_texpr1_t * exp = ap_texpr1_binop(op, ap_texpr1_copy(exp1), ap_texpr1_copy(exp2), type, dir);
+	ap_texpr1_free(exp1);
+	ap_texpr1_free(exp2);
 	return exp;
 }
 
@@ -564,9 +496,4 @@ ap_texpr1_t * Expr::visitInstAndAddVar(Instruction &I) {
 	ap_texpr1_t * exp = ap_texpr1_var(env,var);
 	ap_environment_free(env);
 	return exp;
-}
-
-
-void Expr::tcons1_array_deep_clear(ap_tcons1_array_t * array) {
-	ap_tcons1_array_clear(array);
 }

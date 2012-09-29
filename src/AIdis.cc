@@ -133,12 +133,11 @@ void AIdis::computeFunction(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
 	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	ap_environment_free(env);
 
 	while (!A_prime.empty()) 
 			A_prime.pop();
@@ -161,6 +160,7 @@ void AIdis::computeFunction(Function * F) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				LSMT->pop_context();
+				delete env;
 				return;
 			}
 		}
@@ -186,6 +186,7 @@ void AIdis::computeFunction(Function * F) {
 			step++;
 		}
 	}
+	delete env;
 	LSMT->pop_context();
 }
 
@@ -269,7 +270,8 @@ void AIdis::computeNewPaths(Node * n) {
 		Join.clear();
 		Join.push_back(SuccDisj->getDisjunct(Sigma));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Environment Xtemp_env(Xtemp);
+		Xtemp->join_array(&Xtemp_env,Join);
 		SuccDisj->setDisjunct(Sigma,Xtemp);
 		Xtemp = NULL;
 
@@ -312,7 +314,8 @@ void AIdis::loopiter(
 			Join.clear();
 			Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma)));
 			Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
-			Xtemp->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Xtemp->join_array(&Xtemp_env,Join);
 
 			DEBUG(
 				*Out << "BEFORE MINIWIDENING\n";	
@@ -324,12 +327,10 @@ void AIdis::loopiter(
 
 			DEBUG(
 				*Out << "THRESHOLD:\n";
-				fflush(stdout);
-				ap_lincons1_array_fprint(stdout,&threshold);
-				fflush(stdout);
+				threshold->print();
 			);
 			if (use_threshold)
-				Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
+				Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),threshold);
 			else
 				Xtemp->widening(SuccDis->getDisjunct(Sigma));
 			DEBUG(
@@ -435,7 +436,8 @@ void AIdis::computeNode(Node * n) {
 			Xtemp->print();
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
-		SuccDisj->change_environment(Xtemp->main->env,Sigma);
+		Environment Xtemp_env(Xtemp);
+		SuccDisj->change_environment(&Xtemp_env,Sigma);
 
 		if (!U.count(index))
 			U[index] = new PathTree(n->bb);
@@ -449,12 +451,12 @@ void AIdis::computeNode(Node * n) {
 		Join.clear();
 		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Xtemp->join_array(&Xtemp_env,Join);
 
 		Pr * FPr = Pr::getInstance(b->getParent());
 		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 			if (use_threshold)
-				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
+				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),threshold);
 			else
 				Xtemp->widening(SuccDisj->getDisjunct(Sigma));
 			DEBUG(*Out << "WIDENING! \n";);
@@ -550,7 +552,8 @@ void AIdis::narrowNode(Node * n) {
 			std::vector<Abstract*> Join;
 			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 			Join.push_back(Xtemp);
-			SuccDisj->getDisjunct(Sigma)->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			SuccDisj->getDisjunct(Sigma)->join_array(&Xtemp_env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

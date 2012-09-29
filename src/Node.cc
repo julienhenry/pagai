@@ -27,7 +27,7 @@ Node::Node(BasicBlock * _bb) {
 	isInStack = false;
 	bb = _bb;
 	id = i++;
-	env = ap_environment_alloc_empty();
+	env = new Environment();
 }
 
 Node::~Node() {
@@ -56,16 +56,16 @@ Node::~Node() {
 			it++) {
 		delete (*it).second;
 	}
-	ap_environment_free(env);
+	delete env;
 }
 
-ap_environment_t * Node::getEnv() {
+Environment * Node::getEnv() {
 	return env;
 }
 
-void Node::setEnv(ap_environment_t * e) {
-	ap_environment_free(env);
-	env = ap_environment_copy(e);
+void Node::setEnv(Environment * e) {
+	delete env;
+	env = new Environment(*e);
 }
 
 /// computeSCC - compute the strongly connected components and the loop 
@@ -114,7 +114,6 @@ void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 }
 
 void Node::add_var(Value * val) {
-	ap_environment_t* env;
 	ap_var_t var = val; 
 	ap_texpr_rtype_t type;
 
@@ -131,11 +130,10 @@ void Node::add_var(Value * val) {
 			break;
 	}
 	Expr exp(var);
-	Expr::set_expr(val,exp);
+	Expr::set_expr(val,&exp);
 }
 
-ap_environment_t * Node::create_env(Live * LV) {
-	ap_environment_t * env;
+Environment * Node::create_env(Live * LV) {
 	std::set<ap_var_t> Sintvars;
 	std::set<ap_var_t> Srealvars;
 
@@ -152,28 +150,8 @@ ap_environment_t * Node::create_env(Live * LV) {
 			|| isa<UndefValue>((*i).first))
 			Srealvars.insert((*i).second.begin(), (*i).second.end());
 	}
-
-	ap_var_t * intvars = (ap_var_t*)malloc(Sintvars.size()*sizeof(ap_var_t));
-	ap_var_t * realvars = (ap_var_t*)malloc(Srealvars.size()*sizeof(ap_var_t));
-
-	int j = 0;
-	for (std::set<ap_var_t>::iterator i = Sintvars.begin(),
-			e = Sintvars.end(); i != e; ++i) {
-		intvars[j] = *i;
-		j++;
-	}
-
-	j = 0;
-	for (std::set<ap_var_t>::iterator i = Srealvars.begin(),
-			e = Srealvars.end(); i != e; ++i) {
-		realvars[j] = *i;
-		j++;
-	}
-
-	env = ap_environment_alloc(intvars,Sintvars.size(),realvars,Srealvars.size());
 	
-	free(intvars);
-	free(realvars);
+	Environment * env = new Environment(&Sintvars,&Srealvars);
 	return env;
 }
 

@@ -32,14 +32,14 @@ void AISimple::computeFunc(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
 	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 	n->X_i[passID]->set_top(env);
 	n->X_f[passID]->set_top(env);
-	ap_environment_free(env);
+	delete env;
 	ascendingIter(n, F);
 
 	narrowingIter(n);
@@ -183,7 +183,8 @@ void AISimple::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
@@ -193,11 +194,11 @@ void AISimple::computeNode(Node * n) {
 				*Out << "WIDENING\n";
 			);
 			if (use_threshold) {
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 			} else
 				Xtemp->widening(Succ->X_s[passID]);
 		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
+			Xtemp->join_array_dpUcm(&Xtemp_env,aman->NewAbstract(Succ->X_s[passID]));
 		}
 		
 		if (!Succ->X_f[passID]->is_bottom()) {
@@ -274,7 +275,8 @@ void AISimple::narrowNode(Node * n) {
 			Join.clear();
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
-			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

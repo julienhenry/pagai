@@ -11,6 +11,8 @@
 
 #include "Node.h"
 #include "Abstract.h"
+#include "Environment.h"
+#include "Constraint.h"
 
 using namespace llvm;
 
@@ -21,35 +23,36 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 	private:
 		ap_texpr1_t * ap_expr;
 
+		ap_texpr1_t * create_expression(Value * val);
 		ap_texpr1_t * create_ap_expr(Constant * val);
 		ap_texpr1_t * create_ap_expr(ap_var_t var);
+
+		static void texpr1_print(ap_texpr1_t * expr);
 
 		Expr();
 
 	public:
 
-		/// common_environment - computes and returns the least common environment of
-		/// two environments.
-		static ap_environment_t * common_environment(
-				ap_environment_t * env1,
-				ap_environment_t * env2);
+	//	/// common_environment - computes and returns the least common environment of
+	//	/// two environments.
+	//	static Environment * common_environment(
+	//			Environment * env1,
+	//			Environment * env2);
 
-		/// intersect_environment - compute the intersection of the two environments.
-		static ap_environment_t * intersect_environment(
-				ap_environment_t * env1,
-				ap_environment_t * env2);
+	//	/// intersect_environment - compute the intersection of the two environments.
+	//	static Environment * intersect_environment(
+	//			Environment * env1,
+	//			Environment * env2);
 
-		/// common_environment - modifies the two expression by giving them the same
-		/// least common environment.
-		static void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
+	//	/// common_environment - modifies the two expression by giving them the same
+	//	/// least common environment.
+	//	static void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
 
 
 		/// get_ap_type - compute the Apron type of the LLVM Value
 		/// return 0 iff the type is int or real, 1 in the other cases
 		static int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type);
 
-		static void environment_print(ap_environment_t * env);
-		static void texpr1_print(ap_texpr1_t * expr);
 		static void tcons1_array_print(ap_tcons1_array_t * cons);
 
 	public:
@@ -60,8 +63,10 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		Expr(Value * val);
 		Expr(ap_var_t var);
 		Expr(const Expr &exp);
+		Expr(Expr * exp);
+		Expr(double d);
 
-		Expr(ap_texpr_op_t op, Expr exp1, Expr exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round);
+		Expr(ap_texpr_op_t op, Expr * exp1, Expr * exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round);
 
 		// Overloaded copy assignment operator
 		Expr & operator= (const Expr & exp);
@@ -75,16 +80,16 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 			ap_constyp_t constyp,
 			Expr * expr,
 			Expr * nexpr,
-			std::vector<ap_tcons1_array_t*> * t_cons);
+			std::vector<Constraint_array*> * t_cons);
 
 		/// common_environment - modifies the two expression by giving them the same
 		/// least common environment.
 		static void common_environment(Expr * exp1, Expr * exp2);
 
-		ap_environment_t * getEnv();
+		Environment * getEnv();
 		ap_texpr1_t * getExpr();
 
-		static void set_expr(Value * val, Expr exp);
+		static void set_expr(Value * val, Expr * exp);
 
 		void print();
 
@@ -137,7 +142,5 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		/// @}
 		//
 		ap_texpr1_t * visitInstAndAddVar(Instruction &I);
-
-		static void tcons1_array_deep_clear(ap_tcons1_array_t * array);
 };
 #endif

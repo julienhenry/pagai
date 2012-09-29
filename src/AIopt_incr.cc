@@ -150,12 +150,11 @@ void AIopt_incr::computeFunction(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
 	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	ap_environment_free(env);
 	
 	while (!A_prime.empty()) 
 			A_prime.pop();
@@ -178,6 +177,7 @@ void AIopt_incr::computeFunction(Function * F) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				LSMT->pop_context();
+				delete env;
 				return;
 			}
 		}
@@ -206,6 +206,7 @@ void AIopt_incr::computeFunction(Function * F) {
 		delete W;
 
 	}
+	delete env;
 	LSMT->pop_context();
 }
 
@@ -277,12 +278,13 @@ void AIopt_incr::computeNewPaths(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,Xtemp);
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		Join.clear();
 		Join.push_back(Succ->X_s[passID]);
 		Join.push_back(aman->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Xtemp->join_array(&Xtemp_env,Join);
 
 		// intersection with the previous invariant
 		params P;
@@ -378,7 +380,8 @@ void AIopt_incr::computeNode(Node * n) {
 			Xtemp->print();
 		);
 		
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {
@@ -387,13 +390,13 @@ void AIopt_incr::computeNode(Node * n) {
 		Join.clear();
 		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
 		Join.push_back(aman->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Xtemp->join_array(&Xtemp_env,Join);
 
 		Pr * FPr = Pr::getInstance(b->getParent());
 		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 				if (W->exist(path)) {
 					if (use_threshold)
-						Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+						Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 					else
 						Xtemp->widening(Succ->X_s[passID]);
 					DEBUG(*Out << "WIDENING! \n";);
@@ -495,7 +498,8 @@ void AIopt_incr::narrowNode(Node * n) {
 			std::vector<Abstract*> Join;
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
-			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		DEBUG(
 			*Out << "RESULT\n";

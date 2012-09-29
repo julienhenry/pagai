@@ -11,7 +11,7 @@
 #include "Expr.h"
 #include "Analyzer.h"
 
-AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env) {
+AbstractDisj::AbstractDisj(ap_manager_t* _man, Environment * env) {
 	man_disj = new AbstractManClassic();
 	disj.push_back(man_disj->NewAbstract(_man,env));
 	main = disj[0]->main;
@@ -19,7 +19,7 @@ AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env) {
 	man = _man;
 }
 
-AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_index) {
+AbstractDisj::AbstractDisj(ap_manager_t* _man, Environment * env, int max_index) {
 	man_disj = new AbstractManClassic();
 	for (int i = 0; i <= max_index; i++)
 		disj.push_back(man_disj->NewAbstract(_man,env));
@@ -28,7 +28,7 @@ AbstractDisj::AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_i
 	man = _man;
 }
 
-int AbstractDisj::AddDisjunct(ap_environment_t * env) {
+int AbstractDisj::AddDisjunct(Environment * env) {
 	disj.push_back(man_disj->NewAbstract(man,env));
 	return disj.size()-1;
 }
@@ -50,9 +50,9 @@ int AbstractDisj::getMaxIndex() {
 
 void AbstractDisj::SetNDisjunct(int N) {
 	if (N <= disj.size()-1) return;
-	ap_environment_t * env = ap_environment_alloc_empty();
+	Environment env;
 	while (N > disj.size()-1) {
-		disj.push_back(man_disj->NewAbstract(man,env));
+		disj.push_back(man_disj->NewAbstract(man,&env));
 	}
 	main = disj[0]->main;
 }
@@ -90,11 +90,11 @@ AbstractDisj::~AbstractDisj() {
 }
 
 /// set_top - sets the abstract to top on the environment env
-void AbstractDisj::set_top(ap_environment_t * env) {
+void AbstractDisj::set_top(Environment * env) {
 	set_top(env,0);
 }
 
-void AbstractDisj::set_top(ap_environment_t * env, int index) {
+void AbstractDisj::set_top(Environment * env, int index) {
 	SetNDisjunct(index);
 	int i = 0;
 	// every disjunct is at bottom except the one of index 'index'
@@ -109,7 +109,7 @@ void AbstractDisj::set_top(ap_environment_t * env, int index) {
 }
 
 /// set_bottom - sets the abstract to bottom on the environment env
-void AbstractDisj::set_bottom(ap_environment_t * env) {
+void AbstractDisj::set_bottom(Environment * env) {
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {
 		(*it)->set_bottom(env);
@@ -117,14 +117,14 @@ void AbstractDisj::set_bottom(ap_environment_t * env) {
 	main = disj[0]->main;
 }
 
-void AbstractDisj::set_bottom(ap_environment_t * env, int index) {
+void AbstractDisj::set_bottom(Environment * env, int index) {
 	SetNDisjunct(index);
 	disj[index]->set_bottom(env);
 	main = disj[0]->main;
 }
 
 
-void AbstractDisj::change_environment(ap_environment_t * env) {
+void AbstractDisj::change_environment(Environment * env) {
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {
 		(*it)->change_environment(env);
@@ -132,7 +132,7 @@ void AbstractDisj::change_environment(ap_environment_t * env) {
 	main = disj[0]->main;
 }
 
-void AbstractDisj::change_environment(ap_environment_t * env, int index) {
+void AbstractDisj::change_environment(Environment * env, int index) {
 	SetNDisjunct(index);
 	disj[index]->change_environment(env);
 	if (index == 0)
@@ -181,16 +181,16 @@ void AbstractDisj::widening(Abstract * X, int index) {
 }
 
 //NOT IMPLEMENTED
-void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
+void AbstractDisj::widening_threshold(Abstract * X, Constraint_array* cons) {
 }
 
-void AbstractDisj::widening_threshold(Abstract * X, ap_lincons1_array_t* cons, int index) {
+void AbstractDisj::widening_threshold(Abstract * X, Constraint_array* cons, int index) {
 	SetNDisjunct(index);
 	disj[index]->widening_threshold(X,cons);
 	main = disj[0]->main;
 }
 
-void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons) {
+void AbstractDisj::meet_tcons_array(Constraint_array* tcons) {
 
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {
@@ -199,7 +199,7 @@ void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons) {
 	main = disj[0]->main;
 }
 
-void AbstractDisj::meet_tcons_array(ap_tcons1_array_t* tcons, int index) {
+void AbstractDisj::meet_tcons_array(Constraint_array* tcons, int index) {
 	SetNDisjunct(index);
 	disj[index]->meet_tcons_array(tcons);
 	main = disj[0]->main;
@@ -238,20 +238,20 @@ void AbstractDisj::assign_texpr_array(
 }
 
 //NOT IMPLEMENTED
-void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
+void AbstractDisj::join_array(Environment * env, std::vector<Abstract*> X_pred) {
 }
 
-void AbstractDisj::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred, int index) {
+void AbstractDisj::join_array(Environment * env, std::vector<Abstract*> X_pred, int index) {
 	SetNDisjunct(index);
 	disj[index]->join_array(env,X_pred);
 	main = disj[0]->main;
 }
 
 //NOT IMPLEMENTED
-void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
+void AbstractDisj::join_array_dpUcm(Environment *env, Abstract* n) {
 }
 
-void AbstractDisj::join_array_dpUcm(ap_environment_t *env, Abstract* n, int index) {
+void AbstractDisj::join_array_dpUcm(Environment *env, Abstract* n, int index) {
 	SetNDisjunct(index);
 	disj[index]->join_array_dpUcm(env,n);
 	main = disj[0]->main;

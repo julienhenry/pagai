@@ -24,14 +24,14 @@ class AbstractDisj: public Abstract {
 
 	public:
 		/// create a disjunctive invariant with one sigle disjunct
-		AbstractDisj(ap_manager_t* _man, ap_environment_t * env);
+		AbstractDisj(ap_manager_t* _man, Environment * env);
 
 		/// create a disjunctive invariant with max_index+1 disjunct
-		AbstractDisj(ap_manager_t* _man, ap_environment_t * env, int max_index);
+		AbstractDisj(ap_manager_t* _man, Environment * env, int max_index);
 
 		/// add a new disjunct in the abstract
 		/// the method return the index of the new disjunct
-		int AddDisjunct(ap_environment_t * env);
+		int AddDisjunct(Environment * env);
 		
 		/// get the disjunct of index 'index'
 		Abstract * getDisjunct(int index);
@@ -56,16 +56,16 @@ class AbstractDisj: public Abstract {
 		~AbstractDisj();
 
 		/// set_top - the abstract domain is set to top
-		void set_top(ap_environment_t * env);
-		void set_top(ap_environment_t * env, int index);
+		void set_top(Environment * env);
+		void set_top(Environment * env, int index);
 
 		/// set_top - the abstract domain is set to bottom
-		void set_bottom(ap_environment_t * env);
-		void set_bottom(ap_environment_t * env, int index);
+		void set_bottom(Environment * env);
+		void set_bottom(Environment * env, int index);
 
 		/// change_environment - change the environment of the abstract value
-		void change_environment(ap_environment_t * env);
-		void change_environment(ap_environment_t * env, int index);
+		void change_environment(Environment * env);
+		void change_environment(Environment * env, int index);
 
 		bool is_leq_index(Abstract * d, int index);
 
@@ -83,13 +83,13 @@ class AbstractDisj: public Abstract {
 		/// definition in the domain.
 		void widening(Abstract * X);
 		void widening(Abstract * X, int index);
-		void widening_threshold(Abstract * X, ap_lincons1_array_t* cons);
-		void widening_threshold(Abstract * X, ap_lincons1_array_t* cons, int index);
+		void widening_threshold(Abstract * X, Constraint_array* cons);
+		void widening_threshold(Abstract * X, Constraint_array* cons, int index);
 
 		/// meet_tcons_array - intersect the abstract domain with an array of
 		/// constraints
-		void meet_tcons_array(ap_tcons1_array_t* tcons);
-		void meet_tcons_array(ap_tcons1_array_t* tcons, int index);
+		void meet_tcons_array(Constraint_array* tcons);
+		void meet_tcons_array(Constraint_array* tcons, int index);
 
 		/// canonicalize - canonicalize the apron representation of the abstract 
 		//domain
@@ -111,11 +111,11 @@ class AbstractDisj: public Abstract {
 		
 		/// join_array - the abstract value becomes the join of a set of
 		/// abstract values
-		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred);
-		void join_array(ap_environment_t * env, std::vector<Abstract*> X_pred, int index);
+		void join_array(Environment * env, std::vector<Abstract*> X_pred);
+		void join_array(Environment * env, std::vector<Abstract*> X_pred, int index);
 
-		void join_array_dpUcm(ap_environment_t *env, Abstract* n);
-		void join_array_dpUcm(ap_environment_t *env, Abstract* n, int index);
+		void join_array_dpUcm(Environment *env, Abstract* n);
+		void join_array_dpUcm(Environment *env, Abstract* n, int index);
 		
 		void meet(Abstract* A);
 

@@ -11,6 +11,7 @@
 #include "ap_global1.h"
 
 #include "Analyzer.h"
+#include "Environment.h"
 #include "Expr.h"
 
 using namespace llvm;
@@ -21,7 +22,7 @@ class Expr;
 
 struct phivar {
 	std::vector<ap_var_t> name;
-	std::vector<Expr> expr;
+	std::vector<Expr*> expr;
 };
 
 struct params {
@@ -51,7 +52,7 @@ class Node {
 		int lowlink;
 		bool isInStack;
 		void computeSCC_rec(int & n,std::stack<Node*> * S);
-		ap_environment_t * env;
+		Environment * env;
 	public:
 
 		/// constructors
@@ -59,8 +60,8 @@ class Node {
 		~Node();
 
 		/// methods for getting and setting internal apron environment
-		ap_environment_t * getEnv();
-		void setEnv(ap_environment_t * e);
+		Environment * getEnv();
+		void setEnv(Environment * e);
 		
 		/// bb - BasicBlock associated to the Node
 		BasicBlock * bb;
@@ -96,7 +97,7 @@ class Node {
 		
 		/// create_env - creates an environment containing all live variables
 		/// that needs to be used as dimension in the abstract domain
-		ap_environment_t * create_env(Live * LV);
+		Environment * create_env(Live * LV);
 };
 
 /// Nodes - Map that associate each BasicBlock of the Module with its Node

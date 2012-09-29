@@ -12,6 +12,7 @@
 #include "Analyzer.h"
 #include "apron.h"
 #include "PathTree.h"
+#include "Constraint.h"
 #include "AbstractMan.h"
 
 using namespace llvm;
@@ -35,7 +36,7 @@ class AIPass : public InstVisitor<AIPass> {
 
 		/// threshold - array of lincons we use to do widening with threshold
 		/// this array is computed in computeTransform
-		ap_lincons1_array_t threshold;
+		Constraint_array * threshold;
 		/// true iff threshold is empty and cannot be cleared
 		bool threshold_empty;
 
@@ -56,7 +57,7 @@ class AIPass : public InstVisitor<AIPass> {
 		
 		/// list of all the constraints that need to be satisfied 
 		//along the path
-		std::list<std::vector<ap_tcons1_array_t*>*> constraints;
+		std::list<std::vector<Constraint_array*>*> constraints;
 
 		/// set of Phi variables with their associated expression, 
 		/// that are defined at the last basicblock of the path
@@ -104,17 +105,20 @@ class AIPass : public InstVisitor<AIPass> {
 
 		void init() {
 				init_apron();
-				ap_environment_t * env = ap_environment_alloc_empty();
-				threshold = ap_lincons1_array_make(env,0);
-				ap_environment_free(env);
+				Environment empty_env;
+				//threshold = ap_lincons1_array_make(empty_env.getEnv(),0);
+				threshold = new Constraint_array();
+				threshold_empty = false;
 		}
 
 		virtual ~AIPass () {
 				ap_manager_free(man);
 				if (!threshold_empty)
-					ap_lincons1_array_clear(&threshold);
+					delete threshold;
 			}
 
+		/// printPath - print a path on standard output
+		static void printPath(std::list<BasicBlock*> path);
 	protected:
 		
 		virtual void computeFunction(Function * F) = 0;
@@ -176,17 +180,17 @@ class AIPass : public InstVisitor<AIPass> {
 		/// comparison instruction.
 		bool computeCondition(CmpInst * inst, 
 				bool result,
-				std::vector<ap_tcons1_array_t *> * cons);
+				std::vector<Constraint_array*> * cons);
 
 		bool computeConstantCondition(ConstantInt * inst, 
 				bool result,
-				std::vector<ap_tcons1_array_t*> * cons);
+				std::vector<Constraint_array*> * cons);
 
 		bool computePHINodeCondition(PHINode * inst, 
 				bool result,
-				std::vector<ap_tcons1_array_t*> * cons);
+				std::vector<Constraint_array*> * cons);
 
-		void insert_env_vars_into_node_vars(ap_environment_t * env, Node * n, Value * V);
+		void insert_env_vars_into_node_vars(Environment * env, Node * n, Value * V);
 
 		/// initFunction - initialize the function by creating the Node
 		/// objects, and computing the strongly connected components.
@@ -209,8 +213,6 @@ class AIPass : public InstVisitor<AIPass> {
 		/// printBasicBlock - print a basicBlock on standard output
 		static void printBasicBlock(BasicBlock * b);
 
-		/// printPath - print a path on standard output
-		static void printPath(std::list<BasicBlock*> path);
 	
 		/// computes the set of predecessors for a BasicBlock
 		virtual std::set<BasicBlock*> getPredecessors(BasicBlock * b) const = 0;
