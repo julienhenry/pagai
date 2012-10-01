@@ -126,6 +126,10 @@ class SMT_manager {
 		virtual SMT_expr SMT_mk_sub (std::vector<SMT_expr> args) = 0;
 		virtual SMT_expr SMT_mk_mul (std::vector<SMT_expr> args) = 0;
 
+		virtual SMT_expr SMT_mk_sum (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_sub (SMT_expr a1, SMT_expr a2) = 0;
+		virtual SMT_expr SMT_mk_mul (SMT_expr a1, SMT_expr a2) = 0;
+
 		virtual SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_diseq (SMT_expr a1, SMT_expr a2) = 0;
 		virtual SMT_expr SMT_mk_lt (SMT_expr a1, SMT_expr a2) = 0;

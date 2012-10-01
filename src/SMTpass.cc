@@ -134,15 +134,15 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 
 		coefficient = scalarToSmt(coeff->val.scalar,integer,value);
 		
-		if (value != 0) {
-			if (value == 1) {
+		switch ((int)value) {
+			case 0:
+				break;
+			case 1:
 				elts.push_back(val);
-			} else {
-				std::vector<SMT_expr> elt;
-				elt.push_back(val);
-				elt.push_back(coefficient);
-				elts.push_back(man->SMT_mk_mul(elt));
-			}
+				break;
+			default:
+				elts.push_back(man->SMT_mk_mul(val,coefficient));
+				break;
 		}
 	}
 	coeff = ap_linexpr1_cstref(&linexpr);
@@ -326,52 +326,62 @@ BasicBlock * SMTpass::getNodeBasicBlock(std::string name) {
 }
 
 const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
-	std::ostringstream name;
+	std::string name;
 	Pr * FPr = Pr::getInstance(b->getParent());
 	if (FPr->inPr(b)) {
 		if (src)
-			name << "bs_";
+			name = "bs_";
 		else
-			name << "bd_";
+			name = "bd_";
 	} else {
-		name << "b_";
+		name = "b_";
 	}
 
-	name << getNodeSubName(b);
-	return name.str();
+	name += getNodeSubName(b);
+	return name;
 }
 
 const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
-	std::ostringstream name;
-	name 
-		<< "t_" 
-		<< getNodeSubName(b1)
-		<< "_" 
-		<< getNodeSubName(b2);
-	return name.str();
+	std::string name;
+	name =  "t_" 
+		+ getNodeSubName(b1)
+		+ "_" 
+		+ getNodeSubName(b2);
+	return name;
 }
 
 const std::string SMTpass::getValueName(Value * v, bool primed) {
-	std::ostringstream name;
+	std::string name;
 	std::string var = getVarName(v);
 	if (primed)
-		name << "x_prime_" << var << "_";
+		name = "x_prime_" + var + "_";
 	else
-		name << "x_" << var << "_";
-	return name.str();
+		name = "x_" + var + "_";
+	return name;
 }
 
+
+std::map<Value*,std::string> SMTpass::VarNames;
+int VarNames_unnamed = 0;
+
 const std::string SMTpass::getVarName(Value * v) {
+	if (VarNames.count(v)) 
+		return VarNames[v];
+
 	std::string s_string;
 	raw_string_ostream * s = new raw_string_ostream(s_string);
 
 	if (v->hasName()) {
 		*s << v->getName();
 	} else {
-		*s << *v;
+		VarNames_unnamed++;
+		//*Out << "NO NAME\n";
+		//*s << *v;
+		*s << "unnamed_" << VarNames_unnamed;
 	}
 	
 	std::string & name = s->str();
+	//*Out << name << "\n";
 	size_t found;
 	found=name.find_first_of("%");
 	if (found!=std::string::npos) {
@@ -382,6 +392,7 @@ const std::string SMTpass::getVarName(Value * v) {
 		name.resize(found);
 	}
 	delete s;
+	VarNames[v] = name;
 	return name;
 }
 
@@ -1051,46 +1062,55 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	//exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign;	
-	std::vector<SMT_expr> operands;
-	operands.push_back(getValueExpr(I.getOperand(0), false));
-	operands.push_back(getValueExpr(I.getOperand(1), false));
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr operand1 = getValueExpr(I.getOperand(1), false);
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 
 		case Instruction::FAdd: 
-			assign = man->SMT_mk_sum(operands);
+			assign = man->SMT_mk_sum(operand0,operand1);
 			break;
 		case Instruction::Sub : 
 		case Instruction::FSub: 
-			assign = man->SMT_mk_sub(operands);
+			assign = man->SMT_mk_sub(operand0,operand1);
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
-			assign = man->SMT_mk_mul(operands);
+			assign = man->SMT_mk_mul(operand0,operand1);
 			break;
 		case Instruction::And :
 			if (!t) return;
-			assign = man->SMT_mk_and(operands);
+			else { 
+				std::vector<SMT_expr> operands;
+				operands.push_back(operand0);
+				operands.push_back(operand1);
+				assign = man->SMT_mk_and(operands);
+			}
 			break;
 		case Instruction::Or  :
 			if (!t) return;
-			assign = man->SMT_mk_or(operands);
+			else { 
+				std::vector<SMT_expr> operands;
+				operands.push_back(operand0);
+				operands.push_back(operand1);
+				assign = man->SMT_mk_or(operands);
+			}
 			break;
 		case Instruction::Xor :
 			if (!t) return;
-			assign = man->SMT_mk_xor(operands[0],operands[1]);
+			assign = man->SMT_mk_xor(operand0,operand1);
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
-			assign = man->SMT_mk_div(operands[0],operands[1]);
+			assign = man->SMT_mk_div(operand0,operand1);
 			break;
 		case Instruction::FDiv: 
-			assign = man->SMT_mk_div(operands[0],operands[1],false);
+			assign = man->SMT_mk_div(operand0,operand1,false);
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
-			assign = man->SMT_mk_rem(operands[0],operands[1]);
+			assign = man->SMT_mk_rem(operand0,operand1);
 			break;
 			// the others are not implemented
 		case Instruction::Shl : // Shift left  (logical)

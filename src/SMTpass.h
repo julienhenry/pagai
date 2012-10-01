@@ -34,6 +34,10 @@ class SMTpass : public InstVisitor<SMTpass> {
 		/// rho - stores the rho formula associated to each function
 		std::map<Function*,SMT_expr> rho;
 
+		// stores the already computed varnames, since the computation of
+		// VarNames seems costly
+		static std::map<Value*,std::string> VarNames;
+
 		/// rho_components - when constructing rho, we use this vector
 		std::vector<SMT_expr> rho_components;
 
