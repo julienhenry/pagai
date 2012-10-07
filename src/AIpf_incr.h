@@ -9,10 +9,6 @@
 #include <queue>
 #include <vector>
 
-#include "llvm/Module.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/CFG.h"
-
 #include "AIpf.h"
 
 using namespace llvm;
