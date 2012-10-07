@@ -1,3 +1,8 @@
+/**
+ * \file z3_manager.cc
+ * \brief Implementation of the z3_manager class
+ * \author Julien Henry
+ */
 #include <algorithm>
 #include <cstddef>
 #include <string.h>

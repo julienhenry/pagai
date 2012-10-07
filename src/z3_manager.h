@@ -1,3 +1,8 @@
+/**
+ * \file z3_manager.h
+ * \brief Declaration of the z3_manager class
+ * \author Julien Henry
+ */
 #ifndef Z3_MANAGER_H
 #define Z3_MANAGER_H
 
@@ -10,6 +15,10 @@
 
 #include "SMT_manager.h"
 
+/**
+ * \class z3_manager
+ * \brief interface with the z3 C API
+ */
 class z3_manager: public SMT_manager {
 
 	private:

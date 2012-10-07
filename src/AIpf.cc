@@ -1,3 +1,8 @@
+/**
+ * \file AIpf.cc
+ * \brief Implementation of the AIpf pass (Path Focusing)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 

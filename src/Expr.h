@@ -1,3 +1,8 @@
+/**
+ * \file Expr.h
+ * \brief Declaration of the Expr class
+ * \author Julien Henry
+ */
 #ifndef _EXPR_H
 #define _EXPR_H
 
@@ -15,6 +20,10 @@
 
 using namespace llvm;
 
+/**
+ * \class Expr
+ * \brief wrapper around apron expressions
+ */
 class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 	friend class Abstract;
@@ -32,8 +41,10 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 	public:
 
-		/// get_ap_type - compute the Apron type of the LLVM Value
-		/// return 0 iff the type is int or real, 1 in the other cases
+		/**
+		 * \brief compute the Apron type of the LLVM Value
+		 * \return 0 iff the type is int or real, 1 in the other cases
+		 */
 		static int get_ap_type(Value * val,ap_texpr_rtype_t &ap_type);
 
 		static void tcons1_array_print(ap_tcons1_array_t * cons);
@@ -51,22 +62,29 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 		Expr(ap_texpr_op_t op, Expr * exp1, Expr * exp2, ap_texpr_rtype_t type, ap_texpr_rdir_t round);
 
-		// Overloaded copy assignment operator
+		/**
+		 * \brief Overloaded copy assignment operator
+		 */
 		Expr & operator= (const Expr & exp);
 
-		// clear all expressions stored in the internal map
+		/**
+		 * \brief clear all expressions stored in the internal map
+		 */
 		static void clear_exprs();
 
-		// create_constraints - this function 
-		// creates the constraint from its arguments and insert it into t_cons
+		/**
+		 * \brief create a constraint and insert it into t_cons
+		 */
 		static void create_constraints (
 			ap_constyp_t constyp,
 			Expr * expr,
 			Expr * nexpr,
 			std::vector<Constraint_array*> * t_cons);
 
-		/// common_environment - modifies the two expression by giving them the same
-		/// least common environment.
+		/**
+		 * \brief modifies the two expression by giving them the same
+		 * least common environment.
+		 */
 		static void common_environment(Expr * exp1, Expr * exp2);
 
 		Environment * getEnv();
@@ -76,8 +94,10 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 		void print();
 
-		/// @{
-		/// @name Visit methods
+		/** 
+		 * \{
+		 * \name Visit methods
+		 */
 		ap_texpr1_t * visitReturnInst (ReturnInst &I);
 		ap_texpr1_t * visitBranchInst (BranchInst &I);
 		ap_texpr1_t * visitSwitchInst (SwitchInst &I);
@@ -122,8 +142,9 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		ap_texpr1_t * visitInstruction(Instruction &I) {
 			return NULL;
 		}
-		/// @}
-		//
+		/**
+		 * \}
+		 */
 		ap_texpr1_t * visitInstAndAddVar(Instruction &I);
 };
 #endif

@@ -1,3 +1,8 @@
+/**
+ * \file Constraint.cc
+ * \brief Implementation of the Constraint and Constraint_array classes
+ * \author Julien Henry
+ */
 #include "Constraint.h"
 #include "Expr.h"
 

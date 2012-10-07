@@ -1,3 +1,8 @@
+/**
+ * \file AIpass.cc
+ * \brief Implementation of the AIpass pass
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 #include <fstream>
@@ -668,10 +673,8 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			}
 		 );
 
-	/////////
 	succ->setEnv(&env2);
 	Xtemp->change_environment(&env2);
-	////////
 
 	// we transform the abstract value of constraints into an array of lincons
 	// for a future widening with threshold
@@ -764,9 +767,10 @@ bool isequal(std::list<BasicBlock*> p, std::list<BasicBlock*> q) {
 	return true;
 }
 
-/// insert_env_vars_into_node_vars - this function takes all apron variables of
-/// an environment, and adds them into the Node's variables, with a Value V as
-/// a use.
+/* 
+ * this function takes all apron variables of an environment, and adds them into
+ * the Node's variables, with a Value V as a use.
+ */
 void AIPass::insert_env_vars_into_node_vars(Environment * env, Node * n, Value * V) {
 	std::set<ap_var_t> intvars;
 	std::set<ap_var_t> realvars;
@@ -991,8 +995,10 @@ void AIPass::visitBranchInst (BranchInst &I){
 		delete cons;
 }
 
-/// This code is dead since we use the LowerSwitch pass before doing abstract
-/// interpretation.
+/*
+ * This code is dead since we use the LowerSwitch pass before doing abstract
+ * interpretation.
+ */
 void AIPass::visitSwitchInst (SwitchInst &I){
 	//*Out << "SwitchInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);

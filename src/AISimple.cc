@@ -1,3 +1,8 @@
+/**
+ * \file AISimple.cc
+ * \brief Implementation of the AISimple pass (techniques without SMT)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 

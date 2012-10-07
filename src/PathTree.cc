@@ -1,3 +1,8 @@
+/**
+ * \file PathTree.cc
+ * \brief Implementation of the Pathtree class
+ * \author Julien Henry
+ */
 #include <map>
 #include <sstream>
 

@@ -1,3 +1,8 @@
+/**
+ * \file AIopt_incr.cc
+ * \brief Implementation of the AIopt_incr pass
+ * \author Julien Henry
+ */
 #include <vector>
 #include <sstream>
 #include <list>

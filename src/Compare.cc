@@ -1,3 +1,8 @@
+/**
+ * \file Compare.cc
+ * \brief Implementation of the Compare class
+ * \author Julien Henry
+ */
 #include "Compare.h"
 #include "Pr.h"
 #include "Expr.h"

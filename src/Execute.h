@@ -1,3 +1,8 @@
+/**
+ * \file Execute.h
+ * \brief Declaration of the Execute class
+ * \author Julien Henry
+ */
 #ifndef _EXECUTE_H
 #define _EXECUTE_H
 
@@ -7,7 +12,10 @@
 
 using namespace llvm;
 
-/// class that creates and runs the llvm passes
+/**
+ * \class execute
+ * \brief class that creates and runs the llvm passes
+ */
 class execute {
 public :
 	void exec(std::string InputFilename, std::string OutputFilename);

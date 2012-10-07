@@ -1,3 +1,8 @@
+/**
+ * \file AbstractClassic.cc
+ * \brief Implementation of the AbstractClassic class
+ * \author Julien Henry
+ */
 #include "stdio.h"
 
 #include "llvm/Support/FormattedStream.h"
@@ -33,13 +38,11 @@ AbstractClassic::~AbstractClassic() {
 	clear_all();
 }
 
-/// set_top - sets the abstract to top on the environment env
 void AbstractClassic::set_top(Environment * env) {
 	ap_abstract1_clear(man,main);
 	*main = ap_abstract1_top(man,env->getEnv());
 }
 
-/// set_bottom - sets the abstract to bottom on the environment env
 void AbstractClassic::set_bottom(Environment * env) {
 	ap_abstract1_clear(man,main);
 	*main = ap_abstract1_bottom(man,env->getEnv());
@@ -50,14 +53,6 @@ void AbstractClassic::change_environment(Environment * env) {
 		*main = ap_abstract1_change_environment(man,true,main,env->getEnv(),false);
 }
 
-//bool AbstractClassic::is_leq (Abstract *d) {
-//		return ap_abstract1_is_leq(man,main,d->main);
-//}
-//
-//bool AbstractClassic::is_eq (Abstract *d) {
-//		return ap_abstract1_is_eq(man,main,d->main);
-//}
-
 bool AbstractClassic::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);
 }
@@ -66,8 +61,6 @@ bool AbstractClassic::is_top() {
 	return ap_abstract1_is_top(man,main);
 }
 
-/// widening - Compute the widening operation according to the Gopan & Reps
-/// approach
 void AbstractClassic::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xmain;

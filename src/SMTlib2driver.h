@@ -1,3 +1,8 @@
+/**
+ * \file SMTlib2driver.h
+ * \brief Declaration of the SMTlib2driver class
+ * \author Julien Henry
+ */
 #ifndef SMTLIB2DRIVER_H
 # define SMTLIB2DRIVER_H
 # include <string>
@@ -20,7 +25,10 @@ typedef enum {
 	UNKNOWN
 } SMTans;
 
-// Conducting the whole scanning and parsing of Calc++.
+/**
+ * \class SMTlib2driver
+ * \brief driver for the SMTlib2 parser
+ */
 class SMTlib2driver
 {
 	public:

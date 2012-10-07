@@ -1,3 +1,25 @@
+/**
+ * \file Analyzer.h
+ * \brief Declaration of the Analyzer class and widely-used types and functions
+ * \author Julien Henry
+ */
+
+/** \mainpage PAGAI
+ *
+ * \section intro_sec Usage
+ *
+ * PAGAI is a prototype of static analyser, working on top of the LLVM compiler infrastructure. 
+ * It implements various state-of-the-art analysis techniques by abstract interpretation 
+ * and decision procedures, and computes numerical invariants over a program expressed 
+ * as an LLVM bitcode file. The tool is open source, and downloadable here : 
+ * http://forge.imag.fr/projects/pagai/
+ *
+ * For a list of all available options :
+ * \code
+ * pagai -h or pagai --help \n 
+ * \endcode
+ */
+
 #ifndef ANALYZER_H
 #define ANALYZER_H
 
@@ -80,11 +102,10 @@ bool useThreshold(int i);
 
 extern llvm::raw_ostream *Out;
 
-/// Functions ignored by Compare pass (because the analysis failed for
-/// one technique)
+/**
+ * \brief Functions ignored by Compare pass (because the analysis failed for
+ * one technique)
+ */
 extern std::set<llvm::Function*> ignoreFunction;
-
-
-//extern std::map<Techniques,int> Passes;
 
 #endif

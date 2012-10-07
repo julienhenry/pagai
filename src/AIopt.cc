@@ -1,3 +1,8 @@
+/**
+ * \file AIopt.cc
+ * \brief Implementation of the AIopt pass (Combined Technique SAS12)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <sstream>
 #include <list>

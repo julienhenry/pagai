@@ -1,3 +1,8 @@
+/**
+ * \file AIpf_incr.cc
+ * \brief Implementation of the AIpf_incr pass
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 

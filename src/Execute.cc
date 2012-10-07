@@ -1,3 +1,8 @@
+/**
+ * \file Execute.cc
+ * \brief Implementation of the Execute class
+ * \author Julien Henry
+ */
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
@@ -80,8 +85,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	} else if (!DefaultDataLayout.empty()) {
 		TD = new TargetData(DefaultDataLayout);
 	}
-
-	////
 
 	if (OutputFilename != "") {
 

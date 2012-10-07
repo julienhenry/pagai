@@ -1,3 +1,8 @@
+/**
+ * \file AIdis.cc
+ * \brief Implementation of the AIdis pass
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 

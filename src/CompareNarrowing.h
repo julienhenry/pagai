@@ -1,3 +1,8 @@
+/**
+ * \file CompareNarrowing.h
+ * \brief Declaration of the CompareNarrowing pass
+ * \author Julien Henry
+ */
 #ifndef COMPARENARROWING_H
 #define COMPARENARROWING_H
 
@@ -17,6 +22,11 @@
 
 using namespace llvm;
 
+/**
+ * \class CompareNarrowing
+ * \brief Compare the precision of the classical narrowing with Halbwach's
+ * narrowing
+ */
 template<Techniques T>
 class CompareNarrowing : public ModulePass {
 	
@@ -29,10 +39,9 @@ class CompareNarrowing : public ModulePass {
 		std::map<params, int> total_desc;
 
 	public:
-		/// It is crucial for LLVM's pass manager that
-		/// this ID is different (in address) from a class to another,
-		/// but the template instantiation mechanism will make sure it
-		/// is the case.
+		/**
+		 * \brief unique pass identifier
+		 */
 		static char ID;
 
 		CompareNarrowing() : ModulePass(ID)

@@ -1,3 +1,8 @@
+/**
+ * \file GenerateSMT.cc
+ * \brief Implementation of the GenerateSMT class
+ * \author Julien Henry
+ */
 #include "llvm/Support/CFG.h"
 
 #include "GenerateSMT.h"

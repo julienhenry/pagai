@@ -1,3 +1,8 @@
+/**
+ * \file CompareDomain.h
+ * \brief Declaration of the CompareDomain template class
+ * \author Julien Henry
+ */
 #ifndef COMPAREDOMAIN_H
 #define COMPAREDOMAIN_H
 
@@ -16,6 +21,10 @@
 
 using namespace llvm;
 
+/**
+ * \class CompareDomain
+ * \brief compare the precision of two abstract domains
+ */
 template<Techniques T>
 class CompareDomain : public ModulePass {
 	
@@ -23,10 +32,14 @@ class CompareDomain : public ModulePass {
 		SMTpass * LSMT;
 	
 	public:
-		/// It is crucial for LLVM's pass manager that
-		/// this ID is different (in address) from a class to another,
-		/// but the template instantiation mechanism will make sure it
-		/// is the case.
+		/**
+		 * \brief unique pass identifier
+		 *
+		 * It is crucial for LLVM's pass manager that
+		 * this ID is different (in address) from a class to another,
+		 * but the template instantiation mechanism will make sure it
+		 * is the case.
+		 */
 		static char ID;
 
 		CompareDomain() : ModulePass(ID)

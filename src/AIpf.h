@@ -1,3 +1,8 @@
+/**
+ * \file AIpf.h
+ * \brief Declaration of the AIpf class
+ * \author Julien Henry
+ */
 #ifndef _AIPF_H
 #define _AIPF_H
 
@@ -12,7 +17,10 @@
 
 using namespace llvm;
 
-/// Abstract Interpretation with Path Focusing algorithm (using SMT-solving)
+/**
+ * \class AIpf 
+ * \brief Abstract Interpretation with Path Focusing algorithm (using SMT-solving)
+ */
 class AIpf : public ModulePass, public AIPass {
 
 	public:
@@ -23,6 +31,11 @@ class AIpf : public ModulePass, public AIPass {
 		std::map<BasicBlock*,PathTree*> U;
 		std::map<BasicBlock*,PathTree*> V;
 
+		void init()
+			{
+				aman = new AbstractManClassic();
+				passID.T = PATH_FOCUSING;
+			}
 	public:
 
 		AIpf(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {
@@ -38,14 +51,6 @@ class AIpf : public ModulePass, public AIPass {
 			passID.N = useNewNarrowing();
 			passID.TH = useThreshold();
 		}
-		
-		void init()
-			{
-				//aman = new AbstractManGopan();
-				aman = new AbstractManClassic();
-				passID.T = PATH_FOCUSING;
-				//Passes[PATH_FOCUSING] = passID;	
-			}
 
 		~AIpf () {}
 
@@ -60,10 +65,16 @@ class AIpf : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 };
 

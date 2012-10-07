@@ -1,3 +1,8 @@
+/**
+ * \file AIGuided.cc
+ * \brief Implementation of the AIGuided pass (Guided Static Analysis)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <sstream>
 #include <list>

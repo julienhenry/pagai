@@ -1,3 +1,8 @@
+/**
+ * \file Debug.h
+ * \brief Declares some Debug functions and variables
+ * \author Julien Henry
+ */
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -31,9 +36,14 @@ extern int n_totalpaths;
 
 extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time;
 
-// count the number of ascending iterations
+/**
+ * \brief count the number of ascending iterations
+ */
 extern std::map<params,std::map<Function*,int> > asc_iterations;
-// count the number of descending iterations
+
+/** 
+ * \brief count the number of descending iterations
+ */
 extern std::map<params,std::map<Function*,int> > desc_iterations;
 
 extern void ReleaseTimingData();

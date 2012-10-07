@@ -1,3 +1,8 @@
+/**
+ * \file AIGopan.cc
+ * \brief Implementation of the AIGopan pass
+ * \author Julien Henry
+ */
 #include "AIGopan.h"
 #include "ModulePassWrapper.h"
 

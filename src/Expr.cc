@@ -1,3 +1,8 @@
+/**
+ * \file Expr.cc
+ * \brief Implementation of the Expr class
+ * \author Julien Henry
+ */
 #include <map>
 
 #include "llvm/Support/CFG.h"

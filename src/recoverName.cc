@@ -1,3 +1,8 @@
+/**
+ * \file recoverName.cc
+ * \brief Implementation of the recoverName class
+ * \author Rahul Nanda, Julien Henry
+ */
 #include<algorithm>
 
 #include "recoverName.h"

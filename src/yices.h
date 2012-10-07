@@ -1,3 +1,8 @@
+/**
+ * \file yices.h
+ * \brief Declaration of the yices class
+ * \author Julien Henry
+ */
 #ifndef YICES_H
 #define YICES_H
 
@@ -7,6 +12,10 @@
 
 #include "SMT_manager.h"
 
+/**
+ * \class yices 
+ * \brief Interface with the yices API
+ */
 class yices: public SMT_manager {
 	private:
 		yices_context ctx;

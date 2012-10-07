@@ -1,3 +1,8 @@
+/**
+ * \file Pr.cc
+ * \brief Implementation of the Pr class
+ * \author Julien Henry
+ */
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Instructions.h"

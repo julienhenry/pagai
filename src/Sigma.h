@@ -1,3 +1,8 @@
+/**
+ * \file Sigma.h
+ * \brief Declaration of the Sigma class
+ * \author Julien Henry
+ */
 #ifndef SIGMA_H
 #define SIGMA_H
 
@@ -10,62 +15,97 @@
 
 using namespace llvm;
 
+/**
+ * \class Sigma
+ * \brief class used by AIdis for computing the sigma function
+ *
+ * This class uses ADD from the CUDD library
+ */
 class Sigma {
 
 	private:
-		/// manager of the CUDD library 
+		/**
+		 * \brief manager of the CUDD library 
+		 */
 		Cudd * mgr;
 
+		/**
+		 * \brief maximum number of disjuncts
+		 */
 		int Max_Disj;
 
 		void init(BasicBlock * Start);
 
 		void createADDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start = false);
 
-		/// @{
-		/// variables needed by some methods
+		/**
+		 * \{
+		 * \name variables needed by some methods
+		 */
 		DdNode * background;
 		DdNode * zero;
-		/// @}
+		/**
+		 * \}
+		 */
 
-		/// stores the index of the basicBlock in the ADD
+		/**
+		 * \brief stores the index of the basicBlock in the ADD
+		 */
 		std::map<BasicBlock*,int> AddVar;
-		/// stores the index of the source basicBlock in the ADD
+
+		/**
+		 * \brief stores the index of the source basicBlock in the ADD
+		 */
 		std::map<BasicBlock*,int> AddVarSource;
 
-		/// number of levels in the ADD
+		/**
+		 * \brief number of levels in the ADD
+		 */
 		int AddIndex;
 
 		ADD getADDfromAddIndex(int n);
 
-		/// get the ADD node associated to a specific basicblock	
-		/// the map should be AddVar or AddVarSource, depending if we consider
-		/// the starting point or not
+		/**
+		 * \brief get the ADD node associated to a specific basicblock	
+		 *
+		 * the map should be AddVar or AddVarSource, depending if we consider
+		 * the starting point or not
+		 */
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map);
 		ADD getADDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map, int &n);
 
 		ADD computef(std::list<BasicBlock*> path, int start);
 
-		/// Add that stores the various seen paths
+		/** 
+		 * \brief Add that stores the various seen paths
+		 */
 		std::map<int,ADD*> Add;
 
-		/// insert a path in the Bdd
+		/**
+		 * \brief insert a path in the Bdd
+		 */
 		void insert(std::list<BasicBlock*> path, int start);
 
-		/// remove a path from the Bdd
+		/**
+		 * \brief remove a path from the Bdd
+		 */
 		void remove(std::list<BasicBlock*> path, int start);
 
-		/// check if the Bdd contains the path given as argument
+		/**
+		 * \brief check if the Bdd contains the path given as argument
+		 */
 		bool exist(std::list<BasicBlock*> path, int start);
 	
-		/// get the actual value of sigma stored in the BDD for sigma(path,start)
+		/**
+		 * \brief get the actual value of sigma stored in the BDD for sigma(path,start)
+		 */
 		int getActualValue(std::list<BasicBlock*> path, int start);
 
-		/// set the value of sigma(path,start)
+		/**
+		 * \brief set the value of sigma(path,start)
+		 */
 		void setActualValue(std::list<BasicBlock*> path, int start, int value);
 
-		//const std::string getNodeName(BasicBlock* b, bool src) const;
-		
 		void DumpDotADD(ADD graph, std::string filename);
 
 		bool isZero(int start);
@@ -76,7 +116,11 @@ class Sigma {
 		Sigma(BasicBlock * Start);
 		~Sigma();
 
-		/// clear the Add. The result will be an empty Add
+		/**
+		 * \brief clear the Add. 
+		 *
+		 * The result will be an empty Add
+		 */
 		void clear();
 
 		int getSigma(

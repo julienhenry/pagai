@@ -1,3 +1,8 @@
+/**
+ * \file AIpf_incr.h
+ * \brief Declaration of the AIpf_incr pass
+ * \author Julien Henry
+ */
 #ifndef _AIPF_INCR_H
 #define _AIPF_INCR_H
 
@@ -12,7 +17,10 @@
 
 using namespace llvm;
 
-/// Abstract Interpretation with Path Focusing algorithm (using SMT-solving)
+/**
+ * \class AIpf_incr
+ * \brief Abstract Interpretation with Path Focusing algorithm (using SMT-solving) that uses the result of a previous analysis
+ */
 class AIpf_incr : public ModulePass, public AIPass {
 
 	public:
@@ -41,10 +49,8 @@ class AIpf_incr : public ModulePass, public AIPass {
 		
 		void init()
 			{
-				//aman = new AbstractManGopan();
 				aman = new AbstractManClassic();
 				passID.T = PATH_FOCUSING_INCR;
-				//Passes[PATH_FOCUSING] = passID;	
 			}
 
 		~AIpf_incr () {}
@@ -60,10 +66,16 @@ class AIpf_incr : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 };
 

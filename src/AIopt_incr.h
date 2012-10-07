@@ -1,3 +1,8 @@
+/**
+ * \file AIopt_incr.h
+ * \brief Declaration of the AIopt_incr class
+ * \author Julien Henry
+ */
 #ifndef _AIOPT_INCR_H
 #define _AIOPT_INCR_H
 
@@ -12,12 +17,17 @@
 
 using namespace llvm;
 
-/// Path Focusing implementation with Lookahead Widening
+/**
+ * \class AIopt_incr
+ * \brief AIopt Implementation that uses the result of a previous analysis
+ */
 class AIopt_incr : public ModulePass, public AIPass {
 
 	private:
-		/// paths - remembers all the paths that have already been
-		/// visited
+		/**
+		 * \brief remembers all the paths that have already been
+		 * visited
+		 */
 		std::map<BasicBlock*,PathTree*> pathtree;
 
 		PathTree * W;
@@ -30,6 +40,13 @@ class AIopt_incr : public ModulePass, public AIPass {
 		void computeNewPaths(
 			Node * n
 			);
+
+		void init()
+			{
+				aman = new AbstractManClassic();
+				passID.T = COMBINED_INCR;
+			}
+
 	public:
 		static char ID;	
 
@@ -49,11 +66,6 @@ class AIopt_incr : public ModulePass, public AIPass {
 			passID.TH = useThreshold();
 		}
 
-		void init()
-			{
-				aman = new AbstractManClassic();
-				passID.T = COMBINED_INCR;
-			}
 
 		~AIopt_incr () {
 			for (std::map<BasicBlock*,PathTree*>::iterator 
@@ -77,10 +89,16 @@ class AIopt_incr : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 };
 

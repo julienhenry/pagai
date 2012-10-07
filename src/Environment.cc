@@ -1,3 +1,8 @@
+/**
+ * \file Environment.cc
+ * \brief Implementation of the Environment class
+ * \author Julien Henry
+ */
 
 #include "llvm/Support/FormattedStream.h"
 

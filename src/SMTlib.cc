@@ -1,3 +1,8 @@
+/**
+ * \file SMTlib.cc
+ * \brief Implementation of the SMTlib class
+ * \author Julien Henry
+ */
 #include <algorithm>
 #include <cstddef>
 #include <string.h>

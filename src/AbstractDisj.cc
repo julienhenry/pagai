@@ -1,3 +1,8 @@
+/**
+ * \file AbstractDisj.cc
+ * \brief Implementation of the AbstractDisj class
+ * \author Julien Henry
+ */
 #include "stdio.h"
 
 #include "llvm/Support/FormattedStream.h"
@@ -87,7 +92,6 @@ AbstractDisj::~AbstractDisj() {
 	clear_all();
 }
 
-/// set_top - sets the abstract to top on the environment env
 void AbstractDisj::set_top(Environment * env) {
 	set_top(env,0);
 }
@@ -106,7 +110,6 @@ void AbstractDisj::set_top(Environment * env, int index) {
 	main = disj[0]->main;
 }
 
-/// set_bottom - sets the abstract to bottom on the environment env
 void AbstractDisj::set_bottom(Environment * env) {
 	std::vector<Abstract*>::iterator it = disj.begin(), et = disj.end();
 	for (; it != et; it++) {

@@ -1,3 +1,8 @@
+/**
+ * \file SMT_manager.h
+ * \brief Declaration of the SMT_manager class
+ * \author Julien Henry
+ */
 #ifndef SMT_MANAGER_H
 #define SMT_MANAGER_H
 
@@ -8,6 +13,10 @@
 #include "mpfr.h"
 #include "Debug.h"
 
+/**
+ * \class SMT_expr
+ * \brief class of SMT expressions
+ */
 class SMT_expr {
 	public:
 		std::string s;
@@ -35,6 +44,10 @@ class SMT_expr {
 		}
 };
 
+/**
+ * \class SMT_type
+ * \brief class of SMT types
+ */
 class SMT_type {
 	public:
 		std::string s;
@@ -62,6 +75,10 @@ class SMT_type {
 		}
 };
 
+/**
+ * \class SMT_var
+ * \brief class of SMT variables
+ */
 class SMT_var {
 	public:
 		std::string s;
@@ -97,6 +114,10 @@ class SMT_var {
 }; 
 
 
+/**
+ * \class SMT_manager
+ * \brief interface of an SMT manager
+ */
 class SMT_manager {
 	public:
 		SMT_type int_type;

@@ -1,3 +1,8 @@
+/**
+ * \file Analyzer.cc
+ * \brief Implementation of the Analyzer class (main class)
+ * \author Julien Henry
+ */
 #include <string>
 #include <iostream>
 #include <getopt.h>

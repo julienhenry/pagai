@@ -1,3 +1,8 @@
+/**
+ * \file Sigma.cc
+ * \brief Implementation of the Sigma class
+ * \author Julien Henry
+ */
 #include <sstream>
 
 #include "cuddObj.hh"

@@ -1,3 +1,8 @@
+/**
+ * \file AbstractMan.cc
+ * \brief Implementation of the AbstractMan* classes
+ * \author Julien Henry
+ */
 #include "Analyzer.h"
 #include "AbstractMan.h"
 #include "AbstractClassic.h"

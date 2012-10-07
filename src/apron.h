@@ -1,3 +1,8 @@
+/**
+ * \file apron.h
+ * \brief Declares functions related to the Apron interface
+ * \author Julien Henry
+ */
 #ifndef _APRON_H 
 #define _APRON_H 
 
@@ -10,10 +15,16 @@
 
 using namespace llvm;
 
-/// init_apron - initialize the apron library. 
-/// This function has to be called at the very beginning of the pass
+/**
+ * \brief initialize the apron library. 
+ *
+ * This function has to be called at the very beginning of the pass
+ */
 void init_apron();
 
+/**
+ * \brief creates an apron manager
+ */
 ap_manager_t * create_manager(Apron_Manager_Type man);
 
 char* ap_var_to_string(ap_var_t var);

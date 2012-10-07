@@ -1,3 +1,8 @@
+/**
+ * \file Node.cc
+ * \brief Implementation of the Node class
+ * \author Julien Henry
+ */
 #include<stack>
 #include<map>
 #include<set>
@@ -68,9 +73,6 @@ void Node::setEnv(Environment * e) {
 	env = new Environment(*e);
 }
 
-/// computeSCC - compute the strongly connected components and the loop 
-/// heads of the graph.
-///
 void Node::computeSCC() {
 	std::stack<Node*> * S = new std::stack<Node*>();
 	int n = 1;
@@ -78,10 +80,6 @@ void Node::computeSCC() {
 	delete S;
 }
 
-/// computeSCC_rec -  recursive version of the tarjan's algorithm
-/// compute both the loop heads and the Strongly connected components
-/// Must be called with n=1 and and empty allocated stack
-///
 void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 	Node * nsucc;
 	index=n;

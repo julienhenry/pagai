@@ -1,3 +1,8 @@
+/**
+ * \file Constraint.h
+ * \brief Declaration of the Constraint and Constraint_array classes
+ * \author Julien Henry
+ */
 #ifndef _CONSTRAINT_H
 #define _CONSTRAINT_H
 
@@ -7,6 +12,10 @@
 
 class Expr;
 
+/**
+ * \class Constraint
+ * \brief wrapper around ap_tcons1_t apron type
+ */
 class Constraint {
 
 	private:
@@ -21,6 +30,10 @@ class Constraint {
 		void print();
 };
 
+/**
+ * \class Constraint_array
+ * \brief wrapper around ap_tcons1_array_t apron type
+ */
 class Constraint_array {
 
 	private:

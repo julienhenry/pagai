@@ -1,3 +1,8 @@
+/**
+ * \file AIdis.h
+ * \brief Declaration of the AIdis pass
+ * \author Julien Henry
+ */
 #ifndef _AIDIS_H
 #define _AIDIS_H
 
@@ -12,29 +17,52 @@
 
 using namespace llvm;
 
-/// Pass that computes disjunctive invariants
+/**
+ * \class AIdis
+ * \brief Pass that computes disjunctive invariants
+ */
 class AIdis : public ModulePass, public AIPass {
 
 	private:
 		std::map<BasicBlock*,Sigma*> S;
 
+		/**
+		 * \brief maximum number of disjunct per control point
+		 */
 		int Max_Disj;
 
-		/// paths - remembers all the paths that have already been
-		/// visited
+		/**
+		 * \brief remembers all the paths that have already been
+		 * visited
+		 */
 		std::map<BasicBlock*,PathTree*> pathtree;
 
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
-		void computeNewPaths(
-			Node * n
-			);
+		/**
+		 * \brief Computes the new feasible paths and add them to pathtree
+		 * \param n the starting point
+		 */
+		void computeNewPaths(Node * n);
 
+		/**
+		 * \brief computes the sigma function
+		 *
+		 * see Gulwani and Zuleger's paper : The Reachability Bound problem for
+		 * details
+		 */
 		int sigma(
 			std::list<BasicBlock*> path, 
 			int start,
 			Abstract * Xtemp,
 			bool source);
+
+		void init()
+			{
+				Max_Disj = 3;
+				aman = new AbstractManDisj();
+				passID.T = LW_WITH_PF_DISJ;
+			}
 
 	public:
 		static char ID;	
@@ -55,12 +83,6 @@ class AIdis : public ModulePass, public AIPass {
 			passID.TH = useThreshold();
 		}
 		
-		void init()
-			{
-				Max_Disj = 3;
-				aman = new AbstractManDisj();
-				passID.T = LW_WITH_PF_DISJ;
-			}
 
 		~AIdis () {
 			for (std::map<BasicBlock*,PathTree*>::iterator 
@@ -84,10 +106,16 @@ class AIdis : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 
 		void loopiter(

@@ -1,3 +1,8 @@
+/**
+ * \file recoverName.h
+ * \brief Declaration of the recoverName class
+ * \author Rahul Nanda, Julien Henry
+ */
 #ifndef _RECOVERNAME_H
 #define _RECOVERNAME_H
 
@@ -16,6 +21,10 @@
 
 using namespace llvm;
 
+/**
+ * \class compare_1
+ * \brief class for comparing Info objects
+ */
 class compare_1
 {
 	public:
@@ -37,6 +46,10 @@ class compare_1
 		}
 };
 
+/**
+ * \class recoverName
+ * \brief recover the names of the variables from the source code
+ */
 class recoverName {
 	private :
 		static void pass1(Function *F);

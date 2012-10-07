@@ -1,3 +1,8 @@
+/**
+ * \file SMTlib.h
+ * \brief Declaration of the SMTlib class
+ * \author Julien Henry
+ */
 #ifndef SMTLIB_H
 #define SMTLIB_H
 
@@ -14,6 +19,10 @@
 //#define SMT_SUPPORTS_DIVIDES 1
 //#endif
 
+/**
+ * \class SMTlib
+ * \brief interface with a SMT-lib2 solver, using pipes
+ */
 class SMTlib: public SMT_manager {
 
 	private:
@@ -29,19 +38,26 @@ class SMTlib: public SMT_manager {
 
 		int stack_level;
 
-		int wpipefd[2]; // pipe from PAGAI to the SMT solver
-		int rpipefd[2]; // pipe from the SMT solver to PAGAI
+		/** 
+		 * pipe from PAGAI to the SMT solver
+		 */
+		int wpipefd[2]; 
+		/**
+		 * pipe from the SMT solver to PAGAI		
+		 */
+		int rpipefd[2]; 
+
 		FILE *input;
 
 		void pwrite(std::string s);
 		int pread();
-	
+
 		FILE *log_file;
 
 		pid_t solver_pid;
 
 	public:
-		
+
 		SMTlib();
 
 		virtual ~SMTlib();
@@ -91,7 +107,7 @@ class SMTlib: public SMT_manager {
 		SMT_expr SMT_mk_is_int(SMT_expr a);
 
 		SMT_expr SMT_mk_int0();
-	    SMT_expr SMT_mk_real0();
+		SMT_expr SMT_mk_real0();
 
 		void push_context();
 		void pop_context();

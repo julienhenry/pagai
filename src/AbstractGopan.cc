@@ -1,3 +1,8 @@
+/**
+ * \file AbstractGopan.cc
+ * \brief Implementation of the AbstractGopan class
+ * \author Julien Henry
+ */
 #include "stdio.h"
 
 #include "llvm/Support/FormattedStream.h"
@@ -38,7 +43,6 @@ AbstractGopan::~AbstractGopan() {
 	clear_all();
 }
 
-/// set_top - sets the abstract to top on the environment env
 void AbstractGopan::set_top(Environment * env) {
 	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
@@ -49,7 +53,6 @@ void AbstractGopan::set_top(Environment * env) {
 	pilot = main;
 }
 
-/// set_bottom - sets the abstract to bottom on the environment env
 void AbstractGopan::set_bottom(Environment * env) {
 	if (pilot != main) {
 		ap_abstract1_clear(man,pilot);
@@ -76,8 +79,6 @@ bool AbstractGopan::is_top() {
 	return ap_abstract1_is_top(man,main);
 }
 
-/// widening - Compute the widening operation according to the Gopan & Reps
-/// approach
 void AbstractGopan::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xpilot_widening;
@@ -112,8 +113,10 @@ void AbstractGopan::widening(Abstract * X) {
 	}
 }
 
-/// widening with threshold is not implemented. We do a classical widening
-/// instead
+/*
+ * widening with threshold is not implemented. We do a classical widening
+ * instead
+ */
 void AbstractGopan::widening_threshold(Abstract * X, Constraint_array* cons) {
 	widening(X);
 }

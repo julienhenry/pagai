@@ -1,3 +1,8 @@
+/**
+ * \file SMTpass.cc
+ * \brief Implementation of the SMTpass pass
+ * \author Julien Henry
+ */
 #include <sstream>
 #include <vector>
 #include <iostream>
@@ -476,7 +481,6 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	return NULL_res;
 }
 
-/// getElementFromString - 
 void SMTpass::getElementFromString(
 	std::string name,
 	bool &isEdge,
@@ -649,8 +653,6 @@ void SMTpass::SMT_assert(SMT_expr expr) {
 	man->SMT_assert(expr);
 }
 
-/// createSMTformula - create the smt formula that is described in the paper
-///
 SMT_expr SMTpass::createSMTformula(
 	BasicBlock * source, 
 	bool use_X_d, 
@@ -707,16 +709,11 @@ SMT_expr SMTpass::createSMTformula(
 	return man->SMT_mk_and(formula);
 }
 
-/// solve an SMTpass formula and computes its model in case of a 'sat'
-/// formula
 int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	int index;
 	return SMTsolve(expr,path,index);
 }
 
-/// solve an SMTpass formula and computes its model in case of a 'sat'
-/// formula. In the case of a pass using disjunctive invariants, index is set to
-/// the associated index of the disjunct to focus on.
 int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;

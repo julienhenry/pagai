@@ -1,3 +1,8 @@
+/**
+ * \file Abstract.cc
+ * \brief Implementation of the Abstract class
+ * \author Julien Henry
+ */
 #include "SMTpass.h"
 #include "Abstract.h"
 #include "AbstractGopan.h"

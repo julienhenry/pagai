@@ -1,3 +1,8 @@
+/**
+ * \file yices.cc
+ * \brief Implementation of the yices class
+ * \author Julien Henry
+ */
 #include <cstddef>
 #include <vector>
 #include <sstream>
