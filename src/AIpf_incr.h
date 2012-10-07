@@ -13,7 +13,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
 
-#include "AIpass.h"
+#include "AIpf.h"
 
 using namespace llvm;
 
@@ -21,35 +21,23 @@ using namespace llvm;
  * \class AIpf_incr
  * \brief Abstract Interpretation with Path Focusing algorithm (using SMT-solving) that uses the result of a previous analysis
  */
-class AIpf_incr : public ModulePass, public AIPass {
+class AIpf_incr : public AIpf {
 
 	public:
 		static char ID;	
 
-	private:
-		
-		std::map<BasicBlock*,PathTree*> U;
-		std::map<BasicBlock*,PathTree*> V;
-
 	public:
 
-		AIpf_incr(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {
+		AIpf_incr(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : AIpf(_ID,_man,_NewNarrow,_Threshold) {
 			init();
-			passID.D = _man;
-			passID.N = _NewNarrow;
-			passID.TH = _Threshold;
 		}
 
-		AIpf_incr (): ModulePass(ID) {
+		AIpf_incr (): AIpf(ID) {
 			init();
-			passID.D = getApronManager();
-			passID.N = useNewNarrowing();
-			passID.TH = useThreshold();
 		}
 		
 		void init()
 			{
-				aman = new AbstractManClassic();
 				passID.T = PATH_FOCUSING_INCR;
 			}
 
@@ -59,24 +47,9 @@ class AIpf_incr : public ModulePass, public AIPass {
 
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
-		bool runOnModule(Module &M);
+		void assert_properties(params P, Function * F);
+		void intersect_with_known_properties(Abstract * Xtemp, Node * n, params P);
 
-		void computeFunction(Function * F);
-
-		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
-		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
-
-		/**
-		 * \brief compute and update the Abstract value of the Node n
-		 * \param n the starting point
-		 */
-		void computeNode(Node * n);
-		
-		/**
-		 * \brief apply narrowing at node n
-		 * \param n the starting point
-		 */
-		void narrowNode(Node * n);
 };
 
 #endif

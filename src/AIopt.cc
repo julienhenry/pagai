@@ -121,6 +121,15 @@ void AIopt::computeFunction(Function * F) {
 	if (!quiet_mode())
 		*Out << "Computing Rho...";
 	LSMT->SMT_assert(LSMT->getRho(*F));
+
+	// we assert b_i => I_i for each block
+	params P;
+	P.T = SIMPLE;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+	assert_properties(P,F);
+
 	if (!quiet_mode())
 		*Out << "OK\n";
 	
@@ -268,6 +277,15 @@ void AIopt::computeNewPaths(Node * n) {
 		Join.push_back(Succ->X_s[passID]);
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(&Xtemp_env,Join);
+
+		// intersection with the previous invariant
+		params P;
+		P.T = SIMPLE;
+		P.D = getApronManager();
+		P.N = useNewNarrowing();
+		P.TH = useThreshold();
+		intersect_with_known_properties(Xtemp,Succ,P);
+
 		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
 
@@ -385,6 +403,15 @@ void AIopt::computeNode(Node * n) {
 			Succ->X_s[passID]->print();
 		);
 		delete Succ->X_s[passID];
+
+		// intersection with the previous invariant
+		params P;
+		P.T = SIMPLE;
+		P.D = getApronManager();
+		P.N = useNewNarrowing();
+		P.TH = useThreshold();
+		intersect_with_known_properties(Xtemp,Succ,P);
+
 		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
 		DEBUG(

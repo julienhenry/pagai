@@ -72,6 +72,13 @@ class AIopt : public ModulePass, public AIPass {
 			passID.TH = _Threshold;
 		}
 		
+		AIopt (char &_ID): ModulePass(_ID) {
+			init();
+			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
+			passID.TH = useThreshold();
+		}
+
 		AIopt() : ModulePass(ID) {
 			init();
 			passID.D = getApronManager();
@@ -106,6 +113,9 @@ class AIopt : public ModulePass, public AIPass {
 
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
+
+		virtual void assert_properties(params P, Function * F) {}
+		virtual void intersect_with_known_properties(Abstract * Xtemp, Node * n, params P) {}
 
 		/**
 		 * \brief compute and update the Abstract value of the Node n

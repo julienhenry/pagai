@@ -131,6 +131,19 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		SMTpass * LSMT;
 
+
+		/**
+		 * \brief assert in the SMT formula the invariants found by a previous
+		 * analysis
+		 * \param P parameters of the previous analysis. This analysis has to be
+		 * run before calling this function
+		 * \param F the function
+		 */
+		void assert_invariant(
+				params P,
+				Function * F
+				);
+
 	public:
 
 		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing, bool _use_Threshold) : 

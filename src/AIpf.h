@@ -26,7 +26,7 @@ class AIpf : public ModulePass, public AIPass {
 	public:
 		static char ID;	
 
-	private:
+	protected:
 		
 		std::map<BasicBlock*,PathTree*> U;
 		std::map<BasicBlock*,PathTree*> V;
@@ -43,6 +43,13 @@ class AIpf : public ModulePass, public AIPass {
 			passID.D = _man;
 			passID.N = _NewNarrow;
 			passID.TH = _Threshold;
+		}
+
+		AIpf (char &_ID): ModulePass(_ID) {
+			init();
+			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
+			passID.TH = useThreshold();
 		}
 
 		AIpf (): ModulePass(ID) {
@@ -64,6 +71,9 @@ class AIpf : public ModulePass, public AIPass {
 
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
+
+		virtual void assert_properties(params P, Function * F) {}
+		virtual void intersect_with_known_properties(Abstract * Xtemp, Node * n, params P) {}
 
 		/**
 		 * \brief compute and update the Abstract value of the Node n

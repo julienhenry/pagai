@@ -42,7 +42,7 @@ bool AIpf::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 	LSMT->reset_SMTcontext();
-	*Out << "Starting analysis: PF\n";
+	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -114,6 +114,15 @@ void AIpf::computeFunction(Function * F) {
 	if (!quiet_mode())
 		*Out << "Computing Rho...";
 	LSMT->SMT_assert(LSMT->getRho(*F));
+
+	// we assert b_i => I_i for each block
+	params P;
+	P.T = SIMPLE;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+	assert_properties(P,F);
+
 	if (!quiet_mode())
 		*Out << "OK\n";
 
@@ -271,6 +280,15 @@ void AIpf::computeNode(Node * n) {
 			delete Succ->X_i[passID];
 			Succ->X_i[passID] = aman->NewAbstract(Xtemp);
 		}
+
+		// intersection with the previous invariant
+		params P;
+		P.T = SIMPLE;
+		P.D = getApronManager();
+		P.N = useNewNarrowing();
+		P.TH = useThreshold();
+		intersect_with_known_properties(Xtemp,Succ,P);
+
 		Succ->X_s[passID] = Xtemp;
 
 		DEBUG(

@@ -352,6 +352,24 @@ void AIPass::printPath(std::list<BasicBlock*> path) {
 	Out->resetColor();
 }
 
+void AIPass::assert_invariant(
+				params P,
+				Function * F
+		) {
+	// we assert b_i => I_i for each block
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		Node * n = Nodes[i];	
+		SMT_expr invariant = LSMT->AbstractToSmt(NULL,n->X_s[P]);
+		SMT_var bvar = LSMT->man->SMT_mk_bool_var(LSMT->getNodeName(n->bb,false));
+		SMT_expr block = LSMT->man->SMT_mk_not(LSMT->man->SMT_mk_expr_from_bool_var(bvar));
+		std::vector<SMT_expr> smt;
+		smt.push_back(block);
+		smt.push_back(invariant);
+		LSMT->SMT_assert(LSMT->man->SMT_mk_or(smt));
+	}
+}
+
+
 bool AIPass::copy_Xd_to_Xs(Function * F) {
 	BasicBlock * b;
 	Pr * FPr = Pr::getInstance(F);

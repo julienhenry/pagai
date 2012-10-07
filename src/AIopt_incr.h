@@ -13,7 +13,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
 
-#include "AIpass.h"
+#include "AIopt.h"
 
 using namespace llvm;
 
@@ -21,29 +21,11 @@ using namespace llvm;
  * \class AIopt_incr
  * \brief AIopt Implementation that uses the result of a previous analysis
  */
-class AIopt_incr : public ModulePass, public AIPass {
+class AIopt_incr : public AIopt {
 
 	private:
-		/**
-		 * \brief remembers all the paths that have already been
-		 * visited
-		 */
-		std::map<BasicBlock*,PathTree*> pathtree;
-
-		PathTree * W;
-
-		std::map<BasicBlock*,PathTree*> U;
-		std::map<BasicBlock*,PathTree*> V;
-
-		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
-
-		void computeNewPaths(
-			Node * n
-			);
-
 		void init()
 			{
-				aman = new AbstractManClassic();
 				passID.T = COMBINED_INCR;
 			}
 
@@ -52,54 +34,22 @@ class AIopt_incr : public ModulePass, public AIPass {
 
 	public:
 
-		AIopt_incr(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {
+		AIopt_incr(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : AIopt(_ID,_man,_NewNarrow,_Threshold) {
 			init();
-			passID.D = _man;
-			passID.N = _NewNarrow;
-			passID.TH = _Threshold;
 		}
 		
-		AIopt_incr() : ModulePass(ID) {
+		AIopt_incr() : AIopt(ID) {
 			init();
-			passID.D = getApronManager();
-			passID.N = useNewNarrowing();
-			passID.TH = useThreshold();
 		}
 
-
-		~AIopt_incr () {
-			for (std::map<BasicBlock*,PathTree*>::iterator 
-				it = pathtree.begin(),
-				et = pathtree.end(); 
-				it != et; 
-				it++) {
-				if ((*it).second != NULL)
-					delete (*it).second;
-				}
-			}
+		~AIopt_incr () {}
 
 		const char *getPassName() const;
 
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
-		bool runOnModule(Module &M);
-
-		void computeFunction(Function * F);
-
-		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
-		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
-
-		/**
-		 * \brief compute and update the Abstract value of the Node n
-		 * \param n the starting point
-		 */
-		void computeNode(Node * n);
-		
-		/**
-		 * \brief apply narrowing at node n
-		 * \param n the starting point
-		 */
-		void narrowNode(Node * n);
+		void assert_properties(params P, Function * F);
+		void intersect_with_known_properties(Abstract * Xtemp, Node * n, params P);
 };
 
 #endif
