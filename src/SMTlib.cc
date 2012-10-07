@@ -606,7 +606,7 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		check_stmt += "(check-sat)\n";
 	}
 	DEBUG(
-			*Out << "\n\n" << oss.str() << "\n\n";
+			*Out << "\n\n" << check_stmt << "\n\n";
 		 );
 	pwrite(check_stmt);
 

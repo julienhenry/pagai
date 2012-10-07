@@ -47,6 +47,8 @@ class Abstract {
 
 		bool CanJoinPrecisely(AbstractMan * aman, Abstract * A);
 
+		bool has_same_environment(Abstract * A);
+
 		/// is_leq - return true iff this <= d
 		virtual bool is_leq(Abstract * d);
 		

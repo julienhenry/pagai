@@ -358,8 +358,12 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 		if (dynamic_cast<AISimple*>(this)
 				|| dynamic_cast<AIGuided*>(this)
 				|| FPr->inPr(i)) {
+			if (Nodes[b]->X_s[passID]->has_same_environment(Nodes[b]->X_d[passID])) {
 			if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
 				res = true;
+			} else {
+				res = true;
+			}
 
 			delete Nodes[b]->X_s[passID];
 			if (b != F->begin()) {

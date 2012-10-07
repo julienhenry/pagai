@@ -8,9 +8,9 @@ int Abstract::compare(Abstract * d) {
 	bool f = false;
 	bool g = false;
 
-//if enabled, we have errors because the two abstracts may not have the same
+//if enabled, we may have errors because the two abstracts may not have the same
 //environment
-#if 0
+#if 1
 	if (dynamic_cast<AbstractClassic*>(d) 
 		&& dynamic_cast<AbstractClassic*>(this)) {
 		if (ap_abstract1_is_eq(man,main,d->main))
@@ -64,6 +64,13 @@ int Abstract::compare(Abstract * d) {
 		// not comparable
 		return -2;
 	}
+}
+
+bool Abstract::has_same_environment(Abstract * A) {
+	if (ap_environment_is_eq(main->env,A->main->env))
+		return true;
+	else
+		return false;
 }
 
 bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {

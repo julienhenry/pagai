@@ -14,6 +14,7 @@ OPTION :
 	-I        : inline functions
 	-G        : generate the .dot CFG
 	-O        : apply optimisations to the bytecode
+	-N        : no undefined behaviour trap handlers
 "
 }
 
@@ -22,8 +23,9 @@ GRAPH=0
 OPT=0
 DEBUG=0
 INLINE=0
+NOTRAP=0
 
-while getopts "hpgi:o:OI" opt ; do
+while getopts "hpgi:o:OIN" opt ; do
 	case $opt in
 		h)
 			usage
@@ -34,6 +36,9 @@ while getopts "hpgi:o:OI" opt ; do
             ;;
         I)
 			INLINE=1
+            ;;
+        N)
+			NOTRAP=1
             ;;
 		i)
 			FILENAME=$OPTARG
@@ -70,12 +75,18 @@ if [ -z "$OUTPUT" ] ; then
 	OUTPUT=${DIR}/${NAME}.bc
 fi
 
-if [ $DEBUG -eq 1 ] ; then
-	echo clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
-	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+if [ $NOTRAP -eq 1 ] ; then
+ TRAP=" "
 else
-	echo clang -fcatch-undefined-c99-behavior -emit-llvm -I ..  -c $FILENAME -o $OUTPUT
-	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+ TRAP=" -fcatch-undefined-c99-behavior "
+fi
+
+if [ $DEBUG -eq 1 ] ; then
+	echo clang $TRAP -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+	clang $TRAP -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+else
+	echo clang $TRAP -emit-llvm -I ..  -c $FILENAME -o $OUTPUT
+	clang $TRAP -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then
 	INLINE=1
