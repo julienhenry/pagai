@@ -1,3 +1,8 @@
+/**
+ * \file AbstractMan.h
+ * \brief 
+ * \author Julien Henry
+ */
 #ifndef _ABSTRACTMAN_H
 #define _ABSTRACTMAN_H
 
@@ -11,6 +16,8 @@ class AbstractMan {
 	public:
 	virtual Abstract * NewAbstract(ap_manager_t * man, Environment * env) = 0;
 	virtual Abstract * NewAbstract(Abstract * A) = 0;
+
+	virtual ~AbstractMan() {};
 };
 
 /// class that create Abstract objects of type AbstractClassic

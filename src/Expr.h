@@ -9,7 +9,6 @@
 #include "llvm/Support/InstVisitor.h"
 #include "llvm/Constants.h"
 
-#include "Node.h"
 #include "Abstract.h"
 #include "Environment.h"
 #include "Constraint.h"
@@ -32,22 +31,6 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		Expr();
 
 	public:
-
-	//	/// common_environment - computes and returns the least common environment of
-	//	/// two environments.
-	//	static Environment * common_environment(
-	//			Environment * env1,
-	//			Environment * env2);
-
-	//	/// intersect_environment - compute the intersection of the two environments.
-	//	static Environment * intersect_environment(
-	//			Environment * env1,
-	//			Environment * env2);
-
-	//	/// common_environment - modifies the two expression by giving them the same
-	//	/// least common environment.
-	//	static void common_environment(ap_texpr1_t ** exp1, ap_texpr1_t ** exp2);
-
 
 		/// get_ap_type - compute the Apron type of the LLVM Value
 		/// return 0 iff the type is int or real, 1 in the other cases

@@ -1,3 +1,8 @@
+/**
+ * \file Abstract.h
+ * \brief Implementation of the Abstract class
+ * \author Julien Henry
+ */
 #ifndef _ABSTRACT_H
 #define _ABSTRACT_H
 
@@ -12,7 +17,9 @@ class Expr;
 class Environment;
 class Constraint_array;
 
-/// Base class of abstract domains
+/* \class Abstract Abstract.h
+ * \brief Base class of abstract domains
+ */
 class Abstract {
 
 

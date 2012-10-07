@@ -1,6 +1,5 @@
 #include "Analyzer.h"
 #include "AbstractMan.h"
-#include "Abstract.h"
 #include "AbstractClassic.h"
 #include "AbstractGopan.h"
 #include "AbstractDisj.h"

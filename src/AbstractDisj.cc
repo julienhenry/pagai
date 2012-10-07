@@ -4,8 +4,6 @@
 
 #include "ap_global1.h"
 
-#include "Abstract.h"
-#include "AbstractMan.h"
 #include "AbstractDisj.h"
 #include "Node.h"
 #include "Expr.h"
