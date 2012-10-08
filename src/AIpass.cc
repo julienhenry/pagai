@@ -62,8 +62,11 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	if (useSourceName()) {
+	if (recoverName::hasMetadata(F)) {
 		recoverName::process(F);
+		set_useSourceName(true);
+	} else {
+		set_useSourceName(false);
 	}
 	// we create the Node objects associated to each basicblock
 	Pr * FPr = Pr::getInstance(F);
@@ -92,9 +95,11 @@ void AIPass::initFunction(Function * F) {
 	}
 
 	if (!quiet_mode()) {
-		*Out<<"Function:"<<F->getName()<<"\n";
-		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-			printBasicBlock(i);
+		*Out<<"// Function:"<<F->getName()<<"\n";
+		if (!recoverName::hasMetadata(F)) {
+			for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+				printBasicBlock(i);
+		}
 	}
 }
 
@@ -121,8 +126,116 @@ void format_string(std::string & left) {
 	}
 }
 
+void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
+
+	// compute a map associating a (line,column) to a basicblock
+	// the map is ordered, so that we can use an iterator for displaying the
+	// invariant for the basicblock when needed
+	std::multimap<std::pair<int,int>,BasicBlock*> BasicBlock_position; 
+	BasicBlock * b;
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		int l = recoverName::getBasicBlockLineNo(b);
+		int c = recoverName::getBasicBlockColumnNo(b);
+		BasicBlock_position.insert( 
+				std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
+				);
+		DEBUG(
+				*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
+			 );
+	}
+
+	// now, we open the source file in read mode, and the output file in write
+	// mode
+	std::string source = recoverName::getSourceFileDir(F->getParent()->begin())
+			+"/"+recoverName::getSourceFileName(F->getParent()->begin());
+	std::ifstream sourceFile(source.c_str());
+	int lineNo = 0;
+	int columnNo;
+
+	std::multimap<std::pair<int,int>,BasicBlock*>::iterator Iit, Iet;
+	Iit = BasicBlock_position.begin();
+	Iet = BasicBlock_position.end();
+
+	while (Iit->first.first < 0) Iit++;
+
+	if ( sourceFile )
+	{
+		std::string line;
+
+		while ( std::getline( sourceFile, line ) )
+		{
+			lineNo++;
+			columnNo = 1;
+			std::string::iterator it = line.begin(); 
+			while (it < line.end()) {
+				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
+					// here, we can print an invariant !
+					b = Iit->second;
+					Pr * FPr = Pr::getInstance(b->getParent());
+					if (Nodes[b]->X_s[passID] != NULL && FPr->inPr(b)) {
+						// compute the left padding
+						std::string left = line.substr(0,columnNo-1);
+						// format string in order to remove undesired characters
+						format_string(left);
+						if (FPr->getAssert()->count(b)) {
+							if (Nodes[b]->X_s[passID]->is_bottom()) {
+								oss->changeColor(raw_ostream::GREEN,true);
+								*oss << "/* assert OK */\n"; 
+								oss->resetColor();
+							} else {
+								oss->changeColor(raw_ostream::RED,true);
+								*oss << "/* assert not proved */\n"; 
+								oss->resetColor();
+							}
+							*oss << left;
+						} else if (FPr->getUndefinedBehaviour()->count(b)) {
+							if (Nodes[b]->X_s[passID]->is_bottom()) {
+								oss->changeColor(raw_ostream::GREEN,true);
+								*oss << "/* no possible undefined behaviour */\n"; 
+								oss->resetColor();
+								*oss << left;
+							} else {
+								oss->changeColor(raw_ostream::RED,true);
+								*oss << "/* UNDEFINED BEHAVIOUR\n"; 
+								*oss << left << getUndefinedBehaviourPosition(b) << " : ";
+								*oss << getUndefinedBehaviourMessage(b) << " */\n";
+								oss->resetColor();
+								*oss << left;
+							}
+						} else {
+							if (!Nodes[b]->X_s[passID]->is_top()) {
+								if (Nodes[b]->X_s[passID]->is_bottom()) {
+									oss->changeColor(raw_ostream::MAGENTA,true);
+									*oss << "/* UNREACHABLE */\n"; 
+									oss->resetColor();
+								} else {
+									oss->changeColor(raw_ostream::MAGENTA,true);
+									*oss << "/* invariant:\n"; 
+									Nodes[b]->X_s[passID]->display(*oss,&left);
+									*oss << left << "*/\n";
+									oss->resetColor();
+								}
+								*oss << left;
+							}
+						}
+					} 
+					Iit++;
+				}
+				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
+					continue;
+				} else {
+					*oss << *it;
+					columnNo++;
+					it++;
+				}
+			}
+			*oss << "\n";
+		}
+	}
+}
+
 void AIPass::generateAnnotatedFile(Module * M) {
-	//std::string OutputFilename("arraysum_int_annotated.c");
 	std::string OutputFilename(getAnnotatedFilename());
 	// open the output stream
 	llvm::raw_ostream *Output;
@@ -163,7 +276,9 @@ void AIPass::generateAnnotatedFile(Module * M) {
 
 	// now, we open the source file in read mode, and the output file in write
 	// mode
-	std::ifstream sourceFile(getSourceFilename());
+	std::string source = recoverName::getSourceFileDir(M->begin())
+			+"/"+recoverName::getSourceFileName(M->begin());
+	std::ifstream sourceFile(source.c_str());
 	int lineNo = 0;
 	int columnNo;
 
@@ -270,6 +385,10 @@ std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
 
 void AIPass::printResult(Function * F) {
 	if (quiet_mode()) return;
+	if (recoverName::hasMetadata(F)) {
+		generateAnnotatedFunction(Out,F);
+		return;
+	}
 	BasicBlock * b;
 	Node * n;
 	Pr * FPr = Pr::getInstance(F);

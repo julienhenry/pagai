@@ -123,11 +123,15 @@ void AIdis::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 
 	LSMT->push_context();
+	DEBUG(
 	if (!quiet_mode())
 		*Out << "Computing Rho...";
+		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
+	DEBUG(
 	if (!quiet_mode())
 		*Out << "OK\n";
+		);
 
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {

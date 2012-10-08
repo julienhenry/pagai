@@ -79,6 +79,7 @@ bool compareNarrowing();
 bool onlyOutputsRho();
 
 bool useSourceName();
+void set_useSourceName(bool b);
 
 bool OutputAnnotatedFile();
 char* getAnnotatedFilename();

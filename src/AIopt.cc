@@ -118,8 +118,10 @@ void AIopt::computeFunction(Function * F) {
 
 	LSMT->push_context();
 	
+	DEBUG(
 	if (!quiet_mode())
 		*Out << "Computing Rho...";
+		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
 
 	// we assert b_i => I_i for each block
@@ -130,8 +132,10 @@ void AIopt::computeFunction(Function * F) {
 	P.TH = useThreshold();
 	assert_properties(P,F);
 
+	DEBUG(
 	if (!quiet_mode())
 		*Out << "OK\n";
+		);
 	
 
 	// add all function's arguments into the environment of the first bb

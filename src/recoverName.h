@@ -59,12 +59,20 @@ class recoverName {
 				std::vector<const PHINode*>& PHIvector,
 				std::vector<Info*>& v);
 
+		
+		static MDNode * get_DW_TAG_lexical_block(MDNode * MD);
+		static MDNode * get_DW_TAG_subprogram(MDNode * MD);
+		static MDNode * get_DW_TAG_file_type(MDNode * MD);
+
 	public:
 		static Info* getMDInfos(const Value* V);
 		static int process(Function* F);
 		static int getBasicBlockLineNo(BasicBlock* BB);
 		static int getBasicBlockColumnNo(BasicBlock* BB);
-		static std::string getSourceFileName();
+		static std::string getSourceFileName(Function * F);
+		static std::string getSourceFileDir(Function * F);
+		static bool hasMetadata(Module * M);
+		static bool hasMetadata(Function * F);
 };
 
 #endif

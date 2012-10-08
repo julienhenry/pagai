@@ -315,6 +315,7 @@ class AIPass : private InstVisitor<AIPass> {
 		std::string getUndefinedBehaviourPosition(BasicBlock * b);
 		std::string getUndefinedBehaviourMessage(BasicBlock * b);
 
+		void generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F);
 		void generateAnnotatedFile(Module * M);
 
 

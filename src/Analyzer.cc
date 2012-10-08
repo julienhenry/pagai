@@ -111,6 +111,10 @@ bool useSourceName() {
 	return use_source_name;
 }
 
+void set_useSourceName(bool b) {
+	use_source_name = b;
+}
+
 bool OutputAnnotatedFile() {
 	return output_annotated;
 }
@@ -437,10 +441,10 @@ int main(int argc, char* argv[]) {
             bad_use = true;
         }   
     }
-	 if (annotatedFilename != NULL && sourceFilename == NULL) {
-        std::cout << "ERROR : You must specify the source Filename\n\n";
-		bad_use = true;
-	 }
+	 //if (annotatedFilename != NULL && sourceFilename == NULL) {
+     //   std::cout << "ERROR : You must specify the source Filename\n\n";
+	 //   bad_use = true;
+	 //}
     if (!help) {
         if (!filename) {
             std::cout << "No input file specified\n";
