@@ -67,12 +67,15 @@ class recoverName {
 	public:
 		static Info* getMDInfos(const Value* V);
 		static int process(Function* F);
+		static int getFunctionLineNo(Function* F);
 		static int getBasicBlockLineNo(BasicBlock* BB);
 		static int getBasicBlockColumnNo(BasicBlock* BB);
 		static std::string getSourceFileName(Function * F);
 		static std::string getSourceFileDir(Function * F);
+		static Instruction * getFirstMetadata(Function * F);
 		static bool hasMetadata(Module * M);
 		static bool hasMetadata(Function * F);
+		static bool hasMetadata(BasicBlock * b);
 		static bool is_readable(Function * F);
 };
 

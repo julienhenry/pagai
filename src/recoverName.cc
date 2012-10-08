@@ -424,9 +424,28 @@ void recoverName::pass2(Function *F) {
 	}
 }
 
+Instruction * recoverName::getFirstMetadata(Function * F) {
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		BasicBlock::iterator iit = it->begin(), eet = it->end();
+		for (;iit!=eet;iit++) {
+			if (iit->hasMetadata()) return iit;
+		}
+	}
+	return NULL;
+}
+
+int recoverName::getFunctionLineNo(Function* F) {
+	Instruction * I = getFirstMetadata(F);
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_subprogram = get_DW_TAG_subprogram(MD);
+	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(7));
+	return LineNo->getZExtValue();
+}
+
 std::string recoverName::getSourceFileName(Function * F) {
 	// we only need the first instruction
-	Instruction * I = F->begin()->begin();
+	Instruction * I = getFirstMetadata(F);
 	MDNode * MD = I->getMetadata(0);
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
 	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(1));
@@ -437,7 +456,7 @@ std::string recoverName::getSourceFileName(Function * F) {
 
 std::string recoverName::getSourceFileDir(Function * F) {
 	// we only need the first instruction
-	Instruction * I = F->begin()->begin();
+	Instruction * I = getFirstMetadata(F);
 	MDNode * MD = I->getMetadata(0);
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
 	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(2));
@@ -453,11 +472,27 @@ bool recoverName::is_readable(Function * F) {
 }
 
 bool recoverName::hasMetadata(Module * M) {
-	return M->begin()->begin()->begin()->hasMetadata();
+	Module::iterator it = M->begin(), et = M->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
 }
 
 bool recoverName::hasMetadata(Function * F) {
-	return F->begin()->begin()->hasMetadata();
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
+}
+
+bool recoverName::hasMetadata(BasicBlock * b) {
+	BasicBlock::iterator it = b->begin(), et = b->end();
+	for (;it!=et;it++) {
+		if (it->hasMetadata()) return true;
+	}
+	return false;
 }
 
 MDNode * recoverName::get_DW_TAG_lexical_block(MDNode * MD) {
@@ -480,7 +515,7 @@ MDNode * recoverName::get_DW_TAG_subprogram(MDNode * MD) {
 	MDNode * N;
 	switch (tag) {
 		case 11: // DW_TAG_lexical_block
-			N = dyn_cast<MDNode>(MD->getOperand(2));
+			N = dyn_cast<MDNode>(MD->getOperand(1));
 			break;
 		case 46: //DW_TAG_subprogram
 			return MD;

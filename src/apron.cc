@@ -40,7 +40,9 @@ char* ap_var_to_string(ap_var_t var) {
 		if(IN != NULL) {
 			name=IN->getName();
 		} else {
-			*Out << "IN == NULL\n";
+			DEBUG(
+				*Out << "IN == NULL\n";
+			);
 			name = SMTpass::getVarName(val);
 		}
 	} else {

@@ -147,8 +147,8 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 
 	// now, we open the source file in read mode, and the output file in write
 	// mode
-	std::string source = recoverName::getSourceFileDir(F->getParent()->begin())
-			+"/"+recoverName::getSourceFileName(F->getParent()->begin());
+	std::string source = recoverName::getSourceFileDir(F)
+		+"/"+recoverName::getSourceFileName(F);
 	std::ifstream sourceFile(source.c_str());
 	int lineNo = 0;
 	int columnNo;
@@ -163,12 +163,26 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 	{
 		std::string line;
 
+		for(int l = 1; l < recoverName::getFunctionLineNo(F); l++) {
+			lineNo++;
+			std::getline( sourceFile, line );
+		}
+
+		// this counter is used to count the number of { and }
+		// this is used to find the end of the function
+		int counter = 0;
+		// true when we enter the body of the function
+		// i.e the first occurence of {
+		bool entered = false;
+
 		while ( std::getline( sourceFile, line ) )
 		{
 			lineNo++;
 			columnNo = 1;
 			std::string::iterator it = line.begin(); 
 			while (it < line.end()) {
+				
+
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
 					// here, we can print an invariant !
 					b = Iit->second;
@@ -225,7 +239,20 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
 					continue;
 				} else {
+
 					*oss << *it;
+					if (*it == '{') {
+						counter++;
+						entered = true;
+					}
+					if (*it == '}') {
+						counter--;
+						if (counter == 0 && entered) {
+							*oss << "\n";
+							return;
+						}
+					}
+					
 					columnNo++;
 					it++;
 				}
@@ -253,100 +280,10 @@ void AIPass::generateAnnotatedFile(Module * M) {
 	// SIGINT
 	sys::RemoveFileOnSignal(sys::Path(OutputFilename));
 
-	// compute a map associating a (line,column) to a basicblock
-	// the map is ordered, so that we can use an iterator for displaying the
-	// invariant for the basicblock when needed
-	std::multimap<std::pair<int,int>,BasicBlock*> BasicBlock_position; 
-	Function * F;
-	BasicBlock * b;
 	for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
-		F = mIt;
-		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-			b = i;
-			int l = recoverName::getBasicBlockLineNo(b);
-			int c = recoverName::getBasicBlockColumnNo(b);
-			BasicBlock_position.insert( 
-					std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
-					);
-			DEBUG(
-					*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
-				 );
-		}
-	}
-
-	// now, we open the source file in read mode, and the output file in write
-	// mode
-	std::string source = recoverName::getSourceFileDir(M->begin())
-			+"/"+recoverName::getSourceFileName(M->begin());
-	std::ifstream sourceFile(source.c_str());
-	int lineNo = 0;
-	int columnNo;
-
-	std::multimap<std::pair<int,int>,BasicBlock*>::iterator Iit, Iet;
-	Iit = BasicBlock_position.begin();
-	Iet = BasicBlock_position.end();
-
-	while (Iit->first.first < 0) Iit++;
-
-	if ( sourceFile )
-	{
-		std::string line;
-
-		while ( std::getline( sourceFile, line ) )
-		{
-			lineNo++;
-			columnNo = 1;
-			std::string::iterator it = line.begin(); 
-			while (it < line.end()) {
-				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
-					// here, we can print an invariant !
-					b = Iit->second;
-					Pr * FPr = Pr::getInstance(b->getParent());
-					if (Nodes[b]->X_s[passID] != NULL && FPr->inPr(b)) {
-						// compute the left padding
-						std::string left = line.substr(0,columnNo-1);
-						// format string in order to remove undesired characters
-						format_string(left);
-						if (FPr->getAssert()->count(b)) {
-							if (Nodes[b]->X_s[passID]->is_bottom()) {
-								*Output << "/* assert OK */\n"; 
-							} else {
-								*Output << "/* assert not proved */\n"; 
-							}
-						} else if (FPr->getUndefinedBehaviour()->count(b)) {
-							if (Nodes[b]->X_s[passID]->is_bottom()) {
-								//*Output << "/* no possible undefined behaviour */\n"; 
-							} else {
-								*Output << "/* UNDEFINED BEHAVIOUR\n"; 
-								*Output << left << getUndefinedBehaviourPosition(b) << " : ";
-								*Output << getUndefinedBehaviourMessage(b) << " */\n";
-								*Output << left;
-							}
-						} else {
-							if (!Nodes[b]->X_s[passID]->is_top()) {
-								if (Nodes[b]->X_s[passID]->is_bottom()) {
-									*Output << "/* UNREACHABLE */"; 
-								} else {
-									*Output << "/* invariant:\n"; 
-									Nodes[b]->X_s[passID]->display(*Output,&left);
-									*Output << left << "*/\n";
-								}
-								*Output << left;
-							}
-						}
-					} 
-					Iit++;
-				}
-				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
-					continue;
-				} else {
-					*Output << *it;
-					columnNo++;
-					it++;
-				}
-			}
-			*Output << "\n";
-		}
+		Function * F = mIt;
+		if (!F->isDeclaration())
+			generateAnnotatedFunction(Output,mIt);
 	}
 	delete Output;
 }
@@ -472,8 +409,8 @@ void AIPass::printPath(std::list<BasicBlock*> path) {
 }
 
 void AIPass::assert_invariant(
-				params P,
-				Function * F
+		params P,
+		Function * F
 		) {
 	// we assert b_i => I_i for each block
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
@@ -501,8 +438,8 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 				|| dynamic_cast<AIGuided*>(this)
 				|| FPr->inPr(i)) {
 			if (Nodes[b]->X_s[passID]->has_same_environment(Nodes[b]->X_d[passID])) {
-			if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
-				res = true;
+				if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
+					res = true;
 			} else {
 				res = true;
 			}
