@@ -192,13 +192,13 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 						} else if (FPr->getUndefinedBehaviour()->count(b)) {
 							if (Nodes[b]->X_s[passID]->is_bottom()) {
 								oss->changeColor(raw_ostream::GREEN,true);
-								*oss << "/* no possible undefined behaviour */\n"; 
+								*oss << "/* " << getUndefinedBehaviourPosition(b) << " : safe */\n"; 
 								oss->resetColor();
 								*oss << left;
 							} else {
 								oss->changeColor(raw_ostream::RED,true);
-								*oss << "/* UNDEFINED BEHAVIOUR\n"; 
-								*oss << left << getUndefinedBehaviourPosition(b) << " : ";
+								*oss << "/* " << getUndefinedBehaviourPosition(b);
+								*oss << " : unsafe: "; 
 								*oss << getUndefinedBehaviourMessage(b) << " */\n";
 								oss->resetColor();
 								*oss << left;
