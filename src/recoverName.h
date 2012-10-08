@@ -73,6 +73,7 @@ class recoverName {
 		static std::string getSourceFileDir(Function * F);
 		static bool hasMetadata(Module * M);
 		static bool hasMetadata(Function * F);
+		static bool is_readable(Function * F);
 };
 
 #endif

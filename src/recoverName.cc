@@ -4,6 +4,7 @@
  * \author Rahul Nanda, Julien Henry
  */
 #include<algorithm>
+#include<fstream>
 
 #include "recoverName.h"
 #include "Debug.h"
@@ -443,6 +444,12 @@ std::string recoverName::getSourceFileDir(Function * F) {
 
 	std::string s = Filename->getString().str();
 	return s;
+}
+
+bool recoverName::is_readable(Function * F) { 
+	std::string name = getSourceFileDir(F) + "/" + getSourceFileName(F);
+    std::ifstream File(name.c_str()); 
+    return !File.fail(); 
 }
 
 bool recoverName::hasMetadata(Module * M) {

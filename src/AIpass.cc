@@ -62,7 +62,7 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	if (recoverName::hasMetadata(F)) {
+	if (recoverName::hasMetadata(F) && recoverName::is_readable(F)) {
 		recoverName::process(F);
 		set_useSourceName(true);
 	} else {
@@ -96,7 +96,7 @@ void AIPass::initFunction(Function * F) {
 
 	if (!quiet_mode()) {
 		*Out<<"// Function:"<<F->getName()<<"\n";
-		if (!recoverName::hasMetadata(F)) {
+		if (!useSourceName()) {
 			for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 				printBasicBlock(i);
 		}
@@ -385,7 +385,7 @@ std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
 
 void AIPass::printResult(Function * F) {
 	if (quiet_mode()) return;
-	if (recoverName::hasMetadata(F)) {
+	if (useSourceName()) {
 		generateAnnotatedFunction(Out,F);
 		return;
 	}
