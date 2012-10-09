@@ -1,3 +1,8 @@
+/**
+ * \file z3_manager.cc
+ * \brief Implementation of the z3_manager class
+ * \author Julien Henry
+ */
 #include <algorithm>
 #include <cstddef>
 #include <string.h>
@@ -231,6 +236,32 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 	}
 }
 
+SMT_expr z3_manager::SMT_mk_sum (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_add(ctx, 2, &arguments[0]);
+	return res;
+}
+
+SMT_expr z3_manager::SMT_mk_sub (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_sub(ctx, 2, &arguments[0]);
+	return res;
+}
+
+SMT_expr z3_manager::SMT_mk_mul (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_mul(ctx, 2, &arguments[0]);
+	return res;
+}
 
 SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 	SMT_expr res;

@@ -1,3 +1,8 @@
+/**
+ * \file Info.h
+ * \brief Declaration of the Info class
+ * \author Rahul Nanda, Julien Henry
+ */
 #ifndef _INFO_H
 #define _INFO_H
 
@@ -9,7 +14,10 @@
 
 extern llvm::raw_ostream *Out;
 
-//Info class holds information about a variable in original source-code and provides necessary functions.
+/**
+ * \class Info
+ * \brief Info class holds information about a variable in original source-code and provides necessary functions.
+ */
 class Info
 {
 	std::string name;

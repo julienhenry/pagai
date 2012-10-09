@@ -1,3 +1,8 @@
+/**
+ * \file AIpf.cc
+ * \brief Implementation of the AIpf pass (Path Focusing)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 
@@ -27,7 +32,6 @@ const char * AIpf::getPassName() const {
 
 void AIpf::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 }
 
@@ -38,7 +42,7 @@ bool AIpf::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 	LSMT->reset_SMTcontext();
-	*Out << "Starting analysis: PF\n";
+	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -46,13 +50,15 @@ bool AIpf::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
-		
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
+	
+		if (!quiet_mode()) {
+			Out->changeColor(raw_ostream::BLUE,true);
+			*Out << "\n\n\n"
+					<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
@@ -62,7 +68,8 @@ bool AIpf::runOnModule(Module &M) {
 		initFunction(F);
 		
 		// we create the new pathtree
-		std::set<BasicBlock*>* Pr = Pr::getPr(*F);
+		Pr * FPr = Pr::getInstance(F);
+		std::set<BasicBlock*>* Pr = FPr->getPr();
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
@@ -74,6 +81,7 @@ bool AIpf::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 
 		printResult(F);
+		TerminateFunction();
 
 		// deleting the pathtrees
 		ClearPathtreeMap(U);
@@ -103,9 +111,25 @@ void AIpf::computeFunction(Function * F) {
 	LV = &(getAnalysis<Live>(*F));
 
 	LSMT->push_context();
-	*Out << "Computing Rho...";
+
+	DEBUG(
+	if (!quiet_mode())
+		*Out << "Computing Rho...";
+		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
-	*Out << "OK\n";
+
+	// we assert b_i => I_i for each block
+	params P;
+	P.T = SIMPLE;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+	assert_properties(P,F);
+
+	DEBUG(
+	if (!quiet_mode())
+		*Out << "OK\n";
+		);
 
 	
 	// add all function's arguments into the environment of the first bb
@@ -117,12 +141,13 @@ void AIpf::computeFunction(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 	n->X_i[passID]->set_top(env);
+	delete env;
 	A.push(n);
 
 	ascendingIter(n, F);
@@ -138,11 +163,13 @@ void AIpf::computeFunction(Function * F) {
 }
 
 std::set<BasicBlock*> AIpf::getPredecessors(BasicBlock * b) const {
-	return Pr::getPrPredecessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrPredecessors(b);
 }
 
 std::set<BasicBlock*> AIpf::getSuccessors(BasicBlock * b) const {
-	return Pr::getPrSuccessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrSuccessors(b);
 }
 
 void AIpf::computeNode(Node * n) {
@@ -210,7 +237,7 @@ void AIpf::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 		
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -219,7 +246,8 @@ void AIpf::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
@@ -231,11 +259,12 @@ void AIpf::computeNode(Node * n) {
 		Join.clear();
 		Join.push_back(aman->NewAbstract(Succ->X_s[passID]));
 		Join.push_back(aman->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Xtemp->join_array(&Xtemp_env,Join);
 
-		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 			if (use_threshold)
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 			else
 				Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
@@ -256,6 +285,15 @@ void AIpf::computeNode(Node * n) {
 			delete Succ->X_i[passID];
 			Succ->X_i[passID] = aman->NewAbstract(Xtemp);
 		}
+
+		// intersection with the previous invariant
+		params P;
+		P.T = SIMPLE;
+		P.D = getApronManager();
+		P.N = useNewNarrowing();
+		P.TH = useThreshold();
+		intersect_with_known_properties(Xtemp,Succ,P);
+
 		Succ->X_s[passID] = Xtemp;
 
 		DEBUG(
@@ -320,7 +358,7 @@ void AIpf::narrowNode(Node * n) {
 			*Out << "STARTING POLYHEDRON\n";
 			Xtemp->print();
 		);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON TO JOIN\n";
@@ -334,7 +372,8 @@ void AIpf::narrowNode(Node * n) {
 			std::vector<Abstract*> Join;
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
-			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		A.push(Succ);
 		is_computed[Succ] = false;

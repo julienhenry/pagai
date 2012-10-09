@@ -1,3 +1,8 @@
+/**
+ * \file SMT_manager.cc
+ * \brief Implementation of the SMT_manager class
+ * \author Julien Henry
+ */
 #include "SMT_manager.h"
 
 SMT_expr SMT_manager::SMT_mk_divides(SMT_expr a1, SMT_expr a2) {

@@ -1,3 +1,8 @@
+/**
+ * \file Compare.cc
+ * \brief Implementation of the Compare class
+ * \author Julien Henry
+ */
 #include "Compare.h"
 #include "Pr.h"
 #include "Expr.h"
@@ -31,7 +36,6 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
 	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
-	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -39,12 +43,13 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
-	ap_environment_t * cenv = Expr::intersect_environment(
-			A->main->env,
-			B->main->env);
+	Environment A_env(A);
+	Environment B_env(B);
+	Environment * cenv = Environment::intersection(&A_env,&B_env);
 
 	A->change_environment(cenv);
 	B->change_environment(cenv);
+	delete cenv;
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);
@@ -248,10 +253,11 @@ bool Compare::runOnModule(Module &M) {
 		ComputeTime(LW_WITH_PF_DISJ,F);
 		ComputeTime(COMBINED_INCR,F);
 
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
+			if (FPr->getPw()->count(b)) {
 				compareTechniques(n,GUIDED,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,SIMPLE);
 				compareTechniques(n,PATH_FOCUSING,GUIDED);

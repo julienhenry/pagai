@@ -1,3 +1,8 @@
+/**
+ * \file Sigma.cc
+ * \brief Implementation of the Sigma class
+ * \author Julien Henry
+ */
 #include <sstream>
 
 #include "cuddObj.hh"
@@ -33,7 +38,8 @@ void Sigma::init(BasicBlock * Start) {
 
 	// we compute all the levels of the ADD
 	Function * F = Start->getParent();
-	std::set<BasicBlock*> * Pr = Pr::getPr(*F);
+	Pr * FPr = Pr::getInstance(F);
+	std::set<BasicBlock*> * Pr = FPr->getPr();
 	std::set<BasicBlock*> seen;
 	createADDVars(Start,Pr,AddVarSource,&seen,true);
 }

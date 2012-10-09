@@ -1,3 +1,8 @@
+/**
+ * \file Compare.h
+ * \brief Declaration of the Compare pass
+ * \author Julien Henry
+ */
 #ifndef COMPARE_H
 #define COMPARE_H
 
@@ -12,7 +17,10 @@
 
 using namespace llvm;
 
-/// class that stores the results of the Compare class
+/**
+ * \class CmpResult
+ * \brief class that stores the results of the Compare class
+ */
 class CmpResults {
 
 	public:
@@ -24,7 +32,10 @@ class CmpResults {
 		CmpResults(): gt(0), lt(0), eq(0), un(0) {};
 };
 
-/// Pass that compares abstract values computed by each AI pass
+/**
+ * \class Compare
+ * \brief Pass that compares abstract values computed by each AI pass
+ */
 class Compare : public ModulePass {
 
 	protected:

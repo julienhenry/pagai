@@ -1,3 +1,8 @@
+/**
+ * \file Live.cc
+ * \brief Implementation of the Live class
+ * \author Julien Henry
+ */
 #include <stack>
 
 #include "llvm/Instructions.h"
@@ -35,8 +40,6 @@ void Live::releaseMemory() {
 	Memos.clear();
 }
 
-/// isUsedInBlock - Test if the given value is used in the given block.
-///
 bool Live::isUsedInBlock(Value *V, BasicBlock *BB) {
 	Memo &M = getMemo(V);
 	return M.Used.count(BB);
@@ -76,11 +79,6 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock) {
 	return false;
 }
 
-/// isLiveThroughBlock - Test if the given value is known to be
-/// live-through the given block, meaning that the block is
-/// dominated by the value's definition, and there exists a block
-/// reachable from it that contains a use. 
-///
 bool Live::isLiveThroughBlock( Value *V,
 		BasicBlock *BB, bool PHIblock) {
 	Memo &M = getMemo(V);
@@ -91,9 +89,6 @@ bool Live::isLiveThroughBlock( Value *V,
 }
 
 
-/// getMemo - Retrieve an existing Memo for the given value if one
-/// is available, otherwise compute a new one.
-///
 Live::Memo &Live::getMemo( Value *V) {
 	DenseMap< Value *, Memo>::iterator I = Memos.find(V);
 	if (I != Memos.end())
@@ -109,8 +104,6 @@ struct Block {
 	Block(BasicBlock * _b, bool _PHIblock) {b = _b; PHIblock = _PHIblock;}
 };
 
-/// compute - Compute a new Memo for the given value.
-///
 Live::Memo &Live::compute( Value *V) {
 	Memo &M = Memos[V];
 

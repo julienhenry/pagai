@@ -1,3 +1,8 @@
+/**
+ * \file recoverName.h
+ * \brief Declaration of the recoverName class
+ * \author Rahul Nanda, Julien Henry
+ */
 #ifndef _RECOVERNAME_H
 #define _RECOVERNAME_H
 
@@ -16,6 +21,10 @@
 
 using namespace llvm;
 
+/**
+ * \class compare_1
+ * \brief class for comparing Info objects
+ */
 class compare_1
 {
 	public:
@@ -37,6 +46,10 @@ class compare_1
 		}
 };
 
+/**
+ * \class recoverName
+ * \brief recover the names of the variables from the source code
+ */
 class recoverName {
 	private :
 		static void pass1(Function *F);
@@ -46,12 +59,24 @@ class recoverName {
 				std::vector<const PHINode*>& PHIvector,
 				std::vector<Info*>& v);
 
+		
+		static MDNode * get_DW_TAG_lexical_block(MDNode * MD);
+		static MDNode * get_DW_TAG_subprogram(MDNode * MD);
+		static MDNode * get_DW_TAG_file_type(MDNode * MD);
+
 	public:
 		static Info* getMDInfos(const Value* V);
 		static int process(Function* F);
+		static int getFunctionLineNo(Function* F);
 		static int getBasicBlockLineNo(BasicBlock* BB);
 		static int getBasicBlockColumnNo(BasicBlock* BB);
-		static std::string getSourceFileName();
+		static std::string getSourceFileName(Function * F);
+		static std::string getSourceFileDir(Function * F);
+		static Instruction * getFirstMetadata(Function * F);
+		static bool hasMetadata(Module * M);
+		static bool hasMetadata(Function * F);
+		static bool hasMetadata(BasicBlock * b);
+		static bool is_readable(Function * F);
 };
 
 #endif

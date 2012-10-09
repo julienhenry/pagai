@@ -1,3 +1,8 @@
+/**
+ * \file Pr.cc
+ * \brief Implementation of the Pr class
+ * \author Julien Henry
+ */
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Instructions.h"
@@ -9,86 +14,79 @@
 
 using namespace llvm;
 
-char Pr::ID = 0;
-static RegisterPass<Pr>
-X("Pr set", "Pr set computation pass", false, true);
+std::map<Function *, Pr *> PR_instances;
 
-const char * Pr::getPassName() const {
-	return "Pr";
-}
-		
-std::map<Function*,std::set<BasicBlock*>*> Pr::Pr_set;
-std::map<Function*,std::set<BasicBlock*>*> Pr::Pw_set;
-std::map<Function*,std::set<BasicBlock*>*> Pr::Assert_set;
-std::map<Function*,std::set<BasicBlock*>*> Pr::UndefBehaviour_set;
-std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_succ;
-std::map<BasicBlock*,std::set<BasicBlock*> > Pr::Pr_pred;
-
-Pr::Pr() : ModulePass(ID) {
+Pr::Pr(Function * _F) : F(_F) {
+	if (!F->isDeclaration())
+		computePr();
 }
 
 Pr::~Pr() {
 }
 
-void Pr::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<LoopInfo>();
-	AU.setPreservesAll();
+Pr * Pr::getInstance(Function * F) {
+	if (PR_instances.count(F) == 0) {
+		PR_instances[F] = new Pr(F);
+	}
+	return PR_instances[F];
 }
 
-std::set<BasicBlock*>* Pr::getPr(Function &F) {
-	return Pr_set[&F];
+void Pr::releaseMemory() {
+	std::map<Function*,Pr*>::iterator it = PR_instances.begin(), et = PR_instances.end();
+	for (;it != et; it++)
+		delete (*it).second;
 }
 
-std::set<BasicBlock*>* Pr::getPw(Function &F) {
-	return Pw_set[&F];
+std::set<BasicBlock*>* Pr::getPr() {
+	return &Pr_set;
 }
 
-std::set<BasicBlock*>* Pr::getAssert(Function &F) {
-	return Assert_set[&F];
+std::set<BasicBlock*>* Pr::getPw() {
+	return &Pw_set;
 }
 
-std::set<BasicBlock*>* Pr::getUndefinedBehaviour(Function &F) {
-	return UndefBehaviour_set[&F];
+std::set<BasicBlock*>* Pr::getAssert() {
+	return &Assert_set;
+}
+
+std::set<BasicBlock*>* Pr::getUndefinedBehaviour() {
+	return &UndefBehaviour_set;
 }
 
 bool Pr::inPr(BasicBlock * b) {
-	return Pr_set[b->getParent()]->count(b);
+	return Pr_set.count(b);
 }
 
 bool Pr::inPw(BasicBlock * b) {
-	return Pw_set[b->getParent()]->count(b);
+	return Pw_set.count(b);
 }
 
-bool Pr::runOnModule(Module &M) {
-	Function * F;
-
-	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		F = mIt;
-		if (F->isDeclaration()) continue;
-		computePr(*F);
-	}
-	return 0;
+bool Pr::inAssert(BasicBlock * b) {
+	return Assert_set.count(b);
+}
+bool Pr::inUndefBehaviour(BasicBlock * b) {
+	return UndefBehaviour_set.count(b);
 }
 
-bool Pr::check_acyclic(Function &F,std::set<BasicBlock*>* FPr) {
+bool Pr::check_acyclic(std::set<BasicBlock*>* FPr) {
 	std::set<BasicBlock*> start;
 	start.insert(FPr->begin(),FPr->end());
-	start.insert(&F.front());
+	start.insert(&F->front());
 
 	for (std::set<BasicBlock*>::iterator it = start.begin(), et = start.end(); it != et; it++) {
 		Node * n = Nodes[*it];
-		for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			index[Nodes[i]] = 0;
 			isInStack[Nodes[i]] = false;
 		}
 		std::stack<Node*> S;
 		int N = 1;
-		if (!check_acyclic_rec(F,n,N,&S,FPr)) return false;
+		if (!check_acyclic_rec(n,N,&S,FPr)) return false;
 	}
 	return true;
 }
 
-bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S,std::set<BasicBlock*>* FPr) {
+bool Pr::check_acyclic_rec(Node * n, int & N,std::stack<Node*> * S,std::set<BasicBlock*>* FPr) {
 	Node * nsucc;
 	index[n]=N;
 	lowlink[n]=N;
@@ -102,7 +100,7 @@ bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S,
 			continue;
 		switch (index[nsucc]) {
 			case 0:
-				if (!check_acyclic_rec(F,nsucc,N,S,FPr)) return false;
+				if (!check_acyclic_rec(nsucc,N,S,FPr)) return false;
 				lowlink[n] = std::min(lowlink[n],lowlink[nsucc]);
 				break;
 			default:
@@ -122,20 +120,20 @@ bool Pr::check_acyclic_rec(Function &F, Node * n, int & N,std::stack<Node*> * S,
 	return true;
 }
 
-bool Pr::computeLoopHeaders(Function &F,std::set<BasicBlock*>* FPr) {
-	Node * n = Nodes[&F.front()];
-	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+bool Pr::computeLoopHeaders(std::set<BasicBlock*>* FPr) {
+	Node * n = Nodes[&F->front()];
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		index[Nodes[i]] = 0;
 	}
 	std::set<Node*> S;
 	std::set<Node*> Seen;
 
-	computeLoopHeaders_rec(F,n,&Seen,&S,FPr);
+	computeLoopHeaders_rec(n,&Seen,&S,FPr);
 	
 	return true;
 }
 
-bool Pr::computeLoopHeaders_rec(Function &F, Node * n,std::set<Node*> * Seen, std::set<Node*> * S,std::set<BasicBlock*>* FPr) {
+bool Pr::computeLoopHeaders_rec(Node * n,std::set<Node*> * Seen, std::set<Node*> * S,std::set<BasicBlock*>* FPr) {
 	Node * nsucc;
 	Seen->insert(n);
 
@@ -159,77 +157,60 @@ bool Pr::computeLoopHeaders_rec(Function &F, Node * n,std::set<Node*> * Seen, st
 			}
 			continue;
 		}
-		computeLoopHeaders_rec(F,nsucc,Seen,&Set,FPr);
+		computeLoopHeaders_rec(nsucc,Seen,&Set,FPr);
 	}	
 	return true;
 }
 
 // computePr - computes the set Pr of BasicBlocks
 // for the moment - Pr = Pw + blocks with a ret inst
-void Pr::computePr(Function &F) {
+void Pr::computePr() {
 	Node * n;
+	BasicBlock * b;
 
-	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		if (Nodes.count(i) == 0) {
 			n = new Node(i);
 			Nodes[i] = n;
 		}
 	}
 
-	if (F.size() > 0) {
+	if (F->size() > 0) {
 		// we find the Strongly Connected Components
-		Node * front = Nodes[&(F.front())];
+		Node * front = Nodes[&(F->front())];
 		front->computeSCC();
 	}
 
-	std::set<BasicBlock*> * FPr = new std::set<BasicBlock*>();
-	std::set<BasicBlock*> * FW = new std::set<BasicBlock*>();
-	std::set<BasicBlock*> * FAssert = new std::set<BasicBlock*>();
-	std::set<BasicBlock*> * FUndefBehaviour = new std::set<BasicBlock*>();
-	BasicBlock * b;
-	LoopInfo * LI = &(getAnalysis<LoopInfo>(F));
-
-
-	computeLoopHeaders(F,FPr);
-//	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
-//		b = i;
-//		if (LI->isLoopHeader(b)) {
-//			FPr->insert(b);
-//		}
-//	}
-	Pr_set[&F] = FPr;
-	Assert_set[&F] = FAssert;
-	UndefBehaviour_set[&F] = FUndefBehaviour;
+	computeLoopHeaders(&Pr_set);
 
 	//minimize_Pr(F);
-	if (!check_acyclic(F,FPr)) {
+	if (!check_acyclic(&Pr_set)) {
 		//*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
 	}
 	
-	FW->insert(FPr->begin(),FPr->end());
-	Pw_set[&F] = FW;
+	Pw_set.insert(Pr_set.begin(),Pr_set.end());
+	Pr_set.insert(F->begin());
 
-	FPr->insert(F.begin());
-	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
 			if (isa<ReturnInst>(*it) || isa<UnreachableInst>(*it)) {
-				FPr->insert(b); 
+				Pr_set.insert(b); 
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
 				if (cF != NULL) {
 					std::string fname = cF->getName();
-					static const std::string assert_fail ("__assert_fail");
-					static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
-					static const std::string gnat_rcheck ("__gnat_rcheck_");
+					const std::string assert_fail ("__assert_fail");
+					const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
+					const std::string gnat_rcheck ("__gnat_rcheck_");
 					if (fname.compare(assert_fail) == 0) {
-						FPr->insert(b);
-						FAssert->insert(b);
+						Pr_set.insert(b);
+						Assert_set.insert(b);
 					}
 					if (fname.compare(undefined_behavior_trap) == 0
 					    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
-						FPr->insert(b);
-						FUndefBehaviour->insert(b);
+						Pr_set.insert(b);
+						UndefBehaviour_set.insert(b);
 					}
 				}
 			}
@@ -237,26 +218,25 @@ void Pr::computePr(Function &F) {
 
 	}
 
-	std::set<BasicBlock*>* Pr = getPr(F);
+	std::set<BasicBlock*>* Pr = getPr();
 	DEBUG(
 		*Out << "FINAL Pr SET:\n";
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end(); it != et; it++) 
 			*Out << **it << "\n";
-		
 	);
 }
 
-void Pr::minimize_Pr(Function &F) {
-	std::set<BasicBlock*>* FPr = getPr(F);
+void Pr::minimize_Pr() {
+	std::set<BasicBlock*>* FPr = getPr();
 
 	for (std::set<BasicBlock*>::iterator it = FPr->begin(), et = FPr->end(); it != et; it++) {
 		BasicBlock * b = *it;
 		std::set<BasicBlock*> Pr;
 		Pr.insert(FPr->begin(),FPr->end());
 		Pr.erase(b);
-		if (check_acyclic(F,&Pr)) {
-			Pr_set[&F]->erase(b);
-			minimize_Pr(F);
+		if (check_acyclic(&Pr)) {
+			Pr_set.erase(b);
+			minimize_Pr();
 			return;
 		} else {
 			FPr->insert(b);

@@ -1,3 +1,8 @@
+/**
+ * \file Analyzer.cc
+ * \brief Implementation of the Analyzer class (main class)
+ * \author Julien Henry
+ */
 #include <string>
 #include <iostream>
 #include <getopt.h>
@@ -13,6 +18,7 @@ bool compare;
 bool compare_Domain;
 bool compare_Narrowing;
 bool onlyrho;
+bool quiet;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
@@ -36,6 +42,7 @@ void show_help() {
 --source-name : output with the variable names from the source file instead of LLVM's names\n \
 --annotated : specify the name of the outputted annotated source file\n \
 --source : specify the path and name of the source file (in C, C++,etc.) \n \
+--quiet (-q) : quiet mode : does not print anything \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -104,6 +111,10 @@ bool useSourceName() {
 	return use_source_name;
 }
 
+void set_useSourceName(bool b) {
+	use_source_name = b;
+}
+
 bool OutputAnnotatedFile() {
 	return output_annotated;
 }
@@ -150,6 +161,8 @@ std::string TechniquesToString(Techniques t) {
 			return "LOOKAHEAD WIDENING";
 		case PATH_FOCUSING: 
 			return "PATH FOCUSING";
+		case PATH_FOCUSING_INCR: 
+			return "PATH FOCUSING INCR";
 		case LW_WITH_PF:
 			return "COMBINED";
 		case COMBINED_INCR:
@@ -220,6 +233,8 @@ bool setTechnique(char * t) {
 		technique = LOOKAHEAD_WIDENING;
 	} else if (!d.compare("pf")) {
 		technique = PATH_FOCUSING;
+	} else if (!d.compare("pf_incr")) {
+		technique = PATH_FOCUSING_INCR;
 	} else if (!d.compare("lw+pf")) {
 		technique = LW_WITH_PF;
 	} else if (!d.compare("s")) {
@@ -275,6 +290,10 @@ std::string getMain() {
 	return main_function;
 }
 
+bool quiet_mode() {
+	return quiet;
+} 
+
 std::set<llvm::Function*> ignoreFunction;
 
 int main(int argc, char* argv[]) {
@@ -301,6 +320,7 @@ int main(int argc, char* argv[]) {
 	compare_Narrowing = false;
 	onlyrho = false;
 	defined_main = false;
+	quiet = false;
 	use_source_name = false;
 	output_annotated = false;
 	n_totalpaths = 0;
@@ -326,6 +346,7 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
+			{"quiet",    no_argument, 0, 'q'},
 			{"source-name",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
@@ -334,8 +355,11 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "a:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
         switch (o) {
+        case 'q':
+			quiet = true;
+            break;
         case 'S':
             use_source_name = true;
             break;
@@ -417,10 +441,10 @@ int main(int argc, char* argv[]) {
             bad_use = true;
         }   
     }
-	 if (annotatedFilename != NULL && sourceFilename == NULL) {
-        std::cout << "ERROR : You must specify the source Filename\n\n";
-		bad_use = true;
-	 }
+	 //if (annotatedFilename != NULL && sourceFilename == NULL) {
+     //   std::cout << "ERROR : You must specify the source Filename\n\n";
+	 //   bad_use = true;
+	 //}
     if (!help) {
         if (!filename) {
             std::cout << "No input file specified\n";

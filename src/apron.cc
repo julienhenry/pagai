@@ -1,3 +1,8 @@
+/**
+ * \file apron.cc
+ * \brief Implementation of Apron interface
+ * \author Julien Henry
+ */
 #include <stdio.h>
 #include <string>
 
@@ -22,8 +27,9 @@ using namespace llvm;
 
 ap_var_operations_t var_op_manager;
 
-/// ap_var_to_string - new to_string function for the var_op_manager
-///
+/*
+ * new to_string function for the var_op_manager
+ */
 char* ap_var_to_string(ap_var_t var) {
 	Value * val = dyn_cast<Value>((Value*)var);
 
@@ -34,7 +40,9 @@ char* ap_var_to_string(ap_var_t var) {
 		if(IN != NULL) {
 			name=IN->getName();
 		} else {
-			*Out << "IN == NULL\n";
+			DEBUG(
+				*Out << "IN == NULL\n";
+			);
 			name = SMTpass::getVarName(val);
 		}
 	} else {
@@ -45,18 +53,18 @@ char* ap_var_to_string(ap_var_t var) {
 	return cname;
 }
 
-///
-/// ap_var_compare - new compare function, working with Value * type
-///
+/*
+ * new compare function, working with Value * type
+ */
 int ap_var_compare(ap_var_t v1, ap_var_t v2) {
 	if (v1 == v2) return 0;
 	if (v1 > v2) return 1;
 	return -1;
 }
 
-///
-/// ap_var_hash - hash function for ap_var_t
-///
+/*
+ * hash function for ap_var_t
+ */
 int ap_var_hash(ap_var_t v) {
 	return 0;
 }
@@ -65,10 +73,10 @@ int ap_var_hash(ap_var_t v) {
 ap_var_t ap_var_copy(ap_var_t var) {return var;}
 void ap_var_free(ap_var_t var) {}
 
-///
-/// init_apron - This function aims to change the functions for the apron var manager,
-/// since var type is not char* but Value*.
-///
+/*
+ * This function aims to change the functions for the apron var manager,
+ * since var type is not char* but Value*.
+ */
 void init_apron() {
 	var_op_manager.compare = &ap_var_compare;
 	var_op_manager.hash = &ap_var_hash;

@@ -1,3 +1,8 @@
+/**
+ * \file AIdis.cc
+ * \brief Implementation of the AIdis pass
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 
@@ -27,7 +32,6 @@ const char * AIdis::getPassName() const {
 
 void AIdis::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 }
 
@@ -47,12 +51,14 @@ bool AIdis::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
+		if (!quiet_mode()) {
 		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
+			*Out << "\n\n\n"
+					<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
@@ -63,7 +69,8 @@ bool AIdis::runOnModule(Module &M) {
 
 
 		// we create the new pathtree and Sigma
-		std::set<BasicBlock*>* Pr = Pr::getPr(*F); 
+		Pr * FPr = Pr::getInstance(F);
+		std::set<BasicBlock*>* Pr = FPr->getPr(); 
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
@@ -75,6 +82,7 @@ bool AIdis::runOnModule(Module &M) {
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+		TerminateFunction();
 
 		// we delete the previous pathtree
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -114,15 +122,16 @@ void AIdis::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
-	DEBUG(
-		*Out << "Computing Pr...\n";
-	);
-	Pr::getPr(*F);
-
 	LSMT->push_context();
-	*Out << "Computing Rho...";
+	DEBUG(
+	if (!quiet_mode())
+		*Out << "Computing Rho...";
+		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
-	*Out << "OK\n";
+	DEBUG(
+	if (!quiet_mode())
+		*Out << "OK\n";
+		);
 
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
@@ -133,9 +142,9 @@ void AIdis::computeFunction(Function * F) {
 			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 
@@ -160,6 +169,7 @@ void AIdis::computeFunction(Function * F) {
 				ignoreFunction.insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				LSMT->pop_context();
+				delete env;
 				return;
 			}
 		}
@@ -168,9 +178,10 @@ void AIdis::computeFunction(Function * F) {
 		ascendingIter(n, F, true);
 
 		// we set X_d abstract values to bottom for narrowing
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
+			if (FPr->getPr()->count(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
@@ -184,15 +195,18 @@ void AIdis::computeFunction(Function * F) {
 			step++;
 		}
 	}
+	delete env;
 	LSMT->pop_context();
 }
 
 std::set<BasicBlock*> AIdis::getPredecessors(BasicBlock * b) const {
-	return Pr::getPrPredecessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrPredecessors(b);
 }
 
 std::set<BasicBlock*> AIdis::getSuccessors(BasicBlock * b) const {
-	return Pr::getPrSuccessors(b);
+	Pr * FPr = Pr::getInstance(b->getParent());
+	return FPr->getPrSuccessors(b);
 }
 
 int AIdis::sigma(
@@ -209,7 +223,8 @@ void AIdis::computeNewPaths(Node * n) {
 	std::vector<Abstract*> Join;
 
 	// first, we set X_d abstract values to X_s
-	std::set<BasicBlock*> successors = Pr::getPrSuccessors(n->bb);
+	Pr * FPr = Pr::getInstance(n->bb->getParent());
+	std::set<BasicBlock*> successors = FPr->getPrSuccessors(n->bb);
 	for (std::set<BasicBlock*>::iterator it = successors.begin(),
 			et = successors.end();
 			it != et;
@@ -254,7 +269,7 @@ void AIdis::computeNewPaths(Node * n) {
 			*Out << "START\n";
 			Xtemp->print();
 		);
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		DEBUG(
 			*Out << "XTEMP\n";
 			Xtemp->print();
@@ -264,7 +279,8 @@ void AIdis::computeNewPaths(Node * n) {
 		Join.clear();
 		Join.push_back(SuccDisj->getDisjunct(Sigma));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Environment Xtemp_env(Xtemp);
+		Xtemp->join_array(&Xtemp_env,Join);
 		SuccDisj->setDisjunct(Sigma,Xtemp);
 		Xtemp = NULL;
 
@@ -307,7 +323,8 @@ void AIdis::loopiter(
 			Join.clear();
 			Join.push_back(SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma)));
 			Join.push_back(SuccDis->man_disj->NewAbstract(Xtemp));
-			Xtemp->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Xtemp->join_array(&Xtemp_env,Join);
 
 			DEBUG(
 				*Out << "BEFORE MINIWIDENING\n";	
@@ -319,12 +336,10 @@ void AIdis::loopiter(
 
 			DEBUG(
 				*Out << "THRESHOLD:\n";
-				fflush(stdout);
-				ap_lincons1_array_fprint(stdout,&threshold);
-				fflush(stdout);
+				threshold->print();
 			);
 			if (use_threshold)
-				Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),&threshold);
+				Xtemp->widening_threshold(SuccDis->getDisjunct(Sigma),threshold);
 			else
 				Xtemp->widening(SuccDis->getDisjunct(Sigma));
 			DEBUG(
@@ -338,7 +353,7 @@ void AIdis::loopiter(
 			);
 
 			Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
-			computeTransform(SuccDis->man_disj,n,*path,*Xtemp);
+			computeTransform(SuccDis->man_disj,n,*path,Xtemp);
 			DEBUG(
 				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
 				SuccDis->print();
@@ -421,7 +436,7 @@ void AIdis::computeNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		int Sigma = sigma(path,index,Xtemp,true);
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -430,7 +445,8 @@ void AIdis::computeNode(Node * n) {
 			Xtemp->print();
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
-		SuccDisj->change_environment(Xtemp->main->env,Sigma);
+		Environment Xtemp_env(Xtemp);
+		SuccDisj->change_environment(&Xtemp_env,Sigma);
 
 		if (!U.count(index))
 			U[index] = new PathTree(n->bb);
@@ -444,11 +460,12 @@ void AIdis::computeNode(Node * n) {
 		Join.clear();
 		Join.push_back(Xdisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 		Join.push_back(Xdisj->man_disj->NewAbstract(Xtemp));
-		Xtemp->join_array(Xtemp->main->env,Join);
+		Xtemp->join_array(&Xtemp_env,Join);
 
-		if (Pr::inPw(Succ->bb) && ((Succ != n) || !only_join)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb) && ((Succ != n) || !only_join)) {
 			if (use_threshold)
-				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),&threshold);
+				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),threshold);
 			else
 				Xtemp->widening(SuccDisj->getDisjunct(Sigma));
 			DEBUG(*Out << "WIDENING! \n";);
@@ -526,7 +543,7 @@ void AIdis::narrowNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
-		computeTransform(Xdisj->man_disj,n,path,*Xtemp);
+		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		
 		int Sigma = sigma(path,index,Xtemp,false);
 
@@ -544,7 +561,8 @@ void AIdis::narrowNode(Node * n) {
 			std::vector<Abstract*> Join;
 			Join.push_back(SuccDisj->man_disj->NewAbstract(SuccDisj->getDisjunct(Sigma)));
 			Join.push_back(Xtemp);
-			SuccDisj->getDisjunct(Sigma)->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			SuccDisj->getDisjunct(Sigma)->join_array(&Xtemp_env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

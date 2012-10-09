@@ -120,8 +120,8 @@ FunArgs:
 FunValue:
 		INTVALUE						{$$ = false;}
 		| REALVALUE						{$$ = false;}
-		| LEFTPAR DIVIDE REALVALUE REALVALUE RIGHTPAR {$$ = false;}
-		| LEFTPAR MINUS LEFTPAR DIVIDE REALVALUE REALVALUE RIGHTPAR RIGHTPAR {$$ = false;}
+		| LEFTPAR DIVIDE FunValue FunValue RIGHTPAR {$$ = false;}
+		| LEFTPAR MINUS FunValue RIGHTPAR {$$ = false;}
 		| BoolValue						{$$ = $1;}
 		| LEFTPAR FunValue RIGHTPAR		{$$ = $2;}
 		;

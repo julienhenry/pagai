@@ -1,4 +1,10 @@
+/**
+ * \file recoverName.cc
+ * \brief Implementation of the recoverName class
+ * \author Rahul Nanda, Julien Henry
+ */
 #include<algorithm>
+#include<fstream>
 
 #include "recoverName.h"
 #include "Debug.h"
@@ -187,18 +193,33 @@ Info* resolveMetDescriptor(MDNode* md) {
 void recoverName::pass1(Function *F) {
 	MDNode * md; 
 	const Value* BCVar;
-	
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
 	{
 		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
 		{
+				//////////////////
+				//SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+				//I->getAllMetadata(MDs);
+				//SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin(), ME = MDs.end();	
+			
+				//*Out << *I << "\n";
+				//for (; MI != ME; MI++) {
+				//	*Out << " " << (MI->first) << " " << *(MI->second) << "\n";
+				//	MDNode * node = MI->second;
+				//	MDNode * MDNode_lexical_block = dyn_cast<MDNode>(node->getOperand(2));
+				//	MDNode * MDNode_file_type = dyn_cast<MDNode>(MDNode_lexical_block->getOperand(4));
+				//	*Out << * MDNode_file_type  << "\n"; 
+				//}
+				//*Out << "\n";
+				//////////////////////////////
 			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I))
 			{
 				SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
 				I->getAllMetadata(MDs);
 
-				SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin();
+				SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin();	
+			
 				if(MDNode *BlockMD=dyn_cast<MDNode>(MI->second))
 				{
 					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0)))
@@ -403,8 +424,124 @@ void recoverName::pass2(Function *F) {
 	}
 }
 
-std::string recoverName::getSourceFileName() {
-	//TODO
-	std::string s;
+Instruction * recoverName::getFirstMetadata(Function * F) {
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		BasicBlock::iterator iit = it->begin(), eet = it->end();
+		for (;iit!=eet;iit++) {
+			if (iit->hasMetadata()) return iit;
+		}
+	}
+	return NULL;
+}
+
+int recoverName::getFunctionLineNo(Function* F) {
+	Instruction * I = getFirstMetadata(F);
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_subprogram = get_DW_TAG_subprogram(MD);
+	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(7));
+	return LineNo->getZExtValue();
+}
+
+std::string recoverName::getSourceFileName(Function * F) {
+	// we only need the first instruction
+	Instruction * I = getFirstMetadata(F);
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(1));
+
+	std::string s = Filename->getString().str();
 	return s;
+}
+
+std::string recoverName::getSourceFileDir(Function * F) {
+	// we only need the first instruction
+	Instruction * I = getFirstMetadata(F);
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(2));
+
+	std::string s = Filename->getString().str();
+	return s;
+}
+
+bool recoverName::is_readable(Function * F) { 
+	std::string name = getSourceFileDir(F) + "/" + getSourceFileName(F);
+    std::ifstream File(name.c_str()); 
+    return !File.fail(); 
+}
+
+bool recoverName::hasMetadata(Module * M) {
+	Module::iterator it = M->begin(), et = M->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
+}
+
+bool recoverName::hasMetadata(Function * F) {
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
+}
+
+bool recoverName::hasMetadata(BasicBlock * b) {
+	BasicBlock::iterator it = b->begin(), et = b->end();
+	for (;it!=et;it++) {
+		if (it->hasMetadata()) return true;
+	}
+	return false;
+}
+
+MDNode * recoverName::get_DW_TAG_lexical_block(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_lexical_block(N);
+}
+
+MDNode * recoverName::get_DW_TAG_subprogram(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			N = dyn_cast<MDNode>(MD->getOperand(1));
+			break;
+		case 46: //DW_TAG_subprogram
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_subprogram(N);
+}
+
+MDNode * recoverName::get_DW_TAG_file_type(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			N = dyn_cast<MDNode>(MD->getOperand(4));
+			break;
+		case 46: //DW_TAG_subprogram
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+		case 41: // DW_TAG_file_type
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_file_type(N);
 }

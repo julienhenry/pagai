@@ -6,6 +6,7 @@ project(PAGAI CXX)
 option(STATIC_LINK "Whether to build executables as static" OFF)
 option(CHECK_EXTERNALS "Whether to check that external dependancies are OK before compiling" ON)
 option(ENABLE_PROFILING "Whether to build using -pg" OFF)
+option(ENABLE_DEBUGGING "Whether to build using -g" OFF)
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
@@ -48,8 +49,8 @@ macro(configure_llvm PROG)
     set(ERROR_OCCURED ON PARENT_SCOPE)
   endif()
 
-  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN}
-    OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  #execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN} OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags OUTPUT_VARIABLE LLVM_CXXFLAGS)
   # CMake doesn't like newline in CXXFLAGS, and there's at least a
   # trailing \n in llvm-config's output.
   STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
@@ -87,8 +88,12 @@ macro(configure_llvm PROG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 
+  if(${ENABLE_DEBUGGING})
+    set(CMAKE_CXX_FLAGS " -g ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS " -g ${CMAKE_EXE_LINKER_FLAGS}")
+  endif()
   if(${ENABLE_PROFILING})
-    set(CMAKE_CXX_FLAGS " -g -pg ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS " -pg ${CMAKE_CXX_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS " -pg ${CMAKE_EXE_LINKER_FLAGS}")
   endif()
 endmacro()

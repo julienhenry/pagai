@@ -1,3 +1,8 @@
+/**
+ * \file AIGuided.h
+ * \brief Declaration of the AIGuided pass (Guided Static Analysis)
+ * \author Julien Henry
+ */
 #ifndef _AIGUIDED_H
 #define _AIGUIDED_H
 
@@ -12,24 +17,50 @@
 
 using namespace llvm;
 
+/**
+ * \class AIGuided
+ * \brief Implements the Guided Static Analysis algorithm.
+ *
+ * Implements Guided Static Analysis from Gopan and Reps, SAS 07.
+ * Computes the fixpoint iterations over an ascending sequence of subsets of
+ * transitions of the CFG. The subset in stored in a BDD using the PathTree
+ * class.
+ */
 class AIGuided : public ModulePass, public AIPass {
 
 	private:
-		/// paths - remembers all the paths that have already been
-		/// visited
+		/**
+		 * \brief remembers all the paths that have already been
+		 * visited
+		 */
 		std::map<BasicBlock*,PathTree*> pathtree;
 
+		/**
+		 * \brief Temporary Pathtree that stores the transitions that have been visited
+		 * in the same computeNode call
+		 */
 		PathTree * W;
 
+		/**
+		 * \brief Set of control points that have to be added in the working set at
+		 * next iteration
+		 */
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
-		void computeNewPaths(
-			Node * n
-			);
-	public:
-		static char ID;	
+		/**
+		 * \brief Compute the new feasible transition
+		 * \param n the starting point of the transitions
+		 */
+		void computeNewPaths(Node * n);
+
+		void init()
+			{
+				aman = new AbstractManClassic();
+				passID.T = GUIDED;
+			}
 
 	public:
+		static char ID;	
 
 		AIGuided(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {
 			init();
@@ -44,14 +75,6 @@ class AIGuided : public ModulePass, public AIPass {
 			passID.N = useNewNarrowing();
 			passID.TH = useThreshold();
 		}
-
-		void init()
-			{
-				//aman = new AbstractManGopan();
-				aman = new AbstractManClassic();
-				passID.T = GUIDED;
-				//Passes[LW_WITH_PF] = passID;	
-			}
 
 		~AIGuided () {
 			for (std::map<BasicBlock*,PathTree*>::iterator 
@@ -75,10 +98,16 @@ class AIGuided : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 };
 

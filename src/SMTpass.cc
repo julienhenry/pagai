@@ -1,7 +1,16 @@
+/**
+ * \file SMTpass.cc
+ * \brief Implementation of the SMTpass pass
+ * \author Julien Henry
+ */
 #include <sstream>
 #include <vector>
 #include <iostream>
 #include <string>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
 
 #include "llvm/Support/CFG.h"
 #include "llvm/Constants.h"
@@ -22,6 +31,12 @@ DM: If set to 0, modulo (grid) constraints are not converted to SMT.
 #define SMT_HAS_WORKING_MODULO 1
 
 using namespace std;
+using namespace boost;
+
+std::map<BasicBlock*,int> NodeNames;
+std::map<int,BasicBlock*> NodeAddress;
+
+int CurrentNodeName;
 
 int SMTpass::nundef = 0;
 
@@ -37,6 +52,7 @@ SMTpass::SMTpass() {
 			man = new SMTlib();
 	}
 	man->push_context();
+	CurrentNodeName = 0;
 }
 
 SMTpass::~SMTpass() {
@@ -44,11 +60,25 @@ SMTpass::~SMTpass() {
 }
 
 SMTpass * instance = NULL;
+SMTpass * instanceforAbstract = NULL;
 
 SMTpass * SMTpass::getInstance() {
 	if (instance == NULL)
 		instance = new SMTpass();
 	return instance;
+}
+
+SMTpass * SMTpass::getInstanceForAbstract() {
+	if (instanceforAbstract == NULL)
+		instanceforAbstract = new SMTpass();
+	return instanceforAbstract;
+}
+
+void SMTpass::releaseMemory() {
+	if (instance != NULL)
+		delete instance;
+	if (instanceforAbstract != NULL)
+		delete instanceforAbstract;
 }
 
 SMT_expr SMTpass::getRho(Function &F) {
@@ -109,21 +139,22 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 
 		coefficient = scalarToSmt(coeff->val.scalar,integer,value);
 		
-		if (value != 0) {
-			if (value == 1) {
+		switch ((int)value) {
+			case 0:
+				break;
+			case 1:
 				elts.push_back(val);
-			} else {
-				std::vector<SMT_expr> elt;
-				elt.push_back(val);
-				elt.push_back(coefficient);
-				elts.push_back(man->SMT_mk_mul(elt));
-			}
+				break;
+			default:
+				elts.push_back(man->SMT_mk_mul(val,coefficient));
+				break;
 		}
 	}
 	coeff = ap_linexpr1_cstref(&linexpr);
 	coefficient = scalarToSmt(coeff->val.scalar,integer,value);
 	if (value != 0)
 		elts.push_back(coefficient);
+
 	return man->SMT_mk_sum(elts);
 }
 
@@ -284,48 +315,78 @@ const std::string SMTpass::getUndeterministicChoiceName(Value * v) {
 	return name.str();
 }
 
-const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
-	std::ostringstream name;
-	std::set<BasicBlock*> * FPr = Pr::getPr(*(b->getParent()));
-	if (FPr->count(b)) {
-		if (src)
-			name << "bs_";
-		else
-			name << "bd_";
-	} else {
-		name << "b_";
+const std::string SMTpass::getNodeSubName(BasicBlock * b) {
+	if (NodeNames.count(b) == 0) {
+		NodeNames[b] = CurrentNodeName;
+		NodeAddress[CurrentNodeName] = b;
+		CurrentNodeName++;
 	}
-	name << b;
-	return name.str();
+    std::ostringstream oss;
+    oss << NodeNames[b];
+    return oss.str();
+}
+
+BasicBlock * SMTpass::getNodeBasicBlock(std::string name) {
+	return NodeAddress[boost::lexical_cast<int>(name)];
+}
+
+const std::string SMTpass::getNodeName(BasicBlock* b, bool src) {
+	std::string name;
+	Pr * FPr = Pr::getInstance(b->getParent());
+	if (FPr->inPr(b)) {
+		if (src)
+			name = "bs_";
+		else
+			name = "bd_";
+	} else {
+		name = "b_";
+	}
+
+	name += getNodeSubName(b);
+	return name;
 }
 
 const std::string SMTpass::getEdgeName(BasicBlock* b1, BasicBlock* b2) {
-	std::ostringstream name;
-	name << "t_" << b1 << "_" << b2;
-	return name.str();
+	std::string name;
+	name =  "t_" 
+		+ getNodeSubName(b1)
+		+ "_" 
+		+ getNodeSubName(b2);
+	return name;
 }
 
 const std::string SMTpass::getValueName(Value * v, bool primed) {
-	std::ostringstream name;
+	std::string name;
 	std::string var = getVarName(v);
 	if (primed)
-		name << "x_prime_" << var << "_";
+		name = "x_prime_" + var + "_";
 	else
-		name << "x_" << var << "_";
-	return name.str();
+		name = "x_" + var + "_";
+	return name;
 }
 
+
+std::map<Value*,std::string> SMTpass::VarNames;
+int VarNames_unnamed = 0;
+
 const std::string SMTpass::getVarName(Value * v) {
+	if (VarNames.count(v)) 
+		return VarNames[v];
+
 	std::string s_string;
 	raw_string_ostream * s = new raw_string_ostream(s_string);
 
 	if (v->hasName()) {
 		*s << v->getName();
 	} else {
-		*s << *v;
+		VarNames_unnamed++;
+		//*Out << "NO NAME\n";
+		//*s << *v;
+		*s << "unnamed_" << VarNames_unnamed;
 	}
 	
 	std::string & name = s->str();
+	//*Out << name << "\n";
 	size_t found;
 	found=name.find_first_of("%");
 	if (found!=std::string::npos) {
@@ -336,6 +397,7 @@ const std::string SMTpass::getVarName(Value * v) {
 		name.resize(found);
 	}
 	delete s;
+	VarNames[v] = name;
 	return name;
 }
 
@@ -419,7 +481,6 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	return NULL_res;
 }
 
-/// getElementFromString - 
 void SMTpass::getElementFromString(
 	std::string name,
 	bool &isEdge,
@@ -440,19 +501,15 @@ void SMTpass::getElementFromString(
 	dest = NULL;
 	start = false;
 
+	vector<std::string> fields;
+	split( fields, name, is_any_of( "_" ) );
+
 	// case 1 : this is an edge
 	found = name.find(edge);
 	if (found!=std::string::npos) {
 		isEdge = true;
-		std::string source = name.substr (2,9);
-		std::string destination = name.substr (12,9);
-		std::istringstream srcStream(source);
-		std::istringstream destStream(destination);
-		
-		srcStream >> std::hex >> address;
-		src = (BasicBlock*)address;
-		destStream >> std::hex >> address;
-		dest = (BasicBlock*)address;
+		src = getNodeBasicBlock(fields[1]);
+		dest = getNodeBasicBlock(fields[2]);
 		return;
 	}
 	isEdge = false;
@@ -473,23 +530,17 @@ void SMTpass::getElementFromString(
 	std::string nodename;
 	// case 3 : this is a node
 	found = name.find(simple_node);
-	if (found==std::string::npos) {
+	if (found!=std::string::npos) {
+		// this is a node of the form b_*
+		src = getNodeBasicBlock(fields[1]);
+	} else {
 		found = name.find(source_node);
 		if (found==std::string::npos) found = name.find(dest_node);
 		else start = true;
 		if (found!=std::string::npos) {
-			nodename = name.substr (3,9);
+			src = getNodeBasicBlock(fields[1]);
 		}
-	} else {
-		nodename = name.substr (2,9);
 	}
-
-	if (found != std::string::npos) {
-		std::istringstream srcStream(nodename);
-		srcStream >> std::hex >> address;
-		src = (BasicBlock*)address;
-	}
-
 }
 
 void SMTpass::computeRhoRec(Function &F, 
@@ -498,23 +549,24 @@ void SMTpass::computeRhoRec(Function &F,
 		bool newPr,
 		std::set<BasicBlock*> * visited) {
 
+	Pr * FPr = Pr::getInstance(&F);
 	bool first = (visited->count(b) > 0);
 	visited->insert(b);
 
-	if (!Pr::getPr(F)->count(b) || newPr) {
+	if (!FPr->inPr(b) || newPr) {
 		// we recursively construct Rho, starting from the predecessors
 		BasicBlock * pred;
 		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 			pred = *p;
-			if (!Pr::getPr(F)->count(pred)) {
+			if (!FPr->inPr(pred)) {
 				if (!visited->count(pred)) {
 					computeRhoRec(F,pred,dest,false,visited);
 				}
-				Pr::Pr_pred[b].insert(Pr::Pr_pred[pred].begin(),Pr::Pr_pred[pred].end());
+				FPr->Pr_pred[b].insert(FPr->Pr_pred[pred].begin(),FPr->Pr_pred[pred].end());
 			} else {
-				Pr::Pr_pred[b].insert(pred);
+				FPr->Pr_pred[b].insert(pred);
 			}
-			Pr::Pr_succ[pred].insert(dest);
+			FPr->Pr_succ[pred].insert(dest);
 		}
 	}
 
@@ -550,6 +602,7 @@ void SMTpass::computeRhoRec(Function &F,
 
 	if (instructions.size() > 0) {
 		bpredicate = man->SMT_mk_and(instructions);
+		instructions.clear();
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
 		bvar_exp = man->SMT_mk_not(bvar_exp);
 		std::vector<SMT_expr> implies;
@@ -563,24 +616,26 @@ void SMTpass::computeRhoRec(Function &F,
 void SMTpass::computeRho(Function &F) {
 	std::set<BasicBlock*> visited;
 	BasicBlock * b;
+	Pr * FPr = Pr::getInstance(&F);
 
 	rho_components.clear();
-	std::set<BasicBlock*>::iterator i = Pr::getPr(F)->begin(), e = Pr::getPr(F)->end();
+	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
 	for (;i!= e; ++i) {
 		b = *i;
 		computeRhoRec(F,b,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
+	rho_components.clear();
 
 	// Pr_pred has already been computed, but not Pr_succ
 	// Now, we can easily compute Pr_succ
-	i = Pr::getPr(F)->begin();
-	e = Pr::getPr(F)->end();
+	i = FPr->getPr()->begin();
+	e = FPr->getPr()->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		std::set<BasicBlock*>::iterator it = Pr::Pr_pred[b].begin(), et = Pr::Pr_pred[b].end();
+		std::set<BasicBlock*>::iterator it = FPr->Pr_pred[b].begin(), et = FPr->Pr_pred[b].end();
 		for (;it != et; it++) {
-			Pr::Pr_succ[*it].insert(b);
+			FPr->Pr_succ[*it].insert(b);
 		}
 	}
 }
@@ -598,21 +653,20 @@ void SMTpass::SMT_assert(SMT_expr expr) {
 	man->SMT_assert(expr);
 }
 
-/// createSMTformula - create the smt formula that is described in the paper
-///
 SMT_expr SMTpass::createSMTformula(
 	BasicBlock * source, 
 	bool use_X_d, 
 	params t,
 	SMT_expr constraint) {
 	Function &F = *source->getParent();
+	Pr * FPr = Pr::getInstance(&F);
 	std::vector<SMT_expr> formula;
 	//formula.push_back(getRho(F));
 
 	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(source,true));
 	formula.push_back(man->SMT_mk_expr_from_bool_var(bvar));
 
-	std::set<BasicBlock*>::iterator i = Pr::getPr(F)->begin(), e = Pr::getPr(F)->end();
+	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
 	for (; i!=e; ++i) {
 		if (*i != source) {
 			bvar = man->SMT_mk_bool_var(getNodeName(*i,true));
@@ -627,7 +681,7 @@ SMT_expr SMTpass::createSMTformula(
 		formula.push_back(AbstractToSmt(NULL,A));
 
 	std::vector<SMT_expr> Or;
-	std::set<BasicBlock*> Successors = Pr::getPrSuccessors(source);
+	std::set<BasicBlock*> Successors = FPr->getPrSuccessors(source);
 	i = Successors.begin(), e = Successors.end();
 	for (; i!=e; ++i) {
 		std::vector<SMT_expr> SuccExp;
@@ -655,16 +709,11 @@ SMT_expr SMTpass::createSMTformula(
 	return man->SMT_mk_and(formula);
 }
 
-/// solve an SMTpass formula and computes its model in case of a 'sat'
-/// formula
 int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
 	int index;
 	return SMTsolve(expr,path,index);
 }
 
-/// solve an SMTpass formula and computes its model in case of a 'sat'
-/// formula. In the case of a pass using disjunctive invariants, index is set to
-/// the associated index of the disjunct to focus on.
 int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
@@ -820,6 +869,7 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 		if (!cond.is_empty())
 			components.push_back(cond);
 		components_and = man->SMT_mk_and(components);
+		components.clear();
 		rho_components.push_back(man->SMT_mk_eq(eexpr,components_and));
 	}
 }
@@ -899,8 +949,11 @@ SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 }
 
 bool SMTpass::is_primed(BasicBlock * b, Instruction &I) {
+	if (b == NULL) return false;
+	Function * F = b->getParent();
+	Pr * FPr = Pr::getInstance(F);
 	return (b != NULL 
-			&& (I.getParent() == b && Pr::getPr(*b->getParent())->count(b))
+			&& (I.getParent() == b && FPr->inPr(b))
 			&& isa<PHINode>(I)
 			);
 }
@@ -1006,46 +1059,55 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	//exist_prime.insert(&I);
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign;	
-	std::vector<SMT_expr> operands;
-	operands.push_back(getValueExpr(I.getOperand(0), false));
-	operands.push_back(getValueExpr(I.getOperand(1), false));
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr operand1 = getValueExpr(I.getOperand(1), false);
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 
 		case Instruction::FAdd: 
-			assign = man->SMT_mk_sum(operands);
+			assign = man->SMT_mk_sum(operand0,operand1);
 			break;
 		case Instruction::Sub : 
 		case Instruction::FSub: 
-			assign = man->SMT_mk_sub(operands);
+			assign = man->SMT_mk_sub(operand0,operand1);
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
-			assign = man->SMT_mk_mul(operands);
+			assign = man->SMT_mk_mul(operand0,operand1);
 			break;
 		case Instruction::And :
 			if (!t) return;
-			assign = man->SMT_mk_and(operands);
+			else { 
+				std::vector<SMT_expr> operands;
+				operands.push_back(operand0);
+				operands.push_back(operand1);
+				assign = man->SMT_mk_and(operands);
+			}
 			break;
 		case Instruction::Or  :
 			if (!t) return;
-			assign = man->SMT_mk_or(operands);
+			else { 
+				std::vector<SMT_expr> operands;
+				operands.push_back(operand0);
+				operands.push_back(operand1);
+				assign = man->SMT_mk_or(operands);
+			}
 			break;
 		case Instruction::Xor :
 			if (!t) return;
-			assign = man->SMT_mk_xor(operands[0],operands[1]);
+			assign = man->SMT_mk_xor(operand0,operand1);
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
-			assign = man->SMT_mk_div(operands[0],operands[1]);
+			assign = man->SMT_mk_div(operand0,operand1);
 			break;
 		case Instruction::FDiv: 
-			assign = man->SMT_mk_div(operands[0],operands[1],false);
+			assign = man->SMT_mk_div(operand0,operand1,false);
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
-			assign = man->SMT_mk_rem(operands[0],operands[1]);
+			assign = man->SMT_mk_rem(operand0,operand1);
 			break;
 			// the others are not implemented
 		case Instruction::Shl : // Shift left  (logical)

@@ -1,3 +1,8 @@
+/**
+ * \file Node.cc
+ * \brief Implementation of the Node class
+ * \author Julien Henry
+ */
 #include<stack>
 #include<map>
 #include<set>
@@ -27,7 +32,7 @@ Node::Node(BasicBlock * _bb) {
 	isInStack = false;
 	bb = _bb;
 	id = i++;
-	env = ap_environment_alloc_empty();
+	env = new Environment();
 }
 
 Node::~Node() {
@@ -56,11 +61,18 @@ Node::~Node() {
 			it++) {
 		delete (*it).second;
 	}
+	delete env;
 }
 
-/// computeSCC - compute the strongly connected components and the loop 
-/// heads of the graph.
-///
+Environment * Node::getEnv() {
+	return env;
+}
+
+void Node::setEnv(Environment * e) {
+	delete env;
+	env = new Environment(*e);
+}
+
 void Node::computeSCC() {
 	std::stack<Node*> * S = new std::stack<Node*>();
 	int n = 1;
@@ -68,10 +80,6 @@ void Node::computeSCC() {
 	delete S;
 }
 
-/// computeSCC_rec -  recursive version of the tarjan's algorithm
-/// compute both the loop heads and the Strongly connected components
-/// Must be called with n=1 and and empty allocated stack
-///
 void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 	Node * nsucc;
 	index=n;
@@ -104,7 +112,6 @@ void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 }
 
 void Node::add_var(Value * val) {
-	ap_environment_t* env;
 	ap_var_t var = val; 
 	ap_texpr_rtype_t type;
 
@@ -121,10 +128,10 @@ void Node::add_var(Value * val) {
 			break;
 	}
 	Expr exp(var);
-	Expr::set_expr(val,exp);
+	Expr::set_expr(val,&exp);
 }
 
-void Node::create_env(ap_environment_t ** env, Live * LV) {
+Environment * Node::create_env(Live * LV) {
 	std::set<ap_var_t> Sintvars;
 	std::set<ap_var_t> Srealvars;
 
@@ -141,30 +148,9 @@ void Node::create_env(ap_environment_t ** env, Live * LV) {
 			|| isa<UndefValue>((*i).first))
 			Srealvars.insert((*i).second.begin(), (*i).second.end());
 	}
-
-	ap_var_t * intvars = (ap_var_t*)malloc(Sintvars.size()*sizeof(ap_var_t));
-	ap_var_t * realvars = (ap_var_t*)malloc(Srealvars.size()*sizeof(ap_var_t));
-
-	int j = 0;
-	for (std::set<ap_var_t>::iterator i = Sintvars.begin(),
-			e = Sintvars.end(); i != e; ++i) {
-		intvars[j] = *i;
-		j++;
-	}
-
-	j = 0;
-	for (std::set<ap_var_t>::iterator i = Srealvars.begin(),
-			e = Srealvars.end(); i != e; ++i) {
-		realvars[j] = *i;
-		j++;
-	}
-
-	if (*env != NULL)
-		ap_environment_free(*env);
-	*env = ap_environment_alloc(intvars,Sintvars.size(),realvars,Srealvars.size());
 	
-	free(intvars);
-	free(realvars);
+	Environment * env = new Environment(&Sintvars,&Srealvars);
+	return env;
 }
 
 bool NodeCompare::operator() (Node * n1, Node * n2) {
