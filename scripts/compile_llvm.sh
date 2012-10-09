@@ -19,7 +19,7 @@ OPTION :
 PRINT=0
 GRAPH=0
 OPT=0
-DEBUG=0
+DEBUG=1
 
 while getopts "hpgi:o:O" opt ; do
 	case $opt in
@@ -66,9 +66,10 @@ if [ -z "$OUTPUT" ] ; then
 fi
 
 if [ $DEBUG -eq 1 ] ; then
-	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+	# -fcatch-undefined-c99-behavior 
+	clang -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
 else
-	clang -fcatch-undefined-c99-behavior -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+	clang -emit-llvm -I .. -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then
 	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $OUTPUT -o $OUTPUT
