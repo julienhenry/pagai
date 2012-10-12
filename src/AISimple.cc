@@ -200,6 +200,7 @@ void AISimple::computeNode(Node * n) {
 			} else
 				Xtemp->widening(Succ->X_s[passID]);
 		} else {
+			*Out << *Succ->bb << "not in Pw\n";
 			Xtemp->join_array_dpUcm(&Xtemp_env,aman->NewAbstract(Succ->X_s[passID]));
 		}
 		
