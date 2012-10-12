@@ -153,7 +153,6 @@ bool Pr::computeLoopHeaders_rec(Node * n,std::set<Node*> * Seen, std::set<Node*>
 			continue;
 		if (Seen->count(nsucc)) {
 			if (Set.count(nsucc)) {
-				*Out << "LOOP HEADER\n " << nsucc->bb;
 				FPr->insert(nsucc->bb);
 			}
 			continue;
