@@ -196,12 +196,14 @@ int check_scalar(ap_scalar_t * a) {
 		return 0;
 	else if (ap_scalar_equal_int(a,1))
 		return 1;
-	else
+	else if (ap_scalar_equal_int(a,-1))
 		return -1;
+	else
+		return -2;
 }
 
 int check_coeff(ap_coeff_t * a) {
-	int res = -1;
+	int res = -2;
 	if (a->discr == AP_COEFF_SCALAR) {
 		res = check_scalar(a->val.scalar);
 	}
@@ -239,11 +241,17 @@ int check_texpr0_node(ap_texpr0_node_t * a) {
 			if (B == 1) {
 				return A;
 			}
+			if (A == -1) {
+				return -B;
+			}
+			if (B == -1) {
+				return -A;
+			}
 		}
 	} else {
 		return check_texpr0(a->exprA);
 	}
-	return -1;
+	return -2;
 }
 
 int check_texpr0(ap_texpr0_t * a) {
@@ -252,7 +260,7 @@ int check_texpr0(ap_texpr0_t * a) {
 	} else if (a->discr == AP_TEXPR_NODE) {
 		return check_texpr0_node(a->val.node);	
 	}
-	return -1;
+	return -2;
 }
 
 void texpr0_node_print(llvm::raw_ostream *stream, ap_texpr0_node_t * a, char ** name_of_dim) {
@@ -287,6 +295,16 @@ void texpr0_node_print(llvm::raw_ostream *stream, ap_texpr0_node_t * a, char ** 
 				return;
 			}
 			if (B == 1) {
+				texpr0_display(stream,a->exprA,name_of_dim);
+				return;
+			}
+			if (A == -1) {
+				*stream << "-";
+				texpr0_display(stream,a->exprB,name_of_dim);
+				return;
+			}
+			if (B == -1) {
+				*stream << "-";
 				texpr0_display(stream,a->exprA,name_of_dim);
 				return;
 			}

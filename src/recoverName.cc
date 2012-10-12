@@ -437,7 +437,9 @@ int recoverName::getFunctionLineNo(Function* F) {
 std::string recoverName::getSourceFileName(Function * F) {
 	// we only need the first instruction
 	Instruction * I = getFirstMetadata(F);
-	MDNode * MD = I->getMetadata(0);
+	if (I == NULL) return "";
+	MDNode * MD = I->getMetadata("dbg");
+	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
 	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(1));
 
@@ -448,7 +450,9 @@ std::string recoverName::getSourceFileName(Function * F) {
 std::string recoverName::getSourceFileDir(Function * F) {
 	// we only need the first instruction
 	Instruction * I = getFirstMetadata(F);
-	MDNode * MD = I->getMetadata(0);
+	if (I == NULL) return "";
+	MDNode * MD = I->getMetadata("dbg");
+	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
 	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(2));
 
@@ -457,8 +461,11 @@ std::string recoverName::getSourceFileDir(Function * F) {
 }
 
 bool recoverName::is_readable(Function * F) { 
-	std::string name = getSourceFileDir(F) + "/" + getSourceFileName(F);
-    std::ifstream File(name.c_str()); 
+	std::string dir = getSourceFileDir(F);
+	std::string name = getSourceFileName(F);
+	if (dir.size() == 0 || name.size() == 0) return false;
+	std::string dirname = dir + "/" + name;
+    std::ifstream File(dirname.c_str()); 
     return !File.fail(); 
 }
 

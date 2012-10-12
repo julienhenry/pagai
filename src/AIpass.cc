@@ -62,9 +62,13 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	if (recoverName::hasMetadata(F) && recoverName::is_readable(F)) {
+	if (recoverName::hasMetadata(F)) {
+		if (recoverName::is_readable(F)) {
 		recoverName::process(F);
 		set_useSourceName(true);
+		} else {
+			set_useSourceName(false);
+		}
 	} else {
 		set_useSourceName(false);
 	}
