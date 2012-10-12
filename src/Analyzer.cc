@@ -22,6 +22,7 @@ bool quiet;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
+bool force_old_output;
 bool output_annotated;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
@@ -39,7 +40,7 @@ void show_help() {
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
---source-name : output with the variable names from the source file instead of LLVM's names\n \
+--force-old-output : force to use the old output\n \
 --annotated : specify the name of the outputted annotated source file\n \
 --source : specify the path and name of the source file (in C, C++,etc.) \n \
 --quiet (-q) : quiet mode : does not print anything \n \
@@ -112,7 +113,7 @@ bool useSourceName() {
 }
 
 void set_useSourceName(bool b) {
-	use_source_name = b;
+	use_source_name = (b && !force_old_output);
 }
 
 bool OutputAnnotatedFile() {
@@ -322,6 +323,7 @@ int main(int argc, char* argv[]) {
 	defined_main = false;
 	quiet = false;
 	use_source_name = false;
+	force_old_output = false;
 	output_annotated = false;
 	n_totalpaths = 0;
 	n_paths = 0;
@@ -347,7 +349,7 @@ int main(int argc, char* argv[]) {
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
 			{"quiet",    no_argument, 0, 'q'},
-			{"source-name",    no_argument, 0, 'S'},
+			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
 			{0, 0, 0, 0}
@@ -361,7 +363,7 @@ int main(int argc, char* argv[]) {
 			quiet = true;
             break;
         case 'S':
-            use_source_name = true;
+            force_old_output = true;
             break;
         case 'h':
             help = true;

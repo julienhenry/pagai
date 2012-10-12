@@ -33,8 +33,6 @@ void AISimple::computeFunc(Function * F) {
 		Argument * arg = a;
 		if (!(arg->use_empty()))
 			n->add_var(arg);
-		else 
-			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
 	Environment * env = NULL;
@@ -120,8 +118,7 @@ bool AISimple::runOnModule(Module &M) {
 
 		if (!quiet_mode()) {
 			Out->changeColor(raw_ostream::BLUE,true);
-			*Out << "\n\n\n"
-					<< "------------------------------------------\n"
+			*Out	<< "------------------------------------------\n"
 					<< "-         COMPUTING FUNCTION             -\n"
 					<< "------------------------------------------\n";
 			Out->resetColor();

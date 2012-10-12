@@ -335,10 +335,6 @@ void AIPass::printResult(Function * F) {
 		if (FPr->inPr(b) && ignoreFunction.count(F) == 0) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-			if (useSourceName()) {
-				*Out << "(Line No : "<<recoverName::getBasicBlockLineNo(b)<<")\n";
-				*Out << "(Column No : "<<recoverName::getBasicBlockColumnNo(b)<<")\n";
-			}
 			Out->resetColor();
 			//n->X_i[passID]->print(true);
 			n->X_s[passID]->print(true);

@@ -176,14 +176,14 @@ static inline int ap_texpr0_precedence(ap_texpr0_t* a)
 }
 
 
-void interval_print(llvm::raw_ostream &stream, ap_interval_t * a) {
-	stream << "interval";
+void interval_print(llvm::raw_ostream *stream, ap_interval_t * a) {
+	*stream << "interval";
 }
 
-void coeff_print(llvm::raw_ostream &stream, ap_coeff_t * a) {
+void coeff_print(llvm::raw_ostream *stream, ap_coeff_t * a) {
 	switch(a->discr){
 		case AP_COEFF_SCALAR:
-			stream << *(a->val.scalar);
+			*stream << *(a->val.scalar);
 			break;
 		case AP_COEFF_INTERVAL:
 			interval_print(stream,a->val.interval);
@@ -210,21 +210,23 @@ int check_coeff(ap_coeff_t * a) {
 
 int check_texpr0_node(ap_texpr0_node_t * a) {
 	if (a->exprB) {
-		int A = check_texpr0(a->exprA);
-		int B = check_texpr0(a->exprB);
 
 		if ((a->op == 0 || a->op == 1)) {
 			// this is a + or a -
+			int A = check_texpr0(a->exprA);
+			int B = check_texpr0(a->exprB);
 			if (A == 0) {
-				return check_texpr0(a->exprB);
+				return B;
 			}
 			if (B == 0) {
-				return check_texpr0(a->exprA);
+				return A;
 			}
 		}
 
 		if (a->op == 2) {
 			// this is a *
+			int A = check_texpr0(a->exprA);
+			int B = check_texpr0(a->exprB);
 			if (A == 0) {
 				return 0;
 			}
@@ -232,12 +234,14 @@ int check_texpr0_node(ap_texpr0_node_t * a) {
 				return 0;
 			}
 			if (A == 1) {
-				return check_texpr0(a->exprB);
+				return B;
 			}
 			if (B == 1) {
-				return check_texpr0(a->exprA);
+				return A;
 			}
 		}
+	} else {
+		return check_texpr0(a->exprA);
 	}
 	return -1;
 }
@@ -251,7 +255,7 @@ int check_texpr0(ap_texpr0_t * a) {
 	return -1;
 }
 
-void texpr0_node_print(llvm::raw_ostream &stream, ap_texpr0_node_t * a, char ** name_of_dim) {
+void texpr0_node_print(llvm::raw_ostream *stream, ap_texpr0_node_t * a, char ** name_of_dim) {
 	int prec = ap_texpr_op_precedence[a->op];
 
 	if (a->exprB) {
@@ -287,22 +291,19 @@ void texpr0_node_print(llvm::raw_ostream &stream, ap_texpr0_node_t * a, char ** 
 				return;
 			}
 		}
-	}
 
-	/* left argument (if binary) */
-	if (a->exprB) {
-
+		/* left argument (if binary) */
 		int prec2 = ap_texpr0_precedence(a->exprA);
-		if (prec2<prec) stream << "(";
+		if (prec2<prec) *stream << "(";
 		texpr0_display(stream, a->exprA, name_of_dim);
-		if (prec2<prec) stream << ")";
+		if (prec2<prec) *stream << ")";
+		*stream << " ";
 	}
 
 	/* operator & rounding mode */
-	if (a->exprB) stream << " ";
-	stream << ap_texpr_op_name[a->op];
+	*stream << ap_texpr_op_name[a->op];
 	if (!ap_texpr0_node_exact(a))
-		stream 
+		*stream 
 			<< "_" 
 			<< ap_texpr_rtype_name[a->type] 
 			<< ","
@@ -312,22 +313,22 @@ void texpr0_node_print(llvm::raw_ostream &stream, ap_texpr0_node_t * a, char ** 
 	{
 		ap_texpr0_t* arg = a->exprB ? a->exprB : a->exprA;
 		int prec2 = ap_texpr0_precedence(arg);
-		if (a->exprB) stream << " ";
-		if (prec2<=prec) stream << "(";
+		if (a->exprB) *stream << " ";
+		if (prec2<=prec) *stream << "(";
 		texpr0_display(stream,arg,name_of_dim);
-		if (prec2<=prec) stream << ")";
+		if (prec2<=prec) *stream << ")";
 	}
 }
 
-void texpr0_display(llvm::raw_ostream &stream, ap_texpr0_t* a, char ** name_of_dim) {
+void texpr0_display(llvm::raw_ostream  * stream, ap_texpr0_t* a, char ** name_of_dim) {
 	if (!a) return;
 	switch (a->discr) {
 		case AP_TEXPR_CST:
 			coeff_print(stream, &a->val.cst);
 			break;
 		case AP_TEXPR_DIM:
-			if (name_of_dim) stream << name_of_dim[a->val.dim];
-			else             stream << (unsigned long)a->val.dim;
+			if (name_of_dim) *stream << name_of_dim[a->val.dim];
+			else             *stream << (unsigned long)a->val.dim;
 			break;
 		case AP_TEXPR_NODE:
 			texpr0_node_print(stream, a->val.node, name_of_dim);
@@ -343,7 +344,7 @@ llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_texpr1_t & cons) {
 	ap_environment_name_of_dim_t* name_of_dim;
 
 	name_of_dim = ap_environment_name_of_dim_alloc(cons.env);
-	texpr0_display(stream, cons.texpr0, name_of_dim->p);
+	texpr0_display(&stream, cons.texpr0, name_of_dim->p);
 	ap_environment_name_of_dim_free(name_of_dim);
 
 	return stream;

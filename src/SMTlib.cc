@@ -120,6 +120,7 @@ SMTlib::SMTlib() {
 		pwrite("(set-logic AUFLIRA)\n");
 	} else {
 		pwrite("(set-option :produce-models true)\n");
+		pwrite("(set-option :produce-unsat-cores true)\n");
 		if (getSMTSolver() == Z3 || getSMTSolver() == Z3_QFNRA) {
 			pwrite("(set-option :interactive-mode true)\n");
 		}
@@ -165,6 +166,7 @@ int SMTlib::pread() {
 			ret = 0;
 			break;
 		case UNKNOWN:
+			*Out << "UNKNOWN\n";
 			ret = -1;
 			break;
 		default:
@@ -264,13 +266,13 @@ SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
 			break;
 		default:
 			std::string or_smt;
-			or_smt = "(and "; 
+			or_smt = "(and \n"; 
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				or_smt += (*b).s + " ";
+				or_smt += "     " + (*b).s + "\n";
 			}
-			or_smt += ")";
+			or_smt += "     )";
 			res.s = or_smt;
 			return res;
 	}
@@ -622,6 +624,11 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		pread();
 		true_booleans->clear();
 		true_booleans->insert(model.begin(),model.end());
+	}
+	if (ret == 0) {
+		// UNSAT
+		pwrite("(get-unsat-core)\n");
+		pread();
 	}
 	return ret;
 }

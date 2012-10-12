@@ -46,43 +46,40 @@ int recoverName::process(Function *F)
 	pass1(F);	
 	pass2(F);
 
-	std::multimap<const Value*,Info*>::iterator itt;
-
 	//simply displaying the multimaps M1 and M2 created for Function *F..
+	std::multimap<const Value*,Info*>::iterator itt;
 	DEBUG(
-	*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+		*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+		for ( itt=M1.begin() ; itt != M1.end(); itt++ ) {
+			*Out<< *(*itt).first << " => ";
+			Info* IN=getMDInfos(itt->first);
+			(*itt).second->display();
+			//IN->display(); 
+			*Out<<"\n";
+		}
+		*Out<<"Map2\n";
+		for ( itt=M2.begin() ; itt != M2.end(); itt++ ) {
+			*Out<< *(*itt).first << " => ";
+			Info* IN=getMDInfos(itt->first);
+			(*itt).second->display();
+			//IN->display(); 
+			*Out<<"\n";
+		}
 	);
-	for ( itt=M1.begin() ; itt != M1.end(); itt++ )
-	{
-		DEBUG(
-		*Out<< *(*itt).first << " => ";
-		);
-		Info* IN=getMDInfos(itt->first);
-		DEBUG(
-		(*itt).second->display();
-		//IN->display(); 
-		*Out<<"\n";
-		);
-	}
-	DEBUG(
-	*Out<<"Map2\n";
-	);
-	for ( itt=M2.begin() ; itt != M2.end(); itt++ )
-	{
-		DEBUG(
-		*Out<< *(*itt).first << " => ";
-		);
-		Info* IN=getMDInfos(itt->first);
-		DEBUG(
-		(*itt).second->display();
-		//IN->display(); 
-		*Out<<"\n";
-		);
-	}
 	return 1;
 }
 
 int recoverName::getBasicBlockLineNo(BasicBlock* BB) {
+#if 0
+	Instruction * I = getFirstMetadata(BB);
+	if (I == NULL) return -1;
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_lexical_block = get_DW_TAG_lexical_block(MD);
+	if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_lexical_block->getOperand(2)))
+		return LineNo->getZExtValue();
+	return -1;
+#endif
+
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM1.find(BB);
 	if(it!=BBM1.end())
@@ -94,6 +91,16 @@ int recoverName::getBasicBlockLineNo(BasicBlock* BB) {
 }
 
 int recoverName::getBasicBlockColumnNo(BasicBlock* BB) {
+#if 0
+	Instruction * I = getFirstMetadata(BB);
+	if (I == NULL) return -1;
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_lexical_block = get_DW_TAG_lexical_block(MD);
+	if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_lexical_block->getOperand(3)))
+		return LineNo->getZExtValue();
+	return -1;
+#endif
+
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM2.find(BB);
 	if(it!=BBM2.end())
@@ -191,13 +198,11 @@ Info* resolveMetDescriptor(MDNode* md) {
 //'pass1' reads llvm.dbg.declare and llvm.dbg.value instructions, maps bitcode variables(of type Value*)
 //to original source variable(of type Info*) and stores them in multimap M1
 void recoverName::pass1(Function *F) {
-	MDNode * md; 
-	const Value* BCVar;
-	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
-	{
+	MDNode * MD; 
+	const Value* val;
+	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {
 		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
-		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
-		{
+		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
 				//////////////////
 				//SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
 				//I->getAllMetadata(MDs);
@@ -213,71 +218,51 @@ void recoverName::pass1(Function *F) {
 				//}
 				//*Out << "\n";
 				//////////////////////////////
-			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I))
-			{
-				SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-				I->getAllMetadata(MDs);
-
-				SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin();	
+			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I)) {
 			
-				if(MDNode *BlockMD=dyn_cast<MDNode>(MI->second))
-				{
-					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0)))
-					{
+				if(MDNode *BlockMD=dyn_cast<MDNode>(I->getMetadata(0))) {
+					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0))) {
 						bblineNo=BBLineNo->getZExtValue();
 					}
-					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1)))
-					{
+					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1))) {
 						bbcolumnNo=BBColumnNo->getZExtValue();
 					}
-					if(bblineNo<bblineNoMin)
-					{
+					if(bblineNo<bblineNoMin) {
 						bblineNoMin=bblineNo;
 						bbcolumnNoMin=bbcolumnNo;
-					}
-					else if(bblineNo==bblineNoMin && bbcolumnNo<bbcolumnNoMin)
-					{
+					} else if(bblineNo==bblineNoMin && bbcolumnNo<bbcolumnNoMin) {
 						bbcolumnNoMin=bbcolumnNo;
 					}
 				}
 			}
 
-			//now to check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
+			//now check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
 			bool dbgInstFlag=false;
-			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I))
-			{
+			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
 				dbgInstFlag=true;
-				BCVar=DVI->getValue();
-				md = DVI->getVariable(); 
+				val=DVI->getValue();
+				MD = DVI->getVariable(); 
+			} else if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(I)) {	
+				if((MD=dyn_cast<MDNode>(DDI->getVariable()))&& (val=dyn_cast<Value>(DDI->getAddress())))
+				   dbgInstFlag=true;
 			}
 
-			else if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(I))
-			{	
-				if((md=dyn_cast<MDNode>(DDI->getVariable()))&& (BCVar=dyn_cast<Value>(DDI->getAddress())))
-				   dbgInstFlag=true;
-			}	
-
-			if(dbgInstFlag)
-			{
-				Info* varInfo=resolveMetDescriptor(md);
-				if(varInfo!=NULL)
-				{
+			if(dbgInstFlag) {
+				Info* varInfo=resolveMetDescriptor(MD);
+				if(varInfo!=NULL) {
 					std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
-					ret1=M1.equal_range(BCVar);
+					ret1=M1.equal_range(val);
 
 					bool ifAlreadyMapped=false;
 					//this is to check and avoid duplicate entries in the map M1 
-					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++)
-					{
-						if(varInfo->isEqual(it->second))
-						{
+					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++) {
+						if(varInfo->isEqual(it->second)) {
 							ifAlreadyMapped=true;
 							break;
 						}
 					}
-					if(!ifAlreadyMapped)
-					{
-						std::pair<const Value*,Info*>hi=std::make_pair(BCVar,varInfo);
+					if(!ifAlreadyMapped) {
+						std::pair<const Value*,Info*>hi=std::make_pair(val,varInfo);
 						M1.insert(hi);
 					}
 					dbgInstFlag=false;
@@ -296,7 +281,7 @@ bool recoverName::evaluatePHINode(
 		std::vector<const PHINode*>& PHIvector, //stores PHINodes that have already been evaluated
 		std::vector<Info*>& v) {
 
-	std::vector<Info*> v2,intersectVector(10);
+	std::vector<Info*> v2;
 	std::vector<Info*>::iterator vit,vx;
 	
 	std::vector<const PHINode*>::iterator PHIvit;
@@ -377,6 +362,7 @@ bool recoverName::evaluatePHINode(
 			sort(v.begin(),v.end(),compObj);
 			sort(v2.begin(),v2.end(),compObj);
 
+			std::vector<Info*> intersectVector(v.size()+v2.size());
 			//intersection of vectors v and v2 is taken and stored in intersectVector 
 			vit=set_intersection(v.begin(),v.end(),v2.begin(),v2.end(),intersectVector.begin(),compare_1());
 						
@@ -396,7 +382,6 @@ bool recoverName::evaluatePHINode(
 						}
 						*Out<<"\n";
 		*/
-		
 	}
 	return true;
 }
@@ -427,10 +412,16 @@ void recoverName::pass2(Function *F) {
 Instruction * recoverName::getFirstMetadata(Function * F) {
 	Function::iterator it = F->begin(), et = F->end();
 	for (;it!=et;it++) {
-		BasicBlock::iterator iit = it->begin(), eet = it->end();
-		for (;iit!=eet;iit++) {
-			if (iit->hasMetadata()) return iit;
-		}
+		Instruction * res = getFirstMetadata(it);
+		if (res != NULL) return res;
+	}
+	return NULL;
+}
+
+Instruction * recoverName::getFirstMetadata(BasicBlock * b) {
+	BasicBlock::iterator it = b->begin(), et = b->end();
+	for (;it!=et;it++) {
+		if (it->hasMetadata()) return it;
 	}
 	return NULL;
 }

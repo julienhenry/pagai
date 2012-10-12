@@ -37,7 +37,7 @@ llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_texpr1_t & cons);
 llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_scalar_t & cons);
 
 
-void texpr0_display(llvm::raw_ostream &stream, ap_texpr0_t* a, char ** name_of_dim);
+void texpr0_display(llvm::raw_ostream * stream, ap_texpr0_t* a, char ** name_of_dim);
 
 
 int check_scalar(ap_scalar_t * a);

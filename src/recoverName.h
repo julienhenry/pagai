@@ -73,6 +73,7 @@ class recoverName {
 		static std::string getSourceFileName(Function * F);
 		static std::string getSourceFileDir(Function * F);
 		static Instruction * getFirstMetadata(Function * F);
+		static Instruction * getFirstMetadata(BasicBlock * b);
 		static bool hasMetadata(Module * M);
 		static bool hasMetadata(Function * F);
 		static bool hasMetadata(BasicBlock * b);
