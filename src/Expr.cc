@@ -118,16 +118,11 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 	} 
 	if (isa<ConstantFP>(val)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(val);
-
 		double x;
-		if (FP->isZero()) {
-			x = 0;
-		} else {
+		if (FP->getType()->isFloatTy()) {
+			x = (double)FP->getValueAPF().convertToFloat();
+		} else if (FP->getType()->isDoubleTy()) {
 			x = FP->getValueAPF().convertToDouble();
-			if (!FP->isExactlyValue(x)) {
-				float f = FP->getValueAPF().convertToFloat(); 
-				x = f;
-			}
 		}
 		res = ap_texpr1_cst_scalar_double(emptyenv,x);
 	}
