@@ -46,7 +46,7 @@ bool AIopt::runOnModule(Module &M) {
 	LSMT = SMTpass::getInstance();
 	LSMT->reset_SMTcontext();
 
-	*Out << "Starting analysis: PF+LW\n";
+	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
