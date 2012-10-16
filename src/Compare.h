@@ -38,6 +38,9 @@ class CmpResults {
  */
 class Compare : public ModulePass {
 
+	private:
+		std::vector<Techniques> ComparedTechniques;
+
 	protected:
 		SMTpass * LSMT;
 
@@ -54,6 +57,9 @@ class Compare : public ModulePass {
 			Techniques t1, 
 			Techniques t2);
 
+		void CompareTechniquesByPair(Node * n);
+		void PrintResultsByPair();
+
 		void ComputeTime(Techniques t, Function * F);
 		void printTime(Techniques t);
 
@@ -62,6 +68,7 @@ class Compare : public ModulePass {
 	public:
 		static char ID;
 
+		Compare(std::vector<enum Techniques> * T);
 		Compare();
 
 		const char * getPassName() const;

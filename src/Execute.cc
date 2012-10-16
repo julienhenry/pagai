@@ -125,7 +125,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	if (onlyOutputsRho()) {
 		Passes.add(new GenerateSMT());
 	} else if (compareTechniques()) {
-		Passes.add(new Compare());
+		Passes.add(new Compare(getComparedTechniques()));
 	} else if (compareNarrowing()) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:

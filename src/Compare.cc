@@ -7,6 +7,7 @@
 #include "Pr.h"
 #include "Expr.h"
 #include "AIpf.h"
+#include "AIpf_incr.h"
 #include "AIopt.h"
 #include "AIopt_incr.h"
 #include "AIGopan.h"
@@ -29,13 +30,41 @@ const char * Compare::getPassName() const {
 
 Compare::Compare() : ModulePass(ID) {}
 
+Compare::Compare(std::vector<enum Techniques> * T) : ModulePass(ID) {
+	std::vector<enum Techniques>::iterator it = T->begin(), et = T->end();
+	for (; it!=et; it++) {
+		ComparedTechniques.push_back(*it);
+	}
+}
+
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
-	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
-	AU.addRequired<ModulePassWrapper<AIpf, 0> >();
-	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
-	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
-	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		switch (ComparedTechniques[i]) {
+			case SIMPLE:
+				AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
+				break;
+			case LOOKAHEAD_WIDENING:
+				break;
+			case GUIDED:
+				AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
+				break;
+			case PATH_FOCUSING:
+				AU.addRequired<ModulePassWrapper<AIpf, 0> >();
+				break;
+			case PATH_FOCUSING_INCR:
+				AU.addRequired<ModulePassWrapper<AIpf_incr, 0> >();
+				break;
+			case LW_WITH_PF:
+				AU.addRequired<ModulePassWrapper<AIopt, 0> >();
+				break;
+			case COMBINED_INCR:
+				AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
+				break;
+			case LW_WITH_PF_DISJ:
+				AU.addRequired<ModulePassWrapper<AIdis, 0> >();
+				break;
+		}
+	}
 	AU.setPreservesAll();
 }
 
@@ -152,6 +181,7 @@ void Compare::printTime(Techniques t) {
 	*Out 
 		<< " " << Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
+		<< "  \t// " << TechniquesToString(t) 
 		<<  "\n";
 }
 
@@ -170,55 +200,39 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 void Compare::printAllResults() {
 
 	*Out << "\nTIME:\n";
-	printTime(SIMPLE);
-	printTime(GUIDED);
-	printTime(PATH_FOCUSING);
-	printTime(LW_WITH_PF);
-	printTime(LW_WITH_PF_DISJ);
-	printTime(COMBINED_INCR);
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printTime(ComparedTechniques[i]);
+	}
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
-	*Out	<< results[GUIDED][SIMPLE].eq << " "
-			<< results[GUIDED][SIMPLE].lt << " "
-			<< results[GUIDED][SIMPLE].gt << " "
-			<< results[GUIDED][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[PATH_FOCUSING][SIMPLE].eq << " "
-			<< results[PATH_FOCUSING][SIMPLE].lt << " "
-			<< results[PATH_FOCUSING][SIMPLE].gt << " "
-			<< results[PATH_FOCUSING][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[PATH_FOCUSING][GUIDED].eq << " "
-			<< results[PATH_FOCUSING][GUIDED].lt << " "
-			<< results[PATH_FOCUSING][GUIDED].gt << " "
-			<< results[PATH_FOCUSING][GUIDED].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][PATH_FOCUSING].eq << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].lt << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].gt << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][GUIDED].eq << " "
-			<< results[LW_WITH_PF][GUIDED].lt << " "
-			<< results[LW_WITH_PF][GUIDED].gt << " "
-			<< results[LW_WITH_PF][GUIDED].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][SIMPLE].eq << " "
-			<< results[LW_WITH_PF][SIMPLE].lt << " "
-			<< results[LW_WITH_PF][SIMPLE].gt << " "
-			<< results[LW_WITH_PF][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF_DISJ][LW_WITH_PF].eq << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].lt << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].gt << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].un << " "
-			<< "\n";
-	*Out	<< results[COMBINED_INCR][LW_WITH_PF].eq << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].lt << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].gt << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].un << " "
-			<< "\n";
+
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			*Out	<< results[ComparedTechniques[i]][ComparedTechniques[j]].eq << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].lt << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].gt << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].un << " "
+					<< "  \t// "<< TechniquesToString(ComparedTechniques[i]) << " / " << TechniquesToString(ComparedTechniques[j]) 
+					<< "\n";
+		}
+	}
+}
+
+void Compare::CompareTechniquesByPair(Node * n) {
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			compareTechniques(n,ComparedTechniques[i],ComparedTechniques[j]);
+		}
+	}
+}
+
+void Compare::PrintResultsByPair() {
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			printResults(ComparedTechniques[i],ComparedTechniques[j]);
+		}
+	}
 }
 
 bool Compare::runOnModule(Module &M) {
@@ -246,37 +260,20 @@ bool Compare::runOnModule(Module &M) {
 		if (ignoreFunction.count(F) > 0) continue;
 
 		// we now count the computing time
-		ComputeTime(SIMPLE,F);
-		ComputeTime(GUIDED,F);
-		ComputeTime(PATH_FOCUSING,F);
-		ComputeTime(LW_WITH_PF,F);
-		ComputeTime(LW_WITH_PF_DISJ,F);
-		ComputeTime(COMBINED_INCR,F);
+		for (int i = 0; i < ComparedTechniques.size(); i++) {
+			ComputeTime(ComparedTechniques[i],F);
+		}
 
 		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
 			if (FPr->getPw()->count(b)) {
-				compareTechniques(n,GUIDED,SIMPLE);
-				compareTechniques(n,PATH_FOCUSING,SIMPLE);
-				compareTechniques(n,PATH_FOCUSING,GUIDED);
-				compareTechniques(n,LW_WITH_PF,PATH_FOCUSING);
-				compareTechniques(n,LW_WITH_PF,GUIDED);
-				compareTechniques(n,LW_WITH_PF,SIMPLE);
-				compareTechniques(n,LW_WITH_PF_DISJ,LW_WITH_PF);
-				compareTechniques(n,COMBINED_INCR,LW_WITH_PF);
+				CompareTechniquesByPair(n);
 			}
 		}
 	}
-	printResults(GUIDED,SIMPLE);
-	printResults(PATH_FOCUSING,SIMPLE);
-	printResults(PATH_FOCUSING,GUIDED);
-	printResults(LW_WITH_PF,PATH_FOCUSING);
-	printResults(LW_WITH_PF,GUIDED);
-	printResults(LW_WITH_PF,SIMPLE);
-	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
-	printResults(COMBINED_INCR,LW_WITH_PF);
+	PrintResultsByPair();
 
 	*Out << "\nFUNCTIONS:\n";
 	*Out << Function_number << "\n";

@@ -25,6 +25,7 @@
 
 #include <set>
 #include <map>
+#include <vector>
 
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/CFG.h"
@@ -49,7 +50,7 @@ enum Techniques {
 	PATH_FOCUSING_INCR,
 	LW_WITH_PF,
 	COMBINED_INCR,
-	LW_WITH_PF_DISJ
+	LW_WITH_PF_DISJ,
 };
 
 enum SMTSolver {
@@ -63,6 +64,7 @@ enum SMTSolver {
 };
 
 std::string TechniquesToString(Techniques t);
+enum Techniques TechniqueFromString(bool &error, std::string d);
 
 std::string ApronManagerToString(Apron_Manager_Type D);
 
@@ -71,6 +73,7 @@ SMTSolver getSMTSolver();
 Techniques getTechnique();
 
 bool compareTechniques();
+std::vector<enum Techniques> * getComparedTechniques();
 
 bool compareDomain();
 
