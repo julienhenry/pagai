@@ -50,6 +50,10 @@ class Compare : public ModulePass {
 			> results;
 
 		std::map<Techniques, sys::TimeValue *> Time;
+
+		// count the number of warnings emitted by each technique
+		std::map<Techniques,int> Warnings;
+
 		int compareAbstract(Abstract * A, Abstract * B);
 
 		void compareTechniques(
@@ -61,7 +65,9 @@ class Compare : public ModulePass {
 		void PrintResultsByPair();
 
 		void ComputeTime(Techniques t, Function * F);
+		void CountNumberOfWarnings(Techniques t, Function * F);
 		void printTime(Techniques t);
+		void printWarnings(Techniques t);
 
 		void printAllResults();
 		void printResults(Techniques t1, Techniques t2);

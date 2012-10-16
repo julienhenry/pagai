@@ -44,6 +44,7 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 				AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
 				break;
 			case LOOKAHEAD_WIDENING:
+				AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
 				break;
 			case GUIDED:
 				AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
@@ -185,6 +186,18 @@ void Compare::printTime(Techniques t) {
 		<<  "\n";
 }
 
+void Compare::printWarnings(Techniques t) {
+	if (!Warnings.count(t)) {
+
+		Warnings[t] = 0;
+	}
+
+	*Out 
+		<< Warnings[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
 void Compare::printResults(Techniques t1, Techniques t2) {
 
 	Out->changeColor(raw_ostream::MAGENTA,true);
@@ -202,6 +215,11 @@ void Compare::printAllResults() {
 	*Out << "\nTIME:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printTime(ComparedTechniques[i]);
+	}
+
+	*Out << "\nNUMBER OF EMITTED WARNINGS:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printWarnings(ComparedTechniques[i]);
 	}
 
 	*Out	<< "\n";
@@ -235,6 +253,30 @@ void Compare::PrintResultsByPair() {
 	}
 }
 
+
+void Compare::CountNumberOfWarnings(Techniques t, Function * F) {
+	BasicBlock * b;
+	Node * n;
+	params P;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+	P.T = t;
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if (FPr->getAssert()->count(b) || FPr->getUndefinedBehaviour()->count(b)) {
+			if (!n->X_s[P]->is_bottom()) {
+				if (Warnings.count(t))
+					Warnings[t]++;
+				else
+					Warnings[t] = 1;
+			}
+		}
+	}
+}
+
 bool Compare::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
@@ -259,9 +301,10 @@ bool Compare::runOnModule(Module &M) {
 
 		if (ignoreFunction.count(F) > 0) continue;
 
-		// we now count the computing time
+		// we now count the computing time and the number of warnings
 		for (int i = 0; i < ComparedTechniques.size(); i++) {
 			ComputeTime(ComparedTechniques[i],F);
+			CountNumberOfWarnings(ComparedTechniques[i],F);
 		}
 
 		Pr * FPr = Pr::getInstance(F);
