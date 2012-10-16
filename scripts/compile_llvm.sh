@@ -21,9 +21,9 @@ OPTION :
 PRINT=0
 GRAPH=0
 OPT=0
-DEBUG=0
+DEBUG=1
 INLINE=0
-NOTRAP=0
+NOTRAP=1
 
 while getopts "hpgi:o:OIN" opt ; do
 	case $opt in
