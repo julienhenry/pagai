@@ -83,10 +83,10 @@ fi
 
 if [ $DEBUG -eq 1 ] ; then
 	echo clang $TRAP -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
-	clang $TRAP -emit-llvm -I .. -g -c $FILENAME -o $OUTPUT
+	clang $TRAP -emit-llvm -I .. -I . -g -c $FILENAME -o $OUTPUT
 else
 	echo clang $TRAP -emit-llvm -I ..  -c $FILENAME -o $OUTPUT
-	clang $TRAP -emit-llvm -I .. -c $FILENAME -o $OUTPUT
+	clang $TRAP -emit-llvm -I .. -I . -c $FILENAME -o $OUTPUT
 fi
 if [ $OPT -eq 1 ] ; then
 	INLINE=1
