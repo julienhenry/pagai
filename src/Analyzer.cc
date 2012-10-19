@@ -264,6 +264,7 @@ bool setTechnique(char * t) {
 	d.assign(t);
 	bool error;
 	enum Techniques r = TechniqueFromString(error,d);
+	technique = r;
 	if (error) {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
 		return 1;

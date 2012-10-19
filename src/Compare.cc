@@ -180,7 +180,7 @@ void Compare::printTime(Techniques t) {
 		Time[t] = zero;
 	}
 	*Out 
-		<< " " << Time[t]->seconds() 
+		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
 		<< "  \t// " << TechniquesToString(t) 
 		<<  "\n";
@@ -216,11 +216,13 @@ void Compare::printAllResults() {
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printTime(ComparedTechniques[i]);
 	}
+	*Out << "TIME_END\n";
 
-	*Out << "\nNUMBER OF EMITTED WARNINGS:\n";
+	*Out << "\nWARNINGS:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printWarnings(ComparedTechniques[i]);
 	}
+	*Out << "WARNINGS_END\n";
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
@@ -235,6 +237,7 @@ void Compare::printAllResults() {
 					<< "\n";
 		}
 	}
+	*Out	<< "MATRIX_END\n";
 }
 
 void Compare::CompareTechniquesByPair(Node * n) {
@@ -319,9 +322,9 @@ bool Compare::runOnModule(Module &M) {
 	PrintResultsByPair();
 
 	*Out << "\nFUNCTIONS:\n";
-	*Out << Function_number << "\n";
+	*Out << Function_number << "\nFUNCTIONS_END\n";
 	*Out << "\nIGNORED:\n";
-	*Out << ignoreFunction.size() << "\n";
+	*Out << ignoreFunction.size() << "\nIGNORED_END\n";
 	printAllResults();
 	return true;
 }
