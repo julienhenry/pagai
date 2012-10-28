@@ -123,6 +123,11 @@ SMTlib::SMTlib() {
 		pwrite("(set-option :produce-unsat-cores true)\n");
 		if (getSMTSolver() == Z3 || getSMTSolver() == Z3_QFNRA) {
 			pwrite("(set-option :interactive-mode true)\n");
+			if (getTimeout() != 0) {
+				std::ostringstream timeout;
+				timeout << getTimeout()*1000;
+				pwrite("(set-option :soft-timeout "+timeout.str()+")\n");
+			}
 		}
 		if (getSMTSolver() == SMTINTERPOL) {
 			pwrite("(set-logic QF_UFLIRA)\n");

@@ -146,6 +146,14 @@ def generate_gnuplot_from_time_array(time_s_array,time_ms_array,root_dir,bench):
 	f.close()
 	system('gnuplot '+root_dir+'/techniques_time.gnuplot')
 
+def generate_gnuplot_from_warnings_array(warning_array,root_dir,bench):
+	f = open('/tmp/data_warning_gnuplot', 'w')
+	for t in warning_array :
+		ms = str(warning_array[t])
+		f.write('"'+t+'" '+str(warning_array[t])+"\n") 
+	f.close()
+	system('gnuplot '+root_dir+'/techniques_warnings.gnuplot')
+
 def process_input_files():
 	time_s_array = dict()
 	time_ms_array = dict()
@@ -172,6 +180,7 @@ def process_input_files():
 	#print matrix_average
 	generate_gnuplot_from_matrix(matrix_average,root_dir,bench)
 	generate_gnuplot_from_time_array(time_s_array,time_ms_array,root_dir,bench)
+	generate_gnuplot_from_warnings_array(warnings_array,root_dir,bench)
 
 process_input_files()
 

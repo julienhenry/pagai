@@ -11,6 +11,8 @@
 
 #include "llvm/Support/FormattedStream.h"
 
+#include <boost/thread/thread.hpp>
+
 #include <gmp.h>
 #include "z3_manager.h"
 #include "Analyzer.h"
@@ -19,6 +21,11 @@
 z3_manager::z3_manager() {
 	Z3_config config = Z3_mk_config();
 	Z3_set_param_value(config, "MODEL", "true");
+	if (getTimeout() != 0) {
+		std::ostringstream timeout;
+		timeout << getTimeout()*1000;
+		Z3_set_param_value(config, "SOFT_TIMEOUT", timeout.str().c_str());
+	}
 	ctx = Z3_mk_context(config);
 	Z3_del_config(config);
 
@@ -355,6 +362,7 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
 	int ret = 0;
 	Z3_assert_cnstr(ctx,(Z3_ast)a.i);
+	
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
 
 	switch (result) {
@@ -365,9 +373,10 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			ret = 0;
 			break;
 		case Z3_L_UNDEF:
-			//DEBUG(
+			DEBUG(
 			*Out << "unknown\n";
-			//);
+			);
+			*Out << "UNKNOWN\n";
 			ret = -1;
 			break;
 		case Z3_L_TRUE:

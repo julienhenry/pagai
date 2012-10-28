@@ -90,6 +90,8 @@ char* getSourceFilename();
 
 char* getFilename();
 
+int getTimeout();
+
 bool definedMain();
 std::string getMain();
 
@@ -105,11 +107,5 @@ bool useThreshold();
 bool useThreshold(int i);
 
 extern llvm::raw_ostream *Out;
-
-/**
- * \brief Functions ignored by Compare pass (because the analysis failed for
- * one technique)
- */
-extern std::set<llvm::Function*> ignoreFunction;
 
 #endif

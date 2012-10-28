@@ -148,14 +148,20 @@ void AIpf::computeFunction(Function * F) {
 	A.push(n);
 
 	ascendingIter(n, F);
+	if (unknown) goto end;
 
 	narrowingIter(n);
+	if (unknown) goto end;
 	// then we move X_d abstract values to X_s abstract values
-	int step = 0;
-	while (copy_Xd_to_Xs(F) && step <= 1) {
-		narrowingIter(n);
-		step++;
+	{
+		int step = 0;
+		while (copy_Xd_to_Xs(F) && step <= 1) {
+			narrowingIter(n);
+			if (unknown) goto end;
+			step++;
+		}
 	}
+end:
 	LSMT->pop_context();
 }
 

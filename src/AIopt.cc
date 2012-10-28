@@ -159,7 +159,7 @@ void AIopt::computeFunction(Function * F) {
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
-	while (!A_prime.empty()) {
+	while (!A_prime.empty() && !unknown) {
 		
 		// compute the new paths starting in a point in A'
 		is_computed.clear();
@@ -168,17 +168,16 @@ void AIopt::computeFunction(Function * F) {
 			A_prime.pop();
 			computeNewPaths(current); // this method adds elements in A and A'
 			if (unknown) {
-				ignoreFunction.insert(F);
+				ignoreFunction[passID].insert(F);
 				while (!A_prime.empty()) A_prime.pop();
-				LSMT->pop_context();
-				delete env;
-				return;
+				goto end;
 			}
 		}
 
 		W = new PathTree(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
+		if (unknown) goto end;
 
 		// we set X_d abstract values to bottom for narrowing
 		Pr * FPr = Pr::getInstance(F);
@@ -190,15 +189,17 @@ void AIopt::computeFunction(Function * F) {
 		}
 
 		narrowingIter(n);
+		if (unknown) goto end;
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
 			narrowingIter(n);
+			if (unknown) goto end;
 			step++;
 		}
 		delete W;
-
 	}
+end:
 	delete env;
 	LSMT->pop_context();
 }

@@ -11,7 +11,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
-
 #include "llvm/Support/CFG.h"
 #include "llvm/Constants.h"
 
@@ -51,7 +50,7 @@ SMTpass::SMTpass() {
 		default:
 			man = new SMTlib();
 	}
-	man->push_context();
+	stack_level = 0;
 	CurrentNodeName = 0;
 }
 
@@ -89,8 +88,8 @@ SMT_expr SMTpass::getRho(Function &F) {
 
 void SMTpass::reset_SMTcontext() {
 	rho.clear();
-	man->pop_context();
-	man->push_context();
+	while (stack_level > 0)
+		pop_context();
 }
 
 SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
@@ -642,10 +641,12 @@ void SMTpass::computeRho(Function &F) {
 
 
 void SMTpass::push_context() {
+	stack_level++;
 	man->push_context();
 }
 
 void SMTpass::pop_context() {
+	stack_level--;
 	man->pop_context();
 }
 
@@ -718,7 +719,9 @@ int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) 
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
+
 	res = man->SMT_check(expr,&true_booleans);
+
 	if (res != 1) return res;
 	bool isEdge, isIndex, start;
 	BasicBlock * src;

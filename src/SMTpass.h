@@ -40,6 +40,8 @@ class SMTpass : private InstVisitor<SMTpass> {
 
 		static int nundef;
 
+		int stack_level;
+
 		/**
 		 * \brief stores the rho formula associated to each function
 		 */

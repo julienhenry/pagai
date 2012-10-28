@@ -198,6 +198,31 @@ void Compare::printWarnings(Techniques t) {
 		<< "\n";
 }
 
+void Compare::printSafeProperties(Techniques t) {
+	if (!Safe_properties.count(t)) {
+
+		Safe_properties[t] = 0;
+	}
+
+	*Out 
+		<< Safe_properties[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
+void Compare::printNumberSkipped(Techniques t) {
+	params P;
+	P.T = t;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+
+	*Out 
+		<< ignoreFunction[P].size() 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
 void Compare::printResults(Techniques t1, Techniques t2) {
 
 	Out->changeColor(raw_ostream::MAGENTA,true);
@@ -212,6 +237,12 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 
 void Compare::printAllResults() {
 
+	*Out << "\nSKIPPED:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printNumberSkipped(ComparedTechniques[i]);
+	}
+	*Out << "SKIPPED_END\n";
+
 	*Out << "\nTIME:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printTime(ComparedTechniques[i]);
@@ -223,6 +254,13 @@ void Compare::printAllResults() {
 		printWarnings(ComparedTechniques[i]);
 	}
 	*Out << "WARNINGS_END\n";
+
+	*Out << "\nSAFE_PROPERTIES:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printSafeProperties(ComparedTechniques[i]);
+	}
+	*Out << "SAFE_PROPERTIES_END\n";
+
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
@@ -275,6 +313,11 @@ void Compare::CountNumberOfWarnings(Techniques t, Function * F) {
 					Warnings[t]++;
 				else
 					Warnings[t] = 1;
+			} else {
+				if (Safe_properties.count(t))
+					Safe_properties[t]++;
+				else
+					Safe_properties[t] = 1;
 			}
 		}
 	}
@@ -302,7 +345,7 @@ bool Compare::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 		Function_number++;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 
 		// we now count the computing time and the number of warnings
 		for (int i = 0; i < ComparedTechniques.size(); i++) {
@@ -324,7 +367,7 @@ bool Compare::runOnModule(Module &M) {
 	*Out << "\nFUNCTIONS:\n";
 	*Out << Function_number << "\nFUNCTIONS_END\n";
 	*Out << "\nIGNORED:\n";
-	*Out << ignoreFunction.size() << "\nIGNORED_END\n";
+	*Out << nb_ignored() << "\nIGNORED_END\n";
 	printAllResults();
 	return true;
 }
