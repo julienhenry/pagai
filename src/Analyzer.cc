@@ -26,6 +26,7 @@ bool defined_main;
 bool use_source_name;
 bool force_old_output;
 bool output_annotated;
+bool log_smt;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -84,6 +85,7 @@ void show_help() {
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
 --timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
+--log-smt : SMT-lib2 queries are logged in files\n \
 --compare (-c) : use this argument to compare techniques\n \
 		example: pagai -i <file> -c pf -c s  will compare the two techniques pf and s\n \
 --comparedomains (-C) : compare two abstract domains using the same technique\n \
@@ -333,6 +335,9 @@ bool quiet_mode() {
 	return quiet;
 } 
 
+bool log_smt_into_file() {
+	return log_smt;
+}
 
 int main(int argc, char* argv[]) {
 
@@ -362,6 +367,7 @@ int main(int argc, char* argv[]) {
 	use_source_name = false;
 	force_old_output = false;
 	output_annotated = false;
+	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
@@ -391,6 +397,7 @@ int main(int argc, char* argv[]) {
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
 			{"timeout",    required_argument, 0, 'k'},
+			{"log-smt",    no_argument, 0, 'l'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
@@ -403,6 +410,9 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'q':
 				quiet = true;
+        	    break;
+			case 'l':
+				log_smt = true;
         	    break;
         	case 'S':
         	    force_old_output = true;

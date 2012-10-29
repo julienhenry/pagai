@@ -38,7 +38,6 @@ z3_manager::z3_manager() {
 
 z3_manager::~z3_manager() {
 	Z3_del_context(ctx);
-	Z3_reset_memory();
 }
 
 SMT_expr z3_manager::SMT_mk_true(){

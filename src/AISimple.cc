@@ -124,7 +124,6 @@ bool AISimple::runOnModule(Module &M) {
 			Out->resetColor();
 		}
 		LSMT = SMTpass::getInstance();
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();

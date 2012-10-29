@@ -207,7 +207,11 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * satisfiable. In this case, path containts the path extracted from
 		 * the model
 		 */
-		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path);
+		int SMTsolve(
+				SMT_expr expr, 
+				std::list<BasicBlock*> * path, 
+				Function * F, 
+				params passID);
 
 		/** 
 		 * \brief solve an SMT formula and computes its model in case of a 'sat'
@@ -216,7 +220,12 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * In the case of a pass using disjunctive invariants, index is set to
 		 * the associated index of the disjunct to focus on.
 		 */
-		int SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index);
+		int SMTsolve(
+				SMT_expr expr, 
+				std::list<BasicBlock*> * path, 
+				int &index,
+				Function * F, 
+				params passID);
 
 		/**
 		 * \brief solve the SMT expression

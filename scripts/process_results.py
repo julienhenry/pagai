@@ -45,8 +45,8 @@ def process_time(filename,time_s_array, time_ms_array):
 	if not string :
 		return
 	for lines in string.rstrip().split('\n') :
-		elements = lines.split(' ', 2 )
-		t = to_technique(elements[2])
+		elements = lines.split(' ', 4 )
+		t = to_technique(elements[4])
 		if t in time_s_array:
 			time_s_array[t] += int(elements[0])
 		else:

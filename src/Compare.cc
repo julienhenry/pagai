@@ -172,6 +172,19 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 		Time[t] = zero;
 		*Time[t] = *Total_time[P][F];
 	}
+
+	if (Total_time_SMT[P].count(F) == 0) {
+		sys::TimeValue * time_SMT = new sys::TimeValue(0,0);
+		Total_time_SMT[P][F] = time_SMT;
+	}
+
+	if (Time_SMT.count(t)) {
+		*Time_SMT[t] = *Time_SMT[t]+*Total_time_SMT[P][F];
+	} else {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+		*Time_SMT[t] = *Total_time_SMT[P][F];
+	}
 }
 
 void Compare::printTime(Techniques t) {
@@ -182,6 +195,8 @@ void Compare::printTime(Techniques t) {
 	*Out 
 		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
+		<< " " << Time_SMT[t]->seconds() 
+		<< " " << Time_SMT[t]->microseconds() 
 		<< "  \t// " << TechniquesToString(t) 
 		<<  "\n";
 }
@@ -328,7 +343,7 @@ bool Compare::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	int Function_number = 0;
-	LSMT = SMTpass::getInstance();
+	LSMT = SMTpass::getInstanceForAbstract();
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -338,7 +353,7 @@ bool Compare::runOnModule(Module &M) {
 	Out->resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		LSMT->reset_SMTcontext();
+		//LSMT->reset_SMTcontext();
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
@@ -357,7 +372,10 @@ bool Compare::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (FPr->getPw()->count(b)) {
+			if (FPr->getPw()->count(b) 
+					|| FPr->getUndefinedBehaviour()->count(b)
+					|| FPr->getAssert()->count(b)
+					) {
 				CompareTechniquesByPair(n);
 			}
 		}

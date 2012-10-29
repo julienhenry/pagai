@@ -58,7 +58,6 @@ bool AIdis::runOnModule(Module &M) {
 					<< "------------------------------------------\n";
 			Out->resetColor();
 		}
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -99,6 +98,7 @@ bool AIdis::runOnModule(Module &M) {
 		}
 		S.clear();
 
+		LSMT->reset_SMTcontext();
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
@@ -248,7 +248,7 @@ void AIdis::computeNewPaths(Node * n) {
 		);
 		int res;
 		int index = 0;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
@@ -409,7 +409,7 @@ void AIdis::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
@@ -525,7 +525,7 @@ void AIdis::narrowNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index = 0;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) unknown = true;

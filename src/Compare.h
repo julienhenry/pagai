@@ -50,6 +50,7 @@ class Compare : public ModulePass {
 			> results;
 
 		std::map<Techniques, sys::TimeValue *> Time;
+		std::map<Techniques, sys::TimeValue *> Time_SMT;
 
 		// count the number of warnings emitted by each technique
 		std::map<Techniques,int> Warnings;

@@ -35,6 +35,7 @@ extern int n_paths;
 extern int n_totalpaths;
 
 extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time;
+extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time_SMT;
 
 /**
  * \brief count the number of ascending iterations

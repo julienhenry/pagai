@@ -12,6 +12,7 @@ int n_paths;
 int n_totalpaths;
 
 std::map<params,std::map<Function*,sys::TimeValue *> > Total_time;
+std::map<params,std::map<Function*,sys::TimeValue *> > Total_time_SMT;
 
 std::map<params,std::map<Function*,int> > asc_iterations;
 std::map<params,std::map<Function*,int> > desc_iterations;

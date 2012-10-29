@@ -425,7 +425,6 @@ void AIPass::assert_invariant(
 	}
 }
 
-
 bool AIPass::copy_Xd_to_Xs(Function * F) {
 	BasicBlock * b;
 	Pr * FPr = Pr::getInstance(F);

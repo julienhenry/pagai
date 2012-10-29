@@ -22,14 +22,14 @@
 
 
 SMTlib::SMTlib() {
-#ifdef LOG_SMT
-	static int logfile_counter = 0;
-	char filename[sizeof("logfile-000.smt2")];
-	sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
-	log_file = fopen(filename, "w");
-#else
-	log_file = NULL;
-#endif
+	if (log_smt_into_file()) {
+		static int logfile_counter = 0;
+		char filename[sizeof("logfile-000.smt2")];
+		sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
+		log_file = fopen(filename, "w");
+	} else {
+		log_file = NULL;
+	}
 
 	stack_level = 0;
 
