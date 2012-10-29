@@ -192,6 +192,10 @@ void Compare::printTime(Techniques t) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time[t] = zero;
 	}
+	if (!Time_SMT.count(t)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+	}
 	*Out 
 		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
