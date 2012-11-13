@@ -161,7 +161,7 @@ def compute_matrix_average(matrix):
 			matrix_average[t][val] = float(matrix[t][val]) * 100. / float(n_blocks) 
 	return matrix_average
 
-def generate_gnuplot_from_matrix(matrix,root_dir,bench):
+def generate_gnuplot_from_matrix(matrix,root_dir,bench,graph_name):
 	f = open('/tmp/data_gnuplot', 'w')
 	for t in matrix :
 		f.write('"'+t+'" ')
@@ -170,8 +170,9 @@ def generate_gnuplot_from_matrix(matrix,root_dir,bench):
 		f.write("\n")
 	f.close()
 	system('gnuplot '+root_dir+'/techniques.gnuplot')
+	system('mv techniques.png '+graph_name+'.techniques.png')
 
-def generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,root_dir,bench):
+def generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,root_dir,bench,graph_name):
 	f = open('/tmp/data_time_gnuplot', 'w')
 	for t in time_s_array :
 		ms = str(time_ms_array[t])
@@ -183,22 +184,25 @@ def generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array
 		f.write('"'+t+'" '+str(time_s_array[t])+"."+ms+" "+str(time_SMT_s_array[t])+"."+ms_SMT+"\n") 
 	f.close()
 	system('gnuplot '+root_dir+'/techniques_time.gnuplot')
+	system('mv techniques_time.png '+graph_name+'.time.png')
 
-def generate_gnuplot_from_warnings_array(warning_array,safe_array,root_dir,bench):
+def generate_gnuplot_from_warnings_array(warning_array,safe_array,root_dir,bench,graph_name):
 	f = open('/tmp/data_warning_gnuplot', 'w')
 	for t in warning_array :
 		ms = str(warning_array[t])
 		f.write('"'+t+'" '+str(warning_array[t])+' '+str(safe_array[t])+"\n") 
 	f.close()
 	system('gnuplot '+root_dir+'/techniques_warnings.gnuplot')
+	system('mv techniques_warnings.png '+graph_name+'.warnings.png')
 
-def generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench):
+def generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench,graph_name):
 	f = open('/tmp/data_skipped_gnuplot', 'w')
 	for t in skipped_array :
 		ms = str(skipped_array[t])
 		f.write('"'+t+'" '+str(skipped_array[t])+"\n") 
 	f.close()
 	system('gnuplot '+root_dir+'/techniques_skipped.gnuplot')
+	system('mv techniques_skipped.png '+graph_name+'.skipped.png')
 
 def process_input_files():
 	time_s_array = dict()
@@ -213,7 +217,8 @@ def process_input_files():
 	n_skipped = 0
 	root_dir = sys.argv[1]
 	bench = sys.argv[2]
-	for filename in sys.argv[3:]: 
+	graph_name = sys.argv[3]
+	for filename in sys.argv[4:]: 
 		process_time(filename,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array)
 		process_warnings(filename,warnings_array,safe_array)
 		process_skipped(filename,skipped_array)
@@ -223,10 +228,10 @@ def process_input_files():
 
 	matrix_average = compute_matrix_average(matrix)
 
-	generate_gnuplot_from_matrix(matrix_average,root_dir,bench)
-	generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,root_dir,bench)
-	generate_gnuplot_from_warnings_array(warnings_array,safe_array,root_dir,bench)
-	generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench)
+	generate_gnuplot_from_matrix(matrix_average,root_dir,bench,graph_name)
+	generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,root_dir,bench,graph_name)
+	generate_gnuplot_from_warnings_array(warnings_array,safe_array,root_dir,bench,graph_name)
+	generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench,graph_name)
 
 process_input_files()
 
