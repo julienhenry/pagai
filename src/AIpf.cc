@@ -41,7 +41,6 @@ bool AIpf::runOnModule(Module &M) {
 	Node * n;
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 	*Out << "Starting analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
@@ -58,7 +57,6 @@ bool AIpf::runOnModule(Module &M) {
 					<< "------------------------------------------\n";
 			Out->resetColor();
 		}
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -85,8 +83,9 @@ bool AIpf::runOnModule(Module &M) {
 		// deleting the pathtrees
 		ClearPathtreeMap(U);
 		ClearPathtreeMap(V);
+		
+		LSMT->reset_SMTcontext();
 	}
-	LSMT->reset_SMTcontext();
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
 	return false;
@@ -148,14 +147,20 @@ void AIpf::computeFunction(Function * F) {
 	A.push(n);
 
 	ascendingIter(n, F);
+	if (unknown) goto end;
 
 	narrowingIter(n);
+	if (unknown) goto end;
 	// then we move X_d abstract values to X_s abstract values
-	int step = 0;
-	while (copy_Xd_to_Xs(F) && step <= 1) {
-		narrowingIter(n);
-		step++;
+	{
+		int step = 0;
+		while (copy_Xd_to_Xs(F) && step <= 1) {
+			narrowingIter(n);
+			if (unknown) goto end;
+			step++;
+		}
 	}
+end:
 	LSMT->pop_context();
 }
 
@@ -213,7 +218,7 @@ void AIpf::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 	
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,n->bb->getParent(),passID);
 		
 		LSMT->pop_context();
 
@@ -333,7 +338,7 @@ void AIpf::narrowNode(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		// if the result is unsat, then the computation of this node is finished
-		int res = LSMT->SMTsolve(smtexpr,&path);
+		int res = LSMT->SMTsolve(smtexpr,&path,n->bb->getParent(),passID);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {

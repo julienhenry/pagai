@@ -11,6 +11,7 @@ OPTION :
 	-o [FILE ]: name of the output file
 	-p        : print the llvm bytecode
 	-g        : debug version
+	-M        : compile in 64 bits
 	-I        : inline functions
 	-G        : generate the .dot CFG
 	-O        : apply optimisations to the bytecode
@@ -23,9 +24,10 @@ GRAPH=0
 OPT=0
 DEBUG=1
 INLINE=0
-NOTRAP=1
+NOTRAP=0
+M64BITS=0
 
-while getopts "hpgi:o:OIN" opt ; do
+while getopts "hpgi:o:OINM" opt ; do
 	case $opt in
 		h)
 			usage
@@ -39,6 +41,9 @@ while getopts "hpgi:o:OIN" opt ; do
             ;;
         N)
 			NOTRAP=1
+            ;;
+        M)
+			M64BITS=1
             ;;
 		i)
 			FILENAME=$OPTARG
@@ -79,6 +84,10 @@ if [ $NOTRAP -eq 1 ] ; then
  TRAP=" "
 else
  TRAP=" -fcatch-undefined-c99-behavior "
+fi
+
+if [ $M64BITS -eq 1 ] ; then
+ TRAP="$TRAP  -m64 "
 fi
 
 if [ $DEBUG -eq 1 ] ; then

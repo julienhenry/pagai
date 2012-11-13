@@ -37,7 +37,7 @@ void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 		A.pop();
 		computeNode(current);
 		if (unknown) {
-			ignoreFunction.insert(F);
+			ignoreFunction[passID].insert(F);
 			while (!A.empty()) A.pop();
 			return;
 		}
@@ -52,7 +52,7 @@ void AIPass::narrowingIter(Node * n) {
 		A.pop();
 		narrowNode(current);
 		if (unknown) {
-			ignoreFunction.insert(n->bb->getParent());
+			ignoreFunction[passID].insert(n->bb->getParent());
 			while (!A.empty()) A.pop();
 			return;
 		}
@@ -336,7 +336,7 @@ void AIPass::printResult(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		n = Nodes[b];
-		if (FPr->inPr(b) && ignoreFunction.count(F) == 0) {
+		if (FPr->inPr(b) && !ignored(F)) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
@@ -424,7 +424,6 @@ void AIPass::assert_invariant(
 		LSMT->SMT_assert(LSMT->man->SMT_mk_or(smt));
 	}
 }
-
 
 bool AIPass::copy_Xd_to_Xs(Function * F) {
 	BasicBlock * b;

@@ -16,7 +16,8 @@ OPTIONS :
 }
 
 PRINT=0
-TIME_LIMIT=30
+TIME_LIMIT=1200
+MEMORY_LIMIT=1000000
 PAGAI="pagai"
 REQUIRED=0
 SILENT=0
@@ -56,7 +57,8 @@ if [ $REQUIRED -eq 0 ] ; then
 	exit
 fi
 
-ulimit -t $TIME_LIMIT
+ulimit -t $TIME_LIMIT 
+ulimit -m $MEMORY_LIMIT -v $MEMORY_LIMIT
 
 $PAGAI -i $FILENAME $ARGS
 xs=$?

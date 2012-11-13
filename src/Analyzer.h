@@ -90,10 +90,13 @@ char* getSourceFilename();
 
 char* getFilename();
 
+int getTimeout();
+
 bool definedMain();
 std::string getMain();
 
 bool quiet_mode();
+bool log_smt_into_file();
 
 Apron_Manager_Type getApronManager();
 Apron_Manager_Type getApronManager(int i);
@@ -105,11 +108,5 @@ bool useThreshold();
 bool useThreshold(int i);
 
 extern llvm::raw_ostream *Out;
-
-/**
- * \brief Functions ignored by Compare pass (because the analysis failed for
- * one technique)
- */
-extern std::set<llvm::Function*> ignoreFunction;
 
 #endif

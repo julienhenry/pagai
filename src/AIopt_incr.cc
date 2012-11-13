@@ -43,5 +43,5 @@ void AIopt_incr::assert_properties(params P, Function * F) {
 }
 
 void AIopt_incr::intersect_with_known_properties(Abstract * Xtemp, Node * n, params P) {
-		Xtemp->meet(n->X_s[P]);
+	Xtemp->meet(n->X_s[P]);
 }

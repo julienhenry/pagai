@@ -172,6 +172,19 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 		Time[t] = zero;
 		*Time[t] = *Total_time[P][F];
 	}
+
+	if (Total_time_SMT[P].count(F) == 0) {
+		sys::TimeValue * time_SMT = new sys::TimeValue(0,0);
+		Total_time_SMT[P][F] = time_SMT;
+	}
+
+	if (Time_SMT.count(t)) {
+		*Time_SMT[t] = *Time_SMT[t]+*Total_time_SMT[P][F];
+	} else {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+		*Time_SMT[t] = *Total_time_SMT[P][F];
+	}
 }
 
 void Compare::printTime(Techniques t) {
@@ -179,9 +192,15 @@ void Compare::printTime(Techniques t) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time[t] = zero;
 	}
+	if (!Time_SMT.count(t)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+	}
 	*Out 
-		<< " " << Time[t]->seconds() 
+		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
+		<< " " << Time_SMT[t]->seconds() 
+		<< " " << Time_SMT[t]->microseconds() 
 		<< "  \t// " << TechniquesToString(t) 
 		<<  "\n";
 }
@@ -194,6 +213,31 @@ void Compare::printWarnings(Techniques t) {
 
 	*Out 
 		<< Warnings[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
+void Compare::printSafeProperties(Techniques t) {
+	if (!Safe_properties.count(t)) {
+
+		Safe_properties[t] = 0;
+	}
+
+	*Out 
+		<< Safe_properties[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
+void Compare::printNumberSkipped(Techniques t) {
+	params P;
+	P.T = t;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+
+	*Out 
+		<< ignoreFunction[P].size() 
 		<< "  \t// " << TechniquesToString(t) 
 		<< "\n";
 }
@@ -212,15 +256,30 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 
 void Compare::printAllResults() {
 
+	*Out << "\nSKIPPED:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printNumberSkipped(ComparedTechniques[i]);
+	}
+	*Out << "SKIPPED_END\n";
+
 	*Out << "\nTIME:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printTime(ComparedTechniques[i]);
 	}
+	*Out << "TIME_END\n";
 
-	*Out << "\nNUMBER OF EMITTED WARNINGS:\n";
+	*Out << "\nWARNINGS:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printWarnings(ComparedTechniques[i]);
 	}
+	*Out << "WARNINGS_END\n";
+
+	*Out << "\nSAFE_PROPERTIES:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printSafeProperties(ComparedTechniques[i]);
+	}
+	*Out << "SAFE_PROPERTIES_END\n";
+
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
@@ -235,6 +294,7 @@ void Compare::printAllResults() {
 					<< "\n";
 		}
 	}
+	*Out	<< "MATRIX_END\n";
 }
 
 void Compare::CompareTechniquesByPair(Node * n) {
@@ -272,6 +332,11 @@ void Compare::CountNumberOfWarnings(Techniques t, Function * F) {
 					Warnings[t]++;
 				else
 					Warnings[t] = 1;
+			} else {
+				if (Safe_properties.count(t))
+					Safe_properties[t]++;
+				else
+					Safe_properties[t] = 1;
 			}
 		}
 	}
@@ -282,7 +347,7 @@ bool Compare::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	int Function_number = 0;
-	LSMT = SMTpass::getInstance();
+	LSMT = SMTpass::getInstanceForAbstract();
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -292,14 +357,14 @@ bool Compare::runOnModule(Module &M) {
 	Out->resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		LSMT->reset_SMTcontext();
+		//LSMT->reset_SMTcontext();
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		Function_number++;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 
 		// we now count the computing time and the number of warnings
 		for (int i = 0; i < ComparedTechniques.size(); i++) {
@@ -311,7 +376,10 @@ bool Compare::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (FPr->getPw()->count(b)) {
+			if (FPr->getPw()->count(b) 
+					|| FPr->getUndefinedBehaviour()->count(b)
+					|| FPr->getAssert()->count(b)
+					) {
 				CompareTechniquesByPair(n);
 			}
 		}
@@ -319,9 +387,9 @@ bool Compare::runOnModule(Module &M) {
 	PrintResultsByPair();
 
 	*Out << "\nFUNCTIONS:\n";
-	*Out << Function_number << "\n";
+	*Out << Function_number << "\nFUNCTIONS_END\n";
 	*Out << "\nIGNORED:\n";
-	*Out << ignoreFunction.size() << "\n";
+	*Out << nb_ignored() << "\nIGNORED_END\n";
 	printAllResults();
 	return true;
 }

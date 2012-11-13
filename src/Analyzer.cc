@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <boost/lexical_cast.hpp>
 
 #include "Execute.h" 
 #include "Analyzer.h" 
@@ -25,6 +26,7 @@ bool defined_main;
 bool use_source_name;
 bool force_old_output;
 bool output_annotated;
+bool log_smt;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -34,6 +36,7 @@ char* filename;
 char* annotatedFilename;
 char* sourceFilename;
 int npass;
+int timeout;
 std::map<Techniques,int> Passes;
 std::vector<enum Techniques> TechniquesToCompare;
 
@@ -81,6 +84,8 @@ void show_help() {
 -n : new version of narrowing (only for s technique)\n \
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
+--timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
+--log-smt : SMT-lib2 queries are logged in files\n \
 --compare (-c) : use this argument to compare techniques\n \
 		example: pagai -i <file> -c pf -c s  will compare the two techniques pf and s\n \
 --comparedomains (-C) : compare two abstract domains using the same technique\n \
@@ -131,6 +136,10 @@ char* getAnnotatedFilename() {
 
 char* getSourceFilename() {
 	return sourceFilename;
+}
+
+int getTimeout() {
+	return timeout;
 }
 
 char* getFilename() {
@@ -264,6 +273,7 @@ bool setTechnique(char * t) {
 	d.assign(t);
 	bool error;
 	enum Techniques r = TechniqueFromString(error,d);
+	technique = r;
 	if (error) {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
 		return 1;
@@ -301,6 +311,18 @@ bool setMain(char * m) {
 	return 0;
 }
 
+bool setTimeout(char * t) {
+	std::string d;
+	d.assign(t);
+	try {
+		timeout = boost::lexical_cast< int >( d );
+	} catch( const boost::bad_lexical_cast & ) {
+		//unable to convert
+		return 1;
+	}
+	return 0;
+}
+
 bool definedMain() {
 	return defined_main;
 }
@@ -313,7 +335,9 @@ bool quiet_mode() {
 	return quiet;
 } 
 
-std::set<llvm::Function*> ignoreFunction;
+bool log_smt_into_file() {
+	return log_smt;
+}
 
 int main(int argc, char* argv[]) {
 
@@ -343,9 +367,11 @@ int main(int argc, char* argv[]) {
 	use_source_name = false;
 	force_old_output = false;
 	output_annotated = false;
+	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
+	timeout = 0;
 	annotatedFilename = NULL;
 	sourceFilename = NULL;
 
@@ -370,18 +396,23 @@ int main(int argc, char* argv[]) {
 			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
+			{"timeout",    required_argument, 0, 'k'},
+			{"log-smt",    no_argument, 0, 'l'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
 				break;
 			case 'q':
 				quiet = true;
+        	    break;
+			case 'l':
+				log_smt = true;
         	    break;
         	case 'S':
         	    force_old_output = true;
@@ -414,6 +445,11 @@ int main(int argc, char* argv[]) {
         	case 'm':
         	    arg = optarg;
 				if (setMain(arg)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'k':
+				if (setTimeout(optarg)) {
 					bad_use = true;
 				}
         	    break;

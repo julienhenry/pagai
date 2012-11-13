@@ -58,7 +58,6 @@ bool AIdis::runOnModule(Module &M) {
 					<< "------------------------------------------\n";
 			Out->resetColor();
 		}
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -99,6 +98,7 @@ bool AIdis::runOnModule(Module &M) {
 		}
 		S.clear();
 
+		LSMT->reset_SMTcontext();
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
@@ -163,16 +163,15 @@ void AIdis::computeFunction(Function * F) {
 			A_prime.pop();
 			computeNewPaths(current); // this method adds elements in A and A'
 			if (unknown) {
-				ignoreFunction.insert(F);
+				ignoreFunction[passID].insert(F);
 				while (!A_prime.empty()) A_prime.pop();
-				LSMT->pop_context();
-				delete env;
-				return;
+				goto end;
 			}
 		}
 
 		is_computed.clear();
 		ascendingIter(n, F, true);
+		if (unknown) goto end;
 
 		// we set X_d abstract values to bottom for narrowing
 		Pr * FPr = Pr::getInstance(F);
@@ -184,14 +183,17 @@ void AIdis::computeFunction(Function * F) {
 		}
 
 		narrowingIter(n);
+		if (unknown) goto end;
 
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
 			narrowingIter(n);
+			if (unknown) goto end;
 			step++;
 		}
 	}
+end:
 	delete env;
 	LSMT->pop_context();
 }
@@ -246,7 +248,7 @@ void AIdis::computeNewPaths(Node * n) {
 		);
 		int res;
 		int index = 0;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
@@ -407,7 +409,7 @@ void AIdis::computeNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
@@ -523,7 +525,7 @@ void AIdis::narrowNode(Node * n) {
 		// if the result is unsat, then the computation of this node is finished
 		int res;
 		int index = 0;
-		res = LSMT->SMTsolve(smtexpr,&path,index);
+		res = LSMT->SMTsolve(smtexpr,&path,index,n->bb->getParent(),passID);
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) unknown = true;

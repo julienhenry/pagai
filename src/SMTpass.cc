@@ -11,7 +11,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
-
 #include "llvm/Support/CFG.h"
 #include "llvm/Constants.h"
 
@@ -51,7 +50,7 @@ SMTpass::SMTpass() {
 		default:
 			man = new SMTlib();
 	}
-	man->push_context();
+	stack_level = 0;
 	CurrentNodeName = 0;
 }
 
@@ -75,10 +74,14 @@ SMTpass * SMTpass::getInstanceForAbstract() {
 }
 
 void SMTpass::releaseMemory() {
-	if (instance != NULL)
+	if (instance != NULL) {
 		delete instance;
-	if (instanceforAbstract != NULL)
+		instance = NULL;
+	}
+	if (instanceforAbstract != NULL) {
 		delete instanceforAbstract;
+		instanceforAbstract = NULL;
+	}
 }
 
 SMT_expr SMTpass::getRho(Function &F) {
@@ -89,8 +92,23 @@ SMT_expr SMTpass::getRho(Function &F) {
 
 void SMTpass::reset_SMTcontext() {
 	rho.clear();
-	man->pop_context();
-	man->push_context();
+#if 0
+	while (stack_level > 0)
+		pop_context();
+#else
+	stack_level = 0;
+	delete man;
+	switch (getSMTSolver()) {
+		case API_Z3:
+			man = new z3_manager();
+			break;
+		case API_YICES: 
+			man = new yices();
+			break;
+		default:
+			man = new SMTlib();
+	}
+#endif
 }
 
 SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
@@ -642,10 +660,12 @@ void SMTpass::computeRho(Function &F) {
 
 
 void SMTpass::push_context() {
+	stack_level++;
 	man->push_context();
 }
 
 void SMTpass::pop_context() {
+	stack_level--;
 	man->pop_context();
 }
 
@@ -709,16 +729,37 @@ SMT_expr SMTpass::createSMTformula(
 	return man->SMT_mk_and(formula);
 }
 
-int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path) {
+int SMTpass::SMTsolve(
+		SMT_expr expr, 
+		std::list<BasicBlock*> * path, 
+		Function * F, 
+		params passID) {
 	int index;
-	return SMTsolve(expr,path,index);
+	return SMTsolve(expr,path,index,F,passID);
 }
 
-int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) {
+int SMTpass::SMTsolve(
+		SMT_expr expr, 
+		std::list<BasicBlock*> * path, 
+		int &index,
+		Function * F, 
+		params passID) {
 	std::set<std::string> true_booleans;
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
+
+	sys::TimeValue * time = new sys::TimeValue(0,0);
+	*time = sys::TimeValue::now();
+
 	res = man->SMT_check(expr,&true_booleans);
+
+	if (Total_time_SMT[passID].count(F) == 0) {
+		sys::TimeValue * time_SMT = new sys::TimeValue(0,0);
+		Total_time_SMT[passID][F] = time_SMT;
+	}
+
+	*Total_time_SMT[passID][F] += sys::TimeValue::now()-*time;
+
 	if (res != 1) return res;
 	bool isEdge, isIndex, start;
 	BasicBlock * src;
@@ -749,9 +790,7 @@ int SMTpass::SMTsolve(SMT_expr expr, std::list<BasicBlock*> * path, int &index) 
 
 int SMTpass::SMTsolve_simple(SMT_expr expr) {
 	std::set<std::string> true_booleans;
-	//struct timeval beginTime = Now();
 	return man->SMT_check(expr,&true_booleans);
-	//SMT_time = add(SMT_time,sub(Now(),beginTime));
 }
 
 void SMTpass::visitReturnInst (ReturnInst &I) {

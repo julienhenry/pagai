@@ -124,7 +124,7 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];

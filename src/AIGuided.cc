@@ -40,9 +40,7 @@ bool AIGuided::runOnModule(Module &M) {
 	Function * F;
 	Node * n = NULL;
 	int N_Pr = 0;
-	//LSMT = &(getAnalysis<SMTpass>());
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 
 	*Out << "Starting analysis: G\n";
 
@@ -60,7 +58,6 @@ bool AIGuided::runOnModule(Module &M) {
 					<< "------------------------------------------\n";
 			Out->resetColor();
 		}
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();

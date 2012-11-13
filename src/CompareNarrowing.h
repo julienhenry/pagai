@@ -221,7 +221,7 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 		
 		AddTime(P1,F);
 		AddTime(P2,F);

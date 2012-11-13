@@ -44,7 +44,6 @@ bool AIopt::runOnModule(Module &M) {
 	int N_Pr = 0;
 	//LSMT = &(getAnalysis<SMTpass>());
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 
 	*Out << "Starting analysis: " << getPassName() << "\n";
 
@@ -62,14 +61,12 @@ bool AIopt::runOnModule(Module &M) {
 					<< "------------------------------------------\n";
 			Out->resetColor();
 		}
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
 		Total_time[passID][F] = time;
-		
-		initFunction(F);
 
+		initFunction(F);
 
 		// we create the new pathtree
 		Pr * FPr = Pr::getInstance(F);
@@ -92,8 +89,9 @@ bool AIopt::runOnModule(Module &M) {
 		ClearPathtreeMap(pathtree);
 		ClearPathtreeMap(U);
 		ClearPathtreeMap(V);
+
+		LSMT->reset_SMTcontext();
 	}
-	LSMT->reset_SMTcontext();
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
 	return 0;
@@ -136,7 +134,6 @@ void AIopt::computeFunction(Function * F) {
 		*Out << "OK\n";
 		);
 	
-
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
@@ -159,7 +156,7 @@ void AIopt::computeFunction(Function * F) {
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
-	while (!A_prime.empty()) {
+	while (!A_prime.empty() && !unknown) {
 		
 		// compute the new paths starting in a point in A'
 		is_computed.clear();
@@ -168,17 +165,16 @@ void AIopt::computeFunction(Function * F) {
 			A_prime.pop();
 			computeNewPaths(current); // this method adds elements in A and A'
 			if (unknown) {
-				ignoreFunction.insert(F);
+				ignoreFunction[passID].insert(F);
 				while (!A_prime.empty()) A_prime.pop();
-				LSMT->pop_context();
-				delete env;
-				return;
+				goto end;
 			}
 		}
 
 		W = new PathTree(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
+		if (unknown) goto end;
 
 		// we set X_d abstract values to bottom for narrowing
 		Pr * FPr = Pr::getInstance(F);
@@ -190,15 +186,17 @@ void AIopt::computeFunction(Function * F) {
 		}
 
 		narrowingIter(n);
+		if (unknown) goto end;
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
 			narrowingIter(n);
+			if (unknown) goto end;
 			step++;
 		}
 		delete W;
-
 	}
+end:
 	delete env;
 	LSMT->pop_context();
 }
@@ -255,7 +253,8 @@ void AIopt::computeNewPaths(Node * n) {
 			LSMT->man->SMT_print(smtexpr);
 		);
 		int res;
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,n->bb->getParent(),passID);
+
 		LSMT->pop_context();
 
 		// if the result is unsat, then the computation of this node is finished
@@ -346,7 +345,8 @@ void AIopt::computeNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,n->bb->getParent(),passID);
+
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
@@ -457,7 +457,8 @@ void AIopt::narrowNode(Node * n) {
 		);
 		// if the result is unsat, then the computation of this node is finished
 		int res;
-		res = LSMT->SMTsolve(smtexpr,&path);
+		res = LSMT->SMTsolve(smtexpr,&path,n->bb->getParent(),passID);
+
 		LSMT->pop_context();
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) unknown = true;
