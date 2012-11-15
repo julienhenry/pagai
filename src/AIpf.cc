@@ -16,6 +16,7 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "PathTree_br.h"
 #include "ModulePassWrapper.h"
 
 using namespace llvm;
@@ -70,8 +71,13 @@ bool AIpf::runOnModule(Module &M) {
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
-			U[*it] = new PathTree(*it);
-			V[*it] = new PathTree(*it);
+			if ((*it)->getTerminator()->getNumSuccessors() > 0
+					&& ! FPr->inUndefBehaviour(*it)
+					&& ! FPr->inAssert(*it)
+					) {
+				U[*it] = new PathTree_br(*it);
+				V[*it] = new PathTree_br(*it);
+			}
 		}
 
 		computeFunction(F);
@@ -192,8 +198,15 @@ void AIpf::computeNode(Node * n) {
 		Out->resetColor();
 		*Out << *b << "\n";
 	);
-	U[n->bb]->clear();
-	V[n->bb]->clear();
+
+	if (U.count(b)) {
+		U[b]->clear();
+		V[b]->clear();
+	} else {
+		// this is a block without any successors...
+		is_computed[n] = true;
+		return;
+	}
 
 	while (true) {
 		is_computed[n] = true;

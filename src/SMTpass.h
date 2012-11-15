@@ -72,7 +72,6 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 */
 		static const std::string getDisjunctiveIndexName(AbstractDisj * A, int index);
 		static const std::string getUndeterministicChoiceName(Value * v);
-		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		static const std::string getValueName(Value * v, bool primed);
 		/**
 		 * \}
@@ -170,6 +169,7 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * this name is unique for the Value *
 		 */
 		static const std::string getVarName(Value * v);
+		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 
 		/**
 		 * \brief push the context of the SMT manager

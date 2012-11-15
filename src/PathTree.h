@@ -24,121 +24,46 @@ using namespace llvm;
  */
 class PathTree {
 
-	private:
-		/**
-		 * \brief manager of the CUDD library 
-		 */
-		Cudd * mgr;
-		
-		/**
-		 * \{
-		 * \name variables needed by some methods
-		 */
-		DdNode * background;
-		DdNode * zero;
-		/** 
-		 * \}
-		 */
-
-		/**
-		 * \brief stores the index of the basicBlock in the BDD
-		 */
-		std::map<BasicBlock*,int> BddVar;
-		/**
-		 * \brief stores the index of the source basicBlock in the BDD
-		 */
-		std::map<BasicBlock*,int> BddVarStart;
-
-		std::map<int, BasicBlock*> levels;
-
-		BDD computef(std::list<BasicBlock*> path);
-
-		/**
-		 * \brief Bdd that stores the various seen paths
-		 */
-		BDD * Bdd;
-
-		/** 
-		 * \brief Bdd that stores the paths that need to be added in Bdd
-		 * in the next step
-		 */
-		BDD * Bdd_prime;
-
-		/**
-		 * \brief number of levels in the BDD
-		 */
-		int BddIndex;
-
-		BDD getBDDfromBddIndex(int n);
-		/**
-		 * \brief returns the BDD node associated to a specific
-		 * BasicBlock. 
-		 *
-		 * When considering the source BasicBlock, the map should be
-		 * BddVarStart, else it should be BddVar
-		 */
-		BDD getBDDfromBasicBlock(BasicBlock * b,std::map<BasicBlock*,int> &map, int &n);
-
-		/**
-		 * \brief returns the name of the basicBlock associated
-		 * to the level i of the Bdd.
-		 *
-		 * If smt != NULL, this name is exactly the same as the one 
-		 * used in the SMTpass pass
-		 */
-		const std::string getStringFromLevel(
-			int i,
-			SMTpass * smt = NULL);
-
-		void createBDDVars(BasicBlock * Start, std::set<BasicBlock*> * Pr, std::map<BasicBlock*,int> &map, std::set<BasicBlock*> * seen, bool start = false);
-
-		/**
-		 * \brief dump the BDD "graph" in a .dot file. 
-		 * \param filename Name of the .dot file
-		 */
-		void DumpDotBDD(BDD graph, std::string filename);
-
 	public:
-		PathTree(BasicBlock * Start);
 
-		~PathTree();
+		virtual ~PathTree()  {};
 
 		/**
 		 * \brief insert a path in the Bdd
 		 */
-		void insert(std::list<BasicBlock*> path, bool primed = false);
+		virtual void insert(std::list<BasicBlock*> path, bool primed = false) = 0;
 
 		/**
 		 * \brief remove a path from the Bdd
 		 */
-		void remove(std::list<BasicBlock*> path, bool primed = false);
+		virtual void remove(std::list<BasicBlock*> path, bool primed = false) = 0;
 
 		/** 
 		 * \brief clear the Bdd. The result will be an empty Bdd
 		 */
-		void clear(bool primed = false);
+		virtual void clear(bool primed = false) = 0;
 
 		/** 
 		 * \brief check if the Bdd contains the path given as argument
 		 */
-		bool exist(std::list<BasicBlock*> path, bool primed = false);
+		virtual bool exist(std::list<BasicBlock*> path, bool primed = false) = 0;
 
 		/** 
 		 * \brief merge the two Bdds into Bdd. Bdd_prime is cleared
 		 */
-		void mergeBDD();
+		virtual void mergeBDD() = 0;
 
-		bool isZero(bool primed = false);
+		virtual bool isZero(bool primed = false) = 0;
 
 		/** 
 		 * \brief dump the graph
 		 */
-		void DumpDotBDD(std::string filename, bool prime);
+		virtual void DumpDotBDD(std::string filename, bool prime) = 0;
 
 		/** 
 		 * \brief generate the SMTpass formula associated to the Bdd
 		 */
-		SMT_expr generateSMTformula(
-			SMTpass * smt, bool neg = false);
+		virtual SMT_expr generateSMTformula(
+			SMTpass * smt, bool neg = false) = 0;
 };
 #endif

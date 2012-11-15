@@ -18,6 +18,7 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "PathTree_br.h"
 #include "ModulePassWrapper.h"
 
 using namespace llvm;
@@ -74,9 +75,14 @@ bool AIopt::runOnModule(Module &M) {
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
-			pathtree[*it] = new PathTree(*it);
-			U[*it] = new PathTree(*it);
-			V[*it] = new PathTree(*it);
+			if ((*it)->getTerminator()->getNumSuccessors() > 0
+					&& ! FPr->inUndefBehaviour(*it)
+					&& ! FPr->inAssert(*it)
+					) {
+				pathtree[*it] = new PathTree_br(*it);
+				U[*it] = new PathTree_br(*it);
+				V[*it] = new PathTree_br(*it);
+			}
 		}
 
 		computeFunction(F);
@@ -171,7 +177,7 @@ void AIopt::computeFunction(Function * F) {
 			}
 		}
 
-		W = new PathTree(n->bb);
+		W = new PathTree_br(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
 		if (unknown) goto end;
@@ -219,6 +225,12 @@ void AIopt::computeNewPaths(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
+		
+	if (!pathtree.count(n->bb)) {
+		// this is a block without any successors...
+		is_computed[n] = true;
+		return;
+	}
 
 	// first, we set X_d abstract values to X_s
 	Pr * FPr = Pr::getInstance(n->bb->getParent());
@@ -241,8 +253,8 @@ void AIopt::computeNewPaths(Node * n) {
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,
-				pathtree[n->bb]->generateSMTformula(LSMT,true));
+		SMT_expr pathtree_smt = pathtree[n->bb]->generateSMTformula(LSMT,true);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
@@ -313,8 +325,14 @@ void AIopt::computeNode(Node * n) {
 		return;
 	}
 
-	U[n->bb]->clear();
-	V[n->bb]->clear();
+	if (U.count(b)) {
+		U[b]->clear();
+		V[b]->clear();
+	} else {
+		// this is a block without any successors...
+		is_computed[n] = true;
+		return;
+	}
 	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
@@ -333,7 +351,8 @@ void AIopt::computeNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree[b]->generateSMTformula(LSMT));
+		SMT_expr pathtree_smt = pathtree[n->bb]->generateSMTformula(LSMT);
+		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
@@ -435,6 +454,12 @@ void AIopt::narrowNode(Node * n) {
 		return;
 	}
 
+	if (!pathtree.count(n->bb)) {
+		// this is a block without any successors...
+		is_computed[n] = true;
+		return;
+	}
+
 	while (true) {
 		is_computed[n] = true;
 
@@ -445,7 +470,8 @@ void AIopt::narrowNode(Node * n) {
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree[n->bb]->generateSMTformula(LSMT));
+		SMT_expr pathtree_smt = pathtree[n->bb]->generateSMTformula(LSMT);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
