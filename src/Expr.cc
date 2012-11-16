@@ -124,13 +124,17 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 		} else if (FP->getType()->isDoubleTy()) {
 			x = FP->getValueAPF().convertToDouble();
 		}
-		if (isnan(x) || isinf(x))
+		if (FP->getValueAPF().isNaN() 
+				|| FP->getValueAPF().isInfinity()
+				|| isnan(x)
+				|| isinf(x)) {
 			// x is nan or is actually infinity
 			// in this case, we suppose it is an unknown value (as in the SMT
 			// part)
 			res = create_ap_expr((ap_var_t)val);
-		else
+		} else {
 			res = ap_texpr1_cst_scalar_double(emptyenv,x);
+		}
 	}
 	if (isa<ConstantPointerNull>(val)) {
 		res = ap_texpr1_cst_scalar_int(emptyenv,0);
@@ -478,6 +482,7 @@ ap_texpr1_t * Expr::visitBinaryOperator (BinaryOperator &I){
 
 	// we create the expression associated to the binary op
 	ap_texpr1_t * exp = ap_texpr1_binop(op, ap_texpr1_copy(exp1), ap_texpr1_copy(exp2), type, dir);
+
 	ap_texpr1_free(exp1);
 	ap_texpr1_free(exp2);
 	return exp;

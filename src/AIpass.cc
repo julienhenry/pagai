@@ -666,7 +666,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 		focusblock++;
 	}
-
 	Environment * env = NULL;
 	env = succ->create_env(LV);
 
