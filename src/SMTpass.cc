@@ -513,8 +513,8 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 		} else if (FP->getType()->isDoubleTy()) {
 			x = APF.convertToDouble();
 		}
-		if (isnan(x)) {
-			// x is not a number...
+		if (isnan(x) || isinf(x)) {
+			// x is not a number or is infinity...
 			std::ostringstream name;
 			name << getValueName(v,false);
 			nundef++;
@@ -604,7 +604,6 @@ void SMTpass::computeRhoRec(Function &F,
 		BasicBlock * dest,
 		bool newPr,
 		std::set<BasicBlock*> * visited) {
-
 	Pr * FPr = Pr::getInstance(&F);
 	bool first = (visited->count(b) > 0);
 	visited->insert(b);
@@ -667,7 +666,6 @@ void SMTpass::computeRhoRec(Function &F,
 		bvar_exp = man->SMT_mk_or(implies);
 		rho_components.push_back(bvar_exp);
 	}
-
 }
 
 void SMTpass::computeRho(Function &F) {
