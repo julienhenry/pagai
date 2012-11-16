@@ -124,7 +124,13 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 		} else if (FP->getType()->isDoubleTy()) {
 			x = FP->getValueAPF().convertToDouble();
 		}
-		res = ap_texpr1_cst_scalar_double(emptyenv,x);
+		if (isnan(x) || isinf(x))
+			// x is nan or is actually infinity
+			// in this case, we suppose it is an unknown value (as in the SMT
+			// part)
+			res = create_ap_expr((ap_var_t)val);
+		else
+			res = ap_texpr1_cst_scalar_double(emptyenv,x);
 	}
 	if (isa<ConstantPointerNull>(val)) {
 		res = ap_texpr1_cst_scalar_int(emptyenv,0);

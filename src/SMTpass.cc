@@ -7,6 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <limits>
+#include <cmath>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -117,11 +119,13 @@ SMT_expr SMTpass::texpr1ToSmt(ap_texpr1_t texpr) {
 	return NULL_expr;
 }
 
-SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer) {
+SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &integer, bool &skip) {
 	std::vector<SMT_expr> elts;
 	SMT_expr val;
 	SMT_expr coefficient;
+	bool infinity;
 
+	skip = false;
 	integer = true;
 	double value;
 	size_t i;
@@ -135,7 +139,11 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 		if (!((Value*)var)->getType()->isIntegerTy()) {
 			// check if the coeff associated to this non-int variable is != 0
 			// if it is, then the expression has to be of type real
-			coefficient = scalarToSmt(coeff->val.scalar,integer,value);
+			coefficient = scalarToSmt(coeff->val.scalar,integer,value,infinity);
+			if (infinity) {
+				skip = true;
+				return man->SMT_mk_num(0);
+			}
 			if (value != 0) {
 				integer = false;
 			}
@@ -155,7 +163,11 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 			val = man->SMT_mk_int2real(val);
 		}
 
-		coefficient = scalarToSmt(coeff->val.scalar,integer,value);
+		coefficient = scalarToSmt(coeff->val.scalar,integer,value,infinity);
+		if (infinity) {
+			skip = true;
+			return man->SMT_mk_num(0);
+		}
 		
 		switch ((int)value) {
 			case 0:
@@ -169,16 +181,26 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 		}
 	}
 	coeff = ap_linexpr1_cstref(&linexpr);
-	coefficient = scalarToSmt(coeff->val.scalar,integer,value);
+	coefficient = scalarToSmt(coeff->val.scalar,integer,value,infinity);
+	if (infinity) {
+		skip = true;
+		return man->SMT_mk_num(0);
+	}
 	if (value != 0)
 		elts.push_back(coefficient);
 
 	return man->SMT_mk_sum(elts);
 }
 
-SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value) {
+SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value, bool &infinity) {
 	mp_rnd_t round = GMP_RNDU;
 	ap_double_set_scalar(&value,scalar,round);
+	if (isinf(value)) {
+		infinity = true;
+		// will be unused, but we must return something
+		return man->SMT_mk_real(0);
+	}
+	infinity = false;
 	if (integer) {
 		mpq_t mpq;
 		mpq_init(mpq);
@@ -191,13 +213,17 @@ SMT_expr SMTpass::scalarToSmt(ap_scalar_t * scalar, bool integer, double &value)
 	}
 }
 
-SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
+SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons, bool &skip) {
 	ap_constyp_t* constyp = ap_lincons1_constypref(&lincons);
 	ap_linexpr1_t linexpr = ap_lincons1_linexpr1ref(&lincons);
 	//ap_coeff_t * coeff = ap_lincons1_cstref(&lincons);
 	SMT_expr scalar_smt;
 	bool integer;
-	SMT_expr linexpr_smt = linexpr1ToSmt(b, linexpr, integer);
+	SMT_expr linexpr_smt = linexpr1ToSmt(b, linexpr, integer, skip);
+	
+	if (skip)
+		return man->SMT_mk_true();
+
 	if (integer || *constyp == AP_CONS_EQMOD)
 	  scalar_smt = man-> SMT_mk_int0();
 	else
@@ -213,8 +239,10 @@ SMT_expr SMTpass::lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons) {
 		case AP_CONS_EQMOD:
 			{
 			  double value; // TODO double bof
-			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value);
+			  bool infinity;
+			  SMT_expr modulo = scalarToSmt(ap_lincons1_lincons0ref(&lincons)->scalar,true,value,infinity);
 			  assert(!(value == 0));
+			  assert(infinity == false);
 
 			  if (integer) {
 			    return man->SMT_mk_divides(modulo, linexpr_smt); // assumes scalar_smt is 0
@@ -250,8 +278,11 @@ SMT_expr SMTpass::tcons1ToSmt(ap_tcons1_t tcons) {
 	ap_scalar_t* scalar = ap_tcons1_scalarref(&tcons);
 	bool integer = true;
 	double value;
+	bool infinity;
 	SMT_expr texpr_smt = texpr1ToSmt(texpr);
-	SMT_expr scalar_smt = scalarToSmt(scalar,integer,value);
+	SMT_expr scalar_smt = scalarToSmt(scalar,integer,value,infinity);
+	if (infinity)
+		return man->SMT_mk_num(0);
 
 	switch (*constyp) {
 		case AP_CONS_EQ:
@@ -310,9 +341,10 @@ SMT_expr SMTpass::AbstractToSmt(BasicBlock * b, Abstract * A) {
 	ap_lincons1_t lincons;
 	ap_lincons1_array_t lincons_array = A->to_lincons_array();
 	size_t n = ap_lincons1_array_size(&lincons_array);
+	bool skip;
 	for (size_t i = 0; i < n; i++) {
 		lincons = ap_lincons1_array_get(&lincons_array,i);
-		constraints.push_back(lincons1ToSmt(b,lincons));
+		constraints.push_back(lincons1ToSmt(b,lincons,skip));
 	}
 	ap_lincons1_array_clear(&lincons_array);
 	if (constraints.size() == 0)
@@ -446,11 +478,10 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			SMT_expr cond;
 			if (isa<CmpInst>(v)) {
 				cond = computeCondition(dyn_cast<CmpInst>(v));
-			} else if (isa<PHINode>(v)) {
-				// TODO
-				// BUG : stack overflow when two PHINode objects are mutually
-				// dependent
-				cond = computeCondition(dyn_cast<PHINode>(v));
+			} else if (PHINode * phi = dyn_cast<PHINode>(v)) {
+				SMT_var var = getVar(v,primed);
+				return man->SMT_mk_expr_from_bool_var(var);
+				//cond = computeCondition(dyn_cast<PHINode>(v));
 			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
 				if (vint->isZero()) {
 					cond = man->SMT_mk_false();
@@ -481,6 +512,13 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			x = (double)APF.convertToFloat();
 		} else if (FP->getType()->isDoubleTy()) {
 			x = APF.convertToDouble();
+		}
+		if (isnan(x)) {
+			// x is not a number...
+			std::ostringstream name;
+			name << getValueName(v,false);
+			nundef++;
+			return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
 		}
 		return man->SMT_mk_real(x);
 	} else if (isa<UndefValue>(v)) {
@@ -629,6 +667,7 @@ void SMTpass::computeRhoRec(Function &F,
 		bvar_exp = man->SMT_mk_or(implies);
 		rho_components.push_back(bvar_exp);
 	}
+
 }
 
 void SMTpass::computeRho(Function &F) {
@@ -710,8 +749,9 @@ SMT_expr SMTpass::createSMTformula(
 		
 		if (use_X_d)
 			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X_d[t])));
-		else
+		else {
 			SuccExp.push_back(man->SMT_mk_not(AbstractToSmt(*i,Nodes[*i]->X_s[t])));
+		}
 		
 		Or.push_back(man->SMT_mk_and(SuccExp));
 	}
@@ -822,6 +862,13 @@ SMT_expr SMTpass::computeCondition(CmpInst * inst) {
 
 	op1 = getValueExpr(inst->getOperand(0), false);
 	op2 = getValueExpr(inst->getOperand(1), false);
+
+	if (op1.is_empty() || op2.is_empty()) {
+		// the comparison involve at least an operand that is nan
+		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(inst));
+		SMT_expr cexpr = man->SMT_mk_expr_from_bool_var(cvar);
+		return cexpr;
+	}
 
 	SMT_expr NULL_res;
 	switch (inst->getPredicate()) {
@@ -978,12 +1025,20 @@ SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
 		// this is the last possible value of the PHI-variable
 		return getValueExpr(I.getIncomingValue(i), false);
 	}
-	SMT_expr incomingVal = 	getValueExpr(I.getIncomingValue(i), false);
+	SMT_expr incomingVal =	getValueExpr(I.getIncomingValue(i), false);
+
+	// incomingVal is empty if the i-th argument in the PHI is not a number
+	// (nan)
+	if (incomingVal.is_empty()) return incomingVal;
 
 	SMT_var evar = man->SMT_mk_bool_var(getEdgeName(I.getIncomingBlock(i),I.getParent()));
 	SMT_expr incomingBlock = man->SMT_mk_expr_from_bool_var(evar);
 
 	SMT_expr tail = construct_phi_ite(I,i+1,n);
+
+	// tail may also be empty if one operand of the phi is nan
+	if (tail.is_empty()) return tail;
+	
 	return man->SMT_mk_ite(incomingBlock,incomingVal,tail);
 }
 
@@ -1003,6 +1058,8 @@ void SMTpass::visitPHINode (PHINode &I) {
 
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());
+
+	if (assign.is_empty()) return;
 
 	//if (is_primed(I.getParent(),I) && I.getNumIncomingValues() != 1) {
 	if (I.getNumIncomingValues() != 1) {
@@ -1100,6 +1157,11 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 	SMT_expr assign;	
 	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
 	SMT_expr operand1 = getValueExpr(I.getOperand(1), false);
+
+	// if an operand is nan, return...
+	if (operand0.is_empty()) return;
+	if (operand1.is_empty()) return;
+
 	switch(I.getOpcode()) {
 		// Standard binary operators...
 		case Instruction::Add : 

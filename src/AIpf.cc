@@ -97,8 +97,6 @@ bool AIpf::runOnModule(Module &M) {
 	return false;
 }
 
-
-
 void AIpf::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * n;
@@ -190,7 +188,6 @@ void AIpf::computeNode(Node * n) {
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
-	
 	DEBUG (
 		Out->changeColor(raw_ostream::GREEN,true);
 		*Out << "#######################################################\n";
