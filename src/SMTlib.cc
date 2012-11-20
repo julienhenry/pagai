@@ -123,6 +123,7 @@ SMTlib::SMTlib() {
 		pwrite("(set-option :produce-unsat-cores true)\n");
 		if (getSMTSolver() == Z3 || getSMTSolver() == Z3_QFNRA) {
 			pwrite("(set-option :interactive-mode true)\n");
+			pwrite("(set-option :global-decls false)\n");
 			if (getTimeout() != 0) {
 				std::ostringstream timeout;
 				timeout << getTimeout()*1000;
