@@ -34,7 +34,7 @@ macro(configure_llvm PROG)
   # (see http://llvm.org/docs/CMake.html#embedding )
   # In practice, I didn't manage to get llvm_map_components_to_libraries
   # to work, hence we do it by calling llvm-config ourselves instead.
-  find_program(LLVM_CONFIG_PROG llvm-config-2.9 NAMES llvm-config-2.9 llvm-config HINTS "${LLVM_PATH}/bin")
+  find_program(LLVM_CONFIG_PROG llvm-config NAMES llvm-config HINTS "${LLVM_PATH}/bin")
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
     OUTPUT_VARIABLE LLVM_VERSION)
   STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
