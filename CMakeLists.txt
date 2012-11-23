@@ -65,15 +65,16 @@ macro(configure_llvm PROG)
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --ldflags
     OUTPUT_VARIABLE LLVM_LDFLAGS)
   STRING(REGEX REPLACE "\n" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
-  
+
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --libs ${ARGN}
     OUTPUT_VARIABLE LLVM_LIBS)
-  
+
   # turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
   STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE " -l" ";" LLVM_LIBS "${LLVM_LIBS}")
 
+  set(LLVM_LIBS "-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangEdit -lclangAST -lclangLex -lclangBasic -l${LLVM_LIBS}")
   target_link_libraries(pagai ${LLVM_LIBS})
 
   # llvm-config --ldflags was hardcoding -lfoo, but the order of

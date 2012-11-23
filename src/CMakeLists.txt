@@ -54,7 +54,7 @@ add_executable(pagai ${TOP_SRC}
 	${BISON_SMTlib2parser_OUTPUTS}
 	${FLEX_SMTlib2lexer_OUTPUTS})
 
-configure_llvm(pagai bitreader selectiondag)
+configure_llvm(pagai bitreader selectiondag all)
 
 # Apron and dependencies
 add_apron_library(pagai polkaMPQ)
