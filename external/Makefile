@@ -19,18 +19,31 @@ Z3_ARCH=-x64
 CUDD_XCFLAGS='XCFLAGS=-mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8'
 endif
 
+OS=${shell uname}
+#ifeq ($(OS), Darwin)
+#TAR=gnutar
+#else
+TAR=tar
+#endif
+
 GMP_PREFIX=/usr
 
 .PHONY: all install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
 all: install-cudd install-yices install-z3 install-llvm install-clang install-apron install-ppl
 
+ifeq ($(OS), Darwin)
+SOEXTENSION=.so
+else
+SOEXTENSION=.dylib
+endif
+
 CUDD_COMPILED=$(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a
 YICES_COMPILED=$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a
-Z3_COMPILED=$(DEST)/z3_$(Z3_VERSION)/install/lib/libz3.so
+Z3_COMPILED=$(DEST)/z3_$(Z3_VERSION)/install/lib/libz3$(SOEXTENSION)
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
-APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron.so
-PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/install/lib/libppl.so
+APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
+PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/install/lib/libppl$(SOEXTENSION)
 
 install-cudd: $(CUDD_COMPILED) $(DEST_LINKS)/cudd
 install-yices: $(YICES_COMPILED) $(DEST_LINKS)/yices
@@ -85,8 +98,8 @@ $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(CUDD_ARCHIVE)"
-	touch --no-create "$@"
+	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < ../../cudd-$(CUDD_VERSION).patch
+	touch -c "$@"
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
 	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE) $(CUDD_XCFLAGS)
@@ -103,21 +116,18 @@ $(DEST)/$(YICES_ARCHIVE):
 	$(DOWNLOAD) "http://yices.csl.sri.com/cgi-bin/yices-newdownload.cgi?file=$(YICES_ARCHIVE)&accept=I+accept" "$@"
 
 $(YICES_COMPILED): $(DEST)/$(YICES_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(YICES_ARCHIVE)"
+	cd $(DEST) && $(TAR) xzvf "$(YICES_ARCHIVE)"
 # override the timestamp set by tar
-	touch --no-create "$@"
+	touch -c "$@"
 
 #### Z3 Installation
 $(DEST)/$(Z3_ARCHIVE):
 	$(DOWNLOAD) "http://forge.imag.fr/frs/download.php/343/$(Z3_ARCHIVE)" "$@"
 
 $(DEST)/z3_$(Z3_VERSION)/README: $(DEST)/$(Z3_ARCHIVE)
-	mkdir -p $(DEST)/z3_$(Z3_VERSION)
-# z3-V.tar.gz expands itself into a directory without version but in
-# case we need to experiment with different versions, force a
-# directory name including a version number and use the same symlink
-# trick as for others.
-	cd $(DEST)/z3_$(Z3_VERSION) && tar --touch --strip-components=1 -xjvf ../$(Z3_ARCHIVE)
+	tar -x -C $(DEST) -jvf $(DEST)/$(Z3_ARCHIVE)
+	rm -rf $(DEST)/z3_$(Z3_VERSION)
+	mv $(DEST)/z3 $(DEST)/z3_$(Z3_VERSION)
 
 $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 	cd $(DEST)/z3_$(Z3_VERSION)/ && autoconf && \
@@ -133,8 +143,8 @@ $(DEST)/$(LLVM_ARCHIVE):
 	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/$(LLVM_ARCHIVE)" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
-	touch --no-create "$@"
+	cd $(DEST) && $(TAR) xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
+	touch -c "$@"
 
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
@@ -148,16 +158,16 @@ $(DEST)/$(CLANG_ARCHIVE):
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && tar xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION).src clang
-	touch --no-create "$@"
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && $(TAR) xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION).src clang
+	touch -c "$@"
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
 	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/333/$(APRON_ARCHIVE)' "$@"
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
-	touch --no-create "$@"
+	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
+	touch -c "$@"
 
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
@@ -174,8 +184,8 @@ $(DEST)/$(PPL_ARCHIVE):
 	$(DOWNLOAD) 'ftp://ftp.cs.unipr.it/pub/ppl/releases/$(PPL_VERSION)/$(PPL_ARCHIVE)' "$@"
 
 $(DEST)/ppl-$(PPL_VERSION)/README: $(DEST)/$(PPL_ARCHIVE)
-	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(PPL_ARCHIVE)"
-	touch --no-create "$@"
+	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(PPL_ARCHIVE)"
+	touch -c "$@"
 
 $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 	cd $(DEST)/ppl-$(PPL_VERSION)/ && \
