@@ -3,6 +3,8 @@
  * \brief Implementation of the yices class
  * \author Julien Henry
  */
+
+#if HAS_YICES
 #include <cstddef>
 #include <vector>
 #include <sstream>
@@ -427,3 +429,4 @@ void yices::push_context() {
 void yices::pop_context() {
 	yices_pop(ctx);
 }
+#endif

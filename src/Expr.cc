@@ -126,8 +126,8 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 		}
 		if (FP->getValueAPF().isNaN() 
 				|| FP->getValueAPF().isInfinity()
-				|| isnan(x)
-				|| isinf(x)) {
+				|| std::isnan(x)
+				|| std::isinf(x)) {
 			// x is nan or is actually infinity
 			// in this case, we suppose it is an unknown value (as in the SMT
 			// part)

@@ -46,9 +46,11 @@ SMTpass::SMTpass() {
 		case API_Z3:
 			man = new z3_manager();
 			break;
+#ifdef HAS_YICES
 		case API_YICES: 
 			man = new yices();
 			break;
+#endif
 		default:
 			man = new SMTlib();
 	}
@@ -104,9 +106,11 @@ void SMTpass::reset_SMTcontext() {
 		case API_Z3:
 			man = new z3_manager();
 			break;
+#ifdef HASH_YICES
 		case API_YICES: 
 			man = new yices();
 			break;
+#endif
 		default:
 			man = new SMTlib();
 	}

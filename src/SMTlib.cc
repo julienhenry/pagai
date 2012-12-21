@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "llvm/Support/FormattedStream.h"
 

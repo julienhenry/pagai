@@ -18,6 +18,8 @@ if(${PRINT_DEBUG_SMT})
   add_definitions(-DPRINT_DEBUG_SMT)
 endif()
 
+find_package(Boost COMPONENTS thread system REQUIRED)
+
 # TODO: we could do configure-time checks with find_file(FOO NAMES foo.h PATH ...)
 include_directories(
   ${YICES_PATH}/include 
@@ -26,12 +28,13 @@ include_directories(
   ${MPFR_PREFIX}/include
   ${APRON_PREFIX}/include 
   ${CUDD_PATH}/include
+  ${Boost_INCLUDE_DIR}
 )
 
 # TODO: If we don't add /usr/lib at the front, then the pagai executable
 # tries to link against libgmp.so.3 which doesn't exist. It seems to
 # be linked to the version of libutils chosen by the linker.
-set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib -lboost_thread ${CMAKE_EXE_LINKER_FLAGS}")
+# set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib -lboost_thread -lboost_system ${CMAKE_EXE_LINKER_FLAGS}")
 link_directories(
   ${GMP_PREFIX}/lib
   ${MPFR_PREFIX}/lib 
@@ -53,6 +56,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(pagai ${TOP_SRC} 
 	${BISON_SMTlib2parser_OUTPUTS}
 	${FLEX_SMTlib2lexer_OUTPUTS})
+TARGET_LINK_LIBRARIES(pagai ${Boost_LIBRARIES})
 
 configure_llvm(pagai bitreader selectiondag all)
 
@@ -70,12 +74,12 @@ if(${ENABLE_YICES})
 endif()
 
 add_z3_library(pagai)
-target_link_libraries(pagai mpfr gmpxx gmp)
+target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES})
 
 # TODO: these libraries are not always needed
 # (it seems they are by libz3.a but not libz3.so ...),
 # we should detect and adapt...
-target_link_libraries(pagai rt gomp)
+#target_link_libraries(pagai rt gomp)
 
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,
