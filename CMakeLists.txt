@@ -191,8 +191,7 @@ endif()
 find_package(BISON)
 find_package(FLEX)
 
-find_package(BOOST REQUIRED COMPONENTS thread system)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+find_package(Boost COMPONENTS thread system REQUIRED)
 
 option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
