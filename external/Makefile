@@ -43,7 +43,7 @@ Z3_COMPILED=$(DEST)/z3_$(Z3_VERSION)/install/lib/libz3$(SOEXTENSION)
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
-PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/install/lib/libppl$(SOEXTENSION)
+PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/installdir/lib/libppl$(SOEXTENSION)
 
 install-cudd: $(CUDD_COMPILED) $(DEST_LINKS)/cudd
 install-yices: $(YICES_COMPILED) $(DEST_LINKS)/yices
@@ -90,7 +90,7 @@ $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 $(DEST_LINKS)/apron: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/apron-$(APRON_VERSION)/install $@
 $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
-	ln -sf $(DEST_ABS)/ppl-$(PPL_VERSION)/install $@
+	ln -sf $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir $@
 
 
 #### CUDD Installation
@@ -190,6 +190,7 @@ $(DEST)/ppl-$(PPL_VERSION)/README: $(DEST)/$(PPL_ARCHIVE)
 $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 	cd $(DEST)/ppl-$(PPL_VERSION)/ && \
 		./configure \
-			--prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/install/ \
-			--with-gmp=$(GMP_PREFIX) && \
+			--prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir/ \
+			--with-gmp=$(GMP_PREFIX) \
+			--enable-interfaces=c,c++ && \
 		$(MAKE) && $(MAKE) install
