@@ -6,8 +6,7 @@ DEST_LINKS=.
 CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_VERSION=4.1
-Z3_ARCH=
+Z3_VERSION=2012-12-21
 LLVM_VERSION=3.1
 APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
@@ -27,7 +26,7 @@ all: install-cudd install-yices install-z3 install-llvm install-clang install-ap
 
 CUDD_COMPILED=$(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a
 YICES_COMPILED=$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a
-Z3_COMPILED=$(DEST)/z3-$(Z3_VERSION)/lib/libz3-gmp.so
+Z3_COMPILED=$(DEST)/z3_$(Z3_VERSION)/install/lib/libz3.so
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron.so
@@ -43,7 +42,7 @@ install-ppl: $(PPL_COMPILED) $(DEST_LINKS)/ppl
 
 CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
-Z3_ARCHIVE=z3$(Z3_ARCH)-$(Z3_VERSION).tar.gz
+Z3_ARCHIVE=z3_$(Z3_VERSION).tar.bz2
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).src.tar.gz
 CLANG_ARCHIVE=clang-$(LLVM_VERSION).src.tar.gz
 APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
@@ -72,7 +71,7 @@ $(DEST_LINKS)/cudd: $(MAKEFILE_LIST)
 $(DEST_LINKS)/yices: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/yices-$(YICES_VERSION) $@
 $(DEST_LINKS)/z3: $(MAKEFILE_LIST)
-	ln -sf $(DEST_ABS)/z3-$(Z3_VERSION) $@
+	ln -sf $(DEST_ABS)/z3_$(Z3_VERSION)/install $@
 $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/llvm-$(LLVM_VERSION)/install $@
 $(DEST_LINKS)/apron: $(MAKEFILE_LIST)
@@ -110,15 +109,24 @@ $(YICES_COMPILED): $(DEST)/$(YICES_ARCHIVE)
 
 #### Z3 Installation
 $(DEST)/$(Z3_ARCHIVE):
-	$(DOWNLOAD) "http://research.microsoft.com/projects/z3/$(Z3_ARCHIVE)" "$@"
+	$(DOWNLOAD) "http://forge.imag.fr/frs/download.php/343/$(Z3_ARCHIVE)" "$@"
 
-$(Z3_COMPILED): $(DEST)/$(Z3_ARCHIVE)
-	mkdir -p $(DEST)/z3-$(Z3_VERSION)
+$(DEST)/z3_$(Z3_VERSION)/README: $(DEST)/$(Z3_ARCHIVE)
+	mkdir -p $(DEST)/z3_$(Z3_VERSION)
 # z3-V.tar.gz expands itself into a directory without version but in
 # case we need to experiment with different versions, force a
 # directory name including a version number and use the same symlink
 # trick as for others.
-	cd $(DEST)/z3-$(Z3_VERSION) && tar --touch --strip-components=1 -xzvf ../$(Z3_ARCHIVE)
+	cd $(DEST)/z3_$(Z3_VERSION) && tar --touch --strip-components=1 -xjvf ../$(Z3_ARCHIVE)
+
+$(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
+	cd $(DEST)/z3_$(Z3_VERSION)/ && autoconf && \
+		./configure \
+			--prefix $(DEST_ABS)/z3_$(Z3_VERSION)/install/ && \
+		python scripts/mk_make.py && \
+		cd build && \
+		$(MAKE)
+	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
 $(DEST)/$(LLVM_ARCHIVE):
@@ -173,5 +181,5 @@ $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 	cd $(DEST)/ppl-$(PPL_VERSION)/ && \
 		./configure \
 			--prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/install/ \
-			--with-gmp-prefix=$(GMP_PREFIX) && \
+			--with-gmp=$(GMP_PREFIX) && \
 		$(MAKE) && $(MAKE) install
