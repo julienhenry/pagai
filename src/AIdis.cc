@@ -16,6 +16,7 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "PathTree_br.h"
 #include "ModulePassWrapper.h"
 
 using namespace llvm;
@@ -72,7 +73,7 @@ bool AIdis::runOnModule(Module &M) {
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
 			it++) {
-			pathtree[*it] = new PathTree(*it);
+			pathtree[*it] = new PathTree_br(*it);
 			S[*it] = new Sigma(*it,Max_Disj);
 		}
 
@@ -448,9 +449,9 @@ void AIdis::computeNode(Node * n) {
 		SuccDisj->change_environment(&Xtemp_env,Sigma);
 
 		if (!U.count(index))
-			U[index] = new PathTree(n->bb);
+			U[index] = new PathTree_br(n->bb);
 		if (!V.count(index))
-			V[index] = new PathTree(n->bb);
+			V[index] = new PathTree_br(n->bb);
 
 		// if we have a self loop, we apply loopiter
 		if (Succ == n) {

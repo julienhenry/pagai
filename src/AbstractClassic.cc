@@ -86,7 +86,6 @@ void AbstractClassic::widening_threshold(Abstract * X, Constraint_array* cons) {
 }
 
 void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
-
 	Environment main_env(this);
 	Environment cons_env(tcons);
 	Environment * lcenv = Environment::common_environment(&main_env,&cons_env);
@@ -94,7 +93,7 @@ void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	*main = ap_abstract1_change_environment(man,true,main,lcenv->getEnv(),false);
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
 	delete lcenv;
-
+	canonicalize();
 }
 
 void AbstractClassic::canonicalize() {
@@ -112,6 +111,7 @@ void AbstractClassic::assign_texpr_array(
 			texpr,
 			size,
 			dest);
+	canonicalize();
 }
 
 void AbstractClassic::join_array(Environment * env, std::vector<Abstract*> X_pred) {
@@ -133,6 +133,7 @@ void AbstractClassic::join_array(Environment * env, std::vector<Abstract*> X_pre
 	} else {
 		*main = Xmain[0];
 	}
+	canonicalize();
 }
 
 void AbstractClassic::join_array_dpUcm(Environment *env, Abstract* n) {
@@ -159,7 +160,6 @@ ap_lincons1_array_t AbstractClassic::to_lincons_array() {
 void AbstractClassic::print(bool only_main) {
 	*Out << *this;
 }
-
 
 void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) const {
 #if 1

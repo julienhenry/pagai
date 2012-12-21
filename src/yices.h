@@ -6,6 +6,7 @@
 #ifndef YICES_H
 #define YICES_H
 
+#if HAS_YICES
 #include <map>
 
 #include "yices_c.h"
@@ -76,4 +77,5 @@ class yices: public SMT_manager {
 		void SMT_assert(SMT_expr a);
 		int SMT_check(SMT_expr a, std::set<std::string> * true_booleans);
 };
+#endif
 #endif

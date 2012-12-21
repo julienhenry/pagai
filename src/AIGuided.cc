@@ -17,6 +17,7 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "PathTree_br.h"
 #include "ModulePassWrapper.h"
 
 using namespace llvm;
@@ -69,7 +70,7 @@ bool AIGuided::runOnModule(Module &M) {
 		// we create the new pathtree
 		for (Function::iterator it = F->begin(), et = F->end(); it != et; ++it) {
 			BasicBlock * b = it;
-			pathtree[b] = new PathTree(b);
+			pathtree[b] = new PathTree_br(b);
 		}
 
 		computeFunction(F);
@@ -138,7 +139,7 @@ void AIGuided::computeFunction(Function * F) {
 			computeNewPaths(current); // this method adds elements in A and A'
 		}
 
-		W = new PathTree(n->bb);
+		W = new PathTree_br(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
 

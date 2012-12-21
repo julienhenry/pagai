@@ -1,0 +1,131 @@
+Only in cudd-2.5.0-patched/cudd: cuddAPI.o
+Only in cudd-2.5.0-patched/cudd: cuddAddAbs.o
+Only in cudd-2.5.0-patched/cudd: cuddAddApply.o
+Only in cudd-2.5.0-patched/cudd: cuddAddFind.o
+Only in cudd-2.5.0-patched/cudd: cuddAddInv.o
+Only in cudd-2.5.0-patched/cudd: cuddAddIte.o
+Only in cudd-2.5.0-patched/cudd: cuddAddNeg.o
+Only in cudd-2.5.0-patched/cudd: cuddAddWalsh.o
+Only in cudd-2.5.0-patched/cudd: cuddAndAbs.o
+Only in cudd-2.5.0-patched/cudd: cuddAnneal.o
+Only in cudd-2.5.0-patched/cudd: cuddApa.o
+Only in cudd-2.5.0-patched/cudd: cuddApprox.o
+Only in cudd-2.5.0-patched/cudd: cuddBddAbs.o
+Only in cudd-2.5.0-patched/cudd: cuddBddCorr.o
+Only in cudd-2.5.0-patched/cudd: cuddBddIte.o
+Only in cudd-2.5.0-patched/cudd: cuddBridge.o
+Only in cudd-2.5.0-patched/cudd: cuddCache.o
+Only in cudd-2.5.0-patched/cudd: cuddCheck.o
+Only in cudd-2.5.0-patched/cudd: cuddClip.o
+Only in cudd-2.5.0-patched/cudd: cuddCof.o
+Only in cudd-2.5.0-patched/cudd: cuddCompose.o
+Only in cudd-2.5.0-patched/cudd: cuddDecomp.o
+Only in cudd-2.5.0-patched/cudd: cuddEssent.o
+Only in cudd-2.5.0-patched/cudd: cuddExact.o
+Only in cudd-2.5.0-patched/cudd: cuddExport.o
+Only in cudd-2.5.0-patched/cudd: cuddGenCof.o
+Only in cudd-2.5.0-patched/cudd: cuddGenetic.o
+Only in cudd-2.5.0-patched/cudd: cuddGroup.o
+Only in cudd-2.5.0-patched/cudd: cuddHarwell.o
+Only in cudd-2.5.0-patched/cudd: cuddInit.o
+Only in cudd-2.5.0-patched/cudd: cuddInteract.o
+Only in cudd-2.5.0-patched/cudd: cuddLCache.o
+Only in cudd-2.5.0-patched/cudd: cuddLevelQ.o
+Only in cudd-2.5.0-patched/cudd: cuddLinear.o
+Only in cudd-2.5.0-patched/cudd: cuddLiteral.o
+Only in cudd-2.5.0-patched/cudd: cuddMatMult.o
+Only in cudd-2.5.0-patched/cudd: cuddPriority.o
+Only in cudd-2.5.0-patched/cudd: cuddRead.o
+Only in cudd-2.5.0-patched/cudd: cuddRef.o
+Only in cudd-2.5.0-patched/cudd: cuddReorder.o
+Only in cudd-2.5.0-patched/cudd: cuddSat.o
+Only in cudd-2.5.0-patched/cudd: cuddSign.o
+Only in cudd-2.5.0-patched/cudd: cuddSolve.o
+Only in cudd-2.5.0-patched/cudd: cuddSplit.o
+Only in cudd-2.5.0-patched/cudd: cuddSubsetHB.o
+Only in cudd-2.5.0-patched/cudd: cuddSubsetSP.o
+Only in cudd-2.5.0-patched/cudd: cuddSymmetry.o
+Only in cudd-2.5.0-patched/cudd: cuddTable.o
+Only in cudd-2.5.0-patched/cudd: cuddUtil.o
+Only in cudd-2.5.0-patched/cudd: cuddWindow.o
+Only in cudd-2.5.0-patched/cudd: cuddZddCount.o
+Only in cudd-2.5.0-patched/cudd: cuddZddFuncs.o
+Only in cudd-2.5.0-patched/cudd: cuddZddGroup.o
+Only in cudd-2.5.0-patched/cudd: cuddZddIsop.o
+Only in cudd-2.5.0-patched/cudd: cuddZddLin.o
+Only in cudd-2.5.0-patched/cudd: cuddZddMisc.o
+Only in cudd-2.5.0-patched/cudd: cuddZddPort.o
+Only in cudd-2.5.0-patched/cudd: cuddZddReord.o
+Only in cudd-2.5.0-patched/cudd: cuddZddSetop.o
+Only in cudd-2.5.0-patched/cudd: cuddZddSymm.o
+Only in cudd-2.5.0-patched/cudd: cuddZddUtil.o
+Only in cudd-2.5.0-patched/cudd: libcudd.a
+Only in cudd-2.5.0-patched/dddmp: dddmpBinary.o
+Only in cudd-2.5.0-patched/dddmp: dddmpConvert.o
+Only in cudd-2.5.0-patched/dddmp: dddmpDbg.o
+Only in cudd-2.5.0-patched/dddmp: dddmpLoad.o
+Only in cudd-2.5.0-patched/dddmp: dddmpLoadCnf.o
+Only in cudd-2.5.0-patched/dddmp: dddmpNodeAdd.o
+Only in cudd-2.5.0-patched/dddmp: dddmpNodeBdd.o
+Only in cudd-2.5.0-patched/dddmp: dddmpNodeCnf.o
+Only in cudd-2.5.0-patched/dddmp: dddmpStoreAdd.o
+Only in cudd-2.5.0-patched/dddmp: dddmpStoreBdd.o
+Only in cudd-2.5.0-patched/dddmp: dddmpStoreCnf.o
+Only in cudd-2.5.0-patched/dddmp: dddmpStoreMisc.o
+Only in cudd-2.5.0-patched/dddmp: dddmpUtil.o
+Only in cudd-2.5.0-patched/dddmp: libdddmp.a
+Only in cudd-2.5.0-patched/epd: epd.o
+Only in cudd-2.5.0-patched/epd: libepd.a
+Only in cudd-2.5.0-patched: include
+Only in cudd-2.5.0-patched/mtr: libmtr.a
+Only in cudd-2.5.0-patched/mtr: mtrBasic.o
+Only in cudd-2.5.0-patched/mtr: mtrGroup.o
+Only in cudd-2.5.0-patched/nanotrav: bnet.o
+Only in cudd-2.5.0-patched/nanotrav: chkMterm.o
+Only in cudd-2.5.0-patched/nanotrav: main.o
+Only in cudd-2.5.0-patched/nanotrav: ntr.o
+Only in cudd-2.5.0-patched/nanotrav: ntrBddTest.o
+Only in cudd-2.5.0-patched/nanotrav: ntrHeap.o
+Only in cudd-2.5.0-patched/nanotrav: ntrMflow.o
+Only in cudd-2.5.0-patched/nanotrav: ntrShort.o
+Only in cudd-2.5.0-patched/nanotrav: ntrZddTest.o
+Only in cudd-2.5.0-patched/nanotrav: ucbqsort.o
+Only in cudd-2.5.0-patched/st: libst.a
+Only in cudd-2.5.0-patched/st: st.o
+diff -r -u cudd-2.5.0/util/cpu_stats.c cudd-2.5.0-patched/util/cpu_stats.c
+--- cudd-2.5.0/util/cpu_stats.c	2009-02-17 21:52:03.000000000 +0100
++++ cudd-2.5.0-patched/util/cpu_stats.c	2012-12-21 16:45:33.000000000 +0100
+@@ -3,7 +3,11 @@
+ #include "util.h"
+ 
+ 
+-#ifdef BSD
++#if defined(BSD) && !defined(__APPLE__)
++#define CUDD_HAS_CPU_STATS
++#endif
++
++#ifdef CUDD_HAS_CPU_STATS
+ #include <sys/types.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
+@@ -21,7 +25,7 @@
+ void
+ util_print_cpu_stats(FILE *fp)
+ {
+-#ifdef BSD
++#ifdef CUDD_HAS_CPU_STATS
+     struct rusage rusage;
+     struct rlimit rlp;
+     long text, data, vm_limit, vm_soft_limit;
+Only in cudd-2.5.0-patched/util: cpu_stats.o
+Only in cudd-2.5.0-patched/util: cpu_time.o
+Only in cudd-2.5.0-patched/util: datalimit.o
+Only in cudd-2.5.0-patched/util: libutil.a
+Only in cudd-2.5.0-patched/util: pathsearch.o
+Only in cudd-2.5.0-patched/util: pipefork.o
+Only in cudd-2.5.0-patched/util: prtime.o
+Only in cudd-2.5.0-patched/util: ptime.o
+Only in cudd-2.5.0-patched/util: safe_mem.o
+Only in cudd-2.5.0-patched/util: strsav.o
+Only in cudd-2.5.0-patched/util: stub.o
+Only in cudd-2.5.0-patched/util: texpand.o

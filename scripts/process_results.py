@@ -4,17 +4,20 @@ import sys
 from os import system, remove
 
 def getFileBetween(filename,begin,end):
-	f = open(filename,"r")
-	res = ""
-	start = False
-	for line in f:
-		if end in line :
-			return res
-		if start :
-			res += line
-		if begin in line :
-			start = True
-	f.close()
+	try:
+		f = open(filename,"r")
+		res = ""
+		start = False
+		for line in f:
+			if end in line :
+				f.close()
+				return res
+			if start :
+				res += line
+			if begin in line :
+				start = True
+	except IOError:
+		return ""
 
 def get_techniques(filename):
 	res = set()

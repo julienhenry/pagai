@@ -72,7 +72,6 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 */
 		static const std::string getDisjunctiveIndexName(AbstractDisj * A, int index);
 		static const std::string getUndeterministicChoiceName(Value * v);
-		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 		static const std::string getValueName(Value * v, bool primed);
 		/**
 		 * \}
@@ -170,6 +169,7 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * this name is unique for the Value *
 		 */
 		static const std::string getVarName(Value * v);
+		static const std::string getEdgeName(BasicBlock* b1, BasicBlock* b2);
 
 		/**
 		 * \brief push the context of the SMT manager
@@ -246,10 +246,10 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * \name XToSmt - transform an apron object of type X into an SMT expression
 		 */
 		SMT_expr texpr1ToSmt(ap_texpr1_t texpr);
-		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer);
-		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, double &value);
+		SMT_expr linexpr1ToSmt(BasicBlock * b, ap_linexpr1_t linexpr, bool &integer, bool &skip);
+		SMT_expr scalarToSmt(ap_scalar_t * scalar, bool integer, double &value, bool &infinity);
 		SMT_expr tcons1ToSmt(ap_tcons1_t tcons);
-		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons);
+		SMT_expr lincons1ToSmt(BasicBlock * b, ap_lincons1_t lincons,bool &skip);
 		SMT_expr AbstractToSmt(BasicBlock * b, Abstract * A);
 		/** 
 		 * \}
