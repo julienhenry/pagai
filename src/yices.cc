@@ -1,3 +1,8 @@
+/**
+ * \file yices.cc
+ * \brief Implementation of the yices class
+ * \author Julien Henry
+ */
 #include <cstddef>
 #include <vector>
 #include <sstream>
@@ -228,6 +233,34 @@ SMT_expr yices::SMT_mk_mul (std::vector<SMT_expr> args) {
 			return res;
 	}
 }
+
+SMT_expr yices::SMT_mk_sum (SMT_expr a1, SMT_expr a2) {
+	std::vector<yices_expr> arguments;
+	arguments.push_back((yices_expr)a1.i);
+	arguments.push_back((yices_expr)a2.i);
+	SMT_expr res;
+	res.i = yices_mk_sum(ctx,&arguments[0],2);
+	return res;
+}
+
+SMT_expr yices::SMT_mk_sub (SMT_expr a1, SMT_expr a2) {
+	std::vector<yices_expr> arguments;
+	arguments.push_back((yices_expr)a1.i);
+	arguments.push_back((yices_expr)a2.i);
+	SMT_expr res;
+	res.i = yices_mk_sub(ctx,&arguments[0],2);
+	return res;
+}
+
+SMT_expr yices::SMT_mk_mul (SMT_expr a1, SMT_expr a2) {
+	std::vector<yices_expr> arguments;
+	arguments.push_back((yices_expr)a1.i);
+	arguments.push_back((yices_expr)a2.i);
+	SMT_expr res;
+	res.i = yices_mk_mul(ctx,&arguments[0],2);
+	return res;
+}
+
 
 SMT_expr yices::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 	return int0;

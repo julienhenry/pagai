@@ -1,3 +1,8 @@
+/**
+ * \file AIGuided.cc
+ * \brief Implementation of the AIGuided pass (Guided Static Analysis)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <sstream>
 #include <list>
@@ -12,6 +17,7 @@
 #include "Debug.h"
 #include "Analyzer.h"
 #include "PathTree.h"
+#include "PathTree_br.h"
 #include "ModulePassWrapper.h"
 
 using namespace llvm;
@@ -28,7 +34,6 @@ const char * AIGuided::getPassName() const {
 
 void AIGuided::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
-	AU.addRequired<Pr>();
 	AU.addRequired<Live>();
 }
 
@@ -36,9 +41,7 @@ bool AIGuided::runOnModule(Module &M) {
 	Function * F;
 	Node * n = NULL;
 	int N_Pr = 0;
-	//LSMT = &(getAnalysis<SMTpass>());
 	LSMT = SMTpass::getInstance();
-	LSMT->reset_SMTcontext();
 
 	*Out << "Starting analysis: G\n";
 
@@ -49,13 +52,13 @@ bool AIGuided::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
+		if (!quiet_mode()) {
 		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
-		LSMT->reset_SMTcontext();
+			*Out	<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -67,13 +70,14 @@ bool AIGuided::runOnModule(Module &M) {
 		// we create the new pathtree
 		for (Function::iterator it = F->begin(), et = F->end(); it != et; ++it) {
 			BasicBlock * b = it;
-			pathtree[b] = new PathTree(b);
+			pathtree[b] = new PathTree_br(b);
 		}
 
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		printResult(F);
+		TerminateFunction();
 
 		// we delete the pathtree
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -104,26 +108,18 @@ void AIGuided::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
-	DEBUG(
-		*Out << "Computing Pr...\n";
-	);
-	Pr::getPr(*F);
-
 	// add all function's arguments into the environment of the first bb
 	for (Function::arg_iterator a = F->arg_begin(), e = F->arg_end(); a != e; ++a) {
 		Argument * arg = a;
 		if (!(arg->use_empty()))
 			n->add_var(arg);
-		else 
-			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
-	
 	while (!A_prime.empty()) 
 			A_prime.pop();
 	while (!A.empty()) 
@@ -143,14 +139,15 @@ void AIGuided::computeFunction(Function * F) {
 			computeNewPaths(current); // this method adds elements in A and A'
 		}
 
-		W = new PathTree(n->bb);
+		W = new PathTree_br(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
 
 		// we set X_d abstract values to bottom for narrowing
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
-			if (Pr::getPr(*F)->count(i) && Nodes[b] != n) {
+			if (FPr->getPr()->count(i) && Nodes[b] != n) {
 				Nodes[b]->X_d[passID]->set_bottom(env);
 			}
 		}
@@ -165,6 +162,7 @@ void AIGuided::computeFunction(Function * F) {
 		}
 		delete W;
 	}
+	delete env;
 }
 
 std::set<BasicBlock*> AIGuided::getPredecessors(BasicBlock * b) const {
@@ -224,7 +222,7 @@ void AIGuided::computeNewPaths(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -233,11 +231,12 @@ void AIGuided::computeNewPaths(Node * n) {
 			Xtemp->print();
 		);
 
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
+		Xtemp->join_array_dpUcm(&Xtemp_env,aman->NewAbstract(Succ->X_s[passID]));
 		
 		if ( !Xtemp->is_leq(Succ->X_s[passID])) {
 			delete Succ->X_s[passID];
@@ -301,7 +300,7 @@ void AIGuided::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -310,20 +309,22 @@ void AIGuided::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		if (Pr::inPw(Succ->bb)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);
 			if (use_threshold) {
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 			} else
 				Xtemp->widening(Succ->X_s[passID]);
 		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
+			Xtemp->join_array_dpUcm(&Xtemp_env,aman->NewAbstract(Succ->X_s[passID]));
 		}
 		
 		if (!Succ->X_f[passID]->is_bottom()) {
@@ -384,7 +385,7 @@ void AIGuided::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		desc_iterations[passID][n->bb->getParent()]++;
 
@@ -402,7 +403,8 @@ void AIGuided::narrowNode(Node * n) {
 			Join.clear();
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
-			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

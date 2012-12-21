@@ -1,3 +1,8 @@
+/**
+ * \file Debug.h
+ * \brief Declares some Debug functions and variables
+ * \author Julien Henry
+ */
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -29,11 +34,28 @@ using namespace llvm;
 extern int n_paths;
 extern int n_totalpaths;
 
-extern std::map<params,std::map<Function*,sys::TimeValue *> > Total_time;
+extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time;
+extern std::map<params,std::map<Function*,sys::TimeValue*> > Total_time_SMT;
 
-// count the number of ascending iterations
+/**
+ * \brief count the number of ascending iterations
+ */
 extern std::map<params,std::map<Function*,int> > asc_iterations;
-// count the number of descending iterations
+
+/** 
+ * \brief count the number of descending iterations
+ */
 extern std::map<params,std::map<Function*,int> > desc_iterations;
+
+extern void ReleaseTimingData();
+
+/**
+ * \brief Functions ignored by Compare pass (because the analysis failed for
+ * one technique)
+ */
+extern std::map<params,std::set<llvm::Function*> > ignoreFunction;
+
+extern bool ignored(Function * F);
+extern int nb_ignored();
 
 #endif

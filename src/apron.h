@@ -1,3 +1,8 @@
+/**
+ * \file apron.h
+ * \brief Declares functions related to the Apron interface
+ * \author Julien Henry
+ */
 #ifndef _APRON_H 
 #define _APRON_H 
 
@@ -10,10 +15,16 @@
 
 using namespace llvm;
 
-/// init_apron - initialize the apron library. 
-/// This function has to be called at the very beginning of the pass
+/**
+ * \brief initialize the apron library. 
+ *
+ * This function has to be called at the very beginning of the pass
+ */
 void init_apron();
 
+/**
+ * \brief creates an apron manager
+ */
 ap_manager_t * create_manager(Apron_Manager_Type man);
 
 char* ap_var_to_string(ap_var_t var);
@@ -26,7 +37,7 @@ llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_texpr1_t & cons);
 llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_scalar_t & cons);
 
 
-void texpr0_display(llvm::raw_ostream &stream, ap_texpr0_t* a, char ** name_of_dim);
+void texpr0_display(llvm::raw_ostream * stream, ap_texpr0_t* a, char ** name_of_dim);
 
 
 int check_scalar(ap_scalar_t * a);

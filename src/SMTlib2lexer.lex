@@ -31,7 +31,7 @@ negreal		-{blank}{posreal}
 real		{negreal}|{posreal}
 neginteger	-{blank}{posinteger}
 integer		{neginteger}|{posinteger}
-var			{letter}|{num}|_|\.|\%|!
+var			{letter}|{num}|_|\.|\%|!|-
 varname		{var}+
 
 %{
@@ -79,12 +79,13 @@ varname		{var}+
 
 {integer}			return(token::INTVALUE);
 
+"-"					return(token::MINUS);
+
 {varname}			{
 						yylval->sval=new std::string(yytext);
 						return(token::VARNAME);
 					}
 
-"-"					return(token::MINUS);
 
 .					{
 						std::string errormsg("invalid character :");

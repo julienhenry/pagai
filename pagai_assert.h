@@ -35,9 +35,8 @@
 #endif /* assert.h	*/
 
 #define	_ASSERT_H	1
-#include <features.h>
 
-#if defined __cplusplus && __GNUC_PREREQ (2,95)
+#if defined __cplusplus 
 # define __ASSERT_VOID_CAST static_cast<void>
 #else
 # define __ASSERT_VOID_CAST (void)
@@ -63,6 +62,22 @@
 # endif
 
 #else /* Not NDEBUG.  */
+
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#ifdef __cplusplus
+# define __BEGIN_DECLS extern "C" {
+# define __END_DECLS }
+#else
+# define __BEGIN_DECLS /* empty */
+# define __END_DECLS /* empty */
+#endif
+
+#ifdef __cplusplus
+    #define __THROW throw()
+#else
+    #define __THROW
+#endif
 
 #ifndef _ASSERT_H_DECLS
 #define _ASSERT_H_DECLS
@@ -116,14 +131,6 @@ __END_DECLS
    This is broken in G++ before version 2.6.
    C9x has a similar variable called __func__, but prefer the GCC one since
    it demangles C++ function names.  */
-# if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#   define __ASSERT_FUNCTION	__PRETTY_FUNCTION__
-# else
-#  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#   define __ASSERT_FUNCTION	__func__
-#  else
-#   define __ASSERT_FUNCTION	((__const char *) 0)
-#  endif
-# endif
+#define __ASSERT_FUNCTION	((__const char *) 0)
 
 #endif /* NDEBUG.  */

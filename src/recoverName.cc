@@ -1,4 +1,10 @@
+/**
+ * \file recoverName.cc
+ * \brief Implementation of the recoverName class
+ * \author Rahul Nanda, Julien Henry
+ */
 #include<algorithm>
+#include<fstream>
 
 #include "recoverName.h"
 #include "Debug.h"
@@ -40,43 +46,40 @@ int recoverName::process(Function *F)
 	pass1(F);	
 	pass2(F);
 
-	std::multimap<const Value*,Info*>::iterator itt;
-
 	//simply displaying the multimaps M1 and M2 created for Function *F..
+	std::multimap<const Value*,Info*>::iterator itt;
 	DEBUG(
-	*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+		*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
+		for ( itt=M1.begin() ; itt != M1.end(); itt++ ) {
+			*Out<< *(*itt).first << " => ";
+			Info* IN=getMDInfos(itt->first);
+			(*itt).second->display();
+			//IN->display(); 
+			*Out<<"\n";
+		}
+		*Out<<"Map2\n";
+		for ( itt=M2.begin() ; itt != M2.end(); itt++ ) {
+			*Out<< *(*itt).first << " => ";
+			Info* IN=getMDInfos(itt->first);
+			(*itt).second->display();
+			//IN->display(); 
+			*Out<<"\n";
+		}
 	);
-	for ( itt=M1.begin() ; itt != M1.end(); itt++ )
-	{
-		DEBUG(
-		*Out<< *(*itt).first << " => ";
-		);
-		Info* IN=getMDInfos(itt->first);
-		DEBUG(
-		(*itt).second->display();
-		//IN->display(); 
-		*Out<<"\n";
-		);
-	}
-	DEBUG(
-	*Out<<"Map2\n";
-	);
-	for ( itt=M2.begin() ; itt != M2.end(); itt++ )
-	{
-		DEBUG(
-		*Out<< *(*itt).first << " => ";
-		);
-		Info* IN=getMDInfos(itt->first);
-		DEBUG(
-		(*itt).second->display();
-		//IN->display(); 
-		*Out<<"\n";
-		);
-	}
 	return 1;
 }
 
 int recoverName::getBasicBlockLineNo(BasicBlock* BB) {
+#if 0
+	Instruction * I = getFirstMetadata(BB);
+	if (I == NULL) return -1;
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_lexical_block = get_DW_TAG_lexical_block(MD);
+	if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_lexical_block->getOperand(2)))
+		return LineNo->getZExtValue();
+	return -1;
+#endif
+
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM1.find(BB);
 	if(it!=BBM1.end())
@@ -88,6 +91,16 @@ int recoverName::getBasicBlockLineNo(BasicBlock* BB) {
 }
 
 int recoverName::getBasicBlockColumnNo(BasicBlock* BB) {
+#if 0
+	Instruction * I = getFirstMetadata(BB);
+	if (I == NULL) return -1;
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_lexical_block = get_DW_TAG_lexical_block(MD);
+	if(const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_lexical_block->getOperand(3)))
+		return LineNo->getZExtValue();
+	return -1;
+#endif
+
 	std::map<BasicBlock*,int>::iterator it;
 	it=BBM2.find(BB);
 	if(it!=BBM2.end())
@@ -185,78 +198,71 @@ Info* resolveMetDescriptor(MDNode* md) {
 //'pass1' reads llvm.dbg.declare and llvm.dbg.value instructions, maps bitcode variables(of type Value*)
 //to original source variable(of type Info*) and stores them in multimap M1
 void recoverName::pass1(Function *F) {
-	MDNode * md; 
-	const Value* BCVar;
-	
-	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb)
-	{
+	MDNode * MD; 
+	const Value* val;
+	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {
 		unsigned bblineNo,bbcolumnNo,bblineNoMin=MAX,bbcolumnNoMin=MAX;
-		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I)
-		{
-			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I))
-			{
-				SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-				I->getAllMetadata(MDs);
-
-				SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin();
-				if(MDNode *BlockMD=dyn_cast<MDNode>(MI->second))
-				{
-					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0)))
-					{
+		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
+				//////////////////
+				//SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+				//I->getAllMetadata(MDs);
+				//SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator MI = MDs.begin(), ME = MDs.end();	
+			
+				//*Out << *I << "\n";
+				//for (; MI != ME; MI++) {
+				//	*Out << " " << (MI->first) << " " << *(MI->second) << "\n";
+				//	MDNode * node = MI->second;
+				//	MDNode * MDNode_lexical_block = dyn_cast<MDNode>(node->getOperand(2));
+				//	MDNode * MDNode_file_type = dyn_cast<MDNode>(MDNode_lexical_block->getOperand(4));
+				//	*Out << * MDNode_file_type  << "\n"; 
+				//}
+				//*Out << "\n";
+				//////////////////////////////
+			if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I)) {
+			
+				if(MDNode *BlockMD=dyn_cast<MDNode>(I->getMetadata(0))) {
+					if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0))) {
 						bblineNo=BBLineNo->getZExtValue();
 					}
-					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1)))
-					{
+					if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1))) {
 						bbcolumnNo=BBColumnNo->getZExtValue();
 					}
-					if(bblineNo<bblineNoMin)
-					{
+					if(bblineNo<bblineNoMin) {
 						bblineNoMin=bblineNo;
 						bbcolumnNoMin=bbcolumnNo;
-					}
-					else if(bblineNo==bblineNoMin && bbcolumnNo<bbcolumnNoMin)
-					{
+					} else if(bblineNo==bblineNoMin && bbcolumnNo<bbcolumnNoMin) {
 						bbcolumnNoMin=bbcolumnNo;
 					}
 				}
 			}
 
-			//now to check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
+			//now check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
 			bool dbgInstFlag=false;
-			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I))
-			{
+			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
 				dbgInstFlag=true;
-				BCVar=DVI->getValue();
-				md = DVI->getVariable(); 
+				val=DVI->getValue();
+				MD = DVI->getVariable(); 
+			} else if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(I)) {	
+				if((MD=dyn_cast<MDNode>(DDI->getVariable()))&& (val=dyn_cast<Value>(DDI->getAddress())))
+				   dbgInstFlag=true;
 			}
 
-			else if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(I))
-			{	
-				if((md=dyn_cast<MDNode>(DDI->getVariable()))&& (BCVar=dyn_cast<Value>(DDI->getAddress())))
-				   dbgInstFlag=true;
-			}	
-
-			if(dbgInstFlag)
-			{
-				Info* varInfo=resolveMetDescriptor(md);
-				if(varInfo!=NULL)
-				{
+			if(dbgInstFlag) {
+				Info* varInfo=resolveMetDescriptor(MD);
+				if(varInfo!=NULL) {
 					std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
-					ret1=M1.equal_range(BCVar);
+					ret1=M1.equal_range(val);
 
 					bool ifAlreadyMapped=false;
 					//this is to check and avoid duplicate entries in the map M1 
-					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++)
-					{
-						if(varInfo->isEqual(it->second))
-						{
+					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++) {
+						if(varInfo->isEqual(it->second)) {
 							ifAlreadyMapped=true;
 							break;
 						}
 					}
-					if(!ifAlreadyMapped)
-					{
-						std::pair<const Value*,Info*>hi=std::make_pair(BCVar,varInfo);
+					if(!ifAlreadyMapped) {
+						std::pair<const Value*,Info*>hi=std::make_pair(val,varInfo);
 						M1.insert(hi);
 					}
 					dbgInstFlag=false;
@@ -275,7 +281,7 @@ bool recoverName::evaluatePHINode(
 		std::vector<const PHINode*>& PHIvector, //stores PHINodes that have already been evaluated
 		std::vector<Info*>& v) {
 
-	std::vector<Info*> v2,intersectVector(10);
+	std::vector<Info*> v2;
 	std::vector<Info*>::iterator vit,vx;
 	
 	std::vector<const PHINode*>::iterator PHIvit;
@@ -356,6 +362,7 @@ bool recoverName::evaluatePHINode(
 			sort(v.begin(),v.end(),compObj);
 			sort(v2.begin(),v2.end(),compObj);
 
+			std::vector<Info*> intersectVector(v.size()+v2.size());
 			//intersection of vectors v and v2 is taken and stored in intersectVector 
 			vit=set_intersection(v.begin(),v.end(),v2.begin(),v2.end(),intersectVector.begin(),compare_1());
 						
@@ -375,7 +382,6 @@ bool recoverName::evaluatePHINode(
 						}
 						*Out<<"\n";
 		*/
-		
 	}
 	return true;
 }
@@ -403,8 +409,137 @@ void recoverName::pass2(Function *F) {
 	}
 }
 
-std::string recoverName::getSourceFileName() {
-	//TODO
-	std::string s;
+Instruction * recoverName::getFirstMetadata(Function * F) {
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		Instruction * res = getFirstMetadata(it);
+		if (res != NULL) return res;
+	}
+	return NULL;
+}
+
+Instruction * recoverName::getFirstMetadata(BasicBlock * b) {
+	BasicBlock::iterator it = b->begin(), et = b->end();
+	for (;it!=et;it++) {
+		if (it->hasMetadata()) return it;
+	}
+	return NULL;
+}
+
+int recoverName::getFunctionLineNo(Function* F) {
+	Instruction * I = getFirstMetadata(F);
+	MDNode * MD = I->getMetadata(0);
+	MDNode * MDNode_subprogram = get_DW_TAG_subprogram(MD);
+	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(7));
+	return LineNo->getZExtValue();
+}
+
+std::string recoverName::getSourceFileName(Function * F) {
+	// we only need the first instruction
+	Instruction * I = getFirstMetadata(F);
+	if (I == NULL) return "";
+	MDNode * MD = I->getMetadata("dbg");
+	if (MD == NULL) return "";
+	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(1));
+
+	std::string s = Filename->getString().str();
 	return s;
+}
+
+std::string recoverName::getSourceFileDir(Function * F) {
+	// we only need the first instruction
+	Instruction * I = getFirstMetadata(F);
+	if (I == NULL) return "";
+	MDNode * MD = I->getMetadata("dbg");
+	if (MD == NULL) return "";
+	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(2));
+
+	std::string s = Filename->getString().str();
+	return s;
+}
+
+bool recoverName::is_readable(Function * F) { 
+	std::string dir = getSourceFileDir(F);
+	std::string name = getSourceFileName(F);
+	if (dir.size() == 0 || name.size() == 0) return false;
+	std::string dirname = dir + "/" + name;
+    std::ifstream File(dirname.c_str()); 
+    return !File.fail(); 
+}
+
+bool recoverName::hasMetadata(Module * M) {
+	Module::iterator it = M->begin(), et = M->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
+}
+
+bool recoverName::hasMetadata(Function * F) {
+	Function::iterator it = F->begin(), et = F->end();
+	for (;it!=et;it++) {
+		if (hasMetadata(it)) return true;
+	}
+	return false;
+}
+
+bool recoverName::hasMetadata(BasicBlock * b) {
+	BasicBlock::iterator it = b->begin(), et = b->end();
+	for (;it!=et;it++) {
+		if (it->hasMetadata()) return true;
+	}
+	return false;
+}
+
+MDNode * recoverName::get_DW_TAG_lexical_block(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_lexical_block(N);
+}
+
+MDNode * recoverName::get_DW_TAG_subprogram(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			N = dyn_cast<MDNode>(MD->getOperand(1));
+			break;
+		case 46: //DW_TAG_subprogram
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_subprogram(N);
+}
+
+MDNode * recoverName::get_DW_TAG_file_type(MDNode * MD) {
+	const ConstantInt *Tag = dyn_cast<ConstantInt>(MD->getOperand(0));
+	int tag = Tag->getZExtValue()-LLVM_DEBUG_VERSION;
+	MDNode * N;
+	switch (tag) {
+		case 11: // DW_TAG_lexical_block
+			N = dyn_cast<MDNode>(MD->getOperand(4));
+			break;
+		case 46: //DW_TAG_subprogram
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+		case 41: // DW_TAG_file_type
+			return MD;
+		default:
+			N = dyn_cast<MDNode>(MD->getOperand(2));
+			break;
+	}
+	return get_DW_TAG_file_type(N);
 }

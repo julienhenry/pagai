@@ -1,7 +1,14 @@
+/**
+ * \file Analyzer.cc
+ * \brief Implementation of the Analyzer class (main class)
+ * \author Julien Henry
+ */
 #include <string>
 #include <iostream>
 #include <getopt.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <boost/lexical_cast.hpp>
 
 #include "Execute.h" 
 #include "Analyzer.h" 
@@ -13,10 +20,13 @@ bool compare;
 bool compare_Domain;
 bool compare_Narrowing;
 bool onlyrho;
+bool quiet;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
+bool force_old_output;
 bool output_annotated;
+bool log_smt;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -26,16 +36,19 @@ char* filename;
 char* annotatedFilename;
 char* sourceFilename;
 int npass;
+int timeout;
 std::map<Techniques,int> Passes;
+std::vector<enum Techniques> TechniquesToCompare;
 
 void show_help() {
         std::cout << "Usage :\n \
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
---source-name : output with the variable names from the source file instead of LLVM's names\n \
+--force-old-output : force to use the old output\n \
 --annotated : specify the name of the outputted annotated source file\n \
 --source : specify the path and name of the source file (in C, C++,etc.) \n \
+--quiet (-q) : quiet mode : does not print anything \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
 		   * box (Apron boxes)\n \
@@ -46,7 +59,7 @@ void show_help() {
 		   * ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS’2003)\n \
 		   * ppl_grid (PPL grids)\n \
 		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
-		example: -d box\n \
+		example: pagai -i <file> --domain box\n \
 --input (-i) : input file\n \
 --technique (-t) : use a specific technique\n \
 		possible techniques:\n \
@@ -56,8 +69,9 @@ void show_help() {
 		  * lw+pf (Henry, Monniaux & Moy, SAS'12), default\n \
 		  * s (simple abstract interpretation)\n \
 		  * dis (lw+pf, using disjunctive invariants)\n \
+		  * pf_incr (s followed by pf, results of s are injected in pf)\n \
 		  * incr (s followed by lw+pf, results of s are injected in lw+pf)\n \
-		example: -t pf\n \
+		example: pagai -i <file> --technique pf\n \
 --solver (-s) : select SMT Solver\n \
 		  * z3 (default)\n \
 		  * z3_qfnra\n \
@@ -66,12 +80,16 @@ void show_help() {
 		  * cvc3\n \
 		  * z3_api (deprecated)\n \
 		  * yices_api (deprecated)\n \
+		example: pagai -i <file> --technique pf --solver z3_api\n \
 -n : new version of narrowing (only for s technique)\n \
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
---compare (-c) : compare the 5 techniques (lw, pf, lw+pf, s and dis)\n \
+--timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
+--log-smt : SMT-lib2 queries are logged in files\n \
+--compare (-c) : use this argument to compare techniques\n \
+		example: pagai -i <file> -c pf -c s  will compare the two techniques pf and s\n \
 --comparedomains (-C) : compare two abstract domains using the same technique\n \
-          example: ./pagai -i <filename> -C --domain box --domain2 pkeq -t pf\n \
+          example: ./pagai -i <filename> --comparedomains --domain box --domain2 pkeq --technique pf\n \
 --printformula (-f) : only outputs the SMTpass formula\n \
 ";
 }
@@ -104,6 +122,10 @@ bool useSourceName() {
 	return use_source_name;
 }
 
+void set_useSourceName(bool b) {
+	use_source_name = (b && !force_old_output);
+}
+
 bool OutputAnnotatedFile() {
 	return output_annotated;
 }
@@ -114,6 +136,10 @@ char* getAnnotatedFilename() {
 
 char* getSourceFilename() {
 	return sourceFilename;
+}
+
+int getTimeout() {
+	return timeout;
 }
 
 char* getFilename() {
@@ -150,6 +176,8 @@ std::string TechniquesToString(Techniques t) {
 			return "LOOKAHEAD WIDENING";
 		case PATH_FOCUSING: 
 			return "PATH FOCUSING";
+		case PATH_FOCUSING_INCR: 
+			return "PATH FOCUSING INCR";
 		case LW_WITH_PF:
 			return "COMBINED";
 		case COMBINED_INCR:
@@ -163,6 +191,10 @@ std::string TechniquesToString(Techniques t) {
 		default:
 			abort();
 	}
+}
+
+std::vector<enum Techniques> * getComparedTechniques() {
+	return &TechniquesToCompare;
 }
 
 bool setApronManager(char * domain, int i) {
@@ -213,24 +245,36 @@ std::string ApronManagerToString(Apron_Manager_Type D) {
 	}
 }
 
+enum Techniques TechniqueFromString(bool &error, std::string d) {
+	error = false;
+	if (!d.compare("lw")) {
+		return LOOKAHEAD_WIDENING;
+	} else if (!d.compare("pf")) {
+		return PATH_FOCUSING;
+	} else if (!d.compare("pf_incr")) {
+		return PATH_FOCUSING_INCR;
+	} else if (!d.compare("lw+pf")) {
+		return LW_WITH_PF;
+	} else if (!d.compare("s")) {
+		return SIMPLE;
+	} else if (!d.compare("g")) {
+		return GUIDED;
+	} else if (!d.compare("dis")) {
+		return LW_WITH_PF_DISJ;
+	} else if (!d.compare("incr")) {
+		return COMBINED_INCR;
+	}
+	error = true;
+	return SIMPLE;
+}
+
 bool setTechnique(char * t) {
 	std::string d;
 	d.assign(t);
-	if (!d.compare("lw")) {
-		technique = LOOKAHEAD_WIDENING;
-	} else if (!d.compare("pf")) {
-		technique = PATH_FOCUSING;
-	} else if (!d.compare("lw+pf")) {
-		technique = LW_WITH_PF;
-	} else if (!d.compare("s")) {
-		technique = SIMPLE;
-	} else if (!d.compare("g")) {
-		technique = GUIDED;
-	} else if (!d.compare("dis")) {
-		technique = LW_WITH_PF_DISJ;
-	} else if (!d.compare("incr")) {
-		technique = COMBINED_INCR;
-	} else {
+	bool error;
+	enum Techniques r = TechniqueFromString(error,d);
+	technique = r;
+	if (error) {
 		std::cout << "Wrong parameter defining the technique you want to use\n";
 		return 1;
 	}
@@ -267,6 +311,18 @@ bool setMain(char * m) {
 	return 0;
 }
 
+bool setTimeout(char * t) {
+	std::string d;
+	d.assign(t);
+	try {
+		timeout = boost::lexical_cast< int >( d );
+	} catch( const boost::bad_lexical_cast & ) {
+		//unable to convert
+		return 1;
+	}
+	return 0;
+}
+
 bool definedMain() {
 	return defined_main;
 }
@@ -275,7 +331,13 @@ std::string getMain() {
 	return main_function;
 }
 
-std::set<llvm::Function*> ignoreFunction;
+bool quiet_mode() {
+	return quiet;
+} 
+
+bool log_smt_into_file() {
+	return log_smt;
+}
 
 int main(int argc, char* argv[]) {
 
@@ -301,11 +363,15 @@ int main(int argc, char* argv[]) {
 	compare_Narrowing = false;
 	onlyrho = false;
 	defined_main = false;
+	quiet = false;
 	use_source_name = false;
+	force_old_output = false;
 	output_annotated = false;
+	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
+	timeout = 0;
 	annotatedFilename = NULL;
 	sourceFilename = NULL;
 
@@ -316,7 +382,7 @@ int main(int argc, char* argv[]) {
 			{"debug",   no_argument,       0, 'D'},
 			/* These options don't set a flag.
 			   We distinguish them by their indices. */
-			{"compare",     no_argument,       0, 'c'},
+			{"compare",     required_argument,       0, 'c'},
 			{"technique",  required_argument,       0, 't'},
 			{"comparedomains",  required_argument,       0, 'C'},
 			{"domain",  required_argument, 0, 'd'},
@@ -326,101 +392,125 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
-			{"source-name",    no_argument, 0, 'S'},
+			{"quiet",    no_argument, 0, 'q'},
+			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
-			{0, 0, 0, 0}
+			{"timeout",    required_argument, 0, 'k'},
+			{"log-smt",    no_argument, 0, 'l'},
+			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "a:ShDi:o:s:cCft:d:e:nNMTm:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:",long_options,&option_index)) != -1) {
         switch (o) {
-        case 'S':
-            use_source_name = true;
-            break;
-        case 'h':
-            help = true;
-            break;
-        case 'D':
-            debug = true;
-            break;
-        case 'c':
-            compare = true;
-            break;
-        case 'C':
-            compare_Domain = true;
-            break;
-        case 't':
-            arg = optarg;
-			if (setTechnique(arg)) {
-				bad_use = true;
-			}
-            break;
-        case 'm':
-            arg = optarg;
-			if (setMain(arg)) {
-				bad_use = true;
-			}
-            break;
-        case 'd':
-            arg = optarg;
-			if (setApronManager(arg,0)) {
-				bad_use = true;
-			}
-            break;
-        case 'e':
-            arg = optarg;
-			if (setApronManager(arg,1)) {
-				bad_use = true;
-			}
-            break;
-        case 'i':
-            filename = optarg;
-            break;
-        case 'n':
-			Narrowing[0] = true;
-            break;
-        case 'N':
-			Narrowing[1] = true;
-            break;
-        case 'T':
-			Threshold[0] = true;
-            break;
-        case 'M':
-			Narrowing[0] = true;
-			Narrowing[1] = false;
-			compare_Narrowing = true;
-            break;
-        case 'o':
-            outputname = optarg;
-            break;
-        case 'a':
-			output_annotated = true;
-            use_source_name = true;
-            annotatedFilename = optarg;
-            break;
-        case 'A':
-            sourceFilename = optarg;
-            break;
-        case 's':
-            arg = optarg;
-			if (setSolver(arg)) {
-				bad_use = true;
-			}
-            break;
-        case 'f':
-            onlyrho = true;
-            break;
-        case '?':
-            std::cout << "Error : Unknown option " << optopt << "\n";
-            bad_use = true;
+			case 0:
+				assert(false);
+				break;
+			case 'q':
+				quiet = true;
+        	    break;
+			case 'l':
+				log_smt = true;
+        	    break;
+        	case 'S':
+        	    force_old_output = true;
+        	    break;
+        	case 'h':
+        	    help = true;
+        	    break;
+        	case 'D':
+        	    debug = true;
+        	    break;
+        	case 'c':
+        	    compare = true;
+        	    arg = optarg;
+				{ 
+					std::string d;
+					d.assign(arg);
+					enum Techniques technique = TechniqueFromString(bad_use,d);
+					TechniquesToCompare.push_back(technique);
+				}
+        	    break;
+        	case 'C':
+        	    compare_Domain = true;
+        	    break;
+        	case 't':
+        	    arg = optarg;
+				if (setTechnique(arg)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'm':
+        	    arg = optarg;
+				if (setMain(arg)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'k':
+				if (setTimeout(optarg)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'd':
+        	    arg = optarg;
+				if (setApronManager(arg,0)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'e':
+        	    arg = optarg;
+				if (setApronManager(arg,1)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'i':
+        	    filename = optarg;
+        	    break;
+        	case 'n':
+				Narrowing[0] = true;
+        	    break;
+        	case 'N':
+				Narrowing[1] = true;
+        	    break;
+        	case 'T':
+				Threshold[0] = true;
+        	    break;
+        	case 'M':
+				Narrowing[0] = true;
+				Narrowing[1] = false;
+				compare_Narrowing = true;
+        	    break;
+        	case 'o':
+        	    outputname = optarg;
+        	    break;
+        	case 'a':
+				output_annotated = true;
+        	    use_source_name = true;
+        	    annotatedFilename = optarg;
+        	    break;
+        	case 'A':
+        	    sourceFilename = optarg;
+        	    break;
+        	case 's':
+        	    arg = optarg;
+				if (setSolver(arg)) {
+					bad_use = true;
+				}
+        	    break;
+        	case 'f':
+        	    onlyrho = true;
+        	    break;
+        	case '?':
+        	    std::cout << "Error : Unknown option " << optopt << "\n";
+        	    bad_use = true;
         }   
     }
-	 if (annotatedFilename != NULL && sourceFilename == NULL) {
-        std::cout << "ERROR : You must specify the source Filename\n\n";
-		bad_use = true;
-	 }
+	 //if (annotatedFilename != NULL && sourceFilename == NULL) {
+     //   std::cout << "ERROR : You must specify the source Filename\n\n";
+	 //   bad_use = true;
+	 //}
     if (!help) {
         if (!filename) {
             std::cout << "No input file specified\n";

@@ -1,3 +1,8 @@
+/**
+ * \file CompareNarrowing.h
+ * \brief Declaration of the CompareNarrowing pass
+ * \author Julien Henry
+ */
 #ifndef COMPARENARROWING_H
 #define COMPARENARROWING_H
 
@@ -7,6 +12,7 @@
 #include "ModulePassWrapper.h"
 #include "SMTpass.h"
 #include "AIpf.h"
+#include "AIpf_incr.h"
 #include "AIopt.h"
 #include "AIGopan.h"
 #include "AIGuided.h"
@@ -16,6 +22,11 @@
 
 using namespace llvm;
 
+/**
+ * \class CompareNarrowing
+ * \brief Compare the precision of the classical narrowing with Halbwach's
+ * narrowing
+ */
 template<Techniques T>
 class CompareNarrowing : public ModulePass {
 	
@@ -28,10 +39,9 @@ class CompareNarrowing : public ModulePass {
 		std::map<params, int> total_desc;
 
 	public:
-		/// It is crucial for LLVM's pass manager that
-		/// this ID is different (in address) from a class to another,
-		/// but the template instantiation mechanism will make sure it
-		/// is the case.
+		/**
+		 * \brief unique pass identifier
+		 */
 		static char ID;
 
 		CompareNarrowing() : ModulePass(ID)
@@ -79,6 +89,10 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 			AU.addRequired<ModulePassWrapper<AIpf, 0> >();
 			AU.addRequired<ModulePassWrapper<AIpf, 1> >();
 			break;
+		case PATH_FOCUSING_INCR:
+			AU.addRequired<ModulePassWrapper<AIpf_incr, 0> >();
+			AU.addRequired<ModulePassWrapper<AIpf_incr, 1> >();
+			break;
 		case LW_WITH_PF:
 			AU.addRequired<ModulePassWrapper<AIopt, 0> >();
 			AU.addRequired<ModulePassWrapper<AIopt, 1> >();
@@ -96,7 +110,6 @@ void CompareNarrowing<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 			AU.addRequired<ModulePassWrapper<AIdis, 1> >();
 			break;
 	}
-	AU.addRequired<Pr>();
 	AU.setPreservesAll();
 }
 
@@ -208,7 +221,7 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 		
 		AddTime(P1,F);
 		AddTime(P2,F);
@@ -220,7 +233,8 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
+			Pr * FPr = Pr::getInstance(F);
+			if (FPr->getPw()->count(b)) {
 
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";

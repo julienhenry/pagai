@@ -1,3 +1,8 @@
+/**
+ * \file SMTlib2driver.cc
+ * \brief Implementation of the SMTlib2driver class
+ * \author Julien Henry
+ */
 #include "Analyzer.h"
 #include "SMTlib2driver.h"
 #include "SMTlib2parser.hh"

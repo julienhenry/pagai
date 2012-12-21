@@ -31,7 +31,7 @@ include_directories(
 # TODO: If we don't add /usr/lib at the front, then the pagai executable
 # tries to link against libgmp.so.3 which doesn't exist. It seems to
 # be linked to the version of libutils chosen by the linker.
-set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib ${CMAKE_EXE_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib -lboost_thread ${CMAKE_EXE_LINKER_FLAGS}")
 link_directories(
   ${GMP_PREFIX}/lib
   ${MPFR_PREFIX}/lib 
@@ -54,7 +54,7 @@ add_executable(pagai ${TOP_SRC}
 	${BISON_SMTlib2parser_OUTPUTS}
 	${FLEX_SMTlib2lexer_OUTPUTS})
 
-configure_llvm(pagai bitreader selectiondag)
+configure_llvm(pagai bitreader selectiondag all)
 
 # Apron and dependencies
 add_apron_library(pagai polkaMPQ)

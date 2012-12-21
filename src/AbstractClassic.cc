@@ -1,3 +1,8 @@
+/**
+ * \file AbstractClassic.cc
+ * \brief Implementation of the AbstractClassic class
+ * \author Julien Henry
+ */
 #include "stdio.h"
 
 #include "llvm/Support/FormattedStream.h"
@@ -11,8 +16,8 @@
 #include "apron.h"
 #include "Analyzer.h"
 
-AbstractClassic::AbstractClassic(ap_manager_t* _man, ap_environment_t * env) {
-	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env));
+AbstractClassic::AbstractClassic(ap_manager_t* _man, Environment * env) {
+	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env->getEnv()));
 	pilot = NULL;
 	man = _man;
 }
@@ -33,30 +38,20 @@ AbstractClassic::~AbstractClassic() {
 	clear_all();
 }
 
-/// set_top - sets the abstract to top on the environment env
-void AbstractClassic::set_top(ap_environment_t * env) {
+void AbstractClassic::set_top(Environment * env) {
 	ap_abstract1_clear(man,main);
-	*main = ap_abstract1_top(man,env);
+	*main = ap_abstract1_top(man,env->getEnv());
 }
 
-/// set_bottom - sets the abstract to bottom on the environment env
-void AbstractClassic::set_bottom(ap_environment_t * env) {
+void AbstractClassic::set_bottom(Environment * env) {
 	ap_abstract1_clear(man,main);
-	*main = ap_abstract1_bottom(man,env);
+	*main = ap_abstract1_bottom(man,env->getEnv());
 }
 
-void AbstractClassic::change_environment(ap_environment_t * env) {
-	if (!ap_environment_is_eq(env,main->env))
-		*main = ap_abstract1_change_environment(man,true,main,env,false);
+void AbstractClassic::change_environment(Environment * env) {
+	if (!ap_environment_is_eq(env->getEnv(),main->env))
+		*main = ap_abstract1_change_environment(man,true,main,env->getEnv(),false);
 }
-
-//bool AbstractClassic::is_leq (Abstract *d) {
-//		return ap_abstract1_is_leq(man,main,d->main);
-//}
-//
-//bool AbstractClassic::is_eq (Abstract *d) {
-//		return ap_abstract1_is_eq(man,main,d->main);
-//}
 
 bool AbstractClassic::is_bottom() {
 	return ap_abstract1_is_bottom(man,main);
@@ -66,8 +61,6 @@ bool AbstractClassic::is_top() {
 	return ap_abstract1_is_top(man,main);
 }
 
-/// widening - Compute the widening operation according to the Gopan & Reps
-/// approach
 void AbstractClassic::widening(Abstract * X) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xmain;
@@ -80,27 +73,27 @@ void AbstractClassic::widening(Abstract * X) {
 	*main = Xmain_widening;
 }
 
-void AbstractClassic::widening_threshold(Abstract * X, ap_lincons1_array_t* cons) {
+void AbstractClassic::widening_threshold(Abstract * X, Constraint_array* cons) {
 	ap_abstract1_t Xmain_widening;
 	ap_abstract1_t Xmain;
 
 	Xmain = ap_abstract1_join(man,false,X->main,main);
-	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons);
+	Xmain_widening = ap_abstract1_widening_threshold(man,X->main,&Xmain, cons->to_lincons1_array());
 	ap_abstract1_clear(man,&Xmain);
 
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
 }
 
-void AbstractClassic::meet_tcons_array(ap_tcons1_array_t* tcons) {
+void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
+	Environment main_env(this);
+	Environment cons_env(tcons);
+	Environment * lcenv = Environment::common_environment(&main_env,&cons_env);
 
-	ap_environment_t * lcenv = Expr::common_environment(
-			main->env,
-			ap_tcons1_array_envref(tcons));
-
-	*main = ap_abstract1_change_environment(man,true,main,lcenv,false);
-	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons);
-
+	*main = ap_abstract1_change_environment(man,true,main,lcenv->getEnv(),false);
+	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
+	delete lcenv;
+	canonicalize();
 }
 
 void AbstractClassic::canonicalize() {
@@ -118,16 +111,17 @@ void AbstractClassic::assign_texpr_array(
 			texpr,
 			size,
 			dest);
+	canonicalize();
 }
 
-void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> X_pred) {
+void AbstractClassic::join_array(Environment * env, std::vector<Abstract*> X_pred) {
 	size_t size = X_pred.size();
 	ap_abstract1_clear(man,main);
 
 	ap_abstract1_t  Xmain[size];
 
 	for (unsigned i=0; i < size; i++) {
-		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env,false);
+		Xmain[i] = ap_abstract1_change_environment(man,false,X_pred[i]->main,env->getEnv(),false);
 		delete X_pred[i];
 	}
 
@@ -139,9 +133,10 @@ void AbstractClassic::join_array(ap_environment_t * env, std::vector<Abstract*> 
 	} else {
 		*main = Xmain[0];
 	}
+	canonicalize();
 }
 
-void AbstractClassic::join_array_dpUcm(ap_environment_t *env, Abstract* n) {
+void AbstractClassic::join_array_dpUcm(Environment *env, Abstract* n) {
 	std::vector<Abstract*> v;
 	v.push_back(n);
 	v.push_back(new AbstractClassic(this));
@@ -166,7 +161,6 @@ void AbstractClassic::print(bool only_main) {
 	*Out << *this;
 }
 
-
 void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) const {
 #if 1
 	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
@@ -184,6 +178,7 @@ void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) con
 			stream << cons << "\n";
 		}
 	}
+	ap_tcons1_array_clear(&tcons_array);
 
 #else
 	FILE* tmp = tmpfile();

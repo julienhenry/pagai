@@ -1,3 +1,8 @@
+/**
+ * \file z3_manager.h
+ * \brief Declaration of the z3_manager class
+ * \author Julien Henry
+ */
 #ifndef Z3_MANAGER_H
 #define Z3_MANAGER_H
 
@@ -10,6 +15,10 @@
 
 #include "SMT_manager.h"
 
+/**
+ * \class z3_manager
+ * \brief interface with the z3 C API
+ */
 class z3_manager: public SMT_manager {
 
 	private:
@@ -46,6 +55,10 @@ class z3_manager: public SMT_manager {
 		SMT_expr SMT_mk_sum (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_sub (std::vector<SMT_expr> args);
 		SMT_expr SMT_mk_mul (std::vector<SMT_expr> args);
+
+		SMT_expr SMT_mk_sum (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_sub (SMT_expr a1, SMT_expr a2);
+		SMT_expr SMT_mk_mul (SMT_expr a1, SMT_expr a2);
 
 		SMT_expr SMT_mk_eq (SMT_expr a1, SMT_expr a2);
 		SMT_expr SMT_mk_diseq (SMT_expr a1, SMT_expr a2);

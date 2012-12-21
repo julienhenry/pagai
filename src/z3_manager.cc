@@ -1,3 +1,8 @@
+/**
+ * \file z3_manager.cc
+ * \brief Implementation of the z3_manager class
+ * \author Julien Henry
+ */
 #include <algorithm>
 #include <cstddef>
 #include <string.h>
@@ -5,6 +10,8 @@
 #include <iostream>
 
 #include "llvm/Support/FormattedStream.h"
+
+#include <boost/thread/thread.hpp>
 
 #include <gmp.h>
 #include "z3_manager.h"
@@ -14,6 +21,11 @@
 z3_manager::z3_manager() {
 	Z3_config config = Z3_mk_config();
 	Z3_set_param_value(config, "MODEL", "true");
+	if (getTimeout() != 0) {
+		std::ostringstream timeout;
+		timeout << getTimeout()*1000;
+		Z3_set_param_value(config, "SOFT_TIMEOUT", timeout.str().c_str());
+	}
 	ctx = Z3_mk_context(config);
 	Z3_del_config(config);
 
@@ -26,7 +38,6 @@ z3_manager::z3_manager() {
 
 z3_manager::~z3_manager() {
 	Z3_del_context(ctx);
-	Z3_reset_memory();
 }
 
 SMT_expr z3_manager::SMT_mk_true(){
@@ -231,6 +242,32 @@ SMT_expr z3_manager::SMT_mk_mul (std::vector<SMT_expr> args){
 	}
 }
 
+SMT_expr z3_manager::SMT_mk_sum (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_add(ctx, 2, &arguments[0]);
+	return res;
+}
+
+SMT_expr z3_manager::SMT_mk_sub (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_sub(ctx, 2, &arguments[0]);
+	return res;
+}
+
+SMT_expr z3_manager::SMT_mk_mul (SMT_expr a1, SMT_expr a2) {
+	std::vector<Z3_ast> arguments;
+	arguments.push_back((Z3_ast)a1.i);
+	arguments.push_back((Z3_ast)a2.i);
+	SMT_expr res;
+	res.i = Z3_mk_mul(ctx, 2, &arguments[0]);
+	return res;
+}
 
 SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 	SMT_expr res;
@@ -324,6 +361,7 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	Z3_model m = NULL;
 	int ret = 0;
 	Z3_assert_cnstr(ctx,(Z3_ast)a.i);
+	
 	Z3_lbool result = Z3_check_and_get_model(ctx, &m);
 
 	switch (result) {
@@ -334,9 +372,10 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			ret = 0;
 			break;
 		case Z3_L_UNDEF:
-			//DEBUG(
+			DEBUG(
 			*Out << "unknown\n";
-			//);
+			);
+			*Out << "UNKNOWN\n";
 			ret = -1;
 			break;
 		case Z3_L_TRUE:

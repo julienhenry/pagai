@@ -6,6 +6,7 @@ project(PAGAI CXX)
 option(STATIC_LINK "Whether to build executables as static" OFF)
 option(CHECK_EXTERNALS "Whether to check that external dependancies are OK before compiling" ON)
 option(ENABLE_PROFILING "Whether to build using -pg" OFF)
+option(ENABLE_DEBUGGING "Whether to build using -g" OFF)
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
@@ -33,7 +34,7 @@ macro(configure_llvm PROG)
   # (see http://llvm.org/docs/CMake.html#embedding )
   # In practice, I didn't manage to get llvm_map_components_to_libraries
   # to work, hence we do it by calling llvm-config ourselves instead.
-  find_program(LLVM_CONFIG_PROG llvm-config-2.9 NAMES llvm-config-2.9 llvm-config HINTS "${LLVM_PATH}/bin")
+  find_program(LLVM_CONFIG_PROG llvm-config NAMES llvm-config HINTS "${LLVM_PATH}/bin")
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --version
     OUTPUT_VARIABLE LLVM_VERSION)
   STRING(REGEX REPLACE "\n" "" LLVM_VERSION "${LLVM_VERSION}")
@@ -48,8 +49,8 @@ macro(configure_llvm PROG)
     set(ERROR_OCCURED ON PARENT_SCOPE)
   endif()
 
-  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN}
-    OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  #execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags ${ARGN} OUTPUT_VARIABLE LLVM_CXXFLAGS)
+  execute_process(COMMAND "${LLVM_CONFIG_PROG}" --cxxflags OUTPUT_VARIABLE LLVM_CXXFLAGS)
   # CMake doesn't like newline in CXXFLAGS, and there's at least a
   # trailing \n in llvm-config's output.
   STRING(REGEX REPLACE "\n" " " LLVM_CXXFLAGS "${LLVM_CXXFLAGS}")
@@ -64,15 +65,16 @@ macro(configure_llvm PROG)
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --ldflags
     OUTPUT_VARIABLE LLVM_LDFLAGS)
   STRING(REGEX REPLACE "\n" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
-  
+
   execute_process(COMMAND "${LLVM_CONFIG_PROG}" --libs ${ARGN}
     OUTPUT_VARIABLE LLVM_LIBS)
-  
+
   # turn -lfoo -lbar into foo;bar, so that CMake considers it as a list
   STRING(REGEX REPLACE "\n" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE " -l" ";" LLVM_LIBS "${LLVM_LIBS}")
 
+  set(LLVM_LIBS "-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangEdit -lclangAST -lclangLex -lclangBasic -l${LLVM_LIBS}")
   target_link_libraries(pagai ${LLVM_LIBS})
 
   # llvm-config --ldflags was hardcoding -lfoo, but the order of
@@ -87,8 +89,12 @@ macro(configure_llvm PROG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
 
+  if(${ENABLE_DEBUGGING})
+    set(CMAKE_CXX_FLAGS " -g ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS " -g ${CMAKE_EXE_LINKER_FLAGS}")
+  endif()
   if(${ENABLE_PROFILING})
-    set(CMAKE_CXX_FLAGS " -g -pg ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS " -pg ${CMAKE_CXX_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS " -pg ${CMAKE_EXE_LINKER_FLAGS}")
   endif()
 endmacro()

@@ -6,10 +6,10 @@ DEST_LINKS=.
 CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.34
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_VERSION=4.0
+Z3_VERSION=4.1
 Z3_ARCH=
 LLVM_VERSION=3.1
-APRON_VERSION=2012-05-14
+APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
 CUDD_XCFLAGS=
 
@@ -145,7 +145,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
-	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/201/$(APRON_ARCHIVE)' "$@"
+	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/333/$(APRON_ARCHIVE)' "$@"
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST) && tar xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)

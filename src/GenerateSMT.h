@@ -1,3 +1,8 @@
+/**
+ * \file GenerateSMT.h
+ * \brief Declaration of the GenerateSMT class
+ * \author Julien Henry
+ */
 #ifndef GENERATE_SMT_H
 #define GENERATE_SMT_H
 
@@ -11,7 +16,10 @@
 
 using namespace llvm;
 
-/// Pass that only computes the SMT-formula and outputs it
+/**
+ * \class GenerateSMT
+ * \brief Pass that only computes the SMT-formula and outputs it
+ */
 class GenerateSMT : public ModulePass {
 	
 	private:

@@ -8,27 +8,19 @@ Usage:
 OPTIONS :
 	-h        : help
 
-	-o [FILE ]: name of the IR generated file
 	-a        : arguments given to pagai
-	-u        : unroll loops once
-	-I [level]: inline functions
 	-s        : silent mode
-	-G        : generate the .dot CFG
-	-p        : use the trunk version of pagai
+	-p        : specify the pagai executable
 	-t        : set a time limit (Pagai is killed after this time, default 800s)
 "
 }
 
 PRINT=0
-GRAPH=0
-UNROLL=0
-TIME_LIMIT=30
-RESULT=
-BITCODE=
+TIME_LIMIT=1200
+MEMORY_LIMIT=1000000
 PAGAI="pagai"
 REQUIRED=0
 SILENT=0
-INLINE=0
 ARGS=" "
 
 while getopts "a:hpruGi:o:t:sI:" opt ; do
@@ -41,14 +33,8 @@ while getopts "a:hpruGi:o:t:sI:" opt ; do
 			FILENAME=$OPTARG
 			REQUIRED=1
 			;;
-		u)
-			UNROLL=1
-			;;
 		p)
-			PAGAI=pagai
-			;;
-		G)
-			GRAPH=1
+			PAGAI=$OPTARG
 			;;
 		s)
 			SILENT=1
@@ -56,17 +42,8 @@ while getopts "a:hpruGi:o:t:sI:" opt ; do
 		a)
 			ARGS=$OPTARG
 			;;
-		I)
-			INLINE=$OPTARG
-			;;
 		t)
 			TIME_LIMIT=$OPTARG
-			;;
-		o)
-			BITCODE=$OPTARG
-			;;
-		r)
-			RESULT=$OPTARG
 			;;
         ?)
             usage
@@ -80,52 +57,19 @@ if [ $REQUIRED -eq 0 ] ; then
 	exit
 fi
 
-BASENAME=`basename $FILENAME`
-NAME=${BASENAME%%.*}
-DIR=`dirname $FILENAME`
+ulimit -t $TIME_LIMIT 
+ulimit -m $MEMORY_LIMIT -v $MEMORY_LIMIT
 
-if [ -z $BITCODE ] ; then 
-	if [ $UNROLL -eq 0 ] ; then
-		BITCODE=/tmp/${NAME}.bc
-	else
-		BITCODE=/tmp/${NAME}_unroll.bc
-	fi
-fi
-
-if [ $UNROLL -eq 1 ] ; then
-	opt -mem2reg -inline -lowerswitch -loops  -loop-simplify -loop-rotate -lcssa -loop-unroll -unroll-count=1 $FILENAME -o $BITCODE
-else
-	opt -mem2reg -inline -lowerswitch $FILENAME -o $BITCODE
-fi
-
-if [ ! $INLINE -eq 0 ] ; then
-opt -inline -inline-threshold=$INLINE -inlinehint-threshold=$INLINE  $BITCODE -o $BITCODE
-fi
-
-if [ $GRAPH -eq 1 ] ; then
-	opt -dot-cfg $BITCODE -o $BITCODE
-	mv *.dot $DIR
-	for i in `ls $DIR/*.dot` ; do
-		dot -Tsvg -o $i.svg $i
-	done
-fi
-
-NAME=`basename $BITCODE`
-RESULT=/tmp/${NAME%%.*}.result
-
-ulimit -t $TIME_LIMIT
-
-
-$PAGAI -i $BITCODE $ARGS
+$PAGAI -i $FILENAME $ARGS
 xs=$?
 
 case $xs in
- 0) OUT="ok -- $NAME"
+ 0) OUT="ok -- $FILENAME"
 	 ;; # all fine
  *) if [ $xs -gt 127 ]; then
-       OUT="killed -- $NAME"
+       OUT="killed -- $FILENAME"
     else
-       OUT="error -- $NAME"
+       OUT="error -- $FILENAME"
     fi
 esac
 

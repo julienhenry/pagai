@@ -1,3 +1,8 @@
+/**
+ * \file AIopt.h
+ * \brief Declaration of the AIopt class
+ * \author Julien Henry
+ */
 #ifndef _AIOPT_H
 #define _AIOPT_H
 
@@ -12,24 +17,49 @@
 
 using namespace llvm;
 
-/// Path Focusing implementation with Lookahead Widening
+/**
+ * \class AIopt
+ * \brief Path Focusing + Guided Static analysis implementation
+ */
 class AIopt : public ModulePass, public AIPass {
 
 	private:
-		/// paths - remembers all the paths that have already been
-		/// visited
+		/**
+		 * \brief remembers all the paths that have already been
+		 * visited
+		 */
 		std::map<BasicBlock*,PathTree*> pathtree;
 
+		/**
+		 * \brief remembers all the paths that have already been
+		 * visited in the current ComputeNode call
+		 */
 		PathTree * W;
 
+		/**
+		 * \brief Set of paths U
+		 */
 		std::map<BasicBlock*,PathTree*> U;
+
+		/**
+		 * \brief Set of paths V
+		 */
 		std::map<BasicBlock*,PathTree*> V;
 
 		std::priority_queue<Node*,std::vector<Node*>,NodeCompare> A_prime;
 
-		void computeNewPaths(
-			Node * n
-			);
+		/**
+		 * \brief Computes the new feasible paths and add them to pathtree
+		 * \param n the starting point
+		 */
+		void computeNewPaths(Node * n);
+
+		void init()
+			{
+				aman = new AbstractManClassic();
+				passID.T = LW_WITH_PF;
+			}
+
 	public:
 		static char ID;	
 
@@ -42,20 +72,19 @@ class AIopt : public ModulePass, public AIPass {
 			passID.TH = _Threshold;
 		}
 		
-		AIopt() : ModulePass(ID) {
+		AIopt (char &_ID): ModulePass(_ID) {
 			init();
 			passID.D = getApronManager();
 			passID.N = useNewNarrowing();
 			passID.TH = useThreshold();
 		}
 
-		void init()
-			{
-				//aman = new AbstractManGopan();
-				aman = new AbstractManClassic();
-				passID.T = LW_WITH_PF;
-				//Passes[LW_WITH_PF] = passID;	
-			}
+		AIopt() : ModulePass(ID) {
+			init();
+			passID.D = getApronManager();
+			passID.N = useNewNarrowing();
+			passID.TH = useThreshold();
+		}
 
 		~AIopt () {
 			for (std::map<BasicBlock*,PathTree*>::iterator 
@@ -68,9 +97,15 @@ class AIopt : public ModulePass, public AIPass {
 				}
 			}
 
+		/**
+		 * \{
+		 * \name LLVM pass manager stuff
+		 */
 		const char *getPassName() const;
-
 		void getAnalysisUsage(AnalysisUsage &AU) const;
+		/**
+		 * \}
+		 */
 
 		bool runOnModule(Module &M);
 
@@ -79,10 +114,19 @@ class AIopt : public ModulePass, public AIPass {
 		std::set<BasicBlock*> getPredecessors(BasicBlock * b) const;
 		std::set<BasicBlock*> getSuccessors(BasicBlock * b) const;
 
-		/// computeNode - compute and update the Abstract value of the Node n
+		virtual void assert_properties(params P, Function * F) {}
+		virtual void intersect_with_known_properties(Abstract * Xtemp, Node * n, params P) {}
+
+		/**
+		 * \brief compute and update the Abstract value of the Node n
+		 * \param n the starting point
+		 */
 		void computeNode(Node * n);
 		
-		/// narrowNode - apply narrowing at node n
+		/**
+		 * \brief apply narrowing at node n
+		 * \param n the starting point
+		 */
 		void narrowNode(Node * n);
 };
 

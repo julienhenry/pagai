@@ -1,7 +1,13 @@
+/**
+ * \file Compare.cc
+ * \brief Implementation of the Compare class
+ * \author Julien Henry
+ */
 #include "Compare.h"
 #include "Pr.h"
 #include "Expr.h"
 #include "AIpf.h"
+#include "AIpf_incr.h"
 #include "AIopt.h"
 #include "AIopt_incr.h"
 #include "AIGopan.h"
@@ -24,14 +30,42 @@ const char * Compare::getPassName() const {
 
 Compare::Compare() : ModulePass(ID) {}
 
+Compare::Compare(std::vector<enum Techniques> * T) : ModulePass(ID) {
+	std::vector<enum Techniques>::iterator it = T->begin(), et = T->end();
+	for (; it!=et; it++) {
+		ComparedTechniques.push_back(*it);
+	}
+}
+
 void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
-	AU.addRequired<ModulePassWrapper<AIopt, 0> >();
-	AU.addRequired<ModulePassWrapper<AIpf, 0> >();
-	AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
-	AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
-	AU.addRequired<ModulePassWrapper<AIdis, 0> >();
-	AU.addRequired<Pr>();
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		switch (ComparedTechniques[i]) {
+			case SIMPLE:
+				AU.addRequired<ModulePassWrapper<AIClassic, 0> >();
+				break;
+			case LOOKAHEAD_WIDENING:
+				AU.addRequired<ModulePassWrapper<AIGopan, 0> >();
+				break;
+			case GUIDED:
+				AU.addRequired<ModulePassWrapper<AIGuided, 0> >();
+				break;
+			case PATH_FOCUSING:
+				AU.addRequired<ModulePassWrapper<AIpf, 0> >();
+				break;
+			case PATH_FOCUSING_INCR:
+				AU.addRequired<ModulePassWrapper<AIpf_incr, 0> >();
+				break;
+			case LW_WITH_PF:
+				AU.addRequired<ModulePassWrapper<AIopt, 0> >();
+				break;
+			case COMBINED_INCR:
+				AU.addRequired<ModulePassWrapper<AIopt_incr, 0> >();
+				break;
+			case LW_WITH_PF_DISJ:
+				AU.addRequired<ModulePassWrapper<AIdis, 0> >();
+				break;
+		}
+	}
 	AU.setPreservesAll();
 }
 
@@ -39,12 +73,13 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
-	ap_environment_t * cenv = Expr::intersect_environment(
-			A->main->env,
-			B->main->env);
+	Environment A_env(A);
+	Environment B_env(B);
+	Environment * cenv = Environment::intersection(&A_env,&B_env);
 
 	A->change_environment(cenv);
 	B->change_environment(cenv);
+	delete cenv;
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,A);
@@ -137,6 +172,19 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 		Time[t] = zero;
 		*Time[t] = *Total_time[P][F];
 	}
+
+	if (Total_time_SMT[P].count(F) == 0) {
+		sys::TimeValue * time_SMT = new sys::TimeValue(0,0);
+		Total_time_SMT[P][F] = time_SMT;
+	}
+
+	if (Time_SMT.count(t)) {
+		*Time_SMT[t] = *Time_SMT[t]+*Total_time_SMT[P][F];
+	} else {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+		*Time_SMT[t] = *Total_time_SMT[P][F];
+	}
 }
 
 void Compare::printTime(Techniques t) {
@@ -144,10 +192,54 @@ void Compare::printTime(Techniques t) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time[t] = zero;
 	}
+	if (!Time_SMT.count(t)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[t] = zero;
+	}
 	*Out 
-		<< " " << Time[t]->seconds() 
+		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
+		<< " " << Time_SMT[t]->seconds() 
+		<< " " << Time_SMT[t]->microseconds() 
+		<< "  \t// " << TechniquesToString(t) 
 		<<  "\n";
+}
+
+void Compare::printWarnings(Techniques t) {
+	if (!Warnings.count(t)) {
+
+		Warnings[t] = 0;
+	}
+
+	*Out 
+		<< Warnings[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
+void Compare::printSafeProperties(Techniques t) {
+	if (!Safe_properties.count(t)) {
+
+		Safe_properties[t] = 0;
+	}
+
+	*Out 
+		<< Safe_properties[t] 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
+}
+
+void Compare::printNumberSkipped(Techniques t) {
+	params P;
+	P.T = t;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+
+	*Out 
+		<< ignoreFunction[P].size() 
+		<< "  \t// " << TechniquesToString(t) 
+		<< "\n";
 }
 
 void Compare::printResults(Techniques t1, Techniques t2) {
@@ -164,56 +256,90 @@ void Compare::printResults(Techniques t1, Techniques t2) {
 
 void Compare::printAllResults() {
 
+	*Out << "\nSKIPPED:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printNumberSkipped(ComparedTechniques[i]);
+	}
+	*Out << "SKIPPED_END\n";
+
 	*Out << "\nTIME:\n";
-	printTime(SIMPLE);
-	printTime(GUIDED);
-	printTime(PATH_FOCUSING);
-	printTime(LW_WITH_PF);
-	printTime(LW_WITH_PF_DISJ);
-	printTime(COMBINED_INCR);
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printTime(ComparedTechniques[i]);
+	}
+	*Out << "TIME_END\n";
+
+	*Out << "\nWARNINGS:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printWarnings(ComparedTechniques[i]);
+	}
+	*Out << "WARNINGS_END\n";
+
+	*Out << "\nSAFE_PROPERTIES:\n";
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		printSafeProperties(ComparedTechniques[i]);
+	}
+	*Out << "SAFE_PROPERTIES_END\n";
+
 
 	*Out	<< "\n";
 	*Out	<< "MATRIX:\n";
-	*Out	<< results[GUIDED][SIMPLE].eq << " "
-			<< results[GUIDED][SIMPLE].lt << " "
-			<< results[GUIDED][SIMPLE].gt << " "
-			<< results[GUIDED][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[PATH_FOCUSING][SIMPLE].eq << " "
-			<< results[PATH_FOCUSING][SIMPLE].lt << " "
-			<< results[PATH_FOCUSING][SIMPLE].gt << " "
-			<< results[PATH_FOCUSING][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[PATH_FOCUSING][GUIDED].eq << " "
-			<< results[PATH_FOCUSING][GUIDED].lt << " "
-			<< results[PATH_FOCUSING][GUIDED].gt << " "
-			<< results[PATH_FOCUSING][GUIDED].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][PATH_FOCUSING].eq << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].lt << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].gt << " "
-			<< results[LW_WITH_PF][PATH_FOCUSING].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][GUIDED].eq << " "
-			<< results[LW_WITH_PF][GUIDED].lt << " "
-			<< results[LW_WITH_PF][GUIDED].gt << " "
-			<< results[LW_WITH_PF][GUIDED].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF][SIMPLE].eq << " "
-			<< results[LW_WITH_PF][SIMPLE].lt << " "
-			<< results[LW_WITH_PF][SIMPLE].gt << " "
-			<< results[LW_WITH_PF][SIMPLE].un << " "
-			<< "\n";
-	*Out	<< results[LW_WITH_PF_DISJ][LW_WITH_PF].eq << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].lt << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].gt << " "
-			<< results[LW_WITH_PF_DISJ][LW_WITH_PF].un << " "
-			<< "\n";
-	*Out	<< results[COMBINED_INCR][LW_WITH_PF].eq << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].lt << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].gt << " "
-			<< results[COMBINED_INCR][LW_WITH_PF].un << " "
-			<< "\n";
+
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			*Out	<< results[ComparedTechniques[i]][ComparedTechniques[j]].eq << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].lt << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].gt << " "
+					<< results[ComparedTechniques[i]][ComparedTechniques[j]].un << " "
+					<< "  \t// "<< TechniquesToString(ComparedTechniques[i]) << " / " << TechniquesToString(ComparedTechniques[j]) 
+					<< "\n";
+		}
+	}
+	*Out	<< "MATRIX_END\n";
+}
+
+void Compare::CompareTechniquesByPair(Node * n) {
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			compareTechniques(n,ComparedTechniques[i],ComparedTechniques[j]);
+		}
+	}
+}
+
+void Compare::PrintResultsByPair() {
+	for (int i = 0; i < ComparedTechniques.size(); i++) {
+		for (int j = i+1; j < ComparedTechniques.size(); j++) {
+			printResults(ComparedTechniques[i],ComparedTechniques[j]);
+		}
+	}
+}
+
+
+void Compare::CountNumberOfWarnings(Techniques t, Function * F) {
+	BasicBlock * b;
+	Node * n;
+	params P;
+	P.D = getApronManager();
+	P.N = useNewNarrowing();
+	P.TH = useThreshold();
+	P.T = t;
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if (FPr->getAssert()->count(b) || FPr->getUndefinedBehaviour()->count(b)) {
+			if (!n->X_s[P]->is_bottom()) {
+				if (Warnings.count(t))
+					Warnings[t]++;
+				else
+					Warnings[t] = 1;
+			} else {
+				if (Safe_properties.count(t))
+					Safe_properties[t]++;
+				else
+					Safe_properties[t] = 1;
+			}
+		}
+	}
 }
 
 bool Compare::runOnModule(Module &M) {
@@ -221,7 +347,7 @@ bool Compare::runOnModule(Module &M) {
 	BasicBlock * b;
 	Node * n;
 	int Function_number = 0;
-	LSMT = SMTpass::getInstance();
+	LSMT = SMTpass::getInstanceForAbstract();
 
 	Out->changeColor(raw_ostream::BLUE,true);
 	*Out << "\n\n\n"
@@ -231,51 +357,39 @@ bool Compare::runOnModule(Module &M) {
 	Out->resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
-		LSMT->reset_SMTcontext();
+		//LSMT->reset_SMTcontext();
 		F = mIt;
 		
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		Function_number++;
 
-		if (ignoreFunction.count(F) > 0) continue;
+		if (ignored(F)) continue;
 
-		// we now count the computing time
-		ComputeTime(SIMPLE,F);
-		ComputeTime(GUIDED,F);
-		ComputeTime(PATH_FOCUSING,F);
-		ComputeTime(LW_WITH_PF,F);
-		ComputeTime(LW_WITH_PF_DISJ,F);
-		ComputeTime(COMBINED_INCR,F);
+		// we now count the computing time and the number of warnings
+		for (int i = 0; i < ComparedTechniques.size(); i++) {
+			ComputeTime(ComparedTechniques[i],F);
+			CountNumberOfWarnings(ComparedTechniques[i],F);
+		}
 
+		Pr * FPr = Pr::getInstance(F);
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
-			if (Pr::getPw(*b->getParent())->count(b)) {
-				compareTechniques(n,GUIDED,SIMPLE);
-				compareTechniques(n,PATH_FOCUSING,SIMPLE);
-				compareTechniques(n,PATH_FOCUSING,GUIDED);
-				compareTechniques(n,LW_WITH_PF,PATH_FOCUSING);
-				compareTechniques(n,LW_WITH_PF,GUIDED);
-				compareTechniques(n,LW_WITH_PF,SIMPLE);
-				compareTechniques(n,LW_WITH_PF_DISJ,LW_WITH_PF);
-				compareTechniques(n,COMBINED_INCR,LW_WITH_PF);
+			if (FPr->getPw()->count(b) 
+					|| FPr->getUndefinedBehaviour()->count(b)
+					|| FPr->getAssert()->count(b)
+					) {
+				CompareTechniquesByPair(n);
 			}
 		}
 	}
-	printResults(GUIDED,SIMPLE);
-	printResults(PATH_FOCUSING,SIMPLE);
-	printResults(PATH_FOCUSING,GUIDED);
-	printResults(LW_WITH_PF,PATH_FOCUSING);
-	printResults(LW_WITH_PF,GUIDED);
-	printResults(LW_WITH_PF,SIMPLE);
-	printResults(LW_WITH_PF_DISJ,LW_WITH_PF);
-	printResults(COMBINED_INCR,LW_WITH_PF);
+	PrintResultsByPair();
 
 	*Out << "\nFUNCTIONS:\n";
-	*Out << Function_number << "\n";
+	*Out << Function_number << "\nFUNCTIONS_END\n";
 	*Out << "\nIGNORED:\n";
-	*Out << ignoreFunction.size() << "\n";
+	*Out << nb_ignored() << "\nIGNORED_END\n";
 	printAllResults();
 	return true;
 }

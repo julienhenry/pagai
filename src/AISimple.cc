@@ -1,3 +1,8 @@
+/**
+ * \file AISimple.cc
+ * \brief Implementation of the AISimple pass (techniques without SMT)
+ * \author Julien Henry
+ */
 #include <vector>
 #include <list>
 
@@ -28,18 +33,16 @@ void AISimple::computeFunc(Function * F) {
 		Argument * arg = a;
 		if (!(arg->use_empty()))
 			n->add_var(arg);
-		else 
-			*Out << "argument " << *a << " never used !\n";
 	}
 	// first abstract value is top
-	ap_environment_t * env = NULL;
+	Environment * env = NULL;
 	computeEnv(n);
-	n->create_env(&env,LV);
+	env = n->create_env(LV);
 	n->X_s[passID]->set_top(env);
 	n->X_d[passID]->set_top(env);
 	n->X_i[passID]->set_top(env);
 	n->X_f[passID]->set_top(env);
-
+	delete env;
 	ascendingIter(n, F);
 
 	narrowingIter(n);
@@ -98,7 +101,6 @@ std::set<BasicBlock*> AISimple::getSuccessors(BasicBlock * b) const {
 void AISimple::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();
-	AU.addRequired<Pr>();
 }
 
 bool AISimple::runOnModule(Module &M) {
@@ -114,14 +116,14 @@ bool AISimple::runOnModule(Module &M) {
 		if (F->empty()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out << "\n\n\n"
-				<< "------------------------------------------\n"
-				<< "-         COMPUTING FUNCTION             -\n"
-				<< "------------------------------------------\n";
-		Out->resetColor();
+		if (!quiet_mode()) {
+			Out->changeColor(raw_ostream::BLUE,true);
+			*Out	<< "------------------------------------------\n"
+					<< "-         COMPUTING FUNCTION             -\n"
+					<< "------------------------------------------\n";
+			Out->resetColor();
+		}
 		LSMT = SMTpass::getInstance();
-		LSMT->reset_SMTcontext();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -131,6 +133,7 @@ bool AISimple::runOnModule(Module &M) {
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		printResult(F);
+		TerminateFunction();
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
@@ -172,7 +175,7 @@ void AISimple::computeNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
 			*Out << "POLYHEDRON AT THE STARTING NODE\n";
@@ -181,20 +184,22 @@ void AISimple::computeNode(Node * n) {
 			Xtemp->print();
 		);
 
-		Succ->X_s[passID]->change_environment(Xtemp->main->env);
+		Environment Xtemp_env(Xtemp);
+		Succ->X_s[passID]->change_environment(&Xtemp_env);
 
 		bool succ_bottom = (Succ->X_s[passID]->is_bottom());
 
-		if (Pr::inPw(Succ->bb)) {
+		Pr * FPr = Pr::getInstance(b->getParent());
+		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
 				*Out << "WIDENING\n";
 			);
 			if (use_threshold) {
-				Xtemp->widening_threshold(Succ->X_s[passID],&threshold);
+				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 			} else
 				Xtemp->widening(Succ->X_s[passID]);
 		} else {
-			Xtemp->join_array_dpUcm(Xtemp->main->env,aman->NewAbstract(Succ->X_s[passID]));
+			Xtemp->join_array_dpUcm(&Xtemp_env,aman->NewAbstract(Succ->X_s[passID]));
 		}
 		
 		if (!Succ->X_f[passID]->is_bottom()) {
@@ -220,7 +225,6 @@ void AISimple::computeNode(Node * n) {
 		);
 	}
 }
-
 
 void AISimple::narrowNode(Node * n) {
 	Abstract * Xtemp;
@@ -254,7 +258,7 @@ void AISimple::narrowNode(Node * n) {
 
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
-		computeTransform(aman,n,path,*Xtemp);
+		computeTransform(aman,n,path,Xtemp);
 
 		desc_iterations[passID][n->bb->getParent()]++;
 
@@ -272,7 +276,8 @@ void AISimple::narrowNode(Node * n) {
 			Join.clear();
 			Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
 			Join.push_back(Xtemp);
-			Succ->X_d[passID]->join_array(Xtemp->main->env,Join);
+			Environment Xtemp_env(Xtemp);
+			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		Xtemp = NULL;
 		A.push(Succ);

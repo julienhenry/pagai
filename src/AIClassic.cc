@@ -1,3 +1,8 @@
+/**
+ * \file AIClassic.cc
+ * \brief Implementation of the AIClassic Pass
+ * \author Julien Henry
+ */
 #include "AIClassic.h"
 #include "ModulePassWrapper.h"
 
