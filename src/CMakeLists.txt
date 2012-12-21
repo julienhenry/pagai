@@ -65,7 +65,10 @@ add_apron_library(pagai ap_pkgrid)
 add_apron_library(pagai apron)
 add_ppl_library(pagai ppl)
 # SMT solvers
-add_yices_library(pagai)
+if(${ENABLE_YICES})
+  add_yices_library(pagai)
+endif()
+
 add_z3_library(pagai)
 target_link_libraries(pagai mpfr gmpxx gmp)
 

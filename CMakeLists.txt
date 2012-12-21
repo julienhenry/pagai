@@ -7,6 +7,7 @@ option(STATIC_LINK "Whether to build executables as static" OFF)
 option(CHECK_EXTERNALS "Whether to check that external dependancies are OK before compiling" ON)
 option(ENABLE_PROFILING "Whether to build using -pg" OFF)
 option(ENABLE_DEBUGGING "Whether to build using -g" OFF)
+option(ENABLE_YICES "Whether to enable Yices" ON)
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
