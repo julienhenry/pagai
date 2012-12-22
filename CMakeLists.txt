@@ -188,8 +188,8 @@ else()
   set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
 endif()
 
-find_package(BISON)
-find_package(FLEX)
+find_package(BISON 2.4.1)
+find_package(FLEX 2.5.35)
 
 find_package(Boost COMPONENTS thread system REQUIRED)
 
