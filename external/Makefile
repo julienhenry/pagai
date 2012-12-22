@@ -32,9 +32,13 @@ GMP_PREFIX=/usr
 all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl
 
 ifeq ($(OS), Darwin)
-SOEXTENSION=.so
-else
 SOEXTENSION=.dylib
+else
+ifeq ($(OS), Cygwin)
+SOEXTENSION=.dll
+else
+SOEXTENSION=.so
+endif
 endif
 
 CUDD_COMPILED=$(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a
@@ -167,7 +171,7 @@ $(DEST)/$(APRON_ARCHIVE):
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
-	cd $(DEST)/apron apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
+	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
 	touch -c "$@"
 
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
