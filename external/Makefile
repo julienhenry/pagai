@@ -101,9 +101,9 @@ $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
-$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h: $(DEST)/$(CUDD_ARCHIVE)
+$(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h Â$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE)
 	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < ../../cudd-$(CUDD_VERSION).patch
-	touch -c "$@"
+	touch -c $@
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
 	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE) $(CUDD_XCFLAGS)
@@ -132,6 +132,7 @@ $(DEST)/z3_$(Z3_VERSION)/README: $(DEST)/$(Z3_ARCHIVE)
 	tar -x -C $(DEST) -jvf $(DEST)/$(Z3_ARCHIVE)
 	rm -rf $(DEST)/z3_$(Z3_VERSION)
 	mv $(DEST)/z3 $(DEST)/z3_$(Z3_VERSION)
+	touch -c $@
 
 $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 	cd $(DEST)/z3_$(Z3_VERSION)/ && autoconf && \
@@ -174,12 +175,28 @@ $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
 	touch -c "$@"
 
+APRON_HAS_SHARED=1
+ifeq ($(OS), Darwin)
+APRON_HAS_SHARED=
+else
+ifeq ($(OS), Cygwin)
+APRON_HAS_SHARED=
+endif
+endif
+
+# -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?'
+# -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?'
+
+# DM Trying to use ocamlfind when unavailable causes numerous problems.
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
 	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = 1?' \
-	    -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?' \
-	    -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?' \
+		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
+		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \
+ 		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
+		-e 's/^HAS_OCAMLOPT *=.*/HAS_OCAMLOPT =/' \
+		-e 's/^# *HAS_PPL *=.*/HAS_PPL = 1/' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
 		> $(DEST)/apron-$(APRON_VERSION)/Makefile.config
 	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) && $(MAKE) install		
