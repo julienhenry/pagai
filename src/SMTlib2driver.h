@@ -9,6 +9,8 @@
 # include <map>
 # include "SMTlib2parser.hh"
 
+// for FILE* etc.
+#include <stdio.h>
 
 // Tell Flex the lexer's prototype ...
 # define YY_DECL                                        \
