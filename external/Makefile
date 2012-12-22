@@ -174,12 +174,27 @@ $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
 	touch -c "$@"
 
+APRON_HAS_SHARED=1
+ifeq ($(OS), Darwin)
+APRON_HAS_SHARED=
+else
+ifeq ($(OS), Cygwin)
+APRON_HAS_SHARED=
+endif
+endif
+
+# -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?'
+# -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?'
+
+# DM Trying to use ocamlfind when unavailable causes numerous problems.
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
 	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = 1?' \
-	    -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?' \
-	    -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?' \
+		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
+		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \
+ 		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
+		-e 's/^HAS_OCAMLOPT *=.*/HAS_OCAMLOPT =/' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
 		> $(DEST)/apron-$(APRON_VERSION)/Makefile.config
 	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) && $(MAKE) install		
