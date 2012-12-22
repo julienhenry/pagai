@@ -1,0 +1,28 @@
+diff -x '*.a' -x '*.o' -x '*.so' -r -u pagai/external/build/apron-2012-11-19/box/box_policy.c pagai.cygwin/external/build/apron-2012-11-19/box/box_policy.c
+--- pagai/external/build/apron-2012-11-19/box/box_policy.c	2012-11-19 17:06:28.000000000 +0100
++++ pagai.cygwin/external/build/apron-2012-11-19/box/box_policy.c	2012-12-22 11:46:14.437500000 +0100
+@@ -177,10 +177,10 @@
+     return strdup("NULL");
+   }
+ }
+-void box_policy_fprint(FILE* stdout, ap_policy_manager_t* man, box_policy_t* boxpolicy)
++void box_policy_fprint(FILE* out, ap_policy_manager_t* man, box_policy_t* boxpolicy)
+ {
+   char* s = box_policy_sprint(man,boxpolicy);
+-  fputs(s,stdout);
++  fputs(s,out);
+   free(s);
+ }
+ 
+diff -x '*.a' -x '*.o' -x '*.so' -r -u pagai/external/build/apron-2012-11-19/box/box_policy.h pagai.cygwin/external/build/apron-2012-11-19/box/box_policy.h
+--- pagai/external/build/apron-2012-11-19/box/box_policy.h	2012-11-19 17:06:28.000000000 +0100
++++ pagai.cygwin/external/build/apron-2012-11-19/box/box_policy.h	2012-12-22 11:45:47.578125000 +0100
+@@ -40,7 +40,7 @@
+ 
+ void box_policy_free(ap_policy_manager_t* man, box_policy_t* policy);
+ box_policy_t* box_policy_copy(ap_policy_manager_t* man, box_policy_t* policy);
+-void box_policy_fprint(FILE* stdout, ap_policy_manager_t* man, box_policy_t* policy);
++void box_policy_fprint(FILE* out, ap_policy_manager_t* man, box_policy_t* policy);
+ char* box_policy_sprint(ap_policy_manager_t* man, box_policy_t* policy);
+ size_t box_policy_dimension(ap_policy_manager_t* man, box_policy_t* policy);
+ bool box_policy_equal(ap_policy_manager_t* man, box_policy_t* policy1, box_policy_t* policy2);

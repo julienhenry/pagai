@@ -167,6 +167,7 @@ $(DEST)/$(APRON_ARCHIVE):
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
+	cd $(DEST)/apron apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
 	touch -c "$@"
 
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
