@@ -22,27 +22,14 @@
 using namespace llvm;
 
 /**
- * \class compare_1
+ * \class compare_Info
  * \brief class for comparing Info objects
  */
-class compare_1
+class compare_Info
 {
 	public:
-		bool operator()(Info* x,Info* y)
-		{
-			if(x->getLineNo() == y->getLineNo())
-			{
-				int compareVal=(x->getName()).compare(y->getName());
-				if(compareVal)
-					return (compareVal < 0);
-				else
-				{
-					compareVal=(x->getType()).compare(y->getType());
-					return (compareVal < 0);
-				}
-			}
-			else
-				return (x->getLineNo() < y->getLineNo());
+		bool operator()(Info* x,Info* y) {
+			return (x->Compare(*y) == -1);
 		}
 };
 
@@ -53,16 +40,16 @@ class compare_1
 class recoverName {
 	private :
 		static void pass1(Function *F);
-		static void pass2(Function *F);
-		static bool evaluatePHINode(
-				const PHINode *PHIN,
-				std::vector<const PHINode*>& PHIvector,
-				std::vector<Info*>& v);
-
 		
 		static MDNode * get_DW_TAG_lexical_block(MDNode * MD);
 		static MDNode * get_DW_TAG_subprogram(MDNode * MD);
 		static MDNode * get_DW_TAG_file_type(MDNode * MD);
+
+		
+		static void update_line_column(Instruction * I, unsigned & line, unsigned & column);
+		static void print_set(std::set<Info*,compare_Info> * s);
+
+		static std::set<Info*,compare_Info> getPossibleMappings(const Value * V, std::set<const Value *> * seen);
 
 	public:
 		static Info* getMDInfos(const Value* V);

@@ -42,12 +42,32 @@ class Info
 		return type;}
 	int getLineNo(){
 		return lineNo;}
-	bool isEqual(Info* I) //true if equal
-	{
-		if(!name.compare(I->getName()) && !type.compare(I->getType()) && lineNo==I->getLineNo())
-			return true;
-		return false;
+
+	int Compare (const Info& i) const {
+
+		int name_comparison = name.compare(i.name);
+		int type_comparison = type.compare(i.type);
+
+		if(type_comparison == 0 && name_comparison == 0 && lineNo==i.lineNo) return 0;
+
+		if(lineNo < i.lineNo) {
+			return -1;
+		} else if (lineNo > i.lineNo) {
+			return 1;
+		} else {
+			if (name_comparison != 0) return name_comparison;
+			return type_comparison;
+		}
 	}
+
+	bool operator == (const Info& i) const {
+		return !Compare(i);
+	}
+
+	bool operator < (const Info& i) const {
+		return Compare(i)<0;   
+	}
+
 };
 
 #endif
