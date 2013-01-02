@@ -83,6 +83,7 @@ std::set<Info*,compare_Info> recoverName::getPossibleMappings(const Value * V, s
 				}
 				// Anything left in set_1 from here on did not appear in set_2,
 				// so we remove it.
+				res.erase(it1, res.end());	
 			}
 
 		}
