@@ -13,6 +13,8 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/InstVisitor.h"
 #include "llvm/Constants.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/AliasSetTracker.h"
 
 #include "Analyzer.h"
 #include "apron.h"
@@ -47,6 +49,12 @@ class AIPass : private InstVisitor<AIPass> {
 		 * \brief access to the Live pass
 		 */
 		Live * LV;
+		
+		/* in case we want an alias analysis
+		 * AliasAnalysis * AA;
+		 * AliasSetTracker *AST; 
+		 */
+
 
 		/**
 		 * \brief array of lincons we use to do widening with threshold

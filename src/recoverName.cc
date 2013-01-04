@@ -59,6 +59,7 @@ std::set<Info*,compare_Info> recoverName::getPossibleMappings(const Value * V, s
 
 	if (empty) {
 		// V should be a PHINode
+		if (! isa<PHINode>(V)) return res; // can occur for instance when there is an undef as PHINode argument
 		const PHINode * phi = dyn_cast<PHINode>(V);
 		seen->insert(V);
 		for (unsigned i = 0; i < phi->getNumIncomingValues(); i++) {

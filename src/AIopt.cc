@@ -7,6 +7,9 @@
 #include <sstream>
 #include <list>
 #include <string>
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/AliasSetTracker.h"
+#include "llvm/Support/InstIterator.h"
 
 #include "AIopt.h"
 #include "Expr.h"
@@ -36,6 +39,7 @@ const char * AIopt::getPassName() const {
 void AIopt::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 	AU.addRequired<Live>();
+    //AU.addRequiredTransitive<AliasAnalysis>();
 }
 
 bool AIopt::runOnModule(Module &M) {
@@ -103,8 +107,6 @@ bool AIopt::runOnModule(Module &M) {
 	return 0;
 }
 
-
-
 void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * const n = Nodes[F->begin()];
@@ -118,6 +120,27 @@ void AIopt::computeFunction(Function * F) {
 
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
+
+/**
+ * test : Alias Analysis
+ *
+ *	AA = &(getAnalysis<AliasAnalysis>());
+ *	AST = new AliasSetTracker(*AA);
+ *	
+ *	for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; ++I) {
+ *		AST->add(&*I,4,NULL);
+ *	}
+ *	for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+ *		AST->add(&*I);
+ *	}
+ *	for (AliasSetTracker::iterator I = AST->begin(), E = AST->end();
+ *           I != E; ++I) {
+ *        AliasSet &AS = *I;
+ *		*Out << "\n";
+ *		AS.print(*Out);
+ *		*Out << "\n";
+ *	}
+ */
 
 	LSMT->push_context();
 	

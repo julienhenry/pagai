@@ -160,6 +160,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	} else if (!DefaultDataLayout.empty()) {
 		TD = new TargetData(DefaultDataLayout);
 	}
+	
+	PassRegistry &Registry = *PassRegistry::getPassRegistry();
+	initializeAnalysis(Registry);
 
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
@@ -177,6 +180,13 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(createPromoteMemoryToRegisterPass());
 	//Passes.add(createLoopSimplifyPass());	
 	Passes.add(LoopInfoPass);
+
+	// in case we want to run an Alias analysis pass : 
+	//
+	//Passes.add(createGlobalsModRefPass());
+	//Passes.add(createBasicAliasAnalysisPass());
+	//Passes.add(createScalarEvolutionAliasAnalysisPass());
+	//Passes.add(createTypeBasedAliasAnalysisPass());
 
 
 	if (onlyOutputsRho()) {
