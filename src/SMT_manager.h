@@ -22,6 +22,7 @@ class SMT_expr {
 		std::string s;
 		void* i;
 
+
 		SMT_expr () {
 			s = std::string("");
 			i = NULL;

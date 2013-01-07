@@ -12,6 +12,7 @@
 #include <string>
 
 #include "z3.h"
+#include "z3++.h"
 
 #include "SMT_manager.h"
 
@@ -22,7 +23,8 @@
 class z3_manager: public SMT_manager {
 
 	private:
-		Z3_context ctx;
+		z3::solver * s;
+		z3::context * ctx;
 		std::map<std::string,SMT_var> vars;
 		std::map<SMT_var,SMT_type> types;
 		SMT_type bool_type;

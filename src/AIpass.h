@@ -55,7 +55,6 @@ class AIPass : private InstVisitor<AIPass> {
 		 * AliasSetTracker *AST; 
 		 */
 
-
 		/**
 		 * \brief array of lincons we use to do widening with threshold
 		 *
