@@ -25,31 +25,41 @@ class Info
 	std::string type;
 
 	public:
-	Info();
-	Info(std::string name,int lineNo,std::string type)
-	{
-		this->name=name;
-		this->lineNo=lineNo;
-		this->type=type;
+	Info() {
+		lineNo=-1;
 	}
-	void display()
-	{
-		*Out<<"("<<type<<" "<<name<<" "<<lineNo<<")";
+
+	Info(std::string _name,int _lineNo,std::string _type) {
+		name=_name;
+		lineNo=_lineNo;
+		type=_type;
 	}
-	std::string getName(){
-		return name;}
-	std::string getType(){
-		return type;}
-	int getLineNo(){
-		return lineNo;}
+
+	Info(const Info& I): name(I.name), lineNo(I.lineNo), type(I.type) {}
+
+	Info& operator=(const Info &I) {
+		name = I.name;
+		lineNo = I.lineNo;
+		type = I.type;
+		return *this;
+	}
+
+	void display() const {
+		*Out<<"(type="<<type<<" name="<<name<<" line="<<lineNo<<")";
+	}
+
+	std::string getName() {return name;}
+
+	std::string getType() {return type;}
+
+	int getLineNo() {return lineNo;}
+
+	bool empty() {return name.empty();}
 
 	int Compare (const Info& i) const {
-
 		int name_comparison = name.compare(i.name);
 		int type_comparison = type.compare(i.type);
-
 		if(type_comparison == 0 && name_comparison == 0 && lineNo==i.lineNo) return 0;
-
 		if(lineNo < i.lineNo) {
 			return -1;
 		} else if (lineNo > i.lineNo) {
@@ -67,7 +77,6 @@ class Info
 	bool operator < (const Info& i) const {
 		return Compare(i)<0;   
 	}
-
 };
 
 #endif

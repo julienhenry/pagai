@@ -155,12 +155,12 @@ SMT_expr PathTree_br::generateSMTformula(SMTpass * smt, bool neg) {
 			// Terminal node
 			if (node != background && node != zero) {
 				// this is the 1 node
-				Bdd_expr[node] = smt->man->SMT_mk_true();	
+				Bdd_expr.insert(std::pair<DdNode*,SMT_expr>(node,smt->man->SMT_mk_true()));	
 				// we remember the adress of this node for future simplification of
 				// the formula
 				true_node = N;
 			} else {
-				Bdd_expr[node] = smt->man->SMT_mk_false();	
+				Bdd_expr.insert(std::pair<DdNode*,SMT_expr>(node,smt->man->SMT_mk_false()));	
 			}
 		} else {
 			BranchInst * br = getBranchFromLevel(N->index);
@@ -168,7 +168,7 @@ SMT_expr PathTree_br::generateSMTformula(SMTpass * smt, bool neg) {
 			BasicBlock * dest = br->getSuccessor(0);
 			std::string edge = SMTpass::getEdgeName(origin,dest);
 			SMT_var bbvar = smt->man->SMT_mk_bool_var(edge);
-			SMT_expr bbexpr = smt->man->SMT_mk_expr_from_bool_var(bbvar);
+			SMT_expr bbexpr(smt->man->SMT_mk_expr_from_bool_var(bbvar));
 	
 			Nv  = Cudd_T(N);
 			Nnv = Cudd_E(N);
@@ -177,8 +177,8 @@ SMT_expr PathTree_br::generateSMTformula(SMTpass * smt, bool neg) {
 				Nnv = Cudd_Not(Nnv);
 				Nnv_comp = true;
 			}
-			SMT_expr Nv_expr = Bdd_expr[Nv];
-			SMT_expr Nnv_expr = Bdd_expr[Nnv];
+			SMT_expr Nv_expr(Bdd_expr[Nv]);
+			SMT_expr Nnv_expr(Bdd_expr[Nnv]);
 			if (Nnv_comp)
 				Nnv_expr = smt->man->SMT_mk_not(Nnv_expr);
 		
@@ -199,7 +199,7 @@ SMT_expr PathTree_br::generateSMTformula(SMTpass * smt, bool neg) {
 				std::ostringstream name;
 				name << "Bdd_" << node;
 				SMT_var var = smt->man->SMT_mk_bool_var(name.str());
-				SMT_expr vexpr = smt->man->SMT_mk_expr_from_bool_var(var);
+				SMT_expr vexpr(smt->man->SMT_mk_expr_from_bool_var(var));
 				factorized.push_back(smt->man->SMT_mk_eq(vexpr,Bdd_expr[node]));
 				Bdd_expr[node] = vexpr;	
 			}
@@ -213,7 +213,7 @@ SMT_expr PathTree_br::generateSMTformula(SMTpass * smt, bool neg) {
 	else
 		formula.push_back(Bdd_expr[Cudd_Regular(Bdd->getNode())]);
 
-	SMT_expr res = smt->man->SMT_mk_and(formula);
+	SMT_expr res(smt->man->SMT_mk_and(formula));
 	if (neg)
 		res = smt->man->SMT_mk_not(res);
 

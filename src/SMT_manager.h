@@ -9,37 +9,57 @@
 #include <string>
 #include <vector>
 #include <set>
+
+#include <boost/shared_ptr.hpp>
+
 #include "gmp.h"
 #include "mpfr.h"
 #include "Debug.h"
+#include "z3++.h"
 
 /**
  * \class SMT_expr
  * \brief class of SMT expressions
  */
 class SMT_expr {
+
 	public:
 		std::string s;
-		void* i;
-
+		boost::shared_ptr<z3::expr> z3;
+		void * i;
 
 		SMT_expr () {
 			s = std::string("");
+			z3.reset();
 			i = NULL;
 		}
 
 		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {
+			z3 = e.z3;
 		}
 
-		~SMT_expr(){s.clear();}
+		SMT_expr(z3::expr e) {
+			s = std::string("");
+			z3.reset(new z3::expr(e));
+			i = NULL;
+		}
+
+		z3::expr * expr() {
+			return z3.get();
+		}
+
+		~SMT_expr(){
+			s.clear();
+		}
 
 		bool is_empty() {
-			return i == NULL && s == "";
+			return i == NULL && z3.get() == NULL && s == "";
 		}
 
 		SMT_expr& operator=(const SMT_expr &e) {
 			s.clear();
 			s = e.s;
+			z3 = e.z3;
 			i = e.i;
 			return *this;
 		}
@@ -83,11 +103,33 @@ class SMT_type {
 class SMT_var {
 	public:
 		std::string s;
+		boost::shared_ptr<z3::symbol> z3;
 		void* i;
 
 		SMT_var () {
 			s = std::string("");
+			z3.reset();
 			i = NULL;
+		}
+
+		SMT_var(z3::symbol n) {
+			s = n.str();
+			z3.reset(new z3::symbol(n));
+			i = NULL;
+		};
+
+		~SMT_var() { }
+
+		SMT_var& operator=(const SMT_var &v) {
+			s.clear();
+			s = v.s;
+			z3 = v.z3;
+			i = v.i;
+			return *this;
+		}
+
+		z3::symbol * symb() {
+			return z3.get();
 		}
 
 		int Compare (const SMT_var& v) const {
@@ -111,9 +153,7 @@ class SMT_var {
 		bool operator < (const SMT_var& v) const {
 			return Compare(v)<0;   
 		}
-
 }; 
-
 
 /**
  * \class SMT_manager

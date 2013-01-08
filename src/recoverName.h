@@ -28,8 +28,8 @@ using namespace llvm;
 class compare_Info
 {
 	public:
-		bool operator()(Info* x,Info* y) {
-			return (x->Compare(*y) == -1);
+		bool operator()(Info x,Info y) {
+			return (x.Compare(y) == -1);
 		}
 };
 
@@ -46,13 +46,15 @@ class recoverName {
 		static MDNode * get_DW_TAG_file_type(MDNode * MD);
 
 		
-		static void update_line_column(Instruction * I, unsigned & line, unsigned & column);
-		static void print_set(std::set<Info*,compare_Info> * s);
+		static Info resolveMetDescriptor(MDNode* md);
 
-		static std::set<Info*,compare_Info> getPossibleMappings(const Value * V, std::set<const Value *> * seen);
+		static void update_line_column(Instruction * I, unsigned & line, unsigned & column);
+		static void print_set(std::set<Info,compare_Info> * s);
+
+		static std::set<Info,compare_Info> getPossibleMappings(const Value * V, std::set<const Value *> * seen);
 
 	public:
-		static Info* getMDInfos(const Value* V);
+		static Info getMDInfos(const Value* V);
 		static int process(Function* F);
 		static int getFunctionLineNo(Function* F);
 		static int getBasicBlockLineNo(BasicBlock* BB);

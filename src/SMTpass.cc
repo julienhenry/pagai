@@ -96,7 +96,7 @@ SMT_expr SMTpass::getRho(Function &F) {
 
 void SMTpass::reset_SMTcontext() {
 	rho.clear();
-#if 0
+#if 1
 	while (stack_level > 0)
 		pop_context();
 #else
@@ -136,7 +136,7 @@ SMT_expr SMTpass::linexpr1ToSmt(BasicBlock* b, ap_linexpr1_t linexpr, bool &inte
 	ap_var_t var;
 	ap_coeff_t* coeff;
 	
-	// first, we figure out if the expression has to be of type real instead of
+	// first, we figure out whether the expression has to be of type real instead of
 	// integer
 	// we iterate over the terms and find if there is some real variables
 	ap_linexpr1_ForeachLinterm1(&linexpr,i,var,coeff){ 

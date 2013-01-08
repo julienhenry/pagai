@@ -24,7 +24,7 @@ class z3_manager: public SMT_manager {
 
 	private:
 		z3::solver * s;
-		z3::context * ctx;
+		z3::context ctx;
 		std::map<std::string,SMT_var> vars;
 		std::map<SMT_var,SMT_type> types;
 		SMT_type bool_type;

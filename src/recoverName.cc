@@ -12,18 +12,17 @@
 #define MAX 0xFFFFFFFF
 
 // map M1 for pass1
-std::multimap<const Value*,Info*> M1;
+std::multimap<const Value*,Info> M1;
 
 //Basic Block Mapping: 
 //Block_line maps a basic block to starting line no. in original source code
 //Block_column maps a basic block to column no. in original code.
 std::map<BasicBlock*,int> Block_line,Block_column; 
 
-Info* recoverName::getMDInfos(const Value* V) //retrieve appropriate Info* mapped to a const Value* from the maps. 
-{
-	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
+Info recoverName::getMDInfos(const Value* V) {
+	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
-	std::multimap<const Value*,Info*>::iterator it;
+	std::multimap<const Value*,Info>::iterator it;
 
 	if(ret1.first!=ret1.second) {
 		it=ret1.first;
@@ -31,25 +30,24 @@ Info* recoverName::getMDInfos(const Value* V) //retrieve appropriate Info* mappe
 	}
 	std::set<const Value*> seen;
 	seen.insert(V);
-	std::set<Info*,compare_Info> possible_mappings = getPossibleMappings(V,&seen);
-
-	return *(possible_mappings.begin());
+	std::set<Info,compare_Info> possible_mappings = getPossibleMappings(V,&seen);
+	return Info(*possible_mappings.begin());
 }
 
 // for debugging purpose...
-void recoverName::print_set(std::set<Info*,compare_Info> * s) {
-	std::set<Info*>::iterator it = s->begin(), et = s->end();
+void recoverName::print_set(std::set<Info,compare_Info> * s) {
+	std::set<Info>::iterator it = s->begin(), et = s->end();
 	for (; it != et; it++) {
-		(*it)->display();
+		(*it).display();
 	}
 	*Out << "\n";
 }
 
-std::set<Info*,compare_Info> recoverName::getPossibleMappings(const Value * V, std::set<const Value *> * seen) {
-	std::set<Info*,compare_Info> res;
-	std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> in_Map;
+std::set<Info,compare_Info> recoverName::getPossibleMappings(const Value * V, std::set<const Value *> * seen) {
+	std::set<Info,compare_Info> res;
+	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> in_Map;
 	in_Map=M1.equal_range(V);
-	std::multimap<const Value*,Info*>::iterator it;
+	std::multimap<const Value*,Info>::iterator it;
 
 	bool empty = true;
 	for (it = in_Map.first; it!=in_Map.second; it++) {
@@ -65,17 +63,17 @@ std::set<Info*,compare_Info> recoverName::getPossibleMappings(const Value * V, s
 		for (unsigned i = 0; i < phi->getNumIncomingValues(); i++) {
 			Value * v = phi->getIncomingValue(i);
 			if (seen->count(v) > 0) continue;
-			std::set<Info*,compare_Info> s = getPossibleMappings(v,seen);
+			std::set<Info,compare_Info> s = getPossibleMappings(v,seen);
 			if (res.empty()) {
 				res.swap(s);
 			} else {
 				// computing the intersection
-				std::set<Info*>::iterator it1 = res.begin();
-				std::set<Info*>::iterator it2 = s.begin();
+				std::set<Info>::iterator it1 = res.begin();
+				std::set<Info>::iterator it2 = s.begin();
 				while ( (it1 != res.end()) && (it2 != s.end()) ) {
-				    if (**it1 < **it2) {
+				    if (*it1 < *it2) {
 				    	res.erase(it1++);
-				    } else if (**it2 < **it1) {
+				    } else if (*it2 < *it1) {
 				    	++it2;
 				    } else { // **it1 == **it2
 				            ++it1;
@@ -97,13 +95,13 @@ std::set<Info*,compare_Info> recoverName::getPossibleMappings(const Value * V, s
 //pass1 and pass2 create maps M1 and M2 for all const Value* present in Function* passed to process function.
 int recoverName::process(Function *F) { 
 	pass1(F);	
-	std::multimap<const Value*,Info*>::iterator itt;
+	std::multimap<const Value*,Info>::iterator itt;
 	DEBUG(
 		*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
 		for ( itt=M1.begin() ; itt != M1.end(); itt++ ) {
 			*Out<< *(*itt).first << " => ";
-			Info* IN=getMDInfos(itt->first);
-			(*itt).second->display();
+			Info IN=getMDInfos(itt->first);
+			IN.display();
 			*Out<<"\n";
 		}
 	);
@@ -153,8 +151,8 @@ int recoverName::getBasicBlockColumnNo(BasicBlock* BB) {
 }
 
 //this functions collects required information about a variable from a MDNode*, creates the corresponding object 
-//of type Info* and returns it.
-Info* resolveMetDescriptor(MDNode* md) {
+//of type Info and returns it.
+Info recoverName::resolveMetDescriptor(MDNode* md) {
 	std::string name,type;
 	int lineNo,tag;
 	int varNameLoc,lineNoLoc,typeLoc;
@@ -230,10 +228,11 @@ Info* resolveMetDescriptor(MDNode* md) {
 				}
 			}
 		}
-		Info *obj=new Info(name,lineNo,type);
-		return obj;
+		Info res(name,lineNo,type);
+		return res;
 	}
-	return NULL;
+	Info res("",-1,"");
+	return res;
 }
 
 void recoverName::update_line_column(Instruction * I, unsigned & line, unsigned & column) {
@@ -280,21 +279,21 @@ void recoverName::pass1(Function *F) {
 			}
 
 			if(dbgInstFlag) {
-				Info* varInfo=resolveMetDescriptor(MD);
-				if(varInfo!=NULL) {
-					std::pair<std::multimap<const Value*,Info*>::iterator,std::multimap<const Value*,Info*>::iterator> ret1;
+				Info varInfo=resolveMetDescriptor(MD);
+				if(!varInfo.empty()) {
+					std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 					ret1=M1.equal_range(val);
 
 					bool ifAlreadyMapped=false;
 					//this is to check and avoid duplicate entries in the map M1 
-					for(std::multimap<const Value*,Info*>::iterator it=ret1.first;it!=ret1.second;it++) {
-						if(*varInfo == *(it->second)) {
+					for(std::multimap<const Value*,Info>::iterator it=ret1.first;it!=ret1.second;it++) {
+						if(varInfo == (it->second)) {
 							ifAlreadyMapped=true;
 							break;
 						}
 					}
 					if(!ifAlreadyMapped) {
-						std::pair<const Value*,Info*>hi=std::make_pair(val,varInfo);
+						std::pair<const Value*,Info>hi=std::make_pair(val,varInfo);
 						M1.insert(hi);
 					}
 				}

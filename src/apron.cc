@@ -36,12 +36,12 @@ char* ap_var_to_string(ap_var_t var) {
 	std::string name;
 	if (useSourceName()) {
 		const Value * val1=val;	
-		Info* IN = recoverName::getMDInfos(val1);	
-		if(IN != NULL) {
-			name=IN->getName();
+		Info IN = recoverName::getMDInfos(val1);	
+		if(!IN.empty()) {
+			name=IN.getName();
 		} else {
 			DEBUG(
-				*Out << "IN == NULL\n";
+				*Out << "IN is empty\n";
 			);
 			name = SMTpass::getVarName(val);
 		}
