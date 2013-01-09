@@ -666,28 +666,28 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		}
 		focusblock++;
 	}
-	Environment * env = NULL;
-	env = succ->create_env(LV);
+	Environment env(succ,LV);
 
-	Environment Xtemp_env(Xtemp);
-	// tmpenv contains all the environment of the starting invariant, plus the
-	// new environment variables that have been added along the path
-	Environment * tmpenv = Environment::common_environment(env,&Xtemp_env);
-	Xtemp->change_environment(tmpenv);
-	delete tmpenv;
+	{
+		Environment Xtemp_env(Xtemp);
+		// tmpenv contains all the environment of the starting invariant, plus the
+		// new environment variables that have been added along the path
+		Environment tmpenv = Environment::common_environment(&env,&Xtemp_env);
+		Xtemp->change_environment(&tmpenv);
+	}
 
 	// first, we assign the Phi variables defined during the path to the right expressions
 	Xtemp->assign_texpr_array(&PHIvars.name,&PHIvars.expr,NULL);
 
 	// We create an Abstract Value that will represent the set of constraints
-	Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
+	// Abstract * ConstraintsAbstract = aman->NewAbstract(man, env);
 
 	ap_var_t var;
 	Value * val;
 	std::set<ap_var_t> intdims;
 	std::set<ap_var_t> realdims;
 
-	env->get_vars_live_in(succ->bb,LV,&intdims,&realdims);
+	env.get_vars_live_in(succ->bb,LV,&intdims,&realdims);
 
 	Environment env2(&intdims,&realdims);
 
@@ -727,7 +727,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				// delete the Constraint_array*
 				delete *it;
 			}
-			Xtemp->join_array(env,A);
+			Xtemp->join_array(&env,A);
 		}
 		// delete the vector
 		delete *i;
@@ -761,8 +761,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	//		ap_lincons1_array_set(&threshold,k,&cons[k]);
 	//	}
 	//}
-	delete ConstraintsAbstract;
-	delete env;
+	//delete ConstraintsAbstract;
+	
+
 }
 
 // TODO :

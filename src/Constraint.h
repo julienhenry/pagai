@@ -40,7 +40,8 @@ class Constraint_array {
 
 		std::vector<Constraint*> constraints;
 
-		ap_tcons1_array_t * ap_array;
+		ap_tcons1_array_t ap_array;
+		bool ap_array_ready;
 
 	public:
 		Constraint_array();

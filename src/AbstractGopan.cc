@@ -133,14 +133,14 @@ void AbstractGopan::meet_tcons_array(Constraint_array* tcons) {
 
 	Environment main_env(this);
 	Environment cons_env(tcons);
-	Environment * lcenv = Environment::common_environment(&main_env,&cons_env);
+	Environment lcenv = Environment::common_environment(&main_env,&cons_env);
 
 	if (pilot != main) {
-		*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv->getEnv(),false);
+		*pilot = ap_abstract1_change_environment(man,true,pilot,lcenv.getEnv(),false);
 		*pilot = ap_abstract1_meet_tcons_array(man,true,pilot,tcons->to_tcons1_array());
 	}
 
-	*main = ap_abstract1_change_environment(man,true,main,lcenv->getEnv(),false);
+	*main = ap_abstract1_change_environment(man,true,main,lcenv.getEnv(),false);
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
 
 }

@@ -148,12 +148,6 @@ class Node {
 		 * \brief add a new variable into the abstract domain
 		 */
 		void add_var(Value * val);
-
-		/**
-		 * \brief creates an environment containing all live variables
-		 * that needs to be used as dimension in the abstract domain
-		 */
-		Environment * create_env(Live * LV);
 };
 
 /** 

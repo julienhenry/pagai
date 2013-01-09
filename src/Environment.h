@@ -12,6 +12,7 @@
 #include "Abstract.h"
 #include "Live.h"
 #include "Constraint.h"
+#include "Node.h"
 
 using namespace llvm;
 
@@ -24,6 +25,7 @@ class Environment {
 	private:
 		ap_environment_t * env;
 
+		void init(std::set<ap_var_t> * intvars, std::set<ap_var_t> * realvars);
 
 	public:
 		/**
@@ -38,6 +40,7 @@ class Environment {
 		Environment(Constraint * cons);
 		Environment(Constraint_array * cons);
 		Environment(ap_environment_t * e);
+		Environment(Node * n, Live * LV);
 		/**
 		 * \}
 		 */
@@ -73,17 +76,17 @@ class Environment {
 		/**
 		 * \brief compute the least common environment of two expressions
 		 */
-		static Environment * common_environment(Expr* exp1, Expr* exp2);
+		static Environment common_environment(Expr* exp1, Expr* exp2);
 
 		/**
 		 * \brief compute the least common environment of two environments
 		 */
-		static Environment * common_environment(Environment* env1, Environment* env2);
+		static Environment common_environment(Environment* env1, Environment* env2);
 
 		/**
 		 * \brief compute the intersection of two environments
 		 */
-		static Environment * intersection(Environment * env1, Environment * env2);
+		static Environment intersection(Environment * env1, Environment * env2);
 
 		/**
 		 * \brief print the environment

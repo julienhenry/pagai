@@ -131,28 +131,6 @@ void Node::add_var(Value * val) {
 	Expr::set_expr(val,&exp);
 }
 
-Environment * Node::create_env(Live * LV) {
-	std::set<ap_var_t> Sintvars;
-	std::set<ap_var_t> Srealvars;
-
-	for (std::map<Value*,std::set<ap_var_t> >::iterator i = intVar.begin(),
-			e = intVar.end(); i != e; ++i) {
-		if (LV->isLiveByLinearityInBlock((*i).first,bb,true)
-			|| isa<UndefValue>((*i).first)) {
-			Sintvars.insert((*i).second.begin(), (*i).second.end());
-		}
-	}
-	for (std::map<Value*,std::set<ap_var_t> >::iterator i = realVar.begin(),
-			e = realVar.end(); i != e; ++i) {
-		if (LV->isLiveByLinearityInBlock((*i).first,bb,true)
-			|| isa<UndefValue>((*i).first))
-			Srealvars.insert((*i).second.begin(), (*i).second.end());
-	}
-	
-	Environment * env = new Environment(&Sintvars,&Srealvars);
-	return env;
-}
-
 bool NodeCompare::operator() (Node * n1, Node * n2) {
 	if (n1->sccId < n2->sccId) return true;
 	return (n1->id > n2->id);

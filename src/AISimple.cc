@@ -35,14 +35,12 @@ void AISimple::computeFunc(Function * F) {
 			n->add_var(arg);
 	}
 	// first abstract value is top
-	Environment * env = NULL;
 	computeEnv(n);
-	env = n->create_env(LV);
-	n->X_s[passID]->set_top(env);
-	n->X_d[passID]->set_top(env);
-	n->X_i[passID]->set_top(env);
-	n->X_f[passID]->set_top(env);
-	delete env;
+	Environment env(n,LV);
+	n->X_s[passID]->set_top(&env);
+	n->X_d[passID]->set_top(&env);
+	n->X_i[passID]->set_top(&env);
+	n->X_f[passID]->set_top(&env);
 	ascendingIter(n, F);
 
 	narrowingIter(n);

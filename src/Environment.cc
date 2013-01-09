@@ -20,7 +20,7 @@ Environment::Environment(const Environment &e) {
 	env = ap_environment_copy(e.env);
 }
 
-Environment::Environment(std::set<ap_var_t> * intvars, std::set<ap_var_t> * realvars) {
+void Environment::init(std::set<ap_var_t> * intvars, std::set<ap_var_t> * realvars) {
 	ap_var_t * _intvars = (ap_var_t*)malloc(intvars->size()*sizeof(ap_var_t));
 	ap_var_t * _realvars = (ap_var_t*)malloc(realvars->size()*sizeof(ap_var_t));
 
@@ -43,6 +43,10 @@ Environment::Environment(std::set<ap_var_t> * intvars, std::set<ap_var_t> * real
 	free(_realvars);
 }
 
+Environment::Environment(std::set<ap_var_t> * intvars, std::set<ap_var_t> * realvars) {
+	init(intvars,realvars);
+}
+
 Environment::Environment(Abstract * A) {
 	env = ap_environment_copy(A->main->env);
 }
@@ -62,6 +66,26 @@ Environment::Environment(Constraint_array * cons) {
 Environment::Environment(ap_environment_t * e) {
 	env = ap_environment_copy(e);
 }
+		
+Environment::Environment(Node * n, Live * LV) {
+	std::set<ap_var_t> Sintvars;
+	std::set<ap_var_t> Srealvars;
+
+	for (std::map<Value*,std::set<ap_var_t> >::iterator i = n->intVar.begin(),
+			e = n->intVar.end(); i != e; ++i) {
+		if (LV->isLiveByLinearityInBlock((*i).first,n->bb,true)
+			|| isa<UndefValue>((*i).first)) {
+			Sintvars.insert((*i).second.begin(), (*i).second.end());
+		}
+	}
+	for (std::map<Value*,std::set<ap_var_t> >::iterator i = n->realVar.begin(),
+			e = n->realVar.end(); i != e; ++i) {
+		if (LV->isLiveByLinearityInBlock((*i).first,n->bb,true)
+			|| isa<UndefValue>((*i).first))
+			Srealvars.insert((*i).second.begin(), (*i).second.end());
+	}
+	init(&Sintvars,&Srealvars);
+}
 
 Environment::~Environment() {
 	ap_environment_free(env);
@@ -70,6 +94,7 @@ Environment::~Environment() {
 Environment & Environment::operator= (const Environment &e) {
 	ap_environment_free(env);
 	env = ap_environment_copy(e.env);
+	env = (e.env);
 	return *this;
 }
 
@@ -138,23 +163,23 @@ void Environment::common_environment(ap_texpr1_t * exp1, ap_texpr1_t * exp2) {
 	ap_environment_free(common);
 }
 
-Environment * Environment::common_environment(Expr* exp1, Expr* exp2) {
+Environment Environment::common_environment(Expr* exp1, Expr* exp2) {
 	ap_environment_t * env1 = exp1->getExpr()->env;
 	ap_environment_t * env2 = exp2->getExpr()->env;
 	ap_environment_t * common = common_environment(env1,env2);
-	Environment * res = new Environment(common);
+	Environment res(common);
 	ap_environment_free(common);
 	return res;
 }
 
-Environment * Environment::common_environment(Environment* env1, Environment* env2) {
+Environment Environment::common_environment(Environment* env1, Environment* env2) {
 	ap_environment_t * common = common_environment(env1->env,env2->env);
-	Environment * res = new Environment(common);
+	Environment res(common);
 	ap_environment_free(common);
 	return res;
 }
 
-Environment * Environment::intersection(Environment * env1, Environment * env2) {
+Environment Environment::intersection(Environment * env1, Environment * env2) {
 	ap_environment_t * lcenv = common_environment(env1->env,env2->env);
 	ap_environment_t * intersect = ap_environment_copy(lcenv);	
 	ap_environment_t * tmp = NULL;	
@@ -168,7 +193,7 @@ Environment * Environment::intersection(Environment * env1, Environment * env2) 
 			intersect = tmp;
 		}	
 	}	
-	Environment * res = new Environment(intersect);
+	Environment res(intersect);
 	ap_environment_free(intersect);
 	ap_environment_free(lcenv);
 	return res;

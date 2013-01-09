@@ -170,11 +170,10 @@ void AIopt::computeFunction(Function * F) {
 			n->add_var(arg);
 	}
 	// first abstract value is top
-	Environment * env = NULL;
 	computeEnv(n);
-	env = n->create_env(LV);
-	n->X_s[passID]->set_top(env);
-	n->X_d[passID]->set_top(env);
+	Environment env(n,LV);
+	n->X_s[passID]->set_top(&env);
+	n->X_d[passID]->set_top(&env);
 	
 	while (!A_prime.empty()) 
 			A_prime.pop();
@@ -210,7 +209,7 @@ void AIopt::computeFunction(Function * F) {
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			if (FPr->getPr()->count(i) && Nodes[b] != n) {
-				Nodes[b]->X_d[passID]->set_bottom(env);
+				Nodes[b]->X_d[passID]->set_bottom(&env);
 			}
 		}
 
@@ -226,7 +225,6 @@ void AIopt::computeFunction(Function * F) {
 		delete W;
 	}
 end:
-	delete env;
 	LSMT->pop_context();
 }
 

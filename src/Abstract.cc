@@ -84,11 +84,11 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 	std::vector<Abstract*> Join;
 	Environment env_this(this);
 	Environment env_A(A);
-	Environment * cenv = Environment::common_environment(&env_this,&env_A);
+	Environment cenv = Environment::common_environment(&env_this,&env_A);
 	Join.push_back(aman->NewAbstract(this));
 	Join.push_back(aman->NewAbstract(A));
 	Abstract * J = aman->NewAbstract(this);
-	J->join_array(cenv,Join);
+	J->join_array(&cenv,Join);
 
 	LSMT->push_context();
 	SMT_expr A_smt = LSMT->AbstractToSmt(NULL,this);
@@ -104,7 +104,6 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 		res = false;
 	}
 	LSMT->pop_context();
-	delete cenv;
 	delete J;
 	return res;
 }
