@@ -790,8 +790,7 @@ int SMTpass::SMTsolve(
 	std::map<BasicBlock*, BasicBlock*> succ;
 	int res;
 
-	sys::TimeValue * time = new sys::TimeValue(0,0);
-	*time = sys::TimeValue::now();
+	sys::TimeValue time(sys::TimeValue::now());
 
 	res = man->SMT_check(expr,&true_booleans);
 
@@ -800,7 +799,7 @@ int SMTpass::SMTsolve(
 		Total_time_SMT[passID][F] = time_SMT;
 	}
 
-	*Total_time_SMT[passID][F] += sys::TimeValue::now()-*time;
+	*Total_time_SMT[passID][F] += sys::TimeValue::now()-time;
 
 	if (res != 1) return res;
 	bool isEdge, isIndex, start;

@@ -345,6 +345,7 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 		//oss << mpq;
 	}
 	//res.s = oss.str();
+	free(charmpq);
 	return res;
 }
 

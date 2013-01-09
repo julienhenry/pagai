@@ -386,6 +386,7 @@ llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, ap_scalar_t & cons) {
 			case AP_SCALAR_MPQ:
 				num = mpq_get_str(num,10,cons.val.mpq);
 				stream << num;
+				free(num);
 				break;
 			case AP_SCALAR_MPFR:
 				{

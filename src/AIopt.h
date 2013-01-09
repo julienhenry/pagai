@@ -95,6 +95,7 @@ class AIopt : public ModulePass, public AIPass {
 				if ((*it).second != NULL)
 					delete (*it).second;
 				}
+				delete aman;
 			}
 
 		/**
