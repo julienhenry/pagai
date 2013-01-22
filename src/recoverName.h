@@ -29,7 +29,7 @@ class compare_Info
 {
 	public:
 		bool operator()(Info x,Info y) {
-			return (x.Compare(y) == -1);
+			return (x.Compare(y) < 0);
 		}
 };
 

@@ -31,6 +31,10 @@ Info recoverName::getMDInfos(const Value* V) {
 	std::set<const Value*> seen;
 	seen.insert(V);
 	std::set<Info,compare_Info> possible_mappings = getPossibleMappings(V,&seen);
+
+	if (possible_mappings.begin() == possible_mappings.end()) {
+		*Out << "no possible mappings for " << *V << "\n...";
+	}
 	return Info(*possible_mappings.begin());
 }
 
@@ -54,7 +58,6 @@ std::set<Info,compare_Info> recoverName::getPossibleMappings(const Value * V, st
 		empty = false;
 		res.insert(it->second);
 	}
-
 	if (empty) {
 		// V should be a PHINode
 		if (! isa<PHINode>(V)) return res; // can occur for instance when there is an undef as PHINode argument
@@ -68,8 +71,8 @@ std::set<Info,compare_Info> recoverName::getPossibleMappings(const Value * V, st
 				res.swap(s);
 			} else {
 				// computing the intersection
-				std::set<Info>::iterator it1 = res.begin();
-				std::set<Info>::iterator it2 = s.begin();
+				std::set<Info,compare_Info>::iterator it1 = res.begin();
+				std::set<Info,compare_Info>::iterator it2 = s.begin();
 				while ( (it1 != res.end()) && (it2 != s.end()) ) {
 				    if (*it1 < *it2) {
 				    	res.erase(it1++);
@@ -100,8 +103,7 @@ int recoverName::process(Function *F) {
 		*Out<<"MAPPING OF VARIABLES ...\nMap1\n";
 		for ( itt=M1.begin() ; itt != M1.end(); itt++ ) {
 			*Out<< *(*itt).first << " => ";
-			Info IN=getMDInfos(itt->first);
-			IN.display();
+			(*itt).second.display();
 			*Out<<"\n";
 		}
 	);
@@ -284,15 +286,16 @@ void recoverName::pass1(Function *F) {
 					std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 					ret1=M1.equal_range(val);
 
-					bool ifAlreadyMapped=false;
+					bool AlreadyMapped=false;
 					//this is to check and avoid duplicate entries in the map M1 
 					for(std::multimap<const Value*,Info>::iterator it=ret1.first;it!=ret1.second;it++) {
 						if(varInfo == (it->second)) {
-							ifAlreadyMapped=true;
+							AlreadyMapped=true;
 							break;
-						}
+						} 
+
 					}
-					if(!ifAlreadyMapped) {
+					if(!AlreadyMapped) {
 						std::pair<const Value*,Info>hi=std::make_pair(val,varInfo);
 						M1.insert(hi);
 					}
