@@ -22,10 +22,11 @@
  * \brief class of SMT expressions
  */
 class SMT_expr {
-
-	public:
+	private:
 		std::string s;
 		boost::shared_ptr<z3::expr> z3;
+
+	public:
 		void * i;
 
 		SMT_expr () {
@@ -44,11 +45,21 @@ class SMT_expr {
 			i = NULL;
 		}
 
+		SMT_expr(std::string _s) : s(_s) {
+			z3.reset();
+			i = NULL;
+		}
+
 		z3::expr * expr() {
 			return z3.get();
 		}
 
+		std::string SMTlib() {
+			return s;
+		}
+
 		~SMT_expr(){
+			z3.reset();
 			s.clear();
 		}
 

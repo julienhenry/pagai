@@ -186,17 +186,11 @@ int SMTlib::pread() {
 }
 
 SMT_expr SMTlib::SMT_mk_true(){
-	SMT_expr res;
-	res.s = std::string("true");
-	res.i = NULL;
-	return res;
+	return SMT_expr("true");
 }
 
 SMT_expr SMTlib::SMT_mk_false(){
-	SMT_expr res;
-	res.s = std::string("false");
-	res.i = NULL;
-	return res;
+	return SMT_expr("false");
 }
 
 SMT_var SMTlib::SMT_mk_bool_var(std::string name){
@@ -224,28 +218,20 @@ SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_bool_var(SMT_var var){
-	SMT_expr res;
-	res.s = var.s;
-	res.i = NULL;
-	return res;
+	return SMT_expr(var.s);
 }
 
 SMT_expr SMTlib::SMT_mk_expr_from_var(SMT_var var){
-	SMT_expr res;
-	res.s = var.s;
-	res.i = NULL;
-	return res;
+	return SMT_expr(var.s);
 }
 
 SMT_expr SMTlib::SMT_mk_or (std::vector<SMT_expr> args){
-	SMT_expr res;
 	switch (args.size()) {
 		case 0:
 			return SMT_mk_true();
 			break;
 		case 1:
-			res.s = args[0].s;
-			return res;
+			return SMT_expr(args[0].SMTlib());
 			break;
 		default:
 			std::string or_smt;
@@ -253,23 +239,20 @@ SMT_expr SMTlib::SMT_mk_or (std::vector<SMT_expr> args){
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				or_smt += (*b).s + " ";
+				or_smt += (*b).SMTlib() + " ";
 			}
 			or_smt += ")";
-			res.s = or_smt;
-			return res;
+			return SMT_expr(or_smt);
 	}
 }
 
 SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
-	SMT_expr res;
 	switch (args.size()) {
 		case 0:
 			return SMT_mk_true();
 			break;
 		case 1:
-			res.s = args[0].s;
-			return res;
+			return SMT_expr(args[0].SMTlib());
 			break;
 		default:
 			std::string or_smt;
@@ -277,43 +260,33 @@ SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				or_smt += "     " + (*b).s + "\n";
+				or_smt += "     " + (*b).SMTlib() + "\n";
 			}
 			or_smt += "     )";
-			res.s = or_smt;
-			return res;
+			return SMT_expr(or_smt);
 	}
 }
 
 SMT_expr SMTlib::SMT_mk_eq (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(= " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(= " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(not (= " + a1.s + " " + a2.s + "))";
-	return res;
+	return SMT_expr("(not (= " + a1.SMTlib() + " " + a2.SMTlib() + "))");
 }
 
 SMT_expr SMTlib::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){
-	SMT_expr res;
-	res.s = "(ite "
-		+ c.s + " "
-		+ t.s + " "
-		+ e.s + ")";
-	return res;
+	return SMT_expr("(ite "
+		+ c.SMTlib() + " "
+		+ t.SMTlib() + " "
+		+ e.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_not (SMT_expr a){
-	SMT_expr res;
-	res.s = "(not " + a.s + ")";
-	return res;
+	return SMT_expr("(not " + a.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_num (int n){
-	SMT_expr res;
 	std::ostringstream oss;
         //std::cerr << "const " << n << std::endl;
         if (n == -2147483648)
@@ -322,8 +295,7 @@ SMT_expr SMTlib::SMT_mk_num (int n){
 		oss << "(- " << -n << ")";
 	else
 		oss << n;
-	res.s = oss.str();
-	return res;
+	return SMT_expr(oss.str());
 }
 
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
@@ -336,12 +308,12 @@ SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 		mpq_neg(nmpq,mpq);
 		charmpq = __gmpq_get_str(NULL,10,nmpq);
 		std::string s(charmpq);
-		res.s = "(- " + s + ")";
+		res = SMT_expr("(- " + s + ")");
 		//oss << "(- " << nmpq << ")";
 		mpq_clear(nmpq);
 	} else {
 		charmpq = __gmpq_get_str(NULL,10,mpq);
-		res.s = charmpq;
+		res = SMT_expr(charmpq);
 		//oss << mpq;
 	}
 	//res.s = oss.str();
@@ -385,7 +357,6 @@ std::string num_to_string(std::string num,int exponent) {
 }
 
 SMT_expr SMTlib::SMT_mk_real (double x) {
-	SMT_expr res;
 	std::ostringstream oss;
 	double intpart;
 	bool is_neg = false;
@@ -422,189 +393,148 @@ SMT_expr SMTlib::SMT_mk_real (double x) {
 		if (is_neg) oss << ")"; 
 		
 	}
-	res.s = oss.str();
-	return res;
+	return SMT_expr(oss.str());
 }
 
 SMT_expr SMTlib::SMT_mk_sum (std::vector<SMT_expr> args){
 	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			res.s = std::string("");
-			break;
+			return SMT_expr(" ");
 		case 1:
-			res.s = args[0].s;
-			break;
+			return SMT_expr(args[0].SMTlib());
 		default:
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			std::string r;
 			r = "(+ "; 
 			for (; b != e; ++b) {
-				r += (*b).s + " ";
+				r += (*b).SMTlib() + " ";
 			}
 			r += ")";
-			res.s = r;
+			return SMT_expr(r);
 	}
-	return res;
+	return SMT_expr();
 }
 
 SMT_expr SMTlib::SMT_mk_sub (std::vector<SMT_expr> args){
-	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			res.s = std::string("");
-			break;
+			return SMT_expr(" ");
 		case 1:
-			res.s = args[0].s;
-			return res;
-			break;
+			return SMT_expr(args[0].SMTlib());
 		default:
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			std::string r;
 			r = "(- "; 
 			for (; b != e; ++b) {
-				r += (*b).s + " ";
+				r += (*b).SMTlib() + " ";
 			}
 			r += ")";
-			res.s = r;
+			return SMT_expr(r);
 	}
-	return res;
+	return SMT_expr();
 }
 
 SMT_expr SMTlib::SMT_mk_mul (std::vector<SMT_expr> args){
-	SMT_expr res;
 	switch (args.size()) {
 		case 0:
-			res.s = std::string("");
-			break;
+			return SMT_expr(" ");
 		case 1:
-			res.s = args[0].s;
-			return res;
-			break;
+			return SMT_expr(args[0].SMTlib());
 		default:
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			std::string r;
 			r = "(* "; 
 			for (; b != e; ++b) {
-				r += (*b).s + " ";
+				r += (*b).SMTlib() + " ";
 			}
 			r += ")";
-			res.s = r;
+			return SMT_expr(r);
 	}
-	return res;
+	return SMT_expr();
 }
 
 SMT_expr SMTlib::SMT_mk_sum (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "(+ " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(+ " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_sub (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "(- " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(- " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_mul (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "(* " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(* " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
-	SMT_expr res;
+	std::string s;
 	// the syntax in SMTlib 2 differs between integer and real division
 	if (integer)
-		res.s = "(div ";
+		s = "(div ";
 	else
-		res.s = "(/ ";
-	res.s += a1.s + " " + a2.s + ")";
-	return res;
+		s = "(/ ";
+	s += s + " " + s + ")";
+	return SMT_expr(s);
 }
 
 SMT_expr SMTlib::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "(mod " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(mod " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "(xor " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(xor " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(< " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(< " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_le (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(<= " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(<= " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_gt (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(> " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(> " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
-	SMT_expr res;
-	res.s = "(>= " + a1.s + " " + a2.s + ")";
-	return res;
+	return SMT_expr("(>= " + a1.SMTlib() + " " + a2.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_int2real(SMT_expr a) {
-	SMT_expr res;
-	res.s = "(to_real " + a.s + ")";
-	return res;
+	return SMT_expr("(to_real " + a.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_real2int(SMT_expr a) {
-	SMT_expr res;
-	res.s = "(to_int " + a.s + ")";
-	return res;
+	return SMT_expr("(to_int " + a.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_is_int(SMT_expr a) {
-	SMT_expr res;
-	res.s = "(is_int " + a.s + ")";
-	return res;
+	return SMT_expr("(is_int " + a.SMTlib() + ")");
 }
 
 SMT_expr SMTlib::SMT_mk_int0() {
-	SMT_expr res;
-	res.s = std::string("0");
-	return res;
+	return SMT_expr("0");
 }
 
 SMT_expr SMTlib::SMT_mk_real0() {
-	SMT_expr res;
-	res.s = std::string("0.0");
-	return res;
+	return SMT_expr("0.0");
 }
 
 #if SMT_SUPPORTS_DIVIDES
 // WORKS ONLY FOR CONSTANT a2
 SMT_expr SMTlib::SMT_mk_divides (SMT_expr a1, SMT_expr a2) {
-	SMT_expr res;
-	res.s = "((_ divisible " +  a1.s + ") " +  a2.s + ")";
-	return res;
+	return SMT_expr("((_ divisible " +  a1.SMTlib() + ") " +  a2.SMTlib() + ")");
 }
 #endif
 
 void SMTlib::SMT_print(SMT_expr a){
-	*Out << a.s << "\n";
+	*Out << a.SMTlib() << "\n";
 }
 
 void SMTlib::SMT_assert(SMT_expr a){
 	std::string assert_stmt;
-	assert_stmt = "(assert " + a.s + ")\n";
+	assert_stmt = "(assert " + a.SMTlib() + ")\n";
 	DEBUG(
 			*Out << "\n\n" << assert_stmt << "\n\n";
 		 );
@@ -614,7 +544,7 @@ void SMTlib::SMT_assert(SMT_expr a){
 int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	int ret;
 	std::string check_stmt;
-	check_stmt = "(assert " + a.s + ")\n";
+	check_stmt = "(assert " + a.SMTlib() + ")\n";
 	if (getSMTSolver() == Z3_QFNRA) {
 		check_stmt += "(check-sat-using qfnra)\n";
 	} else {

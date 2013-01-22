@@ -94,7 +94,6 @@ Environment::~Environment() {
 Environment & Environment::operator= (const Environment &e) {
 	ap_environment_free(env);
 	env = ap_environment_copy(e.env);
-	env = (e.env);
 	return *this;
 }
 

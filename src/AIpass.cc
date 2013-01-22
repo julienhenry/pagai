@@ -667,7 +667,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		focusblock++;
 	}
 	Environment env(succ,LV);
-
 	{
 		Environment Xtemp_env(Xtemp);
 		// tmpenv contains all the environment of the starting invariant, plus the
@@ -762,8 +761,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	//	}
 	//}
 	//delete ConstraintsAbstract;
-	
-
 }
 
 // TODO :
