@@ -473,7 +473,7 @@ SMT_expr SMTlib::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 		s = "(div ";
 	else
 		s = "(/ ";
-	s += s + " " + s + ")";
+	s += a1.SMTlib() + " " + a2.SMTlib() + ")";
 	return SMT_expr(s);
 }
 
