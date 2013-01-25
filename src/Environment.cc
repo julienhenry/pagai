@@ -92,8 +92,9 @@ Environment::~Environment() {
 }
 
 Environment & Environment::operator= (const Environment &e) {
+	ap_environment_t * ee = ap_environment_copy(e.env);
 	ap_environment_free(env);
-	env = ap_environment_copy(e.env);
+	env = ee;
 	return *this;
 }
 
@@ -165,13 +166,19 @@ void Environment::common_environment(ap_texpr1_t * exp1, ap_texpr1_t * exp2) {
 Environment Environment::common_environment(Expr* exp1, Expr* exp2) {
 	ap_environment_t * env1 = exp1->getExpr()->env;
 	ap_environment_t * env2 = exp2->getExpr()->env;
-	ap_environment_t * common = common_environment(env1,env2);
-	Environment res(common);
-	ap_environment_free(common);
-	return res;
+	if (ap_environment_is_eq(env1,env2))
+			return Environment(env1);
+	{
+		ap_environment_t * common = common_environment(env1,env2);
+		Environment res(common);
+		ap_environment_free(common);
+		return res;
+	}
 }
 
 Environment Environment::common_environment(Environment* env1, Environment* env2) {
+	if (ap_environment_is_eq(env1->getEnv(),env2->env))
+		return Environment(env1->getEnv());
 	ap_environment_t * common = common_environment(env1->env,env2->env);
 	Environment res(common);
 	ap_environment_free(common);
@@ -198,18 +205,16 @@ Environment Environment::intersection(Environment * env1, Environment * env2) {
 	return res;
 }
 
-void Environment::print() {
-
-	FILE* tmp = tmpfile();
-	if (tmp == NULL) {
-		*Out << "ERROR: tmpfile has not been created\n";
-		return;
+void Environment::display(llvm::raw_ostream &stream) const {
+	stream << "Environment : count=" << (unsigned long)env->count << "\n";
+	for (size_t i=0; i<env->intdim+env->realdim; i++) {
+		char* c = ap_var_operations->to_string(env->var_of_dim[i]);
+		stream << i << ": " << c << (i<env->intdim ? " (int)" : " (real)") << "\n";
+		free(c);
 	}
+}
 
-	ap_environment_fdump(tmp,env);
-	fseek(tmp,0,SEEK_SET);
-	char c;
-	while ((c = (char)fgetc(tmp))!= EOF)
-		*Out << c;
-	fclose(tmp);
+llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, const Environment& env) {
+	env.display(stream);
+	return stream;
 }

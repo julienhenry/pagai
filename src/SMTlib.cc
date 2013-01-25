@@ -260,9 +260,9 @@ SMT_expr SMTlib::SMT_mk_and (std::vector<SMT_expr> args){
 
 			std::vector<SMT_expr>::iterator b = args.begin(), e = args.end();
 			for (; b != e; ++b) {
-				or_smt += "     " + (*b).SMTlib() + "\n";
+				or_smt += " " + (*b).SMTlib() + "\n";
 			}
-			or_smt += "     )";
+			or_smt += ")";
 			return SMT_expr(or_smt);
 	}
 }

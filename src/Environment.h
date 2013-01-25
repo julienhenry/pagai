@@ -91,7 +91,7 @@ class Environment {
 		/**
 		 * \brief print the environment
 		 */
-		void print(); 
+		void display(llvm::raw_ostream &stream) const;
 
 	private:
 
@@ -100,4 +100,6 @@ class Environment {
 		 */
 		static ap_environment_t * common_environment(ap_environment_t * env1, ap_environment_t * env2);
 };
+
+llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, const Environment& env);
 #endif

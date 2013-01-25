@@ -197,13 +197,20 @@ void Expr::create_constraints (
 }
 
 void Expr::common_environment(Expr* exp1, Expr* exp2) {
-	Environment common = Environment::common_environment(exp1,exp2);
+	Environment common(Environment::common_environment(exp1,exp2));
+#if 1
+	ap_texpr1_extend_environment_with(exp1->ap_expr,common.getEnv());
+	ap_texpr1_extend_environment_with(exp2->ap_expr,common.getEnv());
+#else
+	/* equivalent */
 	ap_texpr1_t * exp1_new = ap_texpr1_extend_environment(exp1->ap_expr,common.getEnv());
 	ap_texpr1_t * exp2_new = ap_texpr1_extend_environment(exp2->ap_expr,common.getEnv());
+	
 	ap_texpr1_free(exp1->ap_expr);
 	ap_texpr1_free(exp2->ap_expr);
 	exp1->ap_expr = exp1_new;
 	exp2->ap_expr = exp2_new;
+#endif
 }
 
 int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {

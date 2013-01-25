@@ -84,7 +84,7 @@ bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
 	std::vector<Abstract*> Join;
 	Environment env_this(this);
 	Environment env_A(A);
-	Environment cenv = Environment::common_environment(&env_this,&env_A);
+	Environment cenv(Environment::common_environment(&env_this,&env_A));
 	Join.push_back(aman->NewAbstract(this));
 	Join.push_back(aman->NewAbstract(A));
 	Abstract * J = aman->NewAbstract(this);
@@ -143,7 +143,7 @@ void Abstract::assign_texpr_array(
 	}
 	assign_texpr_array(&(*name)[0],&texpr[0],name->size(),dest);
 
-	// TODO : FREE expr
+	// FREE expr
 	for (it = expr->begin(), et = expr->end(); it != et; it++) {
 		delete *it;
 	}
