@@ -35,6 +35,7 @@ void Pr::releaseMemory() {
 	std::map<Function*,Pr*>::iterator it = PR_instances.begin(), et = PR_instances.end();
 	for (;it != et; it++)
 		delete (*it).second;
+	PR_instances.clear();
 }
 
 std::set<BasicBlock*>* Pr::getPr() {

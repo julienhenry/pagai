@@ -47,7 +47,6 @@ bool AIopt::runOnModule(Module &M) {
 	BasicBlock * b = NULL;
 	Node * n = NULL;
 	int N_Pr = 0;
-	//LSMT = &(getAnalysis<SMTpass>());
 	LSMT = SMTpass::getInstance();
 
 	*Out << "Starting analysis: " << getPassName() << "\n";
@@ -104,6 +103,8 @@ bool AIopt::runOnModule(Module &M) {
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
+
+	SMTpass::releaseMemory();
 	return 0;
 }
 

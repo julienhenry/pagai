@@ -8,6 +8,7 @@
 
 #include "recoverName.h"
 #include "Debug.h"
+#include "SMTpass.h"
 
 #define MAX 0xFFFFFFFF
 
@@ -34,6 +35,8 @@ Info recoverName::getMDInfos(const Value* V) {
 
 	if (possible_mappings.begin() == possible_mappings.end()) {
 		*Out << "no possible mappings for " << *V << "\n...";
+		Value * v = const_cast<Value*>(V);
+		return Info(SMTpass::getVarName(v),-1,"unknown");
 	}
 	return Info(*possible_mappings.begin());
 }

@@ -295,7 +295,7 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 			ret = 1;
 			DEBUG(
 					DEBUG_SMT(
-						*Out << Z3_model_to_string(ctx,m);
+						//*Out << Z3_model_to_string(ctx,m);
 						);
 				 );
 			model m = s->get_model();

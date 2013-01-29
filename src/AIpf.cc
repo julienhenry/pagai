@@ -94,6 +94,8 @@ bool AIpf::runOnModule(Module &M) {
 	}
 	if (OutputAnnotatedFile())
 		generateAnnotatedFile(F->getParent());
+	
+	SMTpass::releaseMemory();
 	return false;
 }
 
