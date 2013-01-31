@@ -88,15 +88,18 @@ void AbstractClassic::widening_threshold(Abstract * X, Constraint_array* cons) {
 void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	Environment main_env(this);
 	Environment cons_env(tcons);
-	Environment lcenv(Environment::common_environment(&main_env,&cons_env));
 
-	// the following commented code should be equivalent to the next three
-	// lines, but there is a memory leak when using it
-	//*main = ap_abstract1_change_environment(man,true,main,lcenv.getEnv(),false);
-	ap_abstract1_t new_main = ap_abstract1_change_environment(man,false,main,lcenv.getEnv(),false);
-    ap_abstract1_clear(man,main);
-    *main = new_main;
-	//
+	if (!(cons_env <= main_env)) {
+		// environment of the constraint is not included in main_env
+		// we have to update the environment of the abstract value
+		Environment lcenv(Environment::common_environment(&main_env,&cons_env));
+		// the following commented code should be equivalent to the next three
+		// lines, but there is a memory leak when using it
+		//*main = ap_abstract1_change_environment(man,true,main,lcenv.getEnv(),false);
+		ap_abstract1_t new_main = ap_abstract1_change_environment(man,false,main,lcenv.getEnv(),false);
+	    ap_abstract1_clear(man,main);
+	    *main = new_main;
+	}
 
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
 	canonicalize();

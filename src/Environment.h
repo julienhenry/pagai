@@ -51,6 +51,18 @@ class Environment {
 		 * \brief Overloaded copy assignment operator
 		 */
 		Environment & operator= (const Environment &e);
+	
+		/**
+		 * \brief Overloaded equality test
+		 */
+		bool operator == (const Environment &e);
+
+		/**
+		 * \brief Overloaded disequality test
+		 */
+		bool operator != (const Environment &e);
+
+		bool operator <= (const Environment &e);
 
 		ap_environment_t * getEnv();
 

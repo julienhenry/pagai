@@ -20,13 +20,18 @@ std::multimap<const Value*,Info> M1;
 //Block_column maps a basic block to column no. in original code.
 std::map<BasicBlock*,int> Block_line,Block_column; 
 
+std::map<Value*,Info> computed_mappings;
+
 Info recoverName::getMDInfos(const Value* V) {
+	Value * v = const_cast<Value*>(V);
+	if (computed_mappings.count(v)) return computed_mappings[v];
 	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
 	std::multimap<const Value*,Info>::iterator it;
 
 	if(ret1.first!=ret1.second) {
 		it=ret1.first;
+		computed_mappings[v] = (it)->second;
 		return (it)->second;
 	}
 	std::set<const Value*> seen;
@@ -35,9 +40,9 @@ Info recoverName::getMDInfos(const Value* V) {
 
 	if (possible_mappings.begin() == possible_mappings.end()) {
 		*Out << "no possible mappings for " << *V << "\n...";
-		Value * v = const_cast<Value*>(V);
 		return Info(SMTpass::getVarName(v),-1,"unknown");
 	}
+	computed_mappings[v] = Info(*possible_mappings.begin());
 	return Info(*possible_mappings.begin());
 }
 

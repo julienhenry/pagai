@@ -97,6 +97,18 @@ Environment & Environment::operator= (const Environment &e) {
 	env = ee;
 	return *this;
 }
+		
+bool Environment::operator == (const Environment &e) {
+	return ap_environment_is_eq(env, e.env);
+}
+
+bool Environment::operator != (const Environment &e) {
+	return !ap_environment_is_eq(env, e.env);
+}
+
+bool Environment::operator <= (const Environment &e) {
+	return ap_environment_is_leq(env, e.env);
+}
 
 ap_environment_t * Environment::getEnv() {
 	return env;
