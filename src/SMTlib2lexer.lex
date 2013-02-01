@@ -81,6 +81,8 @@ varname		{var}+
 
 "-"					return(token::MINUS);
 
+"mod"				return(token::MODULO);
+
 {varname}			{
 						yylval->sval=new std::string(yytext);
 						return(token::VARNAME);

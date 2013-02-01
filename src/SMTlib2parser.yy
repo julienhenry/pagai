@@ -43,7 +43,7 @@
 %token MODEL
 %token UNSUPPORTED ERROR SUCCESS
 %token DEFINEFUN
-%token DIVIDE MINUS
+%token DIVIDE MINUS MODULO
 %token<bval> TRUE FALSE
 %token SAT UNSAT UNKNOWN
 %token LEFTPAR RIGHTPAR
@@ -120,9 +120,9 @@ FunArgs:
 FunValue:
 		INTVALUE						{$$ = false;}
 		| REALVALUE						{$$ = false;}
-		| LEFTPAR DIVIDE FunValue FunValue RIGHTPAR {$$ = false;}
-		| LEFTPAR MINUS FunValue RIGHTPAR {$$ = false;}
-		| MINUS FunValue  {$$ = false;}
+		| DIVIDE FunValue FunValue {$$ = false;}
+		| MINUS FunValue {$$ = false;}
+		| MODULO FunValue FunValue {$$ = false;}
 		| BoolValue						{$$ = $1;}
 		| LEFTPAR FunValue RIGHTPAR		{$$ = $2;}
 		;
