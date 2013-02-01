@@ -1,4 +1,5 @@
 results/*
+generated/*.c
 *.o
 *.ll
 *.out
