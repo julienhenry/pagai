@@ -97,7 +97,7 @@ class AIPass : private InstVisitor<AIPass> {
 		 * \brief list of all the constraints that need to be satisfied 
 		 * along the path
 		 */
-		std::list<std::vector<Constraint_array*>*> constraints;
+		std::list<std::vector<Constraint*>*> constraints;
 
 		/** 
 		 * \brief set of Phi variables with their associated expression, 
@@ -277,7 +277,7 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeCondition(CmpInst * inst, 
 				bool result,
-				std::vector<Constraint_array*> * cons);
+				std::vector<Constraint*> * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -285,7 +285,7 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeConstantCondition(ConstantInt * inst, 
 				bool result,
-				std::vector<Constraint_array*> * cons);
+				std::vector<Constraint*> * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -293,7 +293,7 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computePHINodeCondition(PHINode * inst, 
 				bool result,
-				std::vector<Constraint_array*> * cons);
+				std::vector<Constraint*> * cons);
 
 		/** 
 		 * \brief Insert all the dimensions of the environment into the node

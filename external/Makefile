@@ -172,7 +172,7 @@ $(DEST)/$(APRON_ARCHIVE):
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
-	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch
+	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch && patch -p0 < ../../apron-2012-11-19-environment.patch
 	touch -c "$@"
 
 APRON_HAS_SHARED=1
@@ -191,6 +191,7 @@ endif
 $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
+	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = 1?' \
 		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
 		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \

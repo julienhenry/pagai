@@ -691,19 +691,24 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	Environment env2(&intdims,&realdims);
 
 	//std::vector<ap_lincons1_t> cons;
+	
+	Constraint_array intersect;
 
-	std::list<std::vector<Constraint_array*>*>::iterator i, e;
+	std::list<std::vector<Constraint*>*>::iterator i, e;
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 			DEBUG(
 					((*i)->front())->print();
 				 );
-			Xtemp->meet_tcons_array((*i)->front());
-
+			//Xtemp->meet_tcons_array((*i)->front());
+			intersect.add_constraint((*i)->front());
+			//*Out << "constraint : \n";
+			//(*i)->front()->print();
+			//*Out << "\n";
 			//computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env2);
 
 			// delete the single Constraint_array*
-			delete (*i)->front();
+			//delete (*i)->front();
 		} else {
 			DEBUG(
 					*Out << "multiple contraints:\n";
@@ -711,25 +716,23 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
 			std::vector<Abstract*> A_Constraints;
-			std::vector<Constraint_array*>::iterator it, et;
+			std::vector<Constraint*>::iterator it, et;
 			Abstract * X2;
 			for (it = (*i)->begin(), et = (*i)->end(); it != et; ++it) {
-				DEBUG(
-						(*it)->print();
-					 );
 				X2 = aman->NewAbstract(Xtemp);
-				X2->meet_tcons_array(*it);
+				Constraint_array intersect_all(*it);
+				X2->meet_tcons_array(&intersect_all);
 				A.push_back(X2);
-
 				//computeThreshold(*it,&cons,ConstraintsAbstract,env2);
-
-				// delete the Constraint_array*
-				delete *it;
 			}
-			Xtemp->join_array(&env,A);
+			Environment Xtemp_env(Xtemp);
+			Xtemp->join_array(&Xtemp_env,A);
 		}
 		// delete the vector
 		delete *i;
+	}
+	if (intersect.size() > 0) {
+		Xtemp->meet_tcons_array(&intersect);
 	}
 
 	Xtemp->assign_texpr_array(&PHIvars_prime.name,&PHIvars_prime.expr,NULL);
@@ -853,7 +856,7 @@ void AIPass::insert_env_vars_into_node_vars(Environment * env, Node * n, Value *
 
 bool AIPass::computeCondition(	CmpInst * inst, 
 		bool result,
-		std::vector<Constraint_array*> * cons) {
+		std::vector<Constraint*> * cons) {
 
 	//Node * n = Nodes[inst->getParent()];
 	Node * n = Nodes[focuspath.back()];
@@ -948,13 +951,12 @@ bool AIPass::computeCondition(	CmpInst * inst,
 
 bool AIPass::computeConstantCondition(	ConstantInt * inst, 
 		bool result,
-		std::vector<Constraint_array*> * cons) {
+		std::vector<Constraint*> * cons) {
 
 	bool is_null = inst->isNullValue();
 	if ((is_null && result) || (is_null && result)) {
 		// we create a unsat constraint
 		// such as one of the successor is unreachable
-		Constraint_array * consarray = new Constraint_array();
 		Constraint * c;
 		Expr one(1.);
 
@@ -962,10 +964,9 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 				AP_CONS_EQ,
 				&one,
 				NULL);
-		consarray->add_constraint(c);
 
 		// condition is always false
-		cons->push_back(consarray);
+		cons->push_back(c);
 		return true;
 	} else {
 		// there is no constraint 
@@ -975,7 +976,7 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 
 bool AIPass::computePHINodeCondition(PHINode * inst, 
 		bool result,
-		std::vector<Constraint_array*> * cons) {
+		std::vector<Constraint*> * cons) {
 
 	bool res = false;
 
@@ -1037,7 +1038,7 @@ void AIPass::visitBranchInst (BranchInst &I){
 		test = false;
 	}
 
-	std::vector<Constraint_array*> * cons = new std::vector<Constraint_array*>();
+	std::vector<Constraint*> * cons = new std::vector<Constraint*>();
 
 	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
 		ap_texpr_rtype_t ap_type;

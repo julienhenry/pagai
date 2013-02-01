@@ -56,6 +56,8 @@ class Constraint_array {
 
 		ap_environment_t * getEnv();
 
+		size_t size();
+
 		void print();
 };
 #endif

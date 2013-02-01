@@ -107,7 +107,13 @@ bool Environment::operator != (const Environment &e) {
 }
 
 bool Environment::operator <= (const Environment &e) {
+	// ap_environment_is_leq is buggy when comparing 2 uncomparable environments
+	// APRON has been patched so that ap_environment_is_leq behaves as expected
 	return ap_environment_is_leq(env, e.env);
+
+	// unreachable
+	int n = ap_environment_compare(env,e.env);
+	return (n == -1 || n == 0);
 }
 
 ap_environment_t * Environment::getEnv() {

@@ -27,7 +27,18 @@ Constraint::~Constraint() {
 }
 
 void Constraint::print() {
-	// TODO
+	FILE* tmp = tmpfile();
+	if (tmp == NULL) {
+		*Out << "ERROR: tmpfile has not been created\n";
+		return;
+	}
+
+	ap_tcons1_fprint(tmp,&ap_cons);
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+	fclose(tmp);
 }
 
 ap_tcons1_t * Constraint::get_ap_tcons1() {
@@ -65,30 +76,40 @@ void Constraint_array::add_constraint(Constraint * cons) {
 }
 
 ap_environment_t * Constraint_array::getEnv() {
-	return constraints[0]->get_ap_tcons1()->env;
+	return to_tcons1_array()->env;
 }
 
 ap_tcons1_array_t * Constraint_array::to_tcons1_array() {
-	if (ap_array_ready)
+	if (ap_array_ready) {
 		return &ap_array;
+	}
 	// we have to create it
 	if (constraints.empty()) {
 		Environment env;
 		ap_array = ap_tcons1_array_make(env.getEnv(),0);
 	} else {
-		// we suppose every constraint has the same environment
-		Environment env(constraints[0]);
-		ap_array = ap_tcons1_array_make(env.getEnv(),constraints.size());
 		std::vector<Constraint*>::iterator it = constraints.begin(), et = constraints.end();
+		Environment env;
+		for (; it != et; it++) {
+			Environment e(*it);
+			env = Environment::common_environment(&env,&e);
+		}
+		ap_array = ap_tcons1_array_make(env.getEnv(),constraints.size());
+		it = constraints.begin(); 
+		et = constraints.end();
 		int k = 0;
 		for (; it != et; it++,k++) {
 			ap_tcons1_t c = ap_tcons1_copy((*it)->get_ap_tcons1());
+			ap_tcons1_extend_environment_with(&c,env.getEnv());
 			ap_tcons1_array_set(&ap_array,k,&c);	
-			//ap_tcons1_array_set(ap_array,k,(*it)->get_ap_tcons1());	
 		}
 	}
 	ap_array_ready = true;
 	return &ap_array;
+}
+		
+size_t Constraint_array::size() {
+	return constraints.size();
 }
 
 ap_lincons1_array_t * Constraint_array::to_lincons1_array() {
@@ -97,5 +118,16 @@ ap_lincons1_array_t * Constraint_array::to_lincons1_array() {
 }
 
 void Constraint_array::print() {
-	// TODO
+	FILE* tmp = tmpfile();
+	if (tmp == NULL) {
+		*Out << "ERROR: tmpfile has not been created\n";
+		return;
+	}
+
+	ap_tcons1_array_fprint(tmp,to_tcons1_array());
+	fseek(tmp,0,SEEK_SET);
+	char c;
+	while ((c = (char)fgetc(tmp))!= EOF)
+		*Out << c;
+	fclose(tmp);
 }

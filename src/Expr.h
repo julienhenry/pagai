@@ -79,7 +79,7 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 			ap_constyp_t constyp,
 			Expr * expr,
 			Expr * nexpr,
-			std::vector<Constraint_array*> * t_cons);
+			std::vector<Constraint*> * t_cons);
 
 		/**
 		 * \brief modifies the two expression by giving them the same

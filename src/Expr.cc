@@ -168,31 +168,24 @@ void Expr::create_constraints (
 	ap_constyp_t constyp,
 	Expr * expr,
 	Expr * nexpr,
-	std::vector<Constraint_array*> * t_cons
+	std::vector<Constraint*> * t_cons
 	) {
 	
 	Constraint * cons;
-	Constraint_array * consarray;
 	
 	if (constyp == AP_CONS_DISEQ) {
 		// we have a disequality constraint. We tranform it into 2 different
-		// constraints: < and >, in order to create further 2 abstract domain
+		// constraints: < and >, in order to create further 2 abstract values
 		// instead of one.
-		consarray = new Constraint_array();
 		cons = new Constraint(AP_CONS_SUP, expr,NULL);
-		consarray->add_constraint(cons);
-		t_cons->push_back(consarray);
+		t_cons->push_back(cons);
 
-		consarray = new Constraint_array();
 		cons = new Constraint(AP_CONS_SUP, nexpr,NULL);
-		consarray->add_constraint(cons);
-		t_cons->push_back(consarray);
+		t_cons->push_back(cons);
 
 	} else {
-		consarray = new Constraint_array();
 		cons = new Constraint(constyp, expr,NULL);
-		consarray->add_constraint(cons);
-		t_cons->push_back(consarray);
+		t_cons->push_back(cons);
 	}
 }
 
