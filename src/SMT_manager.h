@@ -174,6 +174,7 @@ class SMT_manager {
 	public:
 		SMT_type int_type;
 		SMT_type float_type;
+		SMT_type bool_type;
 	public:
 		virtual ~SMT_manager() {}
 

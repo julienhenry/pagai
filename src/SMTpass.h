@@ -93,6 +93,8 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 */
 		SMT_var getVar(Value * v, bool primed);
 
+		SMT_var getBoolVar(Value * v, bool primed);
+
 		/**
 		 * \brief take a string name as input, and find if it
 		 * is the name of an edge, a node, or a the index of a disjunctive

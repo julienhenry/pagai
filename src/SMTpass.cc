@@ -458,7 +458,11 @@ const std::string SMTpass::getVarName(Value * v) {
 SMT_type SMTpass::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {
 		case Type::IntegerTyID:
-			return man->int_type;
+			if (v->getType()->getPrimitiveSizeInBits() == 1) {
+				return man->bool_type;
+			} else {
+				return man->int_type;
+			}
 		default:
 			return man->float_type;
 	}
@@ -467,6 +471,11 @@ SMT_type SMTpass::getValueType(Value * v) {
 SMT_var SMTpass::getVar(Value * v, bool primed) {
 	std::string name = getValueName(v,primed);
 	return man->SMT_mk_var(name,getValueType(v));
+}
+		
+SMT_var SMTpass::getBoolVar(Value * v, bool primed) {
+	std::string name = getValueName(v,primed);
+	return man->SMT_mk_var(name,man->bool_type);
 }
 
 SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
@@ -483,7 +492,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			if (isa<CmpInst>(v)) {
 				cond = computeCondition(dyn_cast<CmpInst>(v));
 			} else if (PHINode * phi = dyn_cast<PHINode>(v)) {
-				SMT_var var = getVar(v,primed);
+				SMT_var var = getBoolVar(v,primed);
 				return man->SMT_mk_expr_from_bool_var(var);
 				//cond = computeCondition(dyn_cast<PHINode>(v));
 			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {

@@ -36,6 +36,7 @@ SMTlib::SMTlib() {
 
 	int_type.s = "Int";
 	float_type.s = "Real";
+	bool_type.s = "Bool";
 	char buf;
 	solver_pid = 0;
 
