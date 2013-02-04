@@ -475,7 +475,7 @@ SMT_var SMTpass::getVar(Value * v, bool primed) {
 		
 SMT_var SMTpass::getBoolVar(Value * v, bool primed) {
 	std::string name = getValueName(v,primed);
-	return man->SMT_mk_var(name,man->bool_type);
+	return man->SMT_mk_bool_var(name);
 }
 
 SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
