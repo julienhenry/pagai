@@ -83,9 +83,8 @@ void AIPass::initFunction(Function * F) {
 		n->setEnv(&empty_env);
 		// creating an X_s and an X_d abstract value for this node
 		if (LSMT == NULL
-				||dynamic_cast<AISimple*>(this)
-				||dynamic_cast<AIGuided*>(this)
-				|| FPr->getPr()->count(i)) {
+				|| !is_SMT_technique()
+				|| FPr->inPr(i)) {
 			n->X_s[passID] = aman->NewAbstract(man,n->getEnv());
 			n->X_d[passID] = aman->NewAbstract(man,n->getEnv());
 			n->X_i[passID] = aman->NewAbstract(man,n->getEnv());
@@ -433,11 +432,10 @@ bool AIPass::copy_Xd_to_Xs(Function * F) {
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
-		if (dynamic_cast<AISimple*>(this)
-				|| dynamic_cast<AIGuided*>(this)
+		if (!is_SMT_technique()
 				|| FPr->inPr(i)) {
 			if (Nodes[b]->X_s[passID]->has_same_environment(Nodes[b]->X_d[passID])) {
-				if (!res && Nodes[b]->X_s[passID]->compare(Nodes[b]->X_d[passID]) != 0)
+				if (!res && !Nodes[b]->X_s[passID]->is_eq(Nodes[b]->X_d[passID]))
 					res = true;
 			} else {
 				res = true;
@@ -461,8 +459,7 @@ void AIPass::copy_Xs_to_Xf(Function * F) {
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
-		if (dynamic_cast<AISimple*>(this)
-				|| dynamic_cast<AIGuided*>(this)
+		if (!is_SMT_technique()
 				|| FPr->inPr(i)) {
 
 			delete Nodes[b]->X_f[passID];
@@ -477,8 +474,7 @@ void AIPass::copy_Xf_to_Xs(Function * F) {
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
-		if (dynamic_cast<AISimple*>(this)
-				|| dynamic_cast<AIGuided*>(this)
+		if (!is_SMT_technique()
 				|| FPr->inPr(i)) {
 
 			delete Nodes[b]->X_s[passID];
@@ -794,7 +790,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 
 			// we check if the Abstract value is a good seed for Halbwachs's
 			// narrowing
-			if (Xtemp->compare(Succ->X_i[passID]) < 0) {
+			if (!Xtemp->is_leq(Succ->X_i[passID])) {
 
 				Abstract * Xseed = aman->NewAbstract(Xtemp);
 				std::vector<Abstract*> Join;
