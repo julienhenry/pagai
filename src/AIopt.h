@@ -23,7 +23,7 @@ using namespace llvm;
  */
 class AIopt : public ModulePass, public AIPass {
 
-	private:
+	protected:
 		/**
 		 * \brief remembers all the paths that have already been
 		 * visited
@@ -59,6 +59,8 @@ class AIopt : public ModulePass, public AIPass {
 				aman = new AbstractManClassic();
 				passID.T = LW_WITH_PF;
 			}
+		
+		bool is_SMT_technique() {return true;}
 
 	public:
 		static char ID;	

@@ -121,7 +121,6 @@ bool Abstract::is_leq(Abstract * d) {
 		}
 		return ap_abstract1_is_leq(man,main,d->main);
 	}
-
 	return (compare(d) >= 0);
 }
 

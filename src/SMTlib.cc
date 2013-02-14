@@ -301,23 +301,19 @@ SMT_expr SMTlib::SMT_mk_num (int n){
 
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 	SMT_expr res;
-	//std::ostringstream oss;
 	char * charmpq;
 	if (mpq_sgn(mpq) < 0) {
 		mpq_t nmpq;
 		mpq_init(nmpq);
 		mpq_neg(nmpq,mpq);
-		charmpq = __gmpq_get_str(NULL,10,nmpq);
+		charmpq = mpq_get_str(NULL,10,nmpq);
 		std::string s(charmpq);
 		res = SMT_expr("(- " + s + ")");
-		//oss << "(- " << nmpq << ")";
 		mpq_clear(nmpq);
 	} else {
-		charmpq = __gmpq_get_str(NULL,10,mpq);
+		charmpq = mpq_get_str(NULL,10,mpq);
 		res = SMT_expr(charmpq);
-		//oss << mpq;
 	}
-	//res.s = oss.str();
 	free(charmpq);
 	return res;
 }
@@ -382,7 +378,8 @@ SMT_expr SMTlib::SMT_mk_real (double x) {
 			break;
 	}
 	mp_exp_t expptr;
-	char * r = mpf_get_str(NULL,&expptr,10,0,f);
+	size_t n_digits = 20;
+	char * r = mpf_get_str(NULL,&expptr,10,n_digits,f);
 	mpf_clear(f);
 	std::string num(r);
 	

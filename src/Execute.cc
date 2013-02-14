@@ -14,7 +14,7 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_os_ostream.h"
 
-#include "llvm/Target/TargetData.h"
+//#include "llvm/Target/TargetData.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Transforms/Scalar.h"
 
@@ -44,7 +44,6 @@
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
-#include "clang/Frontend/DiagnosticOptions.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 #include "llvm/ADT/OwningPtr.h"
@@ -131,6 +130,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		 
 		// The compiler invocation needs a DiagnosticsEngine so it can report problems
 		clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), clang::DiagnosticOptions());
+		//clang::DiagnosticOptions *DiagClient = new clang::DiagnosticOptions();
 		llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
 		clang::DiagnosticsEngine Diags(DiagID, DiagClient);
 		
@@ -152,15 +152,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	if (M == NULL) return;
 
-	TargetData * TD = 0;
-	const std::string &ModuleDataLayout = M->getDataLayout();
-	//const std::string &ModuleDataLayout = M.get()->getDataLayout();
-	if (!ModuleDataLayout.empty()) {
-		TD = new TargetData(ModuleDataLayout);
-	} else if (!DefaultDataLayout.empty()) {
-		TD = new TargetData(DefaultDataLayout);
-	}
-	
 	PassRegistry &Registry = *PassRegistry::getPassRegistry();
 	initializeAnalysis(Registry);
 
@@ -169,7 +160,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
-	Passes.add(TD);
 	Passes.add(createVerifierPass());
 	Passes.add(createGCLoweringPass());
 	

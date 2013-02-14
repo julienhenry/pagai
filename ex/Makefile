@@ -14,7 +14,7 @@ bin/%.bc: %.c
 	$(COMPILE_LLVM) -g -i $*.c -o $@
 
 res/%.res: bin/%.bc
-	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ "
+	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ -s z3_api "
 
 annotated/%.c: bin/%.bc %.c
 	$(PAGAI_SH) -i bin/$*.bc -a " -o /tmp/output.txt --source $*.c --annotated $@ "

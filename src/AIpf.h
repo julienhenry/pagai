@@ -36,6 +36,9 @@ class AIpf : public ModulePass, public AIPass {
 				aman = new AbstractManClassic();
 				passID.T = PATH_FOCUSING;
 			}
+		
+		bool is_SMT_technique() {return true;}
+
 	public:
 
 		AIpf(char &_ID, Apron_Manager_Type _man, bool _NewNarrow, bool _Threshold) : ModulePass(_ID), AIPass(_man,_NewNarrow, _Threshold) {

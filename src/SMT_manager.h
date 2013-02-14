@@ -84,24 +84,45 @@ class SMT_type {
 	public:
 		std::string s;
 		void* i;
+		boost::shared_ptr<z3::sort> z3;
 
 		SMT_type () {
 			s = std::string("");
 			i = NULL;
+			z3.reset();
 		}
 
 		SMT_type (const SMT_type& t): s(t.s), i(t.i) {
+			z3 = t.z3;
 		}
 
-		~SMT_type(){s.clear();}
+		~SMT_type(){
+			z3.reset();
+			s.clear();
+		}
+
+		SMT_type(z3::sort t) {
+			s = std::string("");
+			z3.reset(new z3::sort(t));
+			i = NULL;
+		}
+
+		z3::sort * sort() {
+			return z3.get();
+		}
+
+		void z3_clear() {
+			z3.reset();
+		}
 
 		bool is_empty() {
-			return i == NULL && s == "";
+			return i == NULL && z3.get() == NULL && s == "";
 		}
 
 		SMT_type& operator=(const SMT_type &t) {
 			s.clear();
 			s = t.s;
+			z3 = t.z3;
 			i = t.i;
 			return *this;
 		}
@@ -231,13 +252,6 @@ class SMT_manager {
 		virtual int SMT_check(SMT_expr a, std::set<std::string> * true_booleans) = 0;
 
 		virtual bool interrupt();
-
-		static std::vector<SMT_expr> vec2(SMT_expr a1, SMT_expr a2) {
-			std::vector<SMT_expr> vec;
-			vec.push_back(a1);
-			vec.push_back(a2);
-			return vec;
-		}
 };
 
 #endif

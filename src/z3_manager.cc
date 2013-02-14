@@ -28,19 +28,19 @@ z3_manager::z3_manager() {
 		ctx.set("SOFT_TIMEOUT", timeout.str().c_str());
 	}
 
-	int_type.i = new sort(ctx.int_sort());
-	float_type.i = new sort(ctx.real_sort());
-	bool_type.i = new sort(ctx.bool_sort());
-	int0 = SMT_mk_num(0);
-	real0 = SMT_mk_real(0.0);
+	int_type.z3.reset(new z3::sort(ctx.int_sort()));
+	float_type.z3.reset(new z3::sort(ctx.real_sort()));
+	bool_type.z3.reset(new z3::sort(ctx.bool_sort()));
 
 	s = new solver(ctx);
 }
 
 z3_manager::~z3_manager() {
-	delete (sort*)int_type.i;
-	delete (sort*)float_type.i;
-	delete (sort*)bool_type.i;
+	// we have to clear the smartpointers from SMT_type before everything is
+	// freed by the delete s
+	int_type.z3_clear();
+	float_type.z3_clear();
+	bool_type.z3_clear();
 	delete s;
 }
 
@@ -75,11 +75,11 @@ SMT_var z3_manager::SMT_mk_var(std::string name, SMT_type type){
 }
 
 SMT_expr z3_manager::SMT_mk_expr_from_bool_var(SMT_var var){
-	return SMT_expr(expr(ctx.constant(*var.symb(),ctx.bool_sort())));
+	return SMT_expr(expr(ctx.constant(*var.symb(),*bool_type.sort())));
 }
 
 SMT_expr z3_manager::SMT_mk_expr_from_var(SMT_var var){
-	return SMT_expr(expr(ctx.constant(*var.symb(),*(sort*)types[var].i)));
+	return SMT_expr(expr(ctx.constant(*var.symb(),*types[var].sort())));
 }
 
 SMT_expr z3_manager::SMT_mk_or (std::vector<SMT_expr> args){
@@ -134,7 +134,9 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 
 SMT_expr z3_manager::SMT_mk_num_mpq (mpq_t mpq) {
 	char * x = mpq_get_str (NULL,10,mpq);
-	return SMT_expr(expr(ctx.int_val(x)));
+	SMT_expr res(expr(ctx.int_val(x)));
+	free(x);
+	return res;
 }
 
 SMT_expr z3_manager::SMT_mk_real (double x) {
@@ -152,6 +154,8 @@ SMT_expr z3_manager::SMT_mk_real (double x) {
 	else
 		oss << cnum << "/" << cden;
 	std::string r = oss.str();
+	free(cnum);
+	free(cden);
 	return SMT_expr(expr(ctx.real_val(r.c_str())));
 }
 
@@ -207,7 +211,10 @@ SMT_expr z3_manager::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
 }
 
 SMT_expr z3_manager::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
-	return SMT_expr(expr(*a1.expr() ^ *a2.expr()));
+    expr r = to_expr(ctx, Z3_mk_xor(ctx, *a1.expr(), *a2.expr()));
+	return SMT_expr(r);
+	// next line is bit-wise xor
+	// return SMT_expr(expr(*a1.expr() ^ *a2.expr()));
 }
 
 SMT_expr z3_manager::SMT_mk_lt (SMT_expr a1, SMT_expr a2){
@@ -243,11 +250,11 @@ SMT_expr z3_manager::SMT_mk_is_int(SMT_expr a) {
 }
 
 SMT_expr z3_manager::SMT_mk_int0() {
-	return int0;
+	return SMT_mk_num(0);
 }
 
 SMT_expr z3_manager::SMT_mk_real0() {
-	return real0;
+	return SMT_mk_real(0.0);
 }
 
 void z3_manager::SMT_print(SMT_expr a){
@@ -272,8 +279,13 @@ void z3_manager::SMT_assert(SMT_expr a){
 int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	int ret = 0;
 	SMT_assert(a);
-	//check_result result = s->check(1,(expr*)a.i);
-	check_result result = s->check();
+	//check_result result = s->check(1,a.expr());
+	check_result result;
+	try {
+		result = s->check();
+	} catch (z3::exception e) {
+		result = unknown;
+	}
 	switch (result) {
 		case unsat:
 			DEBUG(

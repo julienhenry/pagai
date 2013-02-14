@@ -75,7 +75,8 @@ macro(configure_llvm PROG)
   STRING(REGEX REPLACE "^-l" "" LLVM_LIBS "${LLVM_LIBS}")
   STRING(REGEX REPLACE " -l" ";" LLVM_LIBS "${LLVM_LIBS}")
 
-  set(LLVM_LIBS "-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangEdit -lclangAST -lclangLex -lclangBasic -l${LLVM_LIBS}")
+  #set(LLVM_LIBS "-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangEdit -lclangAST -lclangLex -lclangBasic -l${LLVM_LIBS}")
+  set(LLVM_LIBS "-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangEdit -lclangAST -lclangLex -lclangBasic -l${LLVM_LIBS}")
   target_link_libraries(pagai ${LLVM_LIBS})
 
   # llvm-config --ldflags was hardcoding -lfoo, but the order of

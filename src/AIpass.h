@@ -151,6 +151,12 @@ class AIPass : private InstVisitor<AIPass> {
 				Function * F
 				);
 
+		/**
+		 * \brief returns false iff the technique computes an invariant at
+		 * each control point
+		 */
+		virtual bool is_SMT_technique() {return false;}
+
 	public:
 
 		AIPass (Apron_Manager_Type _man, bool use_New_Narrowing, bool _use_Threshold) : 
