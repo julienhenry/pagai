@@ -139,6 +139,7 @@ $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 		./configure \
 			--prefix $(DEST_ABS)/z3_$(Z3_VERSION)/install/ && \
 		python scripts/mk_make.py && \
+		sed -i -e 's@.*python.*dist-packages.*@@' build/Makefile && \
 		cd build && \
 		$(MAKE)
 	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
