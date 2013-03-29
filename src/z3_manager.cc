@@ -11,8 +11,6 @@
 
 #include "llvm/Support/FormattedStream.h"
 
-#include <boost/thread/thread.hpp>
-
 #include <gmp.h>
 #include "z3_manager.h"
 #include "Analyzer.h"
