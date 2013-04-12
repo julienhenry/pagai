@@ -12,7 +12,9 @@ PAGAI needs:
   tool)
 
 - Yices, Z3, CUDD, LLVM, Apron and the PPL (can be automatically
-  installed for you)
+  installed for you). See the top of external/Makefile for required
+  versions of these tools. In particular, Pagai won't work if you
+  don't have the exact version of LLVM.
 
 - curl or wget, if you want automatic dependencies installation.
 
