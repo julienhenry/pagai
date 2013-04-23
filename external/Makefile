@@ -28,8 +28,8 @@ TAR=tar
 
 GMP_PREFIX=/usr
 
-.PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl
-all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl
+.PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
+all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
 
 ifeq ($(OS), Darwin)
 SOEXTENSION=.dylib
