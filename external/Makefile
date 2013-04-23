@@ -196,7 +196,7 @@ $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = 1?' \
 		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
 		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \
- 		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
+		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
 		-e 's/^HAS_OCAMLOPT *=.*/HAS_OCAMLOPT =/' \
 		-e 's/^# *HAS_PPL *=.*/HAS_PPL = 1/' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
