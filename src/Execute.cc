@@ -269,6 +269,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 	Passes.run(*M);
 
+	if (onlyOutputsRho()) {
+		return;
+	}
 	// we properly delete all the created Nodes
 	std::map<BasicBlock*,Node*>::iterator it = Nodes.begin(), et = Nodes.end();
 	for (;it != et; it++) {

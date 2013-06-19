@@ -10,6 +10,7 @@
 #include "Live.h"
 #include "Node.h"
 #include "Debug.h"
+#include "SMTpass.h"
 
 using namespace std;
 
@@ -56,7 +57,7 @@ void GenerateSMT::printBasicBlock(BasicBlock* b) {
 	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 		N++;
 	}
-	*Out << "BasicBlock " << b  << ": " << N << " instruction(s)" << *b << "\n";
+	*Out << "BasicBlock " << SMTpass::getNodeSubName(b)  << ": " << N << " instruction(s)" << *b << "\n";
 }
 
 bool GenerateSMT::runOnModule(Module &M) {
