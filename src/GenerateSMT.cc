@@ -57,7 +57,7 @@ void GenerateSMT::printBasicBlock(BasicBlock* b) {
 	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 		N++;
 	}
-	*Out << "BasicBlock " << SMTpass::getNodeSubName(b)  << ": " << N << " instruction(s)" << *b << "\n";
+	*Out << "BasicBlock " << SMTpass::getNodeName(b,false)  << ": " << N << " instruction(s)" << *b << "\n";
 }
 
 bool GenerateSMT::runOnModule(Module &M) {

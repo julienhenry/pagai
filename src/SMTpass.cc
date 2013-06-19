@@ -1158,6 +1158,7 @@ void SMTpass::visitTerminatorInst (TerminatorInst &I) {
 }
 
 void SMTpass::visitBinaryOperator (BinaryOperator &I) {
+	bool skip = false;
 	ap_texpr_rtype_t ap_type;
 	int t = Expr::get_ap_type((Value*)&I, ap_type);
 
@@ -1184,6 +1185,7 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
+			skip = true;
 			assign = man->SMT_mk_mul(operand0,operand1);
 			break;
 		case Instruction::And :
@@ -1210,14 +1212,17 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
+			skip = true;
 			assign = man->SMT_mk_div(operand0,operand1);
 			break;
 		case Instruction::FDiv: 
+			skip = true;
 			assign = man->SMT_mk_div(operand0,operand1,false);
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
+			skip = true;
 			assign = man->SMT_mk_rem(operand0,operand1);
 			break;
 			// the others are not implemented
@@ -1229,6 +1234,7 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			return;
 	}
 	//instructions.push_back(man->SMT_mk_eq(expr,assign));
+	if (skip && onlyOutputsRho()) return;
 	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
