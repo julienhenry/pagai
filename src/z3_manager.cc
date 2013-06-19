@@ -257,6 +257,11 @@ SMT_expr z3_manager::SMT_mk_real0() {
 
 void z3_manager::SMT_print(SMT_expr a){
 
+	if (onlyOutputsRho()) {
+		// we need this for Diego's WCET scripts
+		Z3_set_ast_print_mode(ctx,Z3_PRINT_SMTLIB_FULL);
+	}
+
 	std::ostringstream oss;
 	oss << "\"" << getFilename() << "\"";
 
