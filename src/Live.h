@@ -24,7 +24,7 @@ class Live : public FunctionPass {
 
 	private:
 
-		LoopInfo *LI;
+		//LoopInfo *LI;
 
 		/** 
 		 * \brief A bunch of state to be associated with a value.

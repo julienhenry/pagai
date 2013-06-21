@@ -4,6 +4,7 @@
  * \author Julien Henry
  */
 #include "llvm/Support/CFG.h"
+#include "llvm/Analysis/Dominators.h"
 
 #include "GenerateSMT.h"
 #include "Analyzer.h"
@@ -34,10 +35,12 @@ GenerateSMT::~GenerateSMT() {
 
 void GenerateSMT::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.addRequired<Live>();
+	AU.addRequired<DominatorTree>();
 	AU.setPreservesAll();
 }
 
 bool GenerateSMT::runOnFunction(Function &F) {
+    DT = &(getAnalysis<DominatorTree>(F));
 
 	LSMT->getRho(F);
 
@@ -53,11 +56,22 @@ bool GenerateSMT::runOnFunction(Function &F) {
 }
 
 void GenerateSMT::printBasicBlock(BasicBlock* b) {
+
 	int N = 0;
+
 	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
 		N++;
 	}
-	*Out << "BasicBlock " << SMTpass::getNodeName(b,false)  << ": " << N << " instruction(s)" << *b << "\n";
+	//BasicBlock * dominator = DT->getNode(b)->getIDom()->getBlock();
+	llvm::DomTreeNodeBase<llvm::BasicBlock>*dominator = DT->getNode(b)->getIDom();
+
+	*Out << "BasicBlock " << SMTpass::getNodeName(b,false)  << ": " << N << " instruction(s)";
+	if (dominator != NULL)
+		*Out << ", Dominator = " << SMTpass::getNodeName(dominator->getBlock(),false);
+	else
+		*Out << ", Dominator = NULL";
+	*Out << *b << "\n";
+
 }
 
 bool GenerateSMT::runOnModule(Module &M) {

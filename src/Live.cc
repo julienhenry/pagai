@@ -25,12 +25,12 @@ const char * Live::getPassName() const {
 Live::Live() : FunctionPass(ID) {}
 
 void Live::getAnalysisUsage(AnalysisUsage &AU) const {
-	AU.addRequired<LoopInfo>();
+	//AU.addRequired<LoopInfo>();
 	AU.setPreservesAll();
 }
 
 bool Live::runOnFunction(Function &F) {
-	LI = &getAnalysis<LoopInfo>();
+	//LI = &getAnalysis<LoopInfo>();
 
 	// This pass' values are computed lazily, so there's nothing to do here.
 	return false;

@@ -24,6 +24,7 @@ class GenerateSMT : public ModulePass {
 	
 	private:
 		SMTpass * LSMT;
+		DominatorTree * DT;
 
 	public:
 		static char ID;

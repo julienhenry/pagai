@@ -1234,7 +1234,7 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			return;
 	}
 	//instructions.push_back(man->SMT_mk_eq(expr,assign));
-	if (skip && onlyOutputsRho()) return;
+	if (skip && onlyOutputsRho() && skipNonLinearInSMT()) return;
 	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 

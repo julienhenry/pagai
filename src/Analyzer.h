@@ -80,6 +80,7 @@ bool compareDomain();
 bool compareNarrowing();
 
 bool onlyOutputsRho();
+bool skipNonLinearInSMT();
 
 bool useSourceName();
 void set_useSourceName(bool b);

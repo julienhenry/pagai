@@ -27,6 +27,7 @@ bool use_source_name;
 bool force_old_output;
 bool output_annotated;
 bool log_smt;
+bool skipnonlinear;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -116,6 +117,10 @@ bool compareNarrowing() {
 
 bool onlyOutputsRho() {
 	return onlyrho;
+}
+
+bool skipNonLinearInSMT() {
+	return skipnonlinear;
 }
 
 bool useSourceName() {
@@ -362,6 +367,7 @@ int main(int argc, char* argv[]) {
 	compare_Domain = false;
 	compare_Narrowing = false;
 	onlyrho = false;
+	skipnonlinear = false;
 	defined_main = false;
 	quiet = false;
 	use_source_name = false;
@@ -392,6 +398,7 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
+			{"skipnonlinear",    no_argument, 0, 'L'},
 			{"quiet",    no_argument, 0, 'q'},
 			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
@@ -501,6 +508,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'f':
         	    onlyrho = true;
+        	    break;
+        	case 'L':
+				skipnonlinear = true;
         	    break;
         	case '?':
         	    std::cout << "Error : Unknown option " << optopt << "\n";
