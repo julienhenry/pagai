@@ -30,6 +30,7 @@ class SMTlib: public SMT_manager {
 		struct definedvars {
 			SMT_var var;
 			int stack_level;
+			std::string declaration;
 		};
 
 		std::map<std::string,struct definedvars> vars;

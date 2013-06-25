@@ -200,9 +200,8 @@ SMT_var SMTlib::SMT_mk_bool_var(std::string name){
 		res.s = name;
 		vars[name].var = res;
 		vars[name].stack_level = stack_level;
-
-		std::ostringstream oss;
-		pwrite("(declare-fun " + name + " () Bool)\n");
+		vars[name].declaration = "(declare-fun " + name + " () Bool)\n";
+		pwrite(vars[name].declaration);
 	}
 	return vars[name].var;
 }
@@ -213,7 +212,8 @@ SMT_var SMTlib::SMT_mk_var(std::string name, SMT_type type){
 		res.s = name;
 		vars[name].var = res;
 		vars[name].stack_level = stack_level;
-		pwrite("(declare-fun " + name + " () " + type.s + ")\n");
+		vars[name].declaration = "(declare-fun " + name + " () " + type.s + ")\n";
+		pwrite(vars[name].declaration);
 	}
 	return vars[name].var;
 }
@@ -527,7 +527,15 @@ SMT_expr SMTlib::SMT_mk_divides (SMT_expr a1, SMT_expr a2) {
 #endif
 
 void SMTlib::SMT_print(SMT_expr a){
+	std::map<std::string,struct definedvars>::iterator it = vars.begin(), et = vars.end();
+	for (; it != et; it++) {
+		if ((*it).second.stack_level <= stack_level) {
+			*Out << (*it).second.declaration;
+		}
+	}
+	*Out << "(assert\n";
 	*Out << a.SMTlib() << "\n";
+	*Out << "); end of rho formula\n";
 }
 
 void SMTlib::SMT_assert(SMT_expr a){
