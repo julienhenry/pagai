@@ -219,7 +219,7 @@ int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 			ap_type = AP_RTYPE_INT;
 			if (val->getType()->getPrimitiveSizeInBits() == 1) {
 				// actually, this is a boolean variable
-				return 1;
+				return 2;
 			}
 			break;
 		case Type::X86_FP80TyID:

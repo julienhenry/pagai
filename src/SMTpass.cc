@@ -424,8 +424,9 @@ std::map<Value*,std::string> SMTpass::VarNames;
 int VarNames_unnamed = 0;
 
 const std::string SMTpass::getVarName(Value * v) {
-	if (VarNames.count(v)) 
+	if (VarNames.count(v)) {
 		return VarNames[v];
+	}
 
 	std::string s_string;
 	raw_string_ostream * s = new raw_string_ostream(s_string);
@@ -434,7 +435,6 @@ const std::string SMTpass::getVarName(Value * v) {
 		*s << v->getName();
 	} else {
 		VarNames_unnamed++;
-		//*Out << "NO NAME\n";
 		//*s << *v;
 		*s << "unnamed_" << VarNames_unnamed;
 	}
@@ -1189,21 +1189,23 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			assign = man->SMT_mk_mul(operand0,operand1);
 			break;
 		case Instruction::And :
-			if (!t) return;
-			else { 
-				std::vector<SMT_expr> operands;
-				operands.push_back(operand0);
-				operands.push_back(operand1);
-				assign = man->SMT_mk_and(operands);
+			//if (!t) return;
+			if (t != 2) return;
+			{
+			std::vector<SMT_expr> operands;
+			operands.push_back(operand0);
+			operands.push_back(operand1);
+			assign = man->SMT_mk_and(operands);
 			}
 			break;
 		case Instruction::Or  :
-			if (!t) return;
-			else { 
-				std::vector<SMT_expr> operands;
-				operands.push_back(operand0);
-				operands.push_back(operand1);
-				assign = man->SMT_mk_or(operands);
+			//if (!t) return;
+			if (t != 2) return;
+			{
+			std::vector<SMT_expr> operands;
+			operands.push_back(operand0);
+			operands.push_back(operand1);
+			assign = man->SMT_mk_or(operands);
 			}
 			break;
 		case Instruction::Xor :
@@ -1222,7 +1224,7 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
-			skip = true;
+			//skip = true;
 			assign = man->SMT_mk_rem(operand0,operand1);
 			break;
 			// the others are not implemented
