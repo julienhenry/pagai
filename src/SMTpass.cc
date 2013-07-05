@@ -1089,6 +1089,15 @@ void SMTpass::visitTruncInst (TruncInst &I) {
 }
 
 void SMTpass::visitZExtInst (ZExtInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	if(I.getSrcTy()->isIntegerTy(1) && I.getDestTy()->isIntegerTy()) {
+		// we cast a boolean to an integer
+		SMT_expr zero = man->SMT_mk_num(0);
+		SMT_expr one = man->SMT_mk_num(1);
+		SMT_expr ite = man->SMT_mk_ite(operand0,zero,one);
+		rho_components.push_back(man->SMT_mk_eq(expr,ite));
+	}
 }
 
 void SMTpass::visitSExtInst (SExtInst &I) {
@@ -1101,15 +1110,31 @@ void SMTpass::visitFPExtInst (FPExtInst &I) {
 }
 
 void SMTpass::visitFPToUIInst (FPToUIInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr assign = man->SMT_mk_real2int(operand0);
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitFPToSIInst (FPToSIInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr assign = man->SMT_mk_real2int(operand0);
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitUIToFPInst (UIToFPInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr assign = man->SMT_mk_int2real(operand0);
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitSIToFPInst (SIToFPInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+	SMT_expr assign = man->SMT_mk_int2real(operand0);
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitPtrToIntInst (PtrToIntInst &I) {
@@ -1209,7 +1234,8 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			}
 			break;
 		case Instruction::Xor :
-			if (!t) return;
+			//if (!t) return;
+			if (t != 2) return;
 			assign = man->SMT_mk_xor(operand0,operand1);
 			break;
 		case Instruction::UDiv: 

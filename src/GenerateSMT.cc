@@ -63,7 +63,12 @@ void GenerateSMT::printBasicBlock(BasicBlock* b) {
 		N++;
 	}
 	//BasicBlock * dominator = DT->getNode(b)->getIDom()->getBlock();
-	llvm::DomTreeNodeBase<llvm::BasicBlock>*dominator = DT->getNode(b)->getIDom();
+	llvm::DomTreeNodeBase<llvm::BasicBlock>*dominator;
+	if (pred_begin(b) != pred_end(b)) {
+		dominator = DT->getNode(b)->getIDom();
+	} else {
+		dominator = NULL;
+	}
 
 	*Out << "BasicBlock " << SMTpass::getNodeName(b,false)  << ": " << N << " instruction(s)";
 	if (dominator != NULL)
