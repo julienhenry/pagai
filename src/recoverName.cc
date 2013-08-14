@@ -311,7 +311,13 @@ void recoverName::pass1(Function *F) {
 			}
 		}
 		Block_line.insert(std::make_pair(bb,bbline));
-		Block_column.insert(std::make_pair(bb,bbcolumn));
+
+		//Block_column.insert(std::make_pair(bb,bbcolumn));
+		
+		// bbcolumn is set to 1, since new versions of LLVM always set it to 0
+		// instead of the correct column number...
+		Block_column.insert(std::make_pair(bb,1));
+		//*Out << "(" << bbline << "," << bbcolumn << ")\n";
 	}	
 }
 
@@ -335,8 +341,9 @@ Instruction * recoverName::getFirstMetadata(BasicBlock * b) {
 int recoverName::getFunctionLineNo(Function* F) {
 	Instruction * I = getFirstMetadata(F);
 	MDNode * MD = I->getMetadata(0);
+	//MD = dyn_cast<MDNode>(MD->getOperand(2));
 	MDNode * MDNode_subprogram = get_DW_TAG_subprogram(MD);
-	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(7));
+	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(19));
 	return LineNo->getZExtValue();
 }
 
@@ -347,7 +354,8 @@ std::string recoverName::getSourceFileName(Function * F) {
 	MDNode * MD = I->getMetadata("dbg");
 	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
-	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(1));
+	MD = dyn_cast<MDNode>(MDNode_file_type->getOperand(1));
+	const MDString * Filename = dyn_cast<MDString>(MD->getOperand(0));
 
 	std::string s = Filename->getString().str();
 	return s;
@@ -360,7 +368,8 @@ std::string recoverName::getSourceFileDir(Function * F) {
 	MDNode * MD = I->getMetadata("dbg");
 	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
-	const MDString * Filename = dyn_cast<MDString>(MDNode_file_type->getOperand(2));
+	MD = dyn_cast<MDNode>(MDNode_file_type->getOperand(1));
+	const MDString * Filename = dyn_cast<MDString>(MD->getOperand(1));
 
 	std::string s = Filename->getString().str();
 	return s;
@@ -407,6 +416,8 @@ MDNode * recoverName::get_DW_TAG_lexical_block(MDNode * MD) {
 		case 11: // DW_TAG_lexical_block
 			return MD;
 		default:
+			*Out << "MD\n";
+			*Out << *MD << "\n";
 			N = dyn_cast<MDNode>(MD->getOperand(2));
 			break;
 	}

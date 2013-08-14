@@ -3,11 +3,11 @@
  * \brief Implementation of the Execute class
  * \author Julien Henry
  */
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/LinkAllVMCore.h"
+//#include "llvm/LinkAllVMCore.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/system_error.h"
 #include "llvm/Support/raw_ostream.h"
@@ -47,7 +47,10 @@
 #include "clang/Frontend/TextDiagnosticPrinter.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 #include "llvm/ADT/OwningPtr.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
+
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
 
 using namespace llvm;
 
@@ -108,7 +111,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 		// Make sure that the Output file gets unlinked from the disk if we get a
 		// SIGINT
-		sys::RemoveFileOnSignal(sys::Path(OutputFilename));
+		//sys::RemoveFileOnSignal(sys::Path(OutputFilename));
 	} else {
 		Out = &llvm::outs();
 		Out->SetUnbuffered();
@@ -120,34 +123,38 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
 
 	if (!is_Cfile(InputFilename)) {
-		M_ptr = getModuleFromBCFile(InputFilename);
-		M = M_ptr.get();
-	} else {
-		// Arguments to pass to the clang frontend
-		std::vector<const char *> args;
-		args.push_back(InputFilename.c_str());
-		args.push_back("-g");
-		 
-		// The compiler invocation needs a DiagnosticsEngine so it can report problems
-		clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), clang::DiagnosticOptions());
-		//clang::DiagnosticOptions *DiagClient = new clang::DiagnosticOptions();
-		llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-		clang::DiagnosticsEngine Diags(DiagID, DiagClient);
-		
-		// Create the compiler invocation
-		llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
-		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
-		
-		clang::CompilerInstance Clang;
-		Clang.setInvocation(CI.take());
-		
-		Clang.createDiagnostics(args.size(), &args[0]);
-		
-		if (!Clang.ExecuteAction(*Act))
-		    return;
-		
-		llvm::Module *module = Act->takeModule();
-		M = module;
+		//M_ptr = getModuleFromBCFile(InputFilename);
+		//M = M_ptr.get();
+
+		SMDiagnostic SM;
+		LLVMContext & Context = getGlobalContext();
+		M = ParseIRFile(InputFilename,SM,Context); 
+	//} else {
+	//	// Arguments to pass to the clang frontend
+	//	std::vector<const char *> args;
+	//	args.push_back(InputFilename.c_str());
+	//	args.push_back("-g");
+	//	 
+	//	// The compiler invocation needs a DiagnosticsEngine so it can report problems
+	//	clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), clang::DiagnosticOptions());
+	//	//clang::DiagnosticOptions *DiagClient = new clang::DiagnosticOptions();
+	//	llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+	//	clang::DiagnosticsEngine Diags(DiagID, DiagClient);
+	//	
+	//	// Create the compiler invocation
+	//	llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+	//	clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
+	//	
+	//	clang::CompilerInstance Clang;
+	//	Clang.setInvocation(CI.take());
+	//	
+	//	Clang.createDiagnostics(args.size(), &args[0]);
+	//	
+	//	if (!Clang.ExecuteAction(*Act))
+	//	    return;
+	//	
+	//	llvm::Module *module = Act->takeModule();
+	//	M = module;
 	}
 
 	if (M == NULL) return;
@@ -160,7 +167,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
-	Passes.add(createVerifierPass());
 	Passes.add(createGCLoweringPass());
 	
 	// this pass converts SwitchInst instructions into a sequence of

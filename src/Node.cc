@@ -7,10 +7,10 @@
 #include<map>
 #include<set>
 
-#include "llvm/BasicBlock.h"
+#include "llvm/IR/BasicBlock.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Constants.h"
+#include "llvm/IR/Constants.h"
 
 #include "Node.h"
 #include "Live.h"

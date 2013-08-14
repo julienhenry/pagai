@@ -14,7 +14,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "llvm/Support/CFG.h"
-#include "llvm/Constants.h"
+#include "llvm/IR/Constants.h"
 
 #include "Pr.h"
 #include "SMTpass.h"

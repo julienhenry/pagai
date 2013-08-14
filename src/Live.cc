@@ -5,7 +5,7 @@
  */
 #include <stack>
 
-#include "llvm/Instructions.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/Support/FormattedStream.h"
 
 #include "Live.h"

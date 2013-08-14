@@ -9,7 +9,7 @@
 #include <list>
 #include <map>
 
-#include "llvm/BasicBlock.h"
+#include "llvm/IR/BasicBlock.h"
 
 #include "cuddObj.hh"
 

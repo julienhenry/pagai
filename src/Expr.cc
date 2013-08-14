@@ -6,7 +6,7 @@
 #include <map>
 
 #include "llvm/Support/CFG.h"
-#include "llvm/Constants.h"
+#include "llvm/IR/Constants.h"
 
 #include "Expr.h"
 #include "apron.h"

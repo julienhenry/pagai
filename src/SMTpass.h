@@ -12,7 +12,7 @@
 #include <set>
 
 #include "llvm/Config/config.h"
-#include "llvm/Support/InstVisitor.h"
+#include "llvm/InstVisitor.h"
 
 #include "Analyzer.h"
 #include "Abstract.h"

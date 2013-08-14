@@ -10,7 +10,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "llvm/BasicBlock.h"
+#include "llvm/IR/BasicBlock.h"
 
 #include "cuddObj.hh"
 

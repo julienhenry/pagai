@@ -7,11 +7,10 @@
 #include <list>
 #include <fstream>
 
-#include "llvm/Instructions.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/Support/CFG.h"
-#include "llvm/IntrinsicInst.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/system_error.h"
-#include "llvm/LinkAllVMCore.h"
 
 #include "AIpass.h"
 #include "Pr.h"
@@ -278,10 +277,6 @@ void AIPass::generateAnnotatedFile(Module * M) {
 		return;
 	}
 	Output = new formatted_raw_ostream(*FDOut, formatted_raw_ostream::DELETE_STREAM);
-
-	// Make sure that the Output file gets unlinked from the disk if we get a
-	// SIGINT
-	sys::RemoveFileOnSignal(sys::Path(OutputFilename));
 
 	for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
 		Function * F = mIt;

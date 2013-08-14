@@ -6,7 +6,7 @@
 #ifndef _AISIMPLE_H
 #define _AISIMPLE_H
 
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "AIpass.h"
 

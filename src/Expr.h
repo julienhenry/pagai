@@ -11,8 +11,8 @@
 #include "ap_global1.h"
 #include "llvm/Config/config.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/InstVisitor.h"
-#include "llvm/Constants.h"
+#include "llvm/InstVisitor.h"
+#include "llvm/IR/Constants.h"
 
 #include "Abstract.h"
 #include "Environment.h"

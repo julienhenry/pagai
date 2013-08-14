@@ -7,7 +7,7 @@
 #define GENERATE_SMT_H
 
 
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CFG.h"
 

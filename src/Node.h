@@ -11,7 +11,7 @@
 #include<set>
 #include<vector>
 
-#include "llvm/BasicBlock.h"
+#include "llvm/IR/BasicBlock.h"
 
 #include "ap_global1.h"
 

@@ -9,10 +9,10 @@
 #include <set>
 #include<map>
 
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/InstIterator.h"
-#include "llvm/Constants.h"
-#include "llvm/IntrinsicInst.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Dwarf.h"
 
 #include "Info.h"
