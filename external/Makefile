@@ -61,7 +61,7 @@ CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 Z3_ARCHIVE=z3_$(Z3_VERSION).tar.bz2
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).src.tar.gz
-CLANG_ARCHIVE=clang-$(LLVM_VERSION).src.tar.gz
+CLANG_ARCHIVE=cfe-$(LLVM_VERSION).src.tar.gz
 APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
@@ -155,7 +155,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		$(MAKE) && $(MAKE) install
+		REQUIRES_RTTI=1 $(MAKE) && $(MAKE) install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
@@ -164,7 +164,7 @@ $(DEST)/$(CLANG_ARCHIVE):
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && $(TAR) xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION).src clang
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && $(TAR) xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv cfe-$(LLVM_VERSION).src clang
 	touch -c "$@"
 
 #### Apron
