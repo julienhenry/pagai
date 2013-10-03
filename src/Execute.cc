@@ -120,7 +120,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	llvm::Module * M;
 	std::auto_ptr<Module> M_ptr;
 
-	llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
+	//llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
 
 	if (!is_Cfile(InputFilename)) {
 		//M_ptr = getModuleFromBCFile(InputFilename);
