@@ -4,6 +4,8 @@
  * \author Julien Henry
  */
 #include "stdio.h"
+#include <iostream>
+#include <sstream>
 
 #include "llvm/Support/FormattedStream.h"
 
@@ -171,6 +173,88 @@ void AbstractClassic::print(bool only_main) {
 }
 
 void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) const {
+
+#if 0
+	std::string vertices = "[";
+	std::string rays = "[";
+	std::string lines = "[";
+	std::string legend;
+	bool first_vertice = true;
+	bool first_ray = true;
+	bool first_line = true;
+	ap_generator1_array_t gen_array = ap_abstract1_to_generator_array(man,main);
+	size_t size = ap_generator1_array_size(&gen_array);
+	for (size_t k = 0; k < size; k++) {
+		 ap_generator1_t gen = ap_generator1_array_get (&gen_array,k);
+		 ap_gentyp_t* gentyp = ap_generator1_gentypref(&gen);
+		 std::string * out;
+		 if (*gentyp == AP_GEN_RAY) {
+			 out = &rays; 
+			 if (!first_ray) *out += ",";
+			 first_ray = false;
+		 } else if (*gentyp == AP_GEN_VERTEX) {
+			 out = &vertices;
+			 if (!first_vertice) *out += ",";
+			 first_vertice = false;
+		 } else if (*gentyp == AP_GEN_LINE) {
+			 out = &lines;
+			 if (!first_line) *out += ",";
+			 first_line = false;
+			 continue;
+		 } else *Out << "ERROR : gentyp is unknown\n";
+		 ap_environment_t* env = ap_generator1_envref (&gen);
+		 size_t env_size = env->realdim + env->intdim;
+		 *out += "[";
+		 ap_coeff_t * coeff = ap_coeff_alloc(AP_COEFF_SCALAR);
+		 legend = "[";
+		 for (size_t j = 0; j < env_size; j++) {
+			 if (j > 0) *out += ",";
+		     ap_var_t var = ap_environment_var_of_dim(env,j);
+			 legend += ((Value*)var)->getName();
+			 legend += " ";
+		     bool zero = ap_generator1_get_coeff(coeff,&gen,var);
+			 if (!zero) {
+				// we suppose here that the coeff is of type scalar 
+		     	ap_scalar_t * scalar = coeff->val.scalar;
+		     	switch(scalar->discr) {
+		     	   case AP_SCALAR_DOUBLE:
+		     	   	{
+		     	   	double dbl = scalar->val.dbl;
+					std::ostringstream oss;
+					oss << dbl;
+					*out += oss.str();
+		     	   	}
+		     	   	break;
+		     	   case AP_SCALAR_MPQ:
+		     	   	{
+		     	   	mpq_ptr mpq = scalar->val.mpq;
+					std::ostringstream oss;
+					oss << mpq;
+					*out += oss.str();
+		     	   	}
+		     	   	break;
+		     	   case AP_SCALAR_MPFR:
+		     	   	{
+		     	   	mpfr_ptr mpfr = scalar->val.mpfr;
+					std::ostringstream oss;
+					oss << mpfr;
+					*out += oss.str();
+		     	   	}
+		     	   	break;
+		     	}
+			 }
+		 }
+		 legend += "]";
+		 *out += "]";
+	}
+	vertices += "]";
+	rays += "]";
+	lines += "]";
+	*Out << "sage: Polyhedron(vertices=" + vertices + ", rays=" + rays + ", lines=" + lines + ")\n";
+	*Out << "sage: legend=" + legend + "\n";
+#endif
+	
+
 #if 1
 	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
 	size_t size = ap_tcons1_array_size(&tcons_array);
