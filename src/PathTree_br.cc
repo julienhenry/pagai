@@ -123,7 +123,7 @@ void PathTree_br::DumpDotBDD(BDD graph, std::string filename) {
     int NumNodes = sizeof(onames)/sizeof(onames[0]);
     FILE* fp = fopen(name.str().c_str(), "w");
 	Cudd_DumpDot(mgr->getManager(), NumNodes, Dds, 
-            (char**) inames, (char**) onames, fp);
+            const_cast<char**>(inames), const_cast<char**>(onames), fp);
 	fclose(fp);
 }
 

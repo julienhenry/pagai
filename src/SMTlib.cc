@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <limits.h>
 
 #include "llvm/Support/FormattedStream.h"
 
@@ -62,7 +63,7 @@ SMTlib::SMTlib() {
 		switch (getSMTSolver()) {
 			case MATHSAT:
 				char * mathsat_argv[2];
-				mathsat_argv[0] = (char*) "mathsat";
+				mathsat_argv[0] = const_cast<char*>("mathsat");
 				mathsat_argv[1] = NULL;
 				if (execvp("mathsat",mathsat_argv)) {
 					perror("exec mathsat");
@@ -71,7 +72,7 @@ SMTlib::SMTlib() {
 				break;
 			case SMTINTERPOL:
 				char * smtinterpol_argv[2];
-				smtinterpol_argv[0] = (char*) "smtinterpol";
+				smtinterpol_argv[0] = const_cast<char*>("smtinterpol");
 				smtinterpol_argv[1] = NULL;
 				if (execvp("smtinterpol",smtinterpol_argv)) {
 					perror("exec smtinterpol");
@@ -81,9 +82,9 @@ SMTlib::SMTlib() {
 			case Z3:
 			case Z3_QFNRA:
 				char * z3_argv[4];
-				z3_argv[0] = (char*)"z3";
-				z3_argv[1] = (char*)"-smt2";
-				z3_argv[2] = (char*)"-in";
+				z3_argv[0] = const_cast<char*>("z3");
+				z3_argv[1] = const_cast<char*>("-smt2");
+				z3_argv[2] = const_cast<char*>("-in");
 				z3_argv[3] = NULL;
 				if (execvp("z3",z3_argv)) {
 					perror("exec z3");
@@ -92,9 +93,9 @@ SMTlib::SMTlib() {
 				break;
 			case CVC3:
 				char * cvc3_argv[4];
-				cvc3_argv[0] = (char*)"cvc3";
-				cvc3_argv[1] = (char*)"-lang";
-				cvc3_argv[2] = (char*)"smt2";
+				cvc3_argv[0] = const_cast<char*>("cvc3");
+				cvc3_argv[1] = const_cast<char*>("-lang");
+				cvc3_argv[2] = const_cast<char*>("smt2");
 				cvc3_argv[3] = NULL;
 				if (execvp("cvc3",cvc3_argv)) {
 					perror("exec cvc3");
@@ -290,7 +291,7 @@ SMT_expr SMTlib::SMT_mk_not (SMT_expr a){
 SMT_expr SMTlib::SMT_mk_num (int n){
 	std::ostringstream oss;
         //std::cerr << "const " << n << std::endl;
-        if (n == -2147483648)
+        if (n == INT_MIN)
                 oss << "(- 2147483648)";
 	else if (n < 0)
 		oss << "(- " << -n << ")";
