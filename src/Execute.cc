@@ -65,35 +65,6 @@ bool is_Cfile(std::string InputFilename) {
 	return false;
 }
 
-std::auto_ptr<Module> getModuleFromBCFile(std::string InputFilename) {
-	Module * n = NULL;
-	std::auto_ptr<Module> M_null(n);
-
-	LLVMContext & Context = getGlobalContext();
-	
-	std::string ErrorMessage;
-	std::auto_ptr<Module> M;
-	{
-	        OwningPtr<MemoryBuffer> BufferPtr;
-
-		if (error_code ec = MemoryBuffer::getFileOrSTDIN(InputFilename, BufferPtr))
-			ErrorMessage = ec.message();
-		else
-			M.reset(ParseBitcodeFile(BufferPtr.get(), Context, &ErrorMessage));
-	}
-
-	if (M.get() == 0) {
-		errs() << "Error : ";
-		if (ErrorMessage.size())
-			errs() << ErrorMessage << "\n";
-		else
-			errs() << "failed to read the bitcode file.\n";
-		return M_null;
-	}
-
-	return M;
-}
-
 void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	raw_fd_ostream *FDOut = NULL;
@@ -120,41 +91,40 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	llvm::Module * M;
 	std::auto_ptr<Module> M_ptr;
 
-	//llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
+		// Arguments to pass to the clang frontend
+		std::vector<const char *> args;
+		args.push_back(InputFilename.c_str());
+		args.push_back("-g");
+
+		llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
+		 
+		clang::DiagnosticOptions * Diagopt = new clang::DiagnosticOptions();
+
+		clang::DiagnosticIDs *  DiagID = new clang::DiagnosticIDs();
+		clang::DiagnosticsEngine * Diags = new clang::DiagnosticsEngine(DiagID, Diagopt);
+		clang::DiagnosticConsumer * client = new clang::DiagnosticConsumer();
+		Diags->setClient(client);
+
+		// Create the compiler invocation
+		llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
+		
+		clang::CompilerInstance Clang;
+		Clang.setInvocation(CI.take());
+		Clang.setDiagnostics(Diags);
 
 	if (!is_Cfile(InputFilename)) {
-		//M_ptr = getModuleFromBCFile(InputFilename);
-		//M = M_ptr.get();
-
 		SMDiagnostic SM;
 		LLVMContext & Context = getGlobalContext();
 		M = ParseIRFile(InputFilename,SM,Context); 
-	//} else {
-	//	// Arguments to pass to the clang frontend
-	//	std::vector<const char *> args;
-	//	args.push_back(InputFilename.c_str());
-	//	args.push_back("-g");
-	//	 
-	//	// The compiler invocation needs a DiagnosticsEngine so it can report problems
-	//	clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), clang::DiagnosticOptions());
-	//	//clang::DiagnosticOptions *DiagClient = new clang::DiagnosticOptions();
-	//	llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-	//	clang::DiagnosticsEngine Diags(DiagID, DiagClient);
-	//	
-	//	// Create the compiler invocation
-	//	llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
-	//	clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
-	//	
-	//	clang::CompilerInstance Clang;
-	//	Clang.setInvocation(CI.take());
-	//	
-	//	Clang.createDiagnostics(args.size(), &args[0]);
-	//	
-	//	if (!Clang.ExecuteAction(*Act))
-	//	    return;
-	//	
-	//	llvm::Module *module = Act->takeModule();
-	//	M = module;
+	} else {
+
+		//Clang.createDiagnostics(args.size(), &args[0]);
+		
+		if (!Clang.ExecuteAction(*Act))
+		    return;
+		llvm::Module *module = Act->takeModule();
+		M = module;
 	}
 
 	if (M == NULL) return;
