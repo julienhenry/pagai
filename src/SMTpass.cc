@@ -424,7 +424,7 @@ std::map<Value*,std::string> SMTpass::VarNames;
 int VarNames_unnamed = 0;
 
 const std::string SMTpass::getVarName(Value * v) {
-	if (VarNames.count(v)) {
+	if (VarNames.count(v) && !isa<UndefValue>(v)) {
 		return VarNames[v];
 	}
 
@@ -451,7 +451,8 @@ const std::string SMTpass::getVarName(Value * v) {
 		name.resize(found);
 	}
 	delete s;
-	VarNames[v] = name;
+	if (!isa<UndefValue>(v))
+		VarNames[v] = name;
 	return name;
 }
 
