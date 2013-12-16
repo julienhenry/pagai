@@ -1,2 +1,3 @@
+LLVMDIR=/local/clang/llvm-3.3.src
 BoolSimpl.so : BoolSimpl.cc BoolSimpl.h
-	clang -I /opt/llvm-3.1+IOC/include -L /opt/llvm-3.1+IOC/lib -I /usr/local/soft/llvm/3.1+IOC/include -L /usr/local/soft/llvm/3.1+IOC/lib -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -Wall -fPIC -shared BoolSimpl.cc -o BoolSimpl.so -lllvm
+	clang -I $(LLVMDIR)/include -L $(LLVMDIR)/lib -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -Wall -fPIC -shared BoolSimpl.cc -o BoolSimpl.so 

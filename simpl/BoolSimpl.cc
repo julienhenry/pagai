@@ -1,7 +1,6 @@
 #include "BoolSimpl.h"
 #include <iostream>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
-#include <llvm/Constants.h>
 
 using namespace llvm;
 

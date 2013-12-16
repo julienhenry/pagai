@@ -1,7 +1,10 @@
-#include <llvm/Pass.h>
-#include <llvm/Function.h>
-#include <llvm/Instructions.h>
-#include <llvm/Support/InstVisitor.h>
+#include "llvm/Config/config.h"
+#include "llvm/Support/CFG.h"
+#include "llvm/InstVisitor.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/Pass.h"
+#include "llvm/IR/Function.h"
+
 
 using namespace llvm;
 
