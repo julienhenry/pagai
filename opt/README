@@ -1,0 +1,3 @@
+Usage:
+
+opt -load optbr.so -optbr <bc source file> -o <bc output file>

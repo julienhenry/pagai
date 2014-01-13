@@ -22,7 +22,7 @@ void Optbr::visitBranchInst(BranchInst &I) {
 		BasicBlock * newblock = BasicBlock::Create(ctx,"avoid.same.destination",parent->getParent(),succ);
 		BranchInst::Create(succ,newblock);
 		I.setSuccessor(1,newblock);
-		llvm::outs() << *newblock << "\n";
+		//llvm::outs() << *newblock << "\n";
 
 		for (BasicBlock::iterator i = succ->begin(), e = succ->end(); i != e; ++i) {
 			if (PHINode * phi = dyn_cast<PHINode>(i)) {
@@ -35,7 +35,7 @@ void Optbr::visitBranchInst(BranchInst &I) {
 						seen++;
 					}
 				}
-				llvm::outs() << *phi << "\n";
+				//llvm::outs() << *phi << "\n";
 			}
 		}
 	}
