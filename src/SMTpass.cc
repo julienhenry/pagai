@@ -1098,6 +1098,8 @@ void SMTpass::visitZExtInst (ZExtInst &I) {
 		SMT_expr one = man->SMT_mk_num(1);
 		SMT_expr ite = man->SMT_mk_ite(operand0,zero,one);
 		rho_components.push_back(man->SMT_mk_eq(expr,ite));
+	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
+		rho_components.push_back(man->SMT_mk_eq(operand0,expr));
 	}
 }
 
