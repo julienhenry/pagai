@@ -12,6 +12,8 @@ APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
 CUDD_XCFLAGS=
 
+PARALLEL_MAKE_OPTIONS?=
+
 ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
 ifeq ($(ARCH), x86_64)
 YICES_ARCH=x86_64-pc-linux-gnu-static-gmp
@@ -26,7 +28,7 @@ OS=${shell uname}
 TAR=tar
 #endif
 
-GMP_PREFIX=/usr
+GMP_PREFIX?=/usr
 
 .PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
 all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
@@ -139,9 +141,9 @@ $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 		./configure \
 			--prefix $(DEST_ABS)/z3_$(Z3_VERSION)/install/ && \
 		python scripts/mk_make.py && \
-		sed -i -e 's@.*python.*dist-packages.*@@' build/Makefile && \
+		sed -i -e 's@.*-packages.*@@' build/Makefile && \
 		cd build && \
-		$(MAKE)
+		$(MAKE) $(PARALLEL_MAKE_OPTIONS)
 	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
@@ -155,7 +157,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --enable-bindings=none --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		REQUIRES_RTTI=1 $(MAKE) && $(MAKE) install
+		REQUIRES_RTTI=1 $(MAKE) $(PARALLEL_MAKE_OPTIONS) && $(MAKE) install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
