@@ -59,7 +59,7 @@ class AIdis : public ModulePass, public AIPass {
 
 		void init()
 			{
-				Max_Disj = 3;
+				Max_Disj = 10;
 				aman = new AbstractManDisj();
 				passID.T = LW_WITH_PF_DISJ;
 			}
