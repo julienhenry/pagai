@@ -1,3 +1,12 @@
+# Parameters
+
+# Parallel make, e.g. PARALLEL_MAKE_OPTS=-j4
+PARALLEL_MAKE_OPTS?=
+
+# GMP and MPFR prefixes, if nonstandard
+GMP_PREFIX?=/usr
+MPFR_PREFIX?=/usr
+
 .SUFFIXES:
 
 DEST=build
@@ -12,8 +21,6 @@ APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
 CUDD_XCFLAGS=
 
-PARALLEL_MAKE_OPTIONS?=
-
 ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
 ifeq ($(ARCH), x86_64)
 YICES_ARCH=x86_64-pc-linux-gnu-static-gmp
@@ -27,8 +34,6 @@ OS=${shell uname}
 #else
 TAR=tar
 #endif
-
-GMP_PREFIX?=/usr
 
 .PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
 all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
@@ -143,7 +148,7 @@ $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 		python scripts/mk_make.py && \
 		sed -i -e 's@.*-packages.*@@' build/Makefile && \
 		cd build && \
-		$(MAKE) $(PARALLEL_MAKE_OPTIONS)
+		$(MAKE) $(PARALLEL_MAKE_OPTS)
 	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
@@ -157,7 +162,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
 		./configure --enable-bindings=none --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
-		REQUIRES_RTTI=1 $(MAKE) $(PARALLEL_MAKE_OPTIONS) && $(MAKE) install
+		REQUIRES_RTTI=1 $(MAKE) $(PARALLEL_MAKE_OPTS) && $(MAKE) install
 
 # clang
 $(DEST)/$(CLANG_ARCHIVE):
@@ -201,9 +206,11 @@ $(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
 		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
 		-e 's/^HAS_OCAMLOPT *=.*/HAS_OCAMLOPT =/' \
 		-e 's/^# *HAS_PPL *=.*/HAS_PPL = 1/' \
+		-e 's@^GMP_PREFIX *=.*@GMP_PREFIX = $(GMP_PREFIX)@' \
+		-e 's@^MPFR_PREFIX *=.*@MPFR_PREFIX = $(MPFR_PREFIX)@' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
 		> $(DEST)/apron-$(APRON_VERSION)/Makefile.config
-	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) && $(MAKE) install		
+	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) $(PARALLEL_MAKE_OPTS) && $(MAKE) install		
 
 #### PPL Library
 $(DEST)/$(PPL_ARCHIVE):
