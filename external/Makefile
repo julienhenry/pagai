@@ -154,7 +154,7 @@ $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
 
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
 	cd $(DEST)/llvm-$(LLVM_VERSION) && \
-		./configure --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
+		./configure --enable-bindings=none --prefix=$(DEST_ABS)/llvm-$(LLVM_VERSION)/install && \
 		REQUIRES_RTTI=1 $(MAKE) && $(MAKE) install
 
 # clang
