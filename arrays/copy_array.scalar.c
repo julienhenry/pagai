@@ -12,6 +12,7 @@ void copy_array() {
   if (x >= n) __assumption_declared ();
   if (y < 0) __assumption_declared ();
   if (y >= n) __assumption_declared ();
+  if (x < y) {} else if (x > y) {} else {}
   for(int i=0; i<n; i++) {
     int tmp=choice();
     if (x > i) {
