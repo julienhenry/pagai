@@ -4,10 +4,10 @@ COMMENT obtained from copy_array_check.concurinterproc final line
 load_package redlog;
 rlset z;
 
-f := n>0 and all({x,y}, (x>=0 and x<n) impl
-    (-n+y+1=0 and -n+x+1=0 and -i+n-1>=0 and i-1>=0) or
+f := n>0 and all({x,y}, (x>=0 and x<n and y>=0 and y<n) impl
+    ((-n+y+1=0 and -n+x+1=0 and -i+n-1>=0 and i-1>=0) or
     (-x+y=0 and -i+x>=0 and n-x-2>=0 and i-1>=0) or
-    (-x+y=0 and -i+n>=0 and x>=0 and i-x-2>=0));
+    (-x+y=0 and -i+n>=0 and x>=0 and i-x-2>=0)));
 g := rlqe f;
 COMMENT false;
 end
