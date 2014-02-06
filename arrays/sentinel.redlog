@@ -1,12 +1,15 @@
 load_package redlog;
 rlset z;
 
-f:=n>=2 and all(x,
-(x>=0 and x<n) impl
-((-n+x+2=0 and -i+n-3>=0 and -tmp-1>=0 and i>=0) or
-(-i+n-1>=0 and -tmp-1>=0 and x>=0 and n-x-3>=0 and i-x-1>=0) or
-(-i+x=0 and -i+n-2=0 and tmp+1=0 and i-1>=0) or
-(-n+x+1=0 and -i+n-2>=0 and -tmp-1>=0 and n-3>=0 and i>=0) or
-(-i+x-1>=0 and -tmp-1>=0 and n-x-3>=0 and i>=0)));
+f:=
+  (-n+x+2=0 and -i+n-3>=0 and i>=0) or
+  (-i+x=0 and -i+n-2=0 and i-1>=0) or
+  (-i+x-1>=0 and n-x-3>=0 and i>=0) or
+  (-i+n-1>=0 and x>=0 and n-x-3>=0 and i-x-1>=0) or
+  (-n+x+1=0 and -i+n-2>=0 and n-3>=0 and i>=0);
 
-g:=rlsimpl(rlqe(ex(tmp,f)));
+g:=n>=2 and all(x, (x>=0 and x<n) impl f);
+
+h:=rlsimpl(rlqe(ex(g)));
+
+COMMENT i=n-2 and others
