@@ -1,11 +1,10 @@
 # Parameters
 
 # Parallel make, e.g. PARALLEL_MAKE_OPTS=-j4
-PARALLEL_MAKE_OPTS?=
 
 # GMP and MPFR prefixes, if nonstandard
-GMP_PREFIX?=/usr
-MPFR_PREFIX?=/usr
+GMP_PREFIX = /usr
+MPFR_PREFIX = /usr
 
 .SUFFIXES:
 
@@ -26,6 +25,9 @@ ifeq ($(ARCH), x86_64)
 YICES_ARCH=x86_64-pc-linux-gnu-static-gmp
 Z3_ARCH=-x64
 CUDD_XCFLAGS='XCFLAGS=-mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8'
+endif
+ifeq ($(ARCH), sparc64)
+CUDD_XCFLAGS='XCFLAGS=-DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=4 -DSIZEOF_LONG=4'
 endif
 
 OS=${shell uname}
@@ -113,10 +115,10 @@ $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h Â$(DEST)/cudd-$(CUDD_VERSION)/Makefile:
 	touch -c $@
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
-	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE) $(CUDD_XCFLAGS)
+	cd $(DEST)/cudd-$(CUDD_VERSION)/ && $(MAKE) $(PARALLEL_MAKE_OPTS) $(CUDD_XCFLAGS)
 # call "make testobj" from obj, otherwise it tries using -O6 and fails
 # to generate symbols for inline functions.
-	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && $(MAKE) $(CUDD_XCFLAGS) testobj
+	cd $(DEST)/cudd-$(CUDD_VERSION)/obj && $(MAKE) $(PARALLEL_MAKE_OPTS) $(CUDD_XCFLAGS) testobj
 # Just check that the build went OK, its fast
 	cd $(DEST)/cudd-$(CUDD_VERSION)/ && ./obj/testobj
 
@@ -148,7 +150,7 @@ $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 		python scripts/mk_make.py && \
 		sed -i -e 's@.*-packages.*@@' build/Makefile && \
 		cd build && \
-		$(MAKE) $(PARALLEL_MAKE_OPTS)
+		$(MAKE) $(PARALLEL_MAKE_OPTS) CXXFLAGS="-D_MP_INTERNAL  -fopenmp -fno-strict-aliasing -c -O3 -D _EXTERNAL_RELEASE"
 	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
