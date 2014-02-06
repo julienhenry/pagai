@@ -43,7 +43,7 @@ bool AIGuided::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 
-	*Out << "Starting analysis: G\n";
+	*Out << "// analysis: G\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -51,14 +51,6 @@ bool AIGuided::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
-
-		if (!quiet_mode()) {
-		Out->changeColor(raw_ostream::BLUE,true);
-			*Out	<< "------------------------------------------\n"
-					<< "-         COMPUTING FUNCTION             -\n"
-					<< "------------------------------------------\n";
-			Out->resetColor();
-		}
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();

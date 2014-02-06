@@ -416,8 +416,10 @@ MDNode * recoverName::get_DW_TAG_lexical_block(MDNode * MD) {
 		case 11: // DW_TAG_lexical_block
 			return MD;
 		default:
-			*Out << "MD\n";
-			*Out << *MD << "\n";
+			DEBUG(
+				*Out << "MD\n";
+				*Out << *MD << "\n";
+			);
 			N = dyn_cast<MDNode>(MD->getOperand(2));
 			break;
 	}
@@ -430,7 +432,7 @@ MDNode * recoverName::get_DW_TAG_subprogram(MDNode * MD) {
 	MDNode * N;
 	switch (tag) {
 		case 11: // DW_TAG_lexical_block
-			N = dyn_cast<MDNode>(MD->getOperand(1));
+			N = dyn_cast<MDNode>(MD->getOperand(2));
 			break;
 		case 46: //DW_TAG_subprogram
 			return MD;
@@ -447,7 +449,7 @@ MDNode * recoverName::get_DW_TAG_file_type(MDNode * MD) {
 	MDNode * N;
 	switch (tag) {
 		case 11: // DW_TAG_lexical_block
-			N = dyn_cast<MDNode>(MD->getOperand(4));
+			N = dyn_cast<MDNode>(MD->getOperand(2));
 			break;
 		case 46: //DW_TAG_subprogram
 			N = dyn_cast<MDNode>(MD->getOperand(2));

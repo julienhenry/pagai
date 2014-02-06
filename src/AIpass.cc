@@ -97,7 +97,11 @@ void AIPass::initFunction(Function * F) {
 	}
 
 	if (!quiet_mode()) {
-		*Out<<"// Function:"<<F->getName()<<"\n";
+		Out->changeColor(raw_ostream::BLUE,true);
+		*Out  	<< "/*\n"
+				<<"Function: "<<F->getName()<<"\n"
+				<< "*/\n";
+		Out->resetColor();
 		if (!useSourceName()) {
 			for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 				printBasicBlock(i);
