@@ -1,16 +1,8 @@
-COMMENT with forgotten copy at index 0 (i=1)
-
 load_package redlog;
 rlset z;
 
-f := n>0 and all({x,y}, (x>=0 and x<n and y>=0 and y<n) impl
-   ((-x+y=0 and -i+x>=0 and n-x-2>=0 and i-1>=0) or
-    (y=0 and x=0 and n-1=0 and i-1=0) or
-    (-x+y=0 and -i+n>=0 and x>=0 and i-x-2>=0) or
-    (-n+y+1=0 and -n+x+1=0 and -i+n-1>=0 and i-1>=0) or
-    (-i+y+1=0 and -i+x+1=0 and -i+n-1>=0 and i-1>=0)));
-
-g := rlqe f;
-COMMENT i=1 /\ n=1??;
-COMMENT seems like bug in ConcurInterproc (assume n>3 at beginning yields n>=4 whereas no assume yields n=1)
-end
+f := (-n+y+1=0 and -n+x+1=0 and -i+n-1>=0 and i-1>=0) or
+     (-x+y=0 and -i+n>=0 and x>=0 and i-x-2>=0) or
+     (-x+y=0 and -i+x>=0 and n-x-2>=0 and i-1>=0);
+g := rlqe all(x,ex(y,f));
+COMMENT

@@ -14,7 +14,6 @@ begin
   assume y>=0 and y<n;
   yflag = other;
 
-  assume x==y;
   a = random;
   b = random;
 
@@ -86,6 +85,8 @@ begin
     tmp = random;
     tmp2 = random;
   done;
+  a = random;
+  b = random;
   assume not ok;
   fail;
 end
