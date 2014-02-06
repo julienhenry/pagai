@@ -12,4 +12,5 @@ f := n>0 and all({x,y}, (x>=0 and x<n and y>=0 and y<n) impl
 
 g := rlqe f;
 COMMENT i=1 /\ n=1??;
+COMMENT seems like bug in ConcurInterproc (assume n>3 at beginning yields n>=4 whereas no assume yields n=1)
 end
