@@ -105,7 +105,7 @@ bool AISimple::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
-	*Out << "Starting analysis: " << getPassName() << "\n";
+	*Out << "// analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -114,13 +114,6 @@ bool AISimple::runOnModule(Module &M) {
 		if (F->empty()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
 
-		if (!quiet_mode()) {
-			Out->changeColor(raw_ostream::BLUE,true);
-			*Out	<< "------------------------------------------\n"
-					<< "-         COMPUTING FUNCTION             -\n"
-					<< "------------------------------------------\n";
-			Out->resetColor();
-		}
 		LSMT = SMTpass::getInstance();
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
