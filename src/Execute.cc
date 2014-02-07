@@ -121,8 +121,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 		//Clang.createDiagnostics(args.size(), &args[0]);
 		
-		if (!Clang.ExecuteAction(*Act))
+		if (!Clang.ExecuteAction(*Act)) {
+			*Out << "Unable to produce LLVM bitcode. Please use Clang with the appropriate options.\n";
 		    return;
+		}
 		llvm::Module *module = Act->takeModule();
 		M = module;
 	}
