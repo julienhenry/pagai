@@ -1,6 +1,6 @@
 typedef dir = enum { left, hit, right, other };
 
-var m: int, n: int, i: int, j: int, a :real,
+var m: int, n: int, i: int, j: int, a: bool,
     x: int, y: int, xflag: dir, yflag: dir;
 
 begin
@@ -14,7 +14,7 @@ begin
   yflag=other;
 
   i=0;
-  /* while i<m do */
+  while i<m do
     j=0;
     while j<n do
       if x<i then
@@ -36,11 +36,10 @@ begin
        endif;
       endif;
       if xflag==hit and yflag==hit then
-        a = 42;
+        a = true;
       endif;
       j=j+1;
     done;
-    j=random;
-    /* i=i+1;
-  done; */
+    i=i+1;
+  done;
 end

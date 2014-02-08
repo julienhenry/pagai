@@ -54,4 +54,5 @@ begin
     if not stop then i=i+1; endif; 
   done;
   t = random;
+  tmp = random;
 end

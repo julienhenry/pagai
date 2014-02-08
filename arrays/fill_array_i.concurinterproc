@@ -22,4 +22,5 @@ begin
     endif;
     i = i+1;
   done;
+  i = random;
 end
