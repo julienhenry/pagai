@@ -30,9 +30,17 @@ begin
 
     while j<n do
       /* i==x and j==y does not work, blame concurinterproc for bad != handling */
-      if xflag2 and not xflag1 and yflag2 and not yflag1 then
+      /* the following works also:
+       if xflag2 and not xflag1 and yflag2 and not yflag1 then
         a = 42;
-      endif;
+      endif; */
+
+      if x<i then skip;
+      else if x>i then skip;
+      else if y<j then skip;
+      else if y>j then skip;
+      else a=42;
+      endif; endif; endif; endif;
 
       j=j+1;
 
