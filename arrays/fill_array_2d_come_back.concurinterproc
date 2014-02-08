@@ -42,7 +42,15 @@ begin
         if xflag2 and not xflag1 and yflag2 and not yflag1 then
           a = 42;
         endif;
-        j=j+1;
+
+        if random then
+          j=j+1;
+        else
+          j=j-1;
+          if j<0 then
+            j=0;
+          endif;
+        endif;
       done;
     endif;
 
@@ -69,7 +77,6 @@ begin
           if xflag2 and not xflag1 and yflag2 and not yflag1 then
             a = 42;
           endif;
-
 
           if random then
             j=j+1;
