@@ -36,6 +36,15 @@ f :=
     -j+y+1>=0 and j+y-3>=0 and -n+y+1>=0 and n+y-3>=0 and -x+y-1>=0 and
     y-1>=0 and i-y-1>=0 and j-y-1>=0 and n-y-1>=0);
 
+% with octagons, useless variables (i,j) projected out
+f :=
+   (n-2>=0 and n-x-2>=0 and n-y-2>=0) or
+   (n-3>=0 and n-x-2>=0 and -n+y>=0 and n+y-6>=0 and -x+y-2>=0 and y-3>=0) or
+   (n-1>=0 and -n+1>=0 and -n+x+1>=0 and n+x-1>=0 and x>=0 and -n-x+1>=0 and
+    n-x-1>=0 and -x>=0 and -n+y+1>=0 and n+y-1>=0 and -x+y>=0 and x+y>=0 and
+    y>=0 and -n-y+1>=0 and n-y-1>=0 and -x-y>=0 and x-y>=0 and -y>=0) or
+   (n-2>=0 and n-x-2>=0 and -n+y+1>=0 and n+y-3>=0 and -x+y-1>=0 and
+    y-1>=0 and n-y-1>=0);
 
 g:=n>1 and all({x,y}, (x>=0 and x<n and y>=0 and y<n) impl f);
 
