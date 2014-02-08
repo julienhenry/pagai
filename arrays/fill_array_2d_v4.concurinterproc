@@ -18,8 +18,6 @@ begin
   a = random;
   xflag1= x<i;
   xflag2= x<=i;
-  yflag1= y<j;
-  yflag2= y<=j;
 
   while i<m do
     j=0;
@@ -27,18 +25,9 @@ begin
     yflag2= y<=j;
 
     while j<n do
-      /* i==x and j==y does not work, blame concurinterproc for bad != handling */
-      /* the following works also:
-       if xflag2 and not xflag1 and yflag2 and not yflag1 then
+      if xflag2 and not xflag1 and yflag2 and not yflag1 then
         a = 42;
-      endif; */
-
-      if x<i then skip;
-      else if x>i then skip;
-      else if y<j then skip;
-      else if y>j then skip;
-      else a=42;
-      endif; endif; endif; endif;
+      endif;
 
       j=j+1;
 
@@ -49,5 +38,7 @@ begin
 
     xflag1= x<i;
     xflag2= x<=i;
+    yflag1= random;
+    yflag2= random;
   done;
 end
