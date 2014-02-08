@@ -1,9 +1,7 @@
 /* This version works! */
 
-typedef dir = enum { left, hit, right, other };
-
 var m: int, n: int, i: int, j: int, a: real,
-    x: int, y: int, xflag: dir, yflag: dir,
+    x: int, y: int,
     xflag1: bool, xflag2: bool, yflag1: bool, yflag2: bool;
 
 begin
