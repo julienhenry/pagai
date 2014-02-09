@@ -1,0 +1,13 @@
+load_package redlog;
+rlset z;
+
+f :=
+   (-i+x+1=0 and -i+n=0 and i-2>=0 and
+    -i+x+1=0 and -i+n=0 and cong(i,0,2)) or
+   (-i+n+1>=0 and x-1>=0 and i-n>=0 and i-x-3>=0 and
+    cong(x+1,0,2) and cong(i,0,2));
+
+g := n>0 and all(x,(x>=0 and x<n) impl f);
+
+rlqe g;
+COMMENT false;
