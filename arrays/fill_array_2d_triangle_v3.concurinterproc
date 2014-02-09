@@ -28,6 +28,7 @@ begin
       xflag1= x<i;
       xflag2= x<=i;
       if xflag2 and not xflag1 and yflag2 and not yflag1 then
+        on = true;
         a = 42;
       endif;
       j=j+1;
@@ -80,6 +81,7 @@ begin
   endif;
 
   assume not on;
+  assume y<=x; /* L84C14 bottom */
 end
 
 /*
