@@ -10,6 +10,6 @@ f:=
 
 g:=n>=2 and all(x, (x>=0 and x<n) impl f);
 
-h:=rlsimpl(rlqe(ex(g)));
+h:=rlsimpl(rlqe(g));
 
 COMMENT i=n-2 and others
