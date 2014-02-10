@@ -334,7 +334,8 @@ void AIPass::printResult(Function * F) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		n = Nodes[b];
-		if (FPr->inPr(b) && !ignored(F)) {
+		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
+		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();

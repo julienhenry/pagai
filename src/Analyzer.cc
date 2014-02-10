@@ -24,6 +24,7 @@ bool quiet;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
+bool printAll;
 bool force_old_output;
 bool output_annotated;
 bool log_smt;
@@ -125,6 +126,10 @@ bool skipNonLinearInSMT() {
 
 bool useSourceName() {
 	return use_source_name;
+}
+
+bool printAllInvariants() {
+	return printAll;
 }
 
 void set_useSourceName(bool b) {
@@ -371,6 +376,7 @@ int main(int argc, char* argv[]) {
 	defined_main = false;
 	quiet = false;
 	use_source_name = false;
+	printAll = false;
 	force_old_output = false;
 	output_annotated = false;
 	log_smt = false;
@@ -383,11 +389,8 @@ int main(int argc, char* argv[]) {
 
 	static struct option long_options[] =
 		{
-			/* These options set a flag. */
 			{"help", no_argument,       0, 'h'},
 			{"debug",   no_argument,       0, 'D'},
-			/* These options don't set a flag.
-			   We distinguish them by their indices. */
 			{"compare",     required_argument,       0, 'c'},
 			{"technique",  required_argument,       0, 't'},
 			{"comparedomains",  required_argument,       0, 'C'},
@@ -398,6 +401,7 @@ int main(int argc, char* argv[]) {
 			{"output",    required_argument, 0, 'o'},
 			{"solver",    required_argument, 0, 's'},
 			{"printformula",    no_argument, 0, 'f'},
+			{"printall",    no_argument, 0, 'p'},
 			{"skipnonlinear",    no_argument, 0, 'L'},
 			{"quiet",    no_argument, 0, 'q'},
 			{"force-old-output",    no_argument, 0, 'S'},
@@ -410,7 +414,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:p",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -512,6 +516,9 @@ int main(int argc, char* argv[]) {
         	case 'L':
 				skipnonlinear = true;
         	    break;
+			case 'p':
+				printAll = true;
+				break;
         	case '?':
         	    std::cout << "Error : Unknown option " << optopt << "\n";
         	    bad_use = true;
