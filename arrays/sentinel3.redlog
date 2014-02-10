@@ -14,8 +14,26 @@ f :=
   (-i+n-1=0 and x>=0 and i-x-2>=0) or
   (-i+x+1=0 and -i+n-1=0 and i-2>=0);
 
-COMMENT initialized ==-1, test<=-1 && >=-1, postcondition i>=n-1 PROVES
+COMMENT initialized ==42, test<=-1 && >=-1, postcondition i>=n-1 PROVES
 f := (-i+n-1=0 and x>=0 and i-x-2>=0);
+
+COMMENT uninitialized, test<=-1 && >=-1, postcondition i>=n-1 PROVES
+f:= (-i+n-1=0 and x>=0 and i-x-2>=0) or
+    (-i+x=0 and -i+n-1=0 and i-2>=0);
+
+COMMENT YES YES YES
+COMMENT uninitialized, test<=-1 && >=-1, postcondition i>=n-1 PROVES
+f:=
+  (-i+n-1>=0 and x>=0 and n-x-3>=0 and i-x-1>=0) or
+  (-i+x-1>=0 and n-x-3>=0 and i>=0) or
+  (-i+x=0 and -i+n-2=0 and i-1>=0) or
+  (-i+x=0 and -i+n-3>=0 and i>=0) or
+  (-i+x=0 and -i+n-1=0 and i-2>=0) or
+  (-n+x+1=0 and -i+n-2>=0 and n-3>=0 and i>=0) or
+  (-n+x+2=0 and -i+n-3>=0 and i>=0);
+g := n>2 and all(x, (x >= 0 and x<n) impl f);
+h := rlqe(g impl i<=n-1);
+COMMENT h->TRUE
 
 COMMENT initialized >=0, test==-1, postcondition i>=n-1
 f :=
