@@ -26,3 +26,24 @@ begin
     done;
   endif;
 end
+
+COMMENT 
+{ (on and not xflag1 and xflag2) and
+              [|-i+x+2=0; a-42=0; -i+n+1>=0; i-n>=0; i-2>=0; a-42=0;
+                2x#O=0 mod 2; 2x#I=0 mod 2; -i+x+2=0; 2n#O=0 mod 2;
+                2n#I=0 mod 2; 2n=0 mod 2; 2i#O=0 mod 2; 2i#I=0 mod 2;
+                i=0 mod 2|] or
+              (not on and not xflag1 and not xflag2) and
+              [|-i+x+1=0; -i+n=0; i-2>=0; 2x#O=0 mod 2; 2x#I=0 mod 2;
+                -i+x+1=0; 2n#O=0 mod 2; 2n#I=0 mod 2; -i+n=0; 2i#O=0 mod 2;
+                2i#I=0 mod 2; i=0 mod 2|] or
+              (not on and xflag1 and xflag2) and
+              [|-i+n+1>=0; x-1>=0; i-n>=0; i-x-3>=0; 2x#O=0 mod 2;
+                2x#I=0 mod 2; x+1=0 mod 2; 2n#O=0 mod 2; 2n#I=0 mod 2;
+                2n=0 mod 2; 2i#O=0 mod 2; 2i#I=0 mod 2; i=0 mod 2|] or
+              (on and xflag1 and xflag2) and
+              [|a-42=0; -i+n+1>=0; x>=0; i-n>=0; i-x-4>=0; a-42=0;
+                2x#O=0 mod 2; 2x#I=0 mod 2; x=0 mod 2; 2n#O=0 mod 2;
+                2n#I=0 mod 2; 2n=0 mod 2; 2i#O=0 mod 2; 2i#I=0 mod 2;
+                i=0 mod 2|] }
+end;
