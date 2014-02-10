@@ -1,6 +1,22 @@
 load_package redlog;
 rlset z;
 
+COMMENT uninitialized, test==-1, postcondition i>=n-1
+f :=
+  (-i+n-1=0 and x>=0 and i-x-2>=0) or
+  (-i+x=0 and -i+n-1=0 and i-2>=0) or
+  (-i+x+1=0 and -i+n-1=0 and i-2>=0);
+end;
+
+COMMENT initialized ==-1, test==-1, postcondition i>=n-1
+f :=
+  (-i+x=0 and -i+n-1=0 and i-2>=0) or
+  (-i+n-1=0 and x>=0 and i-x-2>=0) or
+  (-i+x+1=0 and -i+n-1=0 and i-2>=0);
+
+COMMENT initialized ==-1, test<=-1 && >=-1, postcondition i>=n-1 PROVES
+f := (-i+n-1=0 and x>=0 and i-x-2>=0);
+
 COMMENT initialized >=0, test==-1, postcondition i>=n-1
 f :=
   (-i+n-1=0 and x>=0 and i-x-2>=0) or

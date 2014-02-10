@@ -35,7 +35,7 @@ begin
         flag3 = hit;
       endif;
     endif;
-    stop = tmp==-1;
+    stop = tmp<=-1 and tmp>=-1;
     if not stop then i=i+1; endif; 
   done;
   t = random;
