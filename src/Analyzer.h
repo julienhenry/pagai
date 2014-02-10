@@ -82,6 +82,7 @@ bool compareNarrowing();
 bool onlyOutputsRho();
 bool skipNonLinearInSMT();
 
+bool printAllInvariants();
 bool useSourceName();
 void set_useSourceName(bool b);
 
