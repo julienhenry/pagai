@@ -337,6 +337,15 @@ void AIPass::printResult(Function * F) {
 		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
 		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
+
+			Instruction * Inst = b->getFirstNonPHI();
+			//Instruction * Inst = &b->front();
+			std::vector<Value*> arr;
+			n->X_s[passID]->to_MDNode(Inst,&arr);
+			LLVMContext& C = Inst->getContext();
+			MDNode* N = MDNode::get(C,arr);
+			Inst->setMetadata("pagai.invariant", N);
+
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
 			//n->X_i[passID]->print(true);
