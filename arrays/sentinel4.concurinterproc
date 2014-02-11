@@ -19,9 +19,6 @@ begin
   stop=false;
   flag3 = other;
   while not stop do
-    if i>=n then
-      fail;
-    endif;
     if x<i then
       tmp = random;
       flag3 = left;
