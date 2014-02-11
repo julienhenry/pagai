@@ -1,4 +1,5 @@
-from z3 import Reals, Ints, Tactic, Exists, ForAll, Or, And, Implies, Then, Not
+from z3 import Reals, Ints, Exists, ForAll, Or, And, Implies, Not
+from z3 import Tactic, Then, OrElse, Repeat, ParThen
 i,x,n = Ints('i x n')
 # i,x,n = Reals('i x n') h2 does not imply h
 
@@ -21,5 +22,14 @@ h2 = And(n>2, i>=0, i<=n-2)
 
 print qe(ForAll(x,Implies(h,h2)))
 print qe(ForAll(x,Implies(h2,h)))
+
+from z3 import solve
+solve(And(h,Not(h2)))
+solve(And(h2,Not(h)))
+
+simplify=Repeat(Then('nnf','ctx-solver-simplify'))
+h3 = apply(And,simplify(h)[0])
+
+simplify = Then(Tactic('simplify'), Tactic('propagate-values'), ParThen(Repeat(OrElse(Tactic('split-clause'), Tactic('skip'))), Tactic('propagate-ineqs')))
 
 #print tactic(ForAll(x,Or(h2neg,h)))
