@@ -162,5 +162,8 @@ class AbstractClassic: public Abstract {
 		 * each new line
 		 */
 		void display(llvm::raw_ostream &stream, std::string * left = NULL) const;
+
+		
+		void to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met);
 };
 #endif

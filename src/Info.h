@@ -48,7 +48,7 @@ class Info
 		*Out<<"(type="<<type<<" name="<<name<<" line="<<lineNo<<")";
 	}
 
-	std::string getName() {return name;}
+	std::string getName() const {return name;}
 
 	std::string getType() {return type;}
 

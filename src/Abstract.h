@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ap_global1.h"
+#include "llvm/Support/CFG.h"
 
 class Node;
 class SMTpass;
@@ -219,6 +220,9 @@ class Abstract {
 		 * each new line
 		 */
 		virtual void display(llvm::raw_ostream &stream, std::string * left = NULL) const = 0;
+
+
+		virtual void to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {}
 };
 
 llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, Abstract const& A);

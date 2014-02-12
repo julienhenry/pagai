@@ -247,6 +247,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 	Passes.run(*M);
 
+	//*Out << *M;
+
 	if (onlyOutputsRho()) {
 		return;
 	}

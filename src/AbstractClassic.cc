@@ -16,6 +16,7 @@
 #include "Node.h"
 #include "Expr.h"
 #include "apron.h"
+#include "apron_MD.h"
 #include "Analyzer.h"
 
 AbstractClassic::AbstractClassic(ap_manager_t* _man, Environment * env) {
@@ -288,4 +289,30 @@ void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) con
 		stream << c;
 	fclose(tmp);
 #endif
+}
+		
+void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
+	LLVMContext& C = Inst->getContext();
+	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
+	size_t size = ap_tcons1_array_size(&tcons_array);
+	//met->push_back(Inst->getParent());
+	if (ap_abstract1_is_bottom(man,main)) {
+		met->push_back(MDString::get(C, "false"));
+	} else if (size == 0) {
+		met->push_back(MDString::get(C, "true"));
+	} else {
+		for (size_t k = 0; k < size; k++) {
+			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+			//std::string s_string;
+			//raw_string_ostream * s = new raw_string_ostream(s_string);
+			//*s << cons;
+			//std::string & cstr = s->str();
+			//met->push_back(MDString::get(C, cstr));
+
+			std::vector<llvm::Value*> c;
+			ap_tcons1_t_to_MDNode(cons,Inst,&c);
+			met->push_back(MDNode::get(C,c));
+		}
+	}
+	ap_tcons1_array_clear(&tcons_array);
 }
