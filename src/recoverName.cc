@@ -39,8 +39,10 @@ Info recoverName::getMDInfos(const Value* V) {
 	std::set<Info,compare_Info> possible_mappings = getPossibleMappings(V,&seen);
 
 	if (possible_mappings.begin() == possible_mappings.end()) {
+		DEBUG(
 		*Out << "no possible mappings for " << *V << "\n...";
-		return Info(SMTpass::getVarName(v),-1,"unknown");
+		);
+		return Info(SMTpass::getVarName(v),-1,SMTpass::getVarName(v));
 	}
 	computed_mappings[v] = Info(*possible_mappings.begin());
 	return Info(*possible_mappings.begin());
