@@ -150,7 +150,7 @@ $(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
 		python scripts/mk_make.py && \
 		sed -i -e 's@.*-packages.*@@' build/Makefile && \
 		cd build && \
-		$(MAKE) $(PARALLEL_MAKE_OPTS) CXXFLAGS="-D_MP_INTERNAL  -fopenmp -fno-strict-aliasing -c -O3 -D _EXTERNAL_RELEASE"
+		$(MAKE) $(PARALLEL_MAKE_OPTS) CXXFLAGS="-D_MP_INTERNAL -msse -msse2 -msse3 -fPIC -fopenmp -fno-strict-aliasing -c -O3 -D _EXTERNAL_RELEASE"
 	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
