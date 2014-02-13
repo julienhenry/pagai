@@ -8,6 +8,7 @@ option(CHECK_EXTERNALS "Whether to check that external dependancies are OK befor
 option(ENABLE_PROFILING "Whether to build using -pg" OFF)
 option(ENABLE_DEBUGGING "Whether to build using -g" OFF)
 option(ENABLE_YICES "Whether to enable Yices" ON)
+option(ENABLE_PPL "Whether APRON has been compiled with PPL enabled" OFF)
 
 # Path to various libraries
 set(EXTERNAL_PATH "${CMAKE_BINARY_DIR}/external/" CACHE PATH "Path to auto-installed external dependencies")
@@ -44,8 +45,8 @@ macro(configure_llvm PROG)
     message(WARNING "llvm-config not found. Please set \$LLVM_PATH "
       "so that I can find it in \$LLVM_PATH/bin/")
     set(ERROR_OCCURED ON PARENT_SCOPE)
-  elseif("${LLVM_VERSION}" STRLESS "2.9")
-    message(WARNING "LLVM version ${LLVM_VERSION} found, while version 2.9 is needed for ${PROG}.")
+  elseif("${LLVM_VERSION}" STRLESS "3.3")
+    message(WARNING "LLVM version ${LLVM_VERSION} found, while version 3.3 is needed for ${PROG}.")
     unset(LLVM_CONFIG_PROG CACHE)
     set(ERROR_OCCURED ON PARENT_SCOPE)
   endif()

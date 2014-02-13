@@ -13,6 +13,9 @@ endif()
 if(${PRINT_DEBUG})
   add_definitions(-DPRINT_DEBUG)
 endif()
+if(${ENABLE_PPL})
+  add_definitions(-DPPL_ENABLED)
+endif()
 
 if(${PRINT_DEBUG_SMT})
   add_definitions(-DPRINT_DEBUG_SMT)
@@ -39,7 +42,7 @@ include_directories(
 link_directories(
   ${GMP_PREFIX}/lib
   ${MPFR_PREFIX}/lib 
-  ${PPL_PREFIX}/lib
+  #${PPL_PREFIX}/lib
 )
 
 find_package(BISON)
@@ -65,13 +68,15 @@ configure_llvm(pagai bitreader selectiondag all)
 add_apron_library(pagai polkaMPQ)
 add_apron_library(pagai octD)
 add_apron_library(pagai boxMPFR)
-add_apron_library(pagai ap_ppl)
-add_apron_library(pagai ap_pkgrid)
+if(${ENABLE_PPL})
+	add_apron_library(pagai ap_pkgrid)
+	add_apron_library(pagai ap_ppl)
+	add_ppl_library(pagai ppl)
+endif()
 add_apron_library(pagai apron)
-add_ppl_library(pagai ppl)
 # SMT solvers
 if(${ENABLE_YICES})
-  add_yices_library(pagai)
+	add_yices_library(pagai)
 endif()
 
 add_z3_library(pagai)

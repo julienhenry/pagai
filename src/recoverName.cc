@@ -42,7 +42,7 @@ Info recoverName::getMDInfos(const Value* V) {
 		DEBUG(
 		*Out << "no possible mappings for " << *V << "\n...";
 		);
-		return Info(SMTpass::getVarName(v),-1,SMTpass::getVarName(v));
+		return Info(SMTpass::getVarName(v),-1,"unknown");
 	}
 	computed_mappings[v] = Info(*possible_mappings.begin());
 	return Info(*possible_mappings.begin());
