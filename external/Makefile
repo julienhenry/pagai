@@ -6,7 +6,9 @@
 GMP_PREFIX = /usr
 MPFR_PREFIX = /usr
 
-PPL_ENABLED=0
+# PPL is not enabled by default
+# PPL_ENABLED should be set to 1 for compiling apron with PPL
+PPL_ENABLED=
 
 .SUFFIXES:
 
