@@ -35,11 +35,13 @@ enum Apron_Manager_Type {
 	BOX,
 	OCT,
 	PK,
-	PKEQ,
+#ifdef PPL_ENABLED
 	PPL_POLY,
 	PPL_POLY_BAGNARA,
 	PPL_GRID,
-	PKGRID
+	PKGRID,
+#endif
+	PKEQ
 };
 
 enum Techniques {

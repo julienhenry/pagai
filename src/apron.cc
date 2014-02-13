@@ -12,10 +12,12 @@
 #include "ap_global1.h"
 #include "box.h"
 #include "oct.h"
-#include "ap_ppl.h"
-#include "ap_pkgrid.h"
 #include "pk.h"
 #include "pkeq.h"
+#ifdef PPL_ENABLED
+#include "ap_ppl.h"
+#include "ap_pkgrid.h"
+#endif
 
 #include "apron.h"
 #include "Expr.h"
@@ -98,6 +100,7 @@ ap_manager_t * create_manager(Apron_Manager_Type man) {
 			return pk_manager_alloc(true); // NewPolka strict polyhedra
 		case PKEQ: 
 			return pkeq_manager_alloc(); // NewPolka linear equalities
+#ifdef PPL_ENABLED
 		case PPL_POLY: 
 			return ap_ppl_poly_manager_alloc(true); // PPL strict polyhedra
 		case PPL_POLY_BAGNARA: 
@@ -113,6 +116,7 @@ ap_manager_t * create_manager(Apron_Manager_Type man) {
 			// Polka strict polyhedra + PPL grids
 			return ap_pkgrid_manager_alloc(	pk_manager_alloc(true),
 					ap_ppl_grid_manager_alloc()); 
+#endif
 	}
 }
 

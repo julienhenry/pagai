@@ -56,12 +56,16 @@ void show_help() {
 		   * box (Apron boxes)\n \
 		   * oct (Octagons)\n \
 		   * pk (NewPolka strict polyhedra), default\n \
-		   * pkeq (NewPolka linear equalities)\n \
-		   * ppl_poly (PPL strict polyhedra)\n \
+		   * pkeq (NewPolka linear equalities)\n";
+#ifdef PPL_ENABLED
+		std::cout << 
+"		   * ppl_poly (PPL strict polyhedra)\n \
 		   * ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS’2003)\n \
 		   * ppl_grid (PPL grids)\n \
-		   * pkgrid (Polka strict polyhedra + PPL grids)\n \
-		example: pagai -i <file> --domain box\n \
+		   * pkgrid (Polka strict polyhedra + PPL grids)\n";
+#endif
+		std::cout << 
+"		 example: pagai -i <file> --domain box\n \
 --input (-i) : input file\n \
 --technique (-t) : use a specific technique\n \
 		possible techniques:\n \
@@ -219,6 +223,7 @@ bool setApronManager(char * domain, int i) {
 		ap_manager[i] = PK;
 	} else if (!d.compare("pkeq")) {
 		ap_manager[i] = PKEQ;
+#ifdef PPL_ENABLED
 	} else if (!d.compare("ppl_poly_bagnara")) {
 		ap_manager[i] = PPL_POLY_BAGNARA;
 	} else if (!d.compare("ppl_poly")) {
@@ -227,6 +232,7 @@ bool setApronManager(char * domain, int i) {
 		ap_manager[i] = PPL_GRID;
 	} else if (!d.compare("pkgrid")) {
 		ap_manager[i] = PKGRID;
+#endif
 	} else {
 		std::cout << "Wrong parameter defining the abstract domain\n";
 		return 1;
@@ -244,6 +250,7 @@ std::string ApronManagerToString(Apron_Manager_Type D) {
 			return "PK";
 		case PKEQ:
 			return "PKEQ";
+#ifdef PPL_ENABLED
 		case PPL_POLY:
 			return "PPL_POLY";
 		case PPL_POLY_BAGNARA:
@@ -252,6 +259,7 @@ std::string ApronManagerToString(Apron_Manager_Type D) {
 			return "PPL_GRID";
 		case PKGRID:
 			return "PKGRID";
+#endif
 	}
 }
 

@@ -1,9 +1,6 @@
 
-int x;
-int y;
 
-int main() {
-	x = 0;
+int f(int x, int y) {
 	y = 0;
 
 	while (1) {
@@ -11,6 +8,6 @@ int main() {
 		else y--;
 
 		if (y < 0) break;
-		x++;
+		//x++;
 	}
 }
