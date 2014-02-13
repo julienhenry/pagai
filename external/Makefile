@@ -6,6 +6,8 @@
 GMP_PREFIX = /usr
 MPFR_PREFIX = /usr
 
+PPL_ENABLED=0
+
 .SUFFIXES:
 
 DEST=build
@@ -38,7 +40,7 @@ TAR=tar
 #endif
 
 .PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
-all: install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
+all: install-cudd install-z3 install-llvm install-clang install-apron install-yices
 
 ifeq ($(OS), Darwin)
 SOEXTENSION=.dylib
@@ -194,20 +196,26 @@ APRON_HAS_SHARED=
 endif
 endif
 
+ifeq ($(PPL_ENABLED), 1)
+APRON_PPL_DEP=install-ppl
+else
+APRON_PPL_DEP=
+endif
+
 # -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?'
 # -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?'
 
 # DM Trying to use ocamlfind when unavailable causes numerous problems.
-$(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(PPL_COMPILED)
+$(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(APRON_PPL_DEP) 
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
 	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
-	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = 1?' \
+	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = $(PPL_ENABLED)?' \
 		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
 		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \
 		-e 's/^HAS_OCAML *=.*/HAS_OCAML =/' \
 		-e 's/^HAS_OCAMLOPT *=.*/HAS_OCAMLOPT =/' \
-		-e 's/^# *HAS_PPL *=.*/HAS_PPL = 1/' \
+		-e 's/^# *HAS_PPL *=.*/HAS_PPL = $(PPL_ENABLED)/' \
 		-e 's@^GMP_PREFIX *=.*@GMP_PREFIX = $(GMP_PREFIX)@' \
 		-e 's@^MPFR_PREFIX *=.*@MPFR_PREFIX = $(MPFR_PREFIX)@' \
 		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
