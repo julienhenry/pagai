@@ -1,3 +1,4 @@
+/* does not work */
 var
   n: int, i: int, j: int, k: int,
   x: int, y: int,
@@ -39,6 +40,10 @@ begin
       endif;
     endif;
     k=i;
+    x2l = x<=k;
+    x2r = x>=k;
+    y2l = y<=k;
+    y2r = y>=k;
   
     tmp = random;
 
@@ -63,6 +68,10 @@ begin
       endif;
       if tmp < min then
         k = j;
+        x2l = x<=k;
+        x2r = x>=k;
+        y2l = y<=k;
+        y2r = y>=k;
         min = tmp;
       endif;    
       j = j+1;
@@ -70,10 +79,6 @@ begin
     done;
     j = random;
 
-    x2l = x<=k;
-    x2r = x>=k;
-    y2l = y<=k;
-    y2r = y>=k;
     if k>i then
       if x2l and x2r then
         tmp2 = a;
@@ -108,6 +113,11 @@ begin
         endif;
       endif;
     endif;
+    tmp = random;
+    tmp2 = random;
+
     i=i+1;
    done;
+
+   assume a>b;
 end
