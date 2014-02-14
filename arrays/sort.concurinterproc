@@ -1,12 +1,14 @@
 var
   n: int, i: int, j: int, k: int,
   x: int, y: int,
-  x0l: bool, x0r: bool, x0d: bool,
-  x1l: bool, x1r: bool, x1d: bool,
-  y0l: bool, y0r: bool, y0d: bool,
-  y1l: bool, y1r: bool, y1d: bool,
+  x0l: bool, x0r: bool,
+  x1l: bool, x1r: bool,
+  x2l: bool, x2r: bool,
+  y0l: bool, y0r: bool,
+  y1l: bool, y1r: bool,
+  y2l: bool, y2r: bool,
   a: int, b:int,
-  min: int, tmp: int;
+  min: int, tmp: int, tmp2: int;
 
 begin
   x = random;
@@ -17,21 +19,21 @@ begin
   x0r = false;
   y0l = false;
   y0r = false;
+  x2l = false;
+  x2r = false;
+  y2l = false;
+  y2r = false;
 
   while i<n-1 do 
     x0l = x<=i;
     x0r = x>=i;
-    x0d = false;
     y0l = y<=i;
     y0r = y>=i;
-    y0d = false;
     if x0l and x0r then
       min = a;
-      x0d = true;
     else
       if y0l and y0r then
         min = b;
-        y0d = true;
       else
         min=random;
       endif;
@@ -48,17 +50,13 @@ begin
     while j<n do
       x1l = x<=j;
       x1r = x>=j;
-      x1d = false;
       y1l = y<=j;
       y1r = y>=j;
-      y1d = false;
       if x1l and x1r then
         tmp = a;
-        x1d = true;
       else
         if y1l and y1r then
           tmp = b;
-          y1d = true;
         else
 	  tmp = random;
         endif;
@@ -72,7 +70,44 @@ begin
     done;
     j = random;
 
-
+    x2l = x<=k;
+    x2r = x>=k;
+    y2l = y<=k;
+    y2r = y>=k;
+    if k>i then
+      if x2l and x2r then
+        tmp2 = a;
+      else
+        if y2l and y2r then
+          tmp2 = b;
+        else
+	  tmp2 = random;
+        endif;
+      endif;
+      if x0l and x0r then
+        tmp = a;
+      else
+        if y0l and y0r then
+          tmp = b;
+        else
+	  tmp = random;
+        endif;
+      endif;
+      if x2l and x2r then
+        a = tmp;
+      else
+        if y2l and y2r then
+          b = tmp;
+        endif;
+      endif;
+      if x0l and x0r then
+        a = tmp2;
+      else
+        if y0l and y0r then
+          b = tmp2;
+        endif;
+      endif;
+    endif;
     i=i+1;
    done;
 end
