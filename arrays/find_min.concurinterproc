@@ -41,4 +41,7 @@ begin
   done;
   j = random;
   tmp = random;
+
+  assume x>=i;
+  assume a<min; /* BOTTOM: for all x>=i, a[x]>=min (use -threshold true) */
 end
