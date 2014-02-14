@@ -1,7 +1,7 @@
 var n: int, i: int, j: int, k: int,
   x: int,
-  x0l: bool, x0r: bool, x0d: bool,
-  x1l: bool, x1r: bool, x1d: bool,
+  x0l: bool, x0r: bool,
+  x1l: bool, x1r: bool,
   a: int, min: int, tmp: int;
 
 begin
@@ -12,11 +12,9 @@ begin
 
   x0l = x<=i;
   x0r = x>=i;
-  x0d = false;
   tmp = random;
   if x0l and x0r then
     min = a;
-    x0d = true;
   endif;
   k=i;
 
@@ -26,11 +24,9 @@ begin
   while j<n do
     x1l = x<=j;
     x1r = x>=j;
-    x1d = false;
     tmp = random;
     if x1l and x1r then
       tmp = a;
-      x1d = true;
     endif;
     if tmp < min then
       k = j;
