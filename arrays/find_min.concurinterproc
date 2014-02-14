@@ -1,0 +1,44 @@
+var n: int, i: int, j: int, k: int,
+  x: int,
+  first: bool,
+  x0l: bool, x0r: bool, x0d: bool,
+  x1l: bool, x1r: bool, x1d: bool,
+  a: int, min: int, tmp: int;
+
+begin
+  x = random;
+  assume x>=0 and x<n;
+  a = random;
+  assume i>=0 and i<n-1;
+
+  x0l = x<=i;
+  x0r = x>=i;
+  x0d = false;
+  tmp = random;
+  if x0l and x0r then
+    min = a;
+    x0d = true;
+  endif;
+  k=i;
+
+  j=i+1;
+  first = true;
+  while j<n do
+    first = false;
+    x1l = x<=j;
+    x1r = x>=j;
+    x1d = false;
+    tmp = random;
+    if x1l and x1r then
+      tmp = a;
+      x1d = true;
+    endif;
+    if tmp < min then
+      k = j;
+      min = tmp;
+    endif;    
+    j = j+1;
+  done;
+  j = random;
+  tmp = random;
+end
