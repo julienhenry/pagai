@@ -26,7 +26,7 @@ begin
   y2l = false;
   y2r = false;
 
-  /* while i<n-1 do  */
+  while i<n-1 do
     x0l = x<=i;
     x0r = x>=i;
     y0l = y<=i;
@@ -79,6 +79,10 @@ begin
       tmp = random;
     done;
     j = random;
+    x1l = random;
+    x1r = random;
+    y1l = random;
+    y1r = random;
 
     if k>=i then
       if x2l and x2r then
@@ -117,11 +121,11 @@ begin
 
    tmp = random;
    tmp2 = random;
+   k = random;
+   min = random;
 
-   assume i<=x and i>=x;
-   assume k<=y and k>=y;
+   i=i+1;
+  done;
 
-    /* i=i+1; */
-   /* done; */
-
+  assume a>b;
 end
