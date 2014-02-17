@@ -1,7 +1,17 @@
-f :=
+load_package redlog;
+rlset z;
+
+f := rlqe
+  ex({i,k},
   (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0 ) or
   (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0 ) or
   (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0 ) or
   (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
   (-i+y=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0) or
-  (-x+y-1>=0 and x>=0 and n-y-1>=0 and i-n+1>=0);
+  (-x+y-1>=0 and x>=0 and n-y-1>=0 and i-n+1>=0));
+
+g := 0<=x and x<y and y<n;
+
+h := n>=2 and all({x,y}, g impl f);
+
+p := rlqe h;
