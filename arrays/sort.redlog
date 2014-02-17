@@ -2,30 +2,49 @@ load_package redlog;
 rlset z;
 
 finv :=
-  (-i+x+1=0 and -i+y>=0 and -k+n-1>=0 and k-y-1>=0 and i-1>=0) or
-  (-i+x+1=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
-  (-i+y+1=0 and -i+k+1=0 and -i+n-1>=0 and x>=0 and i-x-2>=0) or
-  (-i+y+1=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
-  (-i+n-1>=0 and -i+k+1>=0 and -k+n-1>=0 and -x+y-1>=0 and x>=0 and i-y-2>=0) or
-  (-k+y=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
-  (-i+y>=0 and -k+n-1>=0 and x>=0 and k-y-1>=0 and i-x-2>=0) or
-  (-i+k+1>=0 and -k+y-1>=0 and x>=0 and n-y-1>=0 and i-x-2>=0) or
-  (-k+x=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
-  (-k+y=0 and -i+x>=0 and -k+n-1>=0 and k-x-1>=0 and i-1>=0) or
-  (-i+x>=0 and -k+n-1>=0 and -x+y-1>=0 and k-y-1>=0 and i-1>=0) or
-  (-i+x>=0 and -k+y-1>=0 and n-y-1>=0 and k-x-1>=0 and i-1>=0) or
-  (-i+k+1>=0 and -k+x-1>=0 and -x+y-1>=0 and n-y-1>=0 and i-1>=0) $
+  (-i+x+1=0 and -i+k+1=0 and -a+b>=0 and -i+y>=0 and n-y-1>=0 and i-1>=0) or
+  (-i+x+1=0 and -k+y=0 and -a+b-1>=0 and -i+k>=0 and -k+n-1>=0 and i-1>=0) or
+  (-i+x+1=0 and -a+b>=0 and -i+y>=0 and -k+n-1>=0 and k-y-1>=0 and i-1>=0) or
+  (-i+x+1=0 and -a+b>=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
+  (-i+y+1=0 and -i+k+1=0 and -a+b>=0 and -i+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-i+y+1=0 and -a+b>=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-a+b>=0 and -i+n-1>=0 and -i+k+1>=0 and -k+n-1>=0 and -x+y-1>=0 and 
+    x>=0 and i-y-2>=0) or
+  (-k+y=0 and -a+b>=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-a+b>=0 and -i+y>=0 and -k+n-1>=0 and x>=0 and k-y-1>=0 and i-x-2>=0) or
+  (-a+b>=0 and -i+k+1>=0 and -k+y-1>=0 and x>=0 and n-y-1>=0 and i-x-2>=0) or
+  (-k+x=0 and -a+b>=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
+  (-k+y=0 and -a+b>=0 and -i+x>=0 and -k+n-1>=0 and k-x-1>=0 and i-1>=0) or
+  (-a+b>=0 and -i+x>=0 and -k+n-1>=0 and -x+y-1>=0 and k-y-1>=0 and i-1>=0) or
+  (-a+b>=0 and -i+x>=0 and -k+y-1>=0 and n-y-1>=0 and k-x-1>=0 and i-1>=0) or
+  (-a+b>=0 and -i+k+1>=0 and -k+x-1>=0 and -x+y-1>=0 and n-y-1>=0 and i-1>=0) or
+  (i=0 and -x+y-1>=0 and x>=0 and n-y-1>=0) or
+  (-i+x+1=0 and -i+y>=0 and -k+n-1>=0 and k-y-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-i+x+1=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-i+y+1=0 and -i+k+1=0 and -i+n-1>=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+y+1=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+n-1>=0 and -i+k+1>=0 and -k+n-1>=0 and -x+y-1>=0 and x>=0 and i-y-2>=0 and
+    a-b-1>=0) or
+  (-k+y=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+y>=0 and -k+n-1>=0 and x>=0 and k-y-1>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+k+1>=0 and -k+y-1>=0 and x>=0 and n-y-1>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-k+x=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-k+y=0 and -i+x>=0 and -k+n-1>=0 and k-x-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-i+x>=0 and -k+n-1>=0 and -x+y-1>=0 and k-y-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-i+x>=0 and -k+y-1>=0 and n-y-1>=0 and k-x-1>=0 and i-1>=0 and a-b-1>=0) or
+  (-i+k+1>=0 and -k+x-1>=0 and -x+y-1>=0 and n-y-1>=0 and i-1>=0 and a-b-1>=0) $
 
 g := 0<=x and x<y and y<n;
 
-hinv := rlsimpl(rlqe(sub({x=i,y=k}, finv)));
+hinv := rlsimpl(rlqe(sub({x=i,y=k}, ex({a,b},finv))));
+COMMENT i<k AND i>0 AND k<n OR i=0 AND k<n AND k<0 END
 
 fend :=
-  (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0) or
-  (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
-  (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0) or
-  (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
-  (-i+n-1=0 and -i+k+1>=0 and -k+y-1>=0 and x>=0 and i-k>=0 and i-x-3>=0) $
+  (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0 and a-b-1>=0) or
+  (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0 and a-b-1>=0) or
+  (-i+n-1=0 and -i+k+1>=0 and -k+y-1>=0 and x>=0 and i-k>=0 and 2i-k-x-3>=0 and a-b-1>=0) $
 
-hend := rlsimpl(rlqe(sub({x=i,y=k}, fend)));
+hend := rlsimpl(rlqe(sub({x=i,y=k}, ex({a,b},fend))));
 COMMENT false; END
