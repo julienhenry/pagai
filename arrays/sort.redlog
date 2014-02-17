@@ -1,17 +1,31 @@
 load_package redlog;
 rlset z;
 
-f := rlqe
-  ex({i,k},
-  (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0 ) or
-  (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0 ) or
-  (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0 ) or
-  (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
-  (-i+y=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0) or
-  (-x+y-1>=0 and x>=0 and n-y-1>=0 and i-n+1>=0));
+finv :=
+  (-i+x+1=0 and -i+y>=0 and -k+n-1>=0 and k-y-1>=0 and i-1>=0) or
+  (-i+x+1=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
+  (-i+y+1=0 and -i+k+1=0 and -i+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-i+y+1=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-i+n-1>=0 and -i+k+1>=0 and -k+n-1>=0 and -x+y-1>=0 and x>=0 and i-y-2>=0) or
+  (-k+y=0 and -i+k>=0 and -k+n-1>=0 and x>=0 and i-x-2>=0) or
+  (-i+y>=0 and -k+n-1>=0 and x>=0 and k-y-1>=0 and i-x-2>=0) or
+  (-i+k+1>=0 and -k+y-1>=0 and x>=0 and n-y-1>=0 and i-x-2>=0) or
+  (-k+x=0 and -i+k>=0 and -k+y-1>=0 and n-y-1>=0 and i-1>=0) or
+  (-k+y=0 and -i+x>=0 and -k+n-1>=0 and k-x-1>=0 and i-1>=0) or
+  (-i+x>=0 and -k+n-1>=0 and -x+y-1>=0 and k-y-1>=0 and i-1>=0) or
+  (-i+x>=0 and -k+y-1>=0 and n-y-1>=0 and k-x-1>=0 and i-1>=0) or
+  (-i+k+1>=0 and -k+x-1>=0 and -x+y-1>=0 and n-y-1>=0 and i-1>=0) $
 
 g := 0<=x and x<y and y<n;
 
-h := n>=2 and all({x,y}, g impl f);
+hinv := rlsimpl(rlqe(sub({x=i,y=k}, finv)));
 
-p := rlqe h;
+fend :=
+  (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0) or
+  (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
+  (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0) or
+  (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
+  (-i+n-1=0 and -i+k+1>=0 and -k+y-1>=0 and x>=0 and i-k>=0 and 2i-k-x-3>=0) $
+
+hend := rlsimpl(rlqe(sub({x=i,y=k}, fend)));
+COMMENT false; END

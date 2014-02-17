@@ -9,7 +9,8 @@ var
   y1l: bool, y1r: bool,
   y2l: bool, y2r: bool,
   a: int, b:int,
-  min: int, tmp: int, tmp2: int;
+  min: int, tmp: int, tmp2: int,
+  sorted: bool;
 
 begin
   x = random;
@@ -27,7 +28,8 @@ begin
   y2r = false;
 
   i = 0;
-  /* while i<n-1 do */
+  while i<n-1 do
+    assume (i<=0 and i>=0) or (i>=1 and i<k and k<n);
     x0l = x<=i;
     x0r = x>=i;
     y0l = y<=i;
@@ -118,21 +120,16 @@ begin
           b = tmp2;
         endif;
       endif;
-   endif;
+    endif;
 
-   assume y==k;
-   assume x==0;
+    tmp = random;
+    tmp2 = random;
+    min = random;
+    sorted = a<=b;
 
-   tmp = random;
-   tmp2 = random;
-   k = random;
-   min = random;
+    i=i+1;
+  done;
 
-   /* i=i+1;
-   done; */
-
-  assume a>b;
-  a = random;
-  b = random;
-  i = random;
+  assume not sorted;
+  fail;
 end
