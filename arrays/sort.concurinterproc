@@ -13,6 +13,7 @@ var
 
 begin
   x = random;
+  y = random;
   assume x>=0 and x<y and y<n;
   a = random;
 
@@ -25,7 +26,7 @@ begin
   y2l = false;
   y2r = false;
 
-  while i<n-1 do 
+  /* while i<n-1 do  */
     x0l = x<=i;
     x0r = x>=i;
     y0l = y<=i;
@@ -79,7 +80,7 @@ begin
     done;
     j = random;
 
-    if k>i then
+    if k>=i then
       if x2l and x2r then
         tmp2 = a;
       else
@@ -112,12 +113,15 @@ begin
           b = tmp2;
         endif;
       endif;
-    endif;
-    tmp = random;
-    tmp2 = random;
+   endif;
 
-    i=i+1;
-   done;
+   tmp = random;
+   tmp2 = random;
 
-   assume a>b;
+   assume i<=x and i>=x;
+   assume k<=y and k>=y;
+
+    /* i=i+1; */
+   /* done; */
+
 end
