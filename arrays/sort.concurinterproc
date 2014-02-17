@@ -26,7 +26,8 @@ begin
   y2l = false;
   y2r = false;
 
-  while i<n-1 do
+  i = 0;
+  /* while i<n-1 do */
     x0l = x<=i;
     x0r = x>=i;
     y0l = y<=i;
@@ -119,13 +120,16 @@ begin
       endif;
    endif;
 
+   assume y==k;
+   assume x==0;
+
    tmp = random;
    tmp2 = random;
    k = random;
    min = random;
 
-   i=i+1;
-  done;
+   /* i=i+1;
+   done; */
 
   assume a>b;
   a = random;
