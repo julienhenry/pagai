@@ -1,46 +1,59 @@
-/* does not work */
 var
   n: int, i: int, j: int, k: int,
-  x: int, y: int,
+  x: int, y: int, z: int,
   x0l: bool, x0r: bool,
   x1l: bool, x1r: bool,
   x2l: bool, x2r: bool,
   y0l: bool, y0r: bool,
   y1l: bool, y1r: bool,
   y2l: bool, y2r: bool,
-  a: int, b:int,
-  min: int, tmp: int, tmp2: int,
-  sorted: bool;
+  z0l: bool, z0r: bool,
+  z1l: bool, z1r: bool,
+  z2l: bool, z2r: bool,
+  a: int, b:int, c:int,
+  min: int, tmp: int;
 
 begin
   x = random;
   y = random;
-  assume x>=0 and x<y and y<n;
-  a = random;
+  z = random;
+  assume x>=0 and x<y and y<z and z<n;
+  
 
   x0l = false;
   x0r = false;
   y0l = false;
   y0r = false;
+  z0l = false;
+  z0r = false;
   x2l = false;
   x2r = false;
   y2l = false;
   y2r = false;
+  z2l = false;
+  z2r = false;
 
   i = 0;
-  while i<n-1 do
-    assume (i<k and i>0 and k<n) or (i<=0 and i>=0 and k<n and k>0);
+
+  while i<2 /* n-1 */ do
+ 
     x0l = x<=i;
     x0r = x>=i;
     y0l = y<=i;
     y0r = y>=i;
+    z0l = z<=i;
+    z0r = z>=i;
     if x0l and x0r then
       min = a;
     else
       if y0l and y0r then
         min = b;
       else
-        min=random;
+        if z0l and z0r then
+          min = c;
+        else
+          min=random;
+        endif;
       endif;
     endif;
     k=i;
@@ -48,6 +61,8 @@ begin
     x2r = x>=k;
     y2l = y<=k;
     y2r = y>=k;
+    z2l = z<=k;
+    z2r = z>=k;
   
     tmp = random;
 
@@ -56,18 +71,26 @@ begin
     x1r = false;
     y1l = false;
     y1r = false;
+    z1l = false;
+    z1r = false;
     while j<n do
       x1l = x<=j;
       x1r = x>=j;
       y1l = y<=j;
       y1r = y>=j;
+      z1l = z<=j;
+      z1r = z>=j;
       if x1l and x1r then
         tmp = a;
       else
         if y1l and y1r then
           tmp = b;
         else
-	  tmp = random;
+	  if z1l and z1r then
+	    tmp = c;
+          else
+	    tmp = random;
+          endif;
         endif;
       endif;
       if tmp < min then
@@ -76,6 +99,8 @@ begin
         x2r = x>=k;
         y2l = y<=k;
         y2r = y>=k;
+        z2l = z<=k;
+        z2r = z>=k;
         min = tmp;
       endif;    
       j = j+1;
@@ -86,24 +111,21 @@ begin
     x1r = random;
     y1l = random;
     y1r = random;
+    z1l = random;
+    z1r = random;
 
-    if k>=i then
-      if x2l and x2r then
-        tmp2 = a;
-      else
-        if y2l and y2r then
-          tmp2 = b;
-        else
-	  tmp2 = random;
-        endif;
-      endif;
+    if k>i then
       if x0l and x0r then
         tmp = a;
       else
         if y0l and y0r then
           tmp = b;
         else
-	  tmp = random;
+	  if z0l and z0r then
+            tmp = c;
+          else
+	    tmp = random;
+          endif;
         endif;
       endif;
       if x2l and x2r then
@@ -111,25 +133,33 @@ begin
       else
         if y2l and y2r then
           b = tmp;
+        else
+          if z2l and z2r then
+            c = tmp;
+          endif;
         endif;
       endif;
       if x0l and x0r then
-        a = tmp2;
+        a = min;
       else
         if y0l and y0r then
-          b = tmp2;
+          b = min;
+        else
+          if z0l and z0r then
+            c = min;
+          endif;
         endif;
       endif;
     endif;
 
     tmp = random;
-    tmp2 = random;
     min = random;
-    sorted = a<=b;
-
     i=i+1;
   done;
 
-  assume not sorted;
-  fail;
+  assume x==0;
+  assume y==1;
+  assume a>c;
+
+  /* BOTTOM: for all y, t[y] >= t[0] */
 end
