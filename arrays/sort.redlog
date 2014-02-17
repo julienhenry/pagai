@@ -1,0 +1,7 @@
+f :=
+  (-i+y+1=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0 ) or
+  (-i+y+1=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0 ) or
+  (-i+n-1=0 and -i+k+1>=0 and -x+y-1>=0 and x>=0 and i-k>=0 and i-y-2>=0 ) or
+  (-i+y=0 and -i+n-1=0 and -i+k=0 and x>=0 and i-x-2>=0) or
+  (-i+y=0 and -i+n-1=0 and -i+k+1=0 and x>=0 and i-x-2>=0) or
+  (-x+y-1>=0 and x>=0 and n-y-1>=0 and i-n+1>=0);
