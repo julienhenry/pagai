@@ -117,4 +117,5 @@ begin
 
   assume x==0;
   assume a>b;
+  /* BOTTOM: for all y, t[y] >= t[0] */
 end
