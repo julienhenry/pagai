@@ -128,4 +128,7 @@ begin
   done;
 
   assume a>b;
+  a = random;
+  b = random;
+  i = random;
 end
