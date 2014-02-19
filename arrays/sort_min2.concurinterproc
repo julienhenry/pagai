@@ -7,13 +7,15 @@ var
   y0l: bool, y0r: bool,
   y1l: bool, y1r: bool,
   y2l: bool, y2r: bool,
-  a: int, b:int,
+  a: int, b:int, a_pre: int,
   min: int, tmp: int;
 
 begin
   assume i>=0 and i<n-1;
 
-  assume x>=i and x<=y and y<n;
+  assume x>=0 and x<=y and y<n;
+
+  a_pre = a;
 
   x0l = false;
   x0r = false;
@@ -102,6 +104,7 @@ begin
       endif;
     endif;
 
-  assume x==0;
-  assume a>b;
+  min = random;
+  tmp = random;
+  k = random;
 end
