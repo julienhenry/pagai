@@ -30,6 +30,9 @@ procedure candidate(iteration);
 procedure unequal(a,b);
   rlqe(ex({x,y,i,n}, (a and not b) or (b and not a)));
 
-iter1 := step(init);
+iter1 := step(init) $
 unequal(iter1, candidate(1)); % false
+
+iter2 := step(candidate(1)) $
+unequal(iter2, candidate(2));
 

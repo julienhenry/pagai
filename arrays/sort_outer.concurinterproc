@@ -1,17 +1,13 @@
-var n: int, i: int, x: int, y: int, a: int, b: int, apre: int, bpre: int,
-  taken: bool;
+var n: int, i: int, x: int, y: int, a: int, b: int, taken: bool;
 
 begin
-  assume 0<=x and x<y and y<n;
+  assume 0<=x and x<=y and y<n;
   i = 0;
   taken = false;
   while i<n do
-    apre = a;
-    bpre = b;
     a = random;
     b = random;
-    /* inner loop spec: forall x<y, x<i => a[x] <= b[y] */
-    if x < i then
+    if x <= i and x>=i then
       taken = true;
       assume a <= b;
     endif;

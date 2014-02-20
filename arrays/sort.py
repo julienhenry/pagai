@@ -72,3 +72,9 @@ inv = [
    And(-i+k+1>=0, -k+x-1>=0, -x+y-1>=0, -y+z-1>=0, n-z-1>=0, i-1>=0)),
   (And(Not(x0l), Not(x0r), Not(x2l), Not(x2r), Not(y0l), Not(y0r), Not(y2l), Not(y2r), Not(z0l), Not(z0r), Not(z2l), Not(z2r)),
    And(i==0, -x+y-1>=0, -y+z-1>=0, x>=0, n-z-1>=0))];
+
+qe = Tactic('qe')
+simplify=Repeat(Then('nnf','ctx-solver-simplify'))
+def simpl(f):
+  return apply(And, Then(qe, simplify)(f)[0])
+
