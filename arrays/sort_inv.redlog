@@ -1,0 +1,16 @@
+load_package redlog;
+rlset z;
+
+univ := 0<=x and x<y and y<n and n>=3;
+
+procedure inner(pre);
+  ex({a,b}, pre) and (x<i and y<i impl pre) and (x=i impl a<=b);
+
+init := univ and i=0;
+
+i1 := rlqe(inner(init)) $
+i2 := sub({y=z,b=c},i1) and sub({x=z,a=c},i1) $
+i3 := rlqe(i1 and rlqe(all(z, (0<=x and x<z and z<y and y<n) impl ex(c, i2)))) $
+i4 := univ and i=0 and (x=0 impl a<=b); % equiv i1
+
+ 
