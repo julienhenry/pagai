@@ -1,20 +1,24 @@
-extern int wait();
+#include <pagai_assert.h>
+
 extern int input();
+extern int wait();
+
 void rate_limiter() {
   int x_old;
+  int x;
   x_old = 0;
   while (1) {
-    int x = input();
-    if (x < -10000 || x > 10000) {
-		x = 0;
-		x_old = 0;
-	}
+	x = input();
+	assume (x >= -100000);
+	assume (x <= 100000);
     if (x > x_old+10)
         x = x_old+10;
     if (x < x_old-10)
         x = x_old-10;
-	if (wait()) while (wait()) {}
     x_old = x;
+	if (wait()) {
+		while (wait()) {}
+	}
   }
 }
 
