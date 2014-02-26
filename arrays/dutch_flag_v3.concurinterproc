@@ -117,6 +117,8 @@ begin
   /* assume x>=q;
   assume not (datax==HIGH);
   OK */
+  i = random;
   assume y>p and y<q;
-  assume (datay == HIGH);
+  assume datay == HIGH;
+  fail;
 end
