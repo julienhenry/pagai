@@ -107,6 +107,6 @@ begin
       endif;
     endif;
 
-  assume x==0;
+  assume x==i;
   assume a>b;
 end
