@@ -106,7 +106,8 @@ begin
         endif;
       endif;
     endif;
-
-  assume x==i;
-  assume a>b;
+  min = random;
+  tmp = random;
+  /* assume x==i;
+  assume a>b; */
 end
