@@ -13,7 +13,7 @@ var
 begin
   assume i>=0 and i<n-1;
 
-  assume x>=i and x<y and y<n;
+  assume x>=0 and x<y and y<n;
 
   x0l = false;
   x0r = false;
