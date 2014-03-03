@@ -1,6 +1,6 @@
 typedef kind = enum { LOW, MIDDLE, HIGH };
 
-var n: int, i: int, p: int, q: int, read: kind, read2: kind, data: kind,
+var n: int, i: int, p: int, q: int, read: kind, read2: kind, data: kind, /* old: kind,*/
   x: int,
   x0l: bool, x0r: bool,
   x1l: bool, x1r: bool,
@@ -23,6 +23,9 @@ begin
     if p>=i then fail; endif;
     if i>=q then fail; endif;
     if q>n then fail; endif;
+    /* if x>=q and data!=HIGH then fail; endif;
+    if x<=p and data!=LOW then fail; endif; */
+    /* if x<i and data==HIGH then fail; endif; */
 
     x0l = x<=i;
     x0r = x>=i;
@@ -37,9 +40,11 @@ begin
       x1r = x>=p;
       if x1l and x1r then
         read2 = data;
+	/* old = data; */
         data = read;
       endif;
       if x0l and x0r then
+        /* old = data; */
         data = read2;
       endif;
       i = i+1;
@@ -51,28 +56,24 @@ begin
         x2r = x>=q;
         if x2l and x2r then
           read2 = data;
+          /* old = data; */
           data = read;
         endif;
         if x0l and x0r then
+          /* old = data; */
           data = read2;
         endif;
       else
         i = i+1;
       endif;
     endif;
-    if x>p and x<i then
-      if data!=MIDDLE then
-        fail;
-      endif;
-    endif;
     read = random;
     read2 = random;
   done;
-  /* assume x<=p;
+  assume x<=p;
   assume not (data==LOW);
-  OK */
   /* assume x>=q;
   assume not (data==HIGH);
   OK */
-  assume x>p and x<q;
+  /* assume x>p and x<q; */
 end

@@ -11,7 +11,7 @@ var n: int, i: int, p: int, q: int, read: kind, read2: kind,
   y2l: bool, y2r: bool;
 
 begin
-  assume 0<=x and x<=y and y<n;
+  assume 0<=x and x<y and y<n;
   p = -1;
   q = n;
   i = 0;
@@ -113,4 +113,6 @@ begin
   done;
   i = random;
   datax = random;
+  assume datay == HIGH;
+  fail;
 end
