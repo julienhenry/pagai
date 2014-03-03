@@ -49,11 +49,19 @@ def simpl(f):
 
 middle3 = And(middle2,0<=y,y<n,n>=2);
 middle4 = And(p>=-1, p<y, y<q, q<=n, n>=2);
+middle5 = simpl(middle3)
 
 # middle3 <=> middle4
 print solve(And(middle4, Not(middle3)));
 # no solution
 print solve(And(middle3, Not(middle4)));
+# no solution
+
+print "middle:", middle5
+# middle3 <=> middle4
+print solve(And(middle4, Not(middle5)));
+# no solution
+print solve(And(middle5, Not(middle4)));
 # no solution
 
 # simpl(middle3)
@@ -103,10 +111,17 @@ high = Or(
 high2 = ForAll(x, Implies(And(0<=x, x<=y), high));
 high3 = And(high2,0<=y, y<n, n>=2);
 high4 = And(p>=-1, p<q, y>=q, y<n, n>=2);
+high5 = simpl(high3)
 
 print solve(And(high4, Not(high3)));
 # no solution
 print solve(And(high3, Not(high4)));
+# no solution
+
+print "high:", high5
+print solve(And(high4, Not(high5)));
+# no solution
+print solve(And(high5, Not(high4)));
 # no solution
 
 low = Or(
@@ -145,8 +160,15 @@ low = Or(
 low2 = ForAll(x, Implies(And(0<=x, x<=y), low));
 low3 = And(low2, 0<=y, y<n, n>=2);
 low4 = And(p>=-1, p<q, y<=p, y>=0, q<=n, n>=2);
+low5 = simpl(low3)
 
 print solve(And(low4, Not(low3)));
 # no solution
 print solve(And(low3, Not(low4)));
+# no solution
+
+print "low:", low5
+print solve(And(low4, Not(low5)));
+# no solution
+print solve(And(low5, Not(low4)));
 # no solution
