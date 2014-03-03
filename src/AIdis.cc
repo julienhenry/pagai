@@ -93,8 +93,7 @@ bool AIdis::runOnModule(Module &M) {
 
 		LSMT->reset_SMTcontext();
 	}
-	if (OutputAnnotatedFile())
-		generateAnnotatedFile(F->getParent());
+	generateAnnotatedFiles(F->getParent(),OutputAnnotatedFile());
 	return 0;
 }
 
