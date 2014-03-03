@@ -37,7 +37,8 @@ middle = Or(
 middle2 = ForAll(x, And(y>=0, y<n, Implies(And(0<=x, x<=y), middle)));
 
 qe = Tactic('qe')
-simplify=Repeat(Then('nnf','ctx-solver-simplify'))
+# simplify=Repeat(Then('nnf','ctx-solver-simplify'))
+simplify=Repeat(Then(OrElse('split-clause', 'nnf'), 'propagate-ineqs', 'ctx-solver-simplify'))
 def simpl(f):
   l = Then(qe, simplify)(f)[0]
   if len(l)==0:
