@@ -226,7 +226,7 @@ void AIPass::generateAnnotatedCode(
 					BasicBlock * b = Iit->second;
 					// compute the left padding
 					std::string left = line.substr(0,columnNo-1);
-					printInvariant(b,left);
+					printInvariant(b,left,oss);
 					Iit++;
 				}
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
@@ -349,7 +349,7 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 					b = Iit->second;
 					// compute the left padding
 					std::string left = line.substr(0,columnNo-1);
-					printInvariant(b,left);
+					printInvariant(b,left, oss);
 					Iit++;
 				}
 				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
