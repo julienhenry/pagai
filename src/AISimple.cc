@@ -126,8 +126,7 @@ bool AISimple::runOnModule(Module &M) {
 		printResult(F);
 		TerminateFunction();
 	}
-	if (OutputAnnotatedFile())
-		generateAnnotatedFile(F->getParent());
+	generateAnnotatedFiles(F->getParent(),OutputAnnotatedFile());
 	return 0;
 }
 

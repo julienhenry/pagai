@@ -93,9 +93,8 @@ bool AIopt::runOnModule(Module &M) {
 
 		LSMT->reset_SMTcontext();
 	}
-	if (OutputAnnotatedFile())
-		generateAnnotatedFile(F->getParent());
-
+	generateAnnotatedFiles(F->getParent(),OutputAnnotatedFile());
+	
 	SMTpass::releaseMemory();
 	return 0;
 }

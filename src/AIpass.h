@@ -329,13 +329,20 @@ class AIPass : private InstVisitor<AIPass> {
 		std::string getUndefinedBehaviourMessage(BasicBlock * b);
 
 		void generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F);
-		void generateAnnotatedFile(Module * M);
 
+		void computeResultsPositions(
+			Function * F,
+			std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > * files 
+		);
+		void generateAnnotatedFiles(Module * M, bool outputfile);
+		void generateAnnotatedCode(llvm::raw_ostream * oss, std::string filename, std::multimap<std::pair<int,int>,BasicBlock*> * positions);
 
 		/** 
 		 * \brief print a basicBlock on standard output
 		 */
 		static void printBasicBlock(BasicBlock * b);
+
+		void printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream * oss);
 
 	
 		/** 

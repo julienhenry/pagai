@@ -79,8 +79,7 @@ bool AIGuided::runOnModule(Module &M) {
 		}
 		pathtree.clear();
 	}
-	if (OutputAnnotatedFile())
-		generateAnnotatedFile(F->getParent());
+	generateAnnotatedFiles(F->getParent(),OutputAnnotatedFile());
 	return 0;
 }
 
