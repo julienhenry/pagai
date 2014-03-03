@@ -119,6 +119,6 @@ begin
   OK */
   i = random;
   assume y>p and y<q;
-  assume datay == HIGH;
+  assume datay == LOW;
   fail;
 end
