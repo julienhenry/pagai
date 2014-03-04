@@ -110,6 +110,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
 		
 		clang::CompilerInstance Clang;
+		Clang.getCodeGenOpts().DebugColumnInfo = 1;
 		Clang.setInvocation(CI.take());
 		Clang.setDiagnostics(Diags);
 
@@ -129,6 +130,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		M = module;
 	}
 
+	*Out << *M;
 	if (M == NULL) return;
 
 	PassRegistry &Registry = *PassRegistry::getPassRegistry();

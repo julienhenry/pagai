@@ -53,7 +53,12 @@ class recoverName {
 
 		static std::set<Info,compare_Info> getPossibleMappings(const Value * V, std::set<const Value *> * seen);
 		
-		static void fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * val);
+		static void fill_info_set(
+				BasicBlock * b, 
+				std::set<Info> * infos, 
+				Value * val,
+				std::set<BasicBlock*> * seen
+				);
 
 	public:
 		static Info getMDInfos_rec(Value* v,std::set<Value*> & seen);

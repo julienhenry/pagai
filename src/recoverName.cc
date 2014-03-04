@@ -23,7 +23,8 @@ std::map<BasicBlock*,int> Block_line,Block_column;
 
 std::map<Value*,Info> computed_mappings;
 
-void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * val) {
+void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * val, std::set<BasicBlock*> * seen) {
+	seen->insert(b);
 	for (BasicBlock::iterator I = b->begin(), E = b->end(); I != E; ++I) {
 		if (const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
 			if (DVI->getValue() == val) {
@@ -33,14 +34,10 @@ void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * 
 			}
 		}
 	}
-	BasicBlock * pred = b->getUniquePredecessor();
-	if (pred != NULL) fill_info_set(pred,infos,val);
-	
-	llvm::DomTreeNodeBase<llvm::BasicBlock>*dominator;
-	if (pred_begin(b) != pred_end(b)) {
-		dominator = DT->getNode(b)->getIDom();
-	} else {
-		dominator = NULL;
+	for (pred_iterator PI = pred_begin(b), E = pred_end(b); PI != E; ++PI) {
+		BasicBlock *pred = *PI;
+		if (seen->count(pred) == 0)
+			fill_info_set(pred,infos,val, seen);
 	}
 }
 
@@ -56,7 +53,8 @@ Info recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
 		Value * val = phi->getIncomingValue(i);
 		BasicBlock * b = phi->getIncomingBlock(i);
 		std::set<Info> infos;
-		fill_info_set(b,&infos,val);
+		std::set<BasicBlock*> block_seen;
+		fill_info_set(b,&infos,val,&block_seen);
 		//if (infos.size() == 0 && !seen.count(val) && isa<PHINode>(val)) {
 		if (infos.size() == 0 && !seen.count(val)) {
 			std::set<Value*> s;
