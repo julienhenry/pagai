@@ -52,8 +52,11 @@ class recoverName {
 		static void print_set(std::set<Info,compare_Info> * s);
 
 		static std::set<Info,compare_Info> getPossibleMappings(const Value * V, std::set<const Value *> * seen);
+		
+		static void fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * val);
 
 	public:
+		static Info getMDInfos_rec(Value* v,std::set<Value*> & seen);
 		static Info getMDInfos(const Value* V);
 		static int process(Function* F);
 		static int getFunctionLineNo(Function* F);

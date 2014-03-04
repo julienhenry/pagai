@@ -9,6 +9,7 @@
 #include "recoverName.h"
 #include "Debug.h"
 #include "SMTpass.h"
+#include "llvm/Analysis/Dominators.h"
 
 #define MAX 0xFFFFFFFF
 
@@ -22,9 +23,76 @@ std::map<BasicBlock*,int> Block_line,Block_column;
 
 std::map<Value*,Info> computed_mappings;
 
+void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * val) {
+	for (BasicBlock::iterator I = b->begin(), E = b->end(); I != E; ++I) {
+		if (const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
+			if (DVI->getValue() == val) {
+				MDNode * MD = DVI->getVariable(); 
+				Info varInfo = resolveMetDescriptor(MD);
+				infos->insert(varInfo);
+			}
+		}
+	}
+	BasicBlock * pred = b->getUniquePredecessor();
+	if (pred != NULL) fill_info_set(pred,infos,val);
+	
+	llvm::DomTreeNodeBase<llvm::BasicBlock>*dominator;
+	if (pred_begin(b) != pred_end(b)) {
+		dominator = DT->getNode(b)->getIDom();
+	} else {
+		dominator = NULL;
+	}
+}
+
+Info recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
+	*Out << "getMD rec " << *v << "\n";
+	if (computed_mappings.count(v)) return computed_mappings[v];
+	///////
+	PHINode * phi = dyn_cast<PHINode>(v);
+	assert(phi != NULL);
+
+	std::set<Info> res_infos;
+	for (unsigned i = 0; i < phi->getNumIncomingValues(); i++) {
+		Value * val = phi->getIncomingValue(i);
+		BasicBlock * b = phi->getIncomingBlock(i);
+		std::set<Info> infos;
+		fill_info_set(b,&infos,val);
+		//if (infos.size() == 0 && !seen.count(val) && isa<PHINode>(val)) {
+		if (infos.size() == 0 && !seen.count(val)) {
+			std::set<Value*> s;
+			s.insert(seen.begin(),seen.end());
+			s.insert(val);
+			infos.insert(getMDInfos_rec(val,s));
+		}
+		if (res_infos.empty()) {
+			res_infos.insert(infos.begin(),infos.end());
+		} else if (infos.size() > 0) {
+			std::set<Info> new_res_infos;
+			std::set<Info>::iterator it = res_infos.begin(), et = res_infos.end();
+			for (; it != et; it++) {
+				if (infos.count(*it)) new_res_infos.insert(*it);
+			}
+			res_infos.clear();
+			res_infos.insert(new_res_infos.begin(),new_res_infos.end());
+		}
+	}
+	computed_mappings[v] = *res_infos.begin();
+	return *res_infos.begin();
+}
+
 Info recoverName::getMDInfos(const Value* V) {
 	Value * v = const_cast<Value*>(V);
 	if (computed_mappings.count(v)) return computed_mappings[v];
+	
+	///////
+	if (PHINode * phi = dyn_cast<PHINode>(v)) {
+		*Out << "getMD " << *phi << "\n";
+		std::set<Value*> seen;
+		seen.insert(phi);
+		return getMDInfos_rec(v,seen);
+	}
+	///////
+	
 	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
 	std::multimap<const Value*,Info>::iterator it;
