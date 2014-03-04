@@ -42,7 +42,7 @@ void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * 
 }
 
 Info recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
-	*Out << "getMD rec " << *v << "\n";
+	DEBUG(*Out << "getMD rec " << *v << "\n";);
 	if (computed_mappings.count(v)) return computed_mappings[v];
 	///////
 	PHINode * phi = dyn_cast<PHINode>(v);
@@ -82,24 +82,24 @@ Info recoverName::getMDInfos(const Value* V) {
 	Value * v = const_cast<Value*>(V);
 	if (computed_mappings.count(v)) return computed_mappings[v];
 	
-	///////
 	if (PHINode * phi = dyn_cast<PHINode>(v)) {
-		*Out << "getMD " << *phi << "\n";
+		DEBUG(*Out << "getMD " << *phi << "\n";);
 		std::set<Value*> seen;
 		seen.insert(phi);
 		return getMDInfos_rec(v,seen);
 	}
-	///////
 	
 	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
 	std::multimap<const Value*,Info>::iterator it;
 
-	if(ret1.first!=ret1.second) {
-		it=ret1.first;
+	for (it = ret1.first; it != ret1.second; it++) {
 		computed_mappings[v] = (it)->second;
+		if (isa<Argument>(v) && !(it)->second.IsArg()) continue;
+		if (isa<GlobalValue>(v) && !(it)->second.IsGlobal()) continue;
 		return (it)->second;
 	}
+
 	std::set<const Value*> seen;
 	seen.insert(V);
 	std::set<Info,compare_Info> possible_mappings = getPossibleMappings(V,&seen);
@@ -236,18 +236,31 @@ Info recoverName::resolveMetDescriptor(MDNode* md) {
 	int varNameLoc,lineNoLoc,typeLoc;
 
 	bool assigned=false;
+	bool islocal = false, isarg = false, isret = false, isglobal = false;
 	if(const ConstantInt *Tag = dyn_cast<ConstantInt>(md->getOperand(0)))
 	{
 		tag=Tag->getZExtValue()-LLVM_DEBUG_VERSION; 	
 		switch(tag)
 		{
 			case 256: //DW_TAG_AUTO_VARIABLE
+						islocal=true;
+						varNameLoc=2;lineNoLoc=4;typeLoc=5;
+						assigned=true;
+						break;
 			case 257: //DW_TAG_arg_variable
+						isarg=true;
+						varNameLoc=2;lineNoLoc=4;typeLoc=5;
+						assigned=true;
+						break;
 			case 258: //DW_TAG_return_variable
-						varNameLoc=2;lineNoLoc=4;typeLoc=5;assigned=true;
+						isret=true;
+						varNameLoc=2;lineNoLoc=4;typeLoc=5;
+						assigned=true;
 						break;
 			case 52: //DW_TAG_variable
-						varNameLoc=3;lineNoLoc=7;typeLoc=8;assigned=true;
+						isglobal=true;
+						varNameLoc=3;lineNoLoc=7;typeLoc=8;
+						assigned=true;
 						break;
 		}	
 	}	
@@ -306,11 +319,10 @@ Info recoverName::resolveMetDescriptor(MDNode* md) {
 				}
 			}
 		}
-		Info res(name,lineNo,type);
+		Info res(name,lineNo,type,islocal,isarg,isret,isglobal);
 		return res;
 	}
-	Info res("",-1,"");
-	return res;
+	assert(false);
 }
 
 void recoverName::update_line_column(Instruction * I, unsigned & line, unsigned & column) {
@@ -355,7 +367,6 @@ void recoverName::pass1(Function *F) {
 				MD = DDI->getVariable(); 
 				dbgInstFlag=true;
 			}
-
 			if(dbgInstFlag) {
 				Info varInfo=resolveMetDescriptor(MD);
 				if(!varInfo.empty()) {
@@ -369,7 +380,6 @@ void recoverName::pass1(Function *F) {
 							AlreadyMapped=true;
 							break;
 						} 
-
 					}
 					if(!AlreadyMapped) {
 						std::pair<const Value*,Info>hi=std::make_pair(val,varInfo);
@@ -380,12 +390,10 @@ void recoverName::pass1(Function *F) {
 		}
 		Block_line.insert(std::make_pair(bb,bbline));
 
-		//Block_column.insert(std::make_pair(bb,bbcolumn));
-		
-		// bbcolumn is set to 1, since new versions of LLVM always set it to 0
+		// bbcolumn is set to 1 at least, since new versions of LLVM always set it to 0
 		// instead of the correct column number...
-		Block_column.insert(std::make_pair(bb,1));
-		//*Out << "(" << bbline << "," << bbcolumn << ")\n";
+		// if we keep 0, invariants won't be printed correctly
+		Block_column.insert(std::make_pair(bb,(1>bbcolumn)?1:bbcolumn));
 	}	
 }
 

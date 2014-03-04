@@ -130,7 +130,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		M = module;
 	}
 
-	*Out << *M;
 	if (M == NULL) return;
 
 	PassRegistry &Registry = *PassRegistry::getPassRegistry();

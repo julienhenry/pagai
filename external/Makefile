@@ -19,7 +19,7 @@ CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.37
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=2012-12-21
-LLVM_VERSION=3.3
+LLVM_VERSION=3.4
 APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
 CUDD_XCFLAGS=
@@ -74,7 +74,7 @@ CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
 Z3_ARCHIVE=z3_$(Z3_VERSION).tar.bz2
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).src.tar.gz
-CLANG_ARCHIVE=cfe-$(LLVM_VERSION).src.tar.gz
+CLANG_ARCHIVE=clang-$(LLVM_VERSION).src.tar.gz
 APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
 PPL_ARCHIVE=ppl-$(PPL_VERSION).tar.gz
 
@@ -162,7 +162,8 @@ $(DEST)/$(LLVM_ARCHIVE):
 	$(DOWNLOAD) "http://llvm.org/releases/$(LLVM_VERSION)/$(LLVM_ARCHIVE)" "$@"
 
 $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac: $(DEST)/$(LLVM_ARCHIVE)
-	cd $(DEST) && $(TAR) xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
+	#cd $(DEST) && $(TAR) xzvf "$(LLVM_ARCHIVE)" && mv llvm-$(LLVM_VERSION).src llvm-$(LLVM_VERSION)
+	cd $(DEST) && $(TAR) xzvf "$(LLVM_ARCHIVE)"
 	touch -c "$@"
 
 $(LLVM_COMPILED) $(CLANG_COMPILED): $(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt
@@ -177,7 +178,7 @@ $(DEST)/$(CLANG_ARCHIVE):
 $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 		$(DEST)/llvm-$(LLVM_VERSION)/autoconf/configure.ac
 	-$(RM) -r $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/
-	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && $(TAR) xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv cfe-$(LLVM_VERSION).src clang
+	cd $(DEST)/llvm-$(LLVM_VERSION)/tools/ && $(TAR) xzvf "$(DEST_ABS)/$(CLANG_ARCHIVE)" && mv clang-$(LLVM_VERSION) clang
 	touch -c "$@"
 
 #### Apron
