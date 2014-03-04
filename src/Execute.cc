@@ -4,20 +4,17 @@
  * \author Julien Henry
  */
 #include "llvm/IR/Module.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/Bitcode/ReaderWriter.h"
-//#include "llvm/LinkAllVMCore.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/system_error.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_os_ostream.h"
-
-//#include "llvm/Target/TargetData.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Transforms/Scalar.h"
-
 #include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/LoopInfo.h"
 
