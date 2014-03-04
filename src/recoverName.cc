@@ -28,6 +28,7 @@ void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * 
 	for (BasicBlock::iterator I = b->begin(), E = b->end(); I != E; ++I) {
 		if (const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
 			if (DVI->getValue() == val) {
+				//*Out << "match found between " << *val << " " << *DVI->getValue() << "\n";
 				MDNode * MD = DVI->getVariable(); 
 				Info varInfo = resolveMetDescriptor(MD);
 				infos->insert(varInfo);
@@ -41,26 +42,33 @@ void recoverName::fill_info_set(BasicBlock * b, std::set<Info> * infos, Value * 
 	}
 }
 
-Info recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
-	DEBUG(*Out << "getMD rec " << *v << "\n";);
-	if (computed_mappings.count(v)) return computed_mappings[v];
-	///////
-	PHINode * phi = dyn_cast<PHINode>(v);
-	assert(phi != NULL);
-
+std::set<Info> recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
 	std::set<Info> res_infos;
+	PHINode * phi = dyn_cast<PHINode>(v);
+	if (phi == NULL) {
+		std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> in_Map;
+		in_Map=M1.equal_range(v);
+		std::multimap<const Value*,Info>::iterator itt;
+		for (itt = in_Map.first; itt!=in_Map.second; itt++) {
+			res_infos.insert(itt->second);
+		}
+		return res_infos;
+	}
+
 	for (unsigned i = 0; i < phi->getNumIncomingValues(); i++) {
 		Value * val = phi->getIncomingValue(i);
+		if (isa<UndefValue>(val)) continue;
 		BasicBlock * b = phi->getIncomingBlock(i);
 		std::set<Info> infos;
 		std::set<BasicBlock*> block_seen;
 		fill_info_set(b,&infos,val,&block_seen);
-		//if (infos.size() == 0 && !seen.count(val) && isa<PHINode>(val)) {
-		if (infos.size() == 0 && !seen.count(val)) {
+		if (infos.size() == 0 && !seen.count(val) && isa<PHINode>(val)) {
+		//if (infos.size() == 0 && !seen.count(val)) {
 			std::set<Value*> s;
 			s.insert(seen.begin(),seen.end());
 			s.insert(val);
-			infos.insert(getMDInfos_rec(val,s));
+			std::set<Info> res = getMDInfos_rec(val,s);
+			infos.insert(res.begin(),res.end());
 		}
 		if (res_infos.empty()) {
 			res_infos.insert(infos.begin(),infos.end());
@@ -74,8 +82,8 @@ Info recoverName::getMDInfos_rec(Value* v,std::set<Value*> & seen) {
 			res_infos.insert(new_res_infos.begin(),new_res_infos.end());
 		}
 	}
-	computed_mappings[v] = *res_infos.begin();
-	return *res_infos.begin();
+	std::set<Info>::iterator it = res_infos.begin(), et = res_infos.end();
+	return res_infos;
 }
 
 Info recoverName::getMDInfos(const Value* V) {
@@ -83,12 +91,13 @@ Info recoverName::getMDInfos(const Value* V) {
 	if (computed_mappings.count(v)) return computed_mappings[v];
 	
 	if (PHINode * phi = dyn_cast<PHINode>(v)) {
-		DEBUG(*Out << "getMD " << *phi << "\n";);
+		//*Out << "getMD " << *phi << "\n";
 		std::set<Value*> seen;
 		seen.insert(phi);
-		return getMDInfos_rec(v,seen);
+		std::set<Info> s = getMDInfos_rec(v,seen);
+		computed_mappings[v] = *s.begin();
+		return *s.begin();
 	}
-	
 	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
 	std::multimap<const Value*,Info>::iterator it;
@@ -97,6 +106,12 @@ Info recoverName::getMDInfos(const Value* V) {
 		computed_mappings[v] = (it)->second;
 		if (isa<Argument>(v) && !(it)->second.IsArg()) continue;
 		if (isa<GlobalValue>(v) && !(it)->second.IsGlobal()) continue;
+		computed_mappings[v] = it->second;
+		DEBUG(
+		*Out << "for " << *V << " " ;
+		it->second.display();
+		*Out <<  "\n";
+		);
 		return (it)->second;
 	}
 

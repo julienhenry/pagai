@@ -61,7 +61,7 @@ class recoverName {
 				);
 
 	public:
-		static Info getMDInfos_rec(Value* v,std::set<Value*> & seen);
+		static std::set<Info> getMDInfos_rec(Value* v,std::set<Value*> & seen);
 		static Info getMDInfos(const Value* V);
 		static int process(Function* F);
 		static int getFunctionLineNo(Function* F);
