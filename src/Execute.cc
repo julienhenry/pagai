@@ -247,9 +247,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	//*Out << *M;
 	std::string error;
-	raw_fd_ostream * BitcodeOutput = new raw_fd_ostream("hello.bc", error);
-	WriteBitcodeToFile(M, *BitcodeOutput);
-	BitcodeOutput->close();
+	
+	//raw_fd_ostream * BitcodeOutput = new raw_fd_ostream("pagai_output.bc", error);
+	//WriteBitcodeToFile(M, *BitcodeOutput);
+	//BitcodeOutput->close();
 
 	if (onlyOutputsRho()) {
 		return;
