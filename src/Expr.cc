@@ -3,6 +3,8 @@
  * \brief Implementation of the Expr class
  * \author Julien Henry
  */
+
+#define UNDEF_ADRESS 0x0
 #include <map>
 
 #include "llvm/Support/CFG.h"
@@ -140,12 +142,27 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 		res = ap_texpr1_cst_scalar_int(emptyenv,0);
 	}
 	if (isa<UndefValue>(val)) {
+		//assert(false && "non-initialised value in the analysed code");
 		res = create_ap_expr((ap_var_t)val);
 	}
 	if (res == NULL)
 		res = create_ap_expr((ap_var_t)val);
 	ap_environment_free(emptyenv);
 	return res;
+}
+
+int undef_ai_counter = 0;
+std::set<ap_var_t> undef_ap_vars;
+		
+bool Expr::is_undef_ap_var(ap_var_t var) {
+	return undef_ap_vars.count(var);
+}
+
+ap_texpr1_t * Expr::create_ap_expr(UndefValue * undef) {
+	undef_ai_counter++;
+	ap_var_t v = (ap_var_t)(UNDEF_ADRESS + undef_ai_counter);
+	undef_ap_vars.insert(v);
+	return create_ap_expr(v);
 }
 
 ap_texpr1_t * Expr::create_ap_expr(ap_var_t var) {

@@ -34,6 +34,7 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 		ap_texpr1_t * create_expression(Value * val);
 		ap_texpr1_t * create_ap_expr(Constant * val);
 		ap_texpr1_t * create_ap_expr(ap_var_t var);
+		ap_texpr1_t * create_ap_expr(UndefValue * undef);
 
 		static void texpr1_print(ap_texpr1_t * expr);
 
@@ -49,8 +50,8 @@ class Expr : public InstVisitor<Expr,ap_texpr1_t*> {
 
 		static void tcons1_array_print(ap_tcons1_array_t * cons);
 
+		static bool is_undef_ap_var(ap_var_t var);
 	public:
-
 
 		~Expr();
 

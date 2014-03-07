@@ -61,10 +61,10 @@ void AIPass::narrowingIter(Node * n) {
 void AIPass::initFunction(Function * F) {
 	Node * n;
 	CurrentAIpass = this;
-	if (recoverName::hasMetadata(F)) {
+	if (preferedOutput() != LLVM_OUTPUT && recoverName::hasMetadata(F)) {
 		if (recoverName::is_readable(F)) {
-		recoverName::process(F);
-		set_useSourceName(true);
+			recoverName::process(F);
+			set_useSourceName(true);
 		} else {
 			set_useSourceName(false);
 		}
@@ -100,10 +100,10 @@ void AIPass::initFunction(Function * F) {
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out  	<< "/* processing Function "<<F->getName()<< " */\n";
 		Out->resetColor();
-		if (!useSourceName()) {
-			for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
-				printBasicBlock(i);
-		}
+		//if (!useSourceName()) {
+		//	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
+		//		printBasicBlock(i);
+		//}
 	}
 }
 
@@ -159,6 +159,8 @@ void AIPass::computeResultsPositions(
 }
 
 void AIPass::generateAnnotatedFiles(Module * M, bool outputfile) {
+	if (!useSourceName()) 
+		return;
 	std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > files;
 
 	for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
@@ -273,20 +275,22 @@ void AIPass::printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream 
 				*oss << left;
 			}
 		} else {
-			if (!Nodes[b]->X_s[passID]->is_top()) {
-				if (Nodes[b]->X_s[passID]->is_bottom()) {
-					oss->changeColor(raw_ostream::MAGENTA,true);
-					*oss << "/* UNREACHABLE */\n"; 
-					oss->resetColor();
-				} else {
-					oss->changeColor(raw_ostream::MAGENTA,true);
-					*oss << "/* invariant:\n"; 
-					Nodes[b]->X_s[passID]->display(*oss,&left);
-					*oss << left << "*/\n";
-					oss->resetColor();
-				}
-				*oss << left;
+			if (Nodes[b]->X_s[passID]->is_bottom()) {
+				oss->changeColor(raw_ostream::MAGENTA,true);
+				*oss << "/* UNREACHABLE */\n"; 
+				oss->resetColor();
+			} else if (Nodes[b]->X_s[passID]->is_top()) {
+				oss->changeColor(raw_ostream::MAGENTA,true);
+				*oss << "/* reachable */\n"; 
+				oss->resetColor();
+			} else {
+				oss->changeColor(raw_ostream::MAGENTA,true);
+				*oss << "/* invariant:\n"; 
+				Nodes[b]->X_s[passID]->display(*oss,&left);
+				*oss << left << "*/\n";
+				oss->resetColor();
 			}
+			*oss << left;
 		}
 	}
 }
@@ -428,10 +432,13 @@ void AIPass::printResult(Function * F) {
 			Instruction * Inst = b->getFirstNonPHI();
 			//Instruction * Inst = &b->front();
 			std::vector<Value*> arr;
-			n->X_s[passID]->to_MDNode(Inst,&arr);
-			LLVMContext& C = Inst->getContext();
-			MDNode* N = MDNode::get(C,arr);
-			Inst->setMetadata("pagai.invariant", N);
+			
+			if (generateMetadata()) {
+				n->X_s[passID]->to_MDNode(Inst,&arr);
+				LLVMContext& C = Inst->getContext();
+				MDNode* N = MDNode::get(C,arr);
+				Inst->setMetadata("pagai.invariant", N);
+			}
 
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
 			Out->resetColor();
@@ -788,7 +795,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 			DEBUG(
+					*Out << "Constraint: ";
 					((*i)->front())->print();
+					*Out << "\n";
 				 );
 			//Xtemp->meet_tcons_array((*i)->front());
 			intersect.add_constraint((*i)->front());
@@ -825,7 +834,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		Xtemp->meet_tcons_array(&intersect);
 	}
 
-	Xtemp->assign_texpr_array(&PHIvars_prime.name,&PHIvars_prime.expr,NULL);
 
 	DEBUG(
 			for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
@@ -836,6 +844,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			*Out << "\n";
 			}
 		 );
+	Xtemp->assign_texpr_array(&PHIvars_prime.name,&PHIvars_prime.expr,NULL);
 
 	succ->setEnv(&env2);
 	Xtemp->change_environment(&env2);
@@ -1253,6 +1262,7 @@ void AIPass::visitPHINode (PHINode &I){
 			if (focusblock == focuspath.size()-1) {
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
+					if (isa<UndefValue>(pv)) continue;
 					PHIvars_prime.name.push_back((ap_var_t)&I);
 					PHIvars_prime.expr.push_back(new Expr(expr));
 					Environment * env = expr.getEnv();
@@ -1272,6 +1282,7 @@ void AIPass::visitPHINode (PHINode &I){
 					 );
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
+					if (isa<UndefValue>(pv)) continue;
 					PHIvars.name.push_back((ap_var_t)&I);
 					PHIvars.expr.push_back(new Expr(expr));
 				} else {

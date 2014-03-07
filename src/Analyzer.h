@@ -65,6 +65,11 @@ enum SMTSolver {
 	API_YICES
 };
 
+enum outputs {
+	LLVM_OUTPUT,
+	C_OUTPUT
+};
+
 std::string TechniquesToString(Techniques t);
 enum Techniques TechniqueFromString(bool &error, std::string d);
 
@@ -78,13 +83,14 @@ bool compareTechniques();
 std::vector<enum Techniques> * getComparedTechniques();
 
 bool compareDomain();
-
 bool compareNarrowing();
 
 bool onlyOutputsRho();
 bool skipNonLinearInSMT();
 
 bool printAllInvariants();
+
+enum outputs preferedOutput();
 bool useSourceName();
 void set_useSourceName(bool b);
 
@@ -101,6 +107,7 @@ std::string getMain();
 
 bool quiet_mode();
 bool log_smt_into_file();
+bool generateMetadata();
 
 Apron_Manager_Type getApronManager();
 Apron_Manager_Type getApronManager(int i);

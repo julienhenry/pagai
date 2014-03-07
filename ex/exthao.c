@@ -13,7 +13,7 @@ int main() {
         }
         x=x1;
         y=y1;
+		assert(y<=100);
+		assert(x<=100);
     }
-    assert(y<=100);
-    assert(x<=100);
 } 

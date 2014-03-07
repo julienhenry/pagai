@@ -136,8 +136,20 @@ bool printAllInvariants() {
 	return printAll;
 }
 
+bool generateMetadata() {
+	// TODO
+	return false;
+}
+
 void set_useSourceName(bool b) {
 	use_source_name = (b && !force_old_output);
+}
+
+enum outputs preferedOutput() {
+	if (force_old_output)
+		return LLVM_OUTPUT;
+	else
+		return C_OUTPUT;
 }
 
 bool OutputAnnotatedFile() {

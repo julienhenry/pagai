@@ -112,6 +112,7 @@ void Node::computeSCC_rec(int & n,std::stack<Node*> * S) {
 }
 
 void Node::add_var(Value * val) {
+	assert(val != NULL);
 	ap_var_t var = val; 
 	ap_texpr_rtype_t type;
 

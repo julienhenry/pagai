@@ -108,7 +108,7 @@ fi
 
 if [ $INLINE -eq 1 ] ; then
 	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
-	opt -internalize $OUTPUT -o $OUTPUT
+	opt -internalize $OUTPUT -o $OUTPUT -internalize-public-api-list=main
 	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
 fi
 

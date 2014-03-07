@@ -84,25 +84,21 @@
 __BEGIN_DECLS
 
 /* This prints an "Assertion failed" message and aborts.  */
-extern void __assert_fail (__const char *__assertion, __const char *__file,
-			   unsigned int __line, __const char *__function)
+extern void __assert_fail ()
      __THROW __attribute__ ((__noreturn__));
 
 /* This prints an "Assumption declared" message and aborts.  */
-extern void __assumption_declared (__const char *__assertion, __const char *__file,
-			   unsigned int __line, __const char *__function)
+extern void __assumption_declared ()
      __THROW __attribute__ ((__noreturn__));
 
 /* Likewise, but prints the error text for ERRNUM.  */
-extern void __assert_perror_fail (int __errnum, __const char *__file,
-				  unsigned int __line,
-				  __const char *__function)
+extern void __assert_perror_fail ()
      __THROW __attribute__ ((__noreturn__));
 
 
 /* The following is not at all used here but needed for standard
    compliance.  */
-extern void __assert (const char *__assertion, const char *__file, int __line)
+extern void __assert ()
      __THROW __attribute__ ((__noreturn__));
 
 
@@ -112,18 +108,18 @@ __END_DECLS
 # define assert(expr)							\
   ((expr)								\
    ? __ASSERT_VOID_CAST (0)						\
-   : __assert_fail (__STRING(expr), __FILE__, __LINE__, __ASSERT_FUNCTION))
+   : __assert_fail ())
 
 # define assume(expr)							\
   ((expr)								\
    ? __ASSERT_VOID_CAST (0)						\
-   : __assumption_declared (__STRING(expr), __FILE__, __LINE__, __ASSERT_FUNCTION))
+   : __assumption_declared ())
 
 # ifdef	__USE_GNU
 #  define assert_perror(errnum)						\
   (!(errnum)								\
    ? __ASSERT_VOID_CAST (0)						\
-   : __assert_perror_fail ((errnum), __FILE__, __LINE__, __ASSERT_FUNCTION))
+   : __assert_perror_fail ())
 # endif
 
 /* Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__'

@@ -33,6 +33,7 @@ ap_var_operations_t var_op_manager;
  * new to_string function for the var_op_manager
  */
 char* ap_var_to_string(ap_var_t var) {
+	if (Expr::is_undef_ap_var(var)) return "undef";
 	Value * val = dyn_cast<Value>((Value*)var);
 
 	std::string name;
