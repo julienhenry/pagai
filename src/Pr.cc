@@ -203,17 +203,19 @@ void Pr::computePr() {
 				Pr_set.insert(b); 
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
+				std::string fname;
 				if (cF == NULL) {
 					Value * calledvalue = c->getCalledValue();
 					ConstantExpr * bc;
 					if (calledvalue != NULL && (bc = dyn_cast<ConstantExpr>(calledvalue))) {
 						Instruction * inst = bc->getAsInstruction();
 						if (BitCastInst * bitcast = dyn_cast<BitCastInst>(inst)) {
-							if (Function * f = dyn_cast<Function>(bitcast->getOperand(0))) {
-								cF = f;
-							}
+							fname = bitcast->getOperand(0)->getName();
 						}
+						delete inst;
 					}
+				} else {
+					fname = cF->getName();
 				}
 				if (cF != NULL) {
 					std::string fname = cF->getName();

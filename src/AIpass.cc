@@ -826,12 +826,23 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			}
 			Environment Xtemp_env(Xtemp);
 			Xtemp->join_array(&Xtemp_env,A);
+			DEBUG(
+					*Out << "multiple contraints OK\n";
+				 );
 		}
 		// delete the vector
 		delete *i;
 	}
 	if (intersect.size() > 0) {
+		DEBUG(
+			*Out << "intersecting with constraints\n";
+			intersect.print();
+			*Out << "\n";
+		 );
 		Xtemp->meet_tcons_array(&intersect);
+		DEBUG(
+			*Out << "intersecting with constraints OK\n";
+		 );
 	}
 
 
