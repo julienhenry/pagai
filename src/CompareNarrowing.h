@@ -164,10 +164,13 @@ void CompareNarrowing<T>::printEqTime(params P) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Eq_Time[P] = zero;
 	}
+	std::string tname;
+	if (P.N == true) tname = "SN";
+	else tname = "S";
 	*Out 
-		<< " " << Eq_Time[P]->seconds() 
+		<< Eq_Time[P]->seconds() 
 		<< " " << Eq_Time[P]->microseconds() 
-		<<  "\n";
+		<< " " << tname << "\n";
 }
 
 template<Techniques T>
@@ -176,10 +179,13 @@ void CompareNarrowing<T>::printTime(params P) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time[P] = zero;
 	}
+	std::string tname;
+	if (P.N == true) tname = "SN";
+	else tname = "S";
 	*Out 
-		<< " " << Time[P]->seconds() 
+		<< Time[P]->seconds() 
 		<< " " << Time[P]->microseconds() 
-		<<  "\n";
+		<< " " << tname << "\n";
 }
 
 template<Techniques T>
@@ -277,31 +283,32 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	*Out << ApronManagerToString(getApronManager(0)) << " ABSTRACT DOMAIN\n\n\n" 
 		<< "IMPROVED NARROWING -- CLASSIC" << "\n";
 	Out->resetColor();
-	*Out << "\nTIME\n";
+	*Out << "\nTIME:\n";
 	printTime(P1);
 	printTime(P2);
+	*Out << "TIME_END\n";
 	
+	*Out << "\nTIME_EQ:\n";
 	printEqTime(P1);
 	printEqTime(P2);
+	*Out << "TIME_EQ_END\n";
 
-	*Out << "\nFUNCTIONS\n";
-	*Out 
-		<< F_equal 
-		<< " " << F_distinct 
-		<<  " " << F_equal+F_distinct << "\n";
+	*Out << "\nFUNCTIONS:\n";
+	*Out << F_equal << "\n";
+	//*Out 
+	//	<< F_equal 
+	//	<< " " << F_distinct 
+	//	<<  " " << F_equal+F_distinct << "\n";
+	*Out << "FUNCTIONS_END\n";
 
-	*Out << "\nITERATIONS\n";
+	*Out << "\nITERATIONS:\n";
 	printIterations(P1);
 	printIterations(P2);
-
-	*Out << "\n\n";
-	*Out << "EQ " << eq << "\n";
-	*Out << "LT " << lt << "\n";
-	*Out << "GT " << gt << "\n";
-	*Out << "UN " << un << "\n";
+	*Out << "ITERATIONS_END\n";
 
 	*Out << "\n\nMATRIX:\n";
-	*Out << eq << " " << lt << " " << gt << " " << un << "\n";
+	*Out << eq << " " << lt << " " << gt << " " << un << " SN/S\n";
+	*Out << "MATRIX_END\n";
 	return true;
 }
 #endif
