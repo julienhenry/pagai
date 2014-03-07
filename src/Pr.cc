@@ -217,17 +217,14 @@ void Pr::computePr() {
 				} else {
 					fname = cF->getName();
 				}
-				if (cF != NULL) {
-					std::string fname = cF->getName();
-					if (fname.compare(assert_fail) == 0) {
-						Pr_set.insert(b);
-						Assert_set.insert(b);
-					}
-					if (fname.compare(undefined_behavior_trap) == 0
-					    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
-						Pr_set.insert(b);
-						UndefBehaviour_set.insert(b);
-					}
+				if (fname.compare(assert_fail) == 0) {
+					Pr_set.insert(b);
+					Assert_set.insert(b);
+				}
+				if (fname.compare(undefined_behavior_trap) == 0
+				    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
+					Pr_set.insert(b);
+					UndefBehaviour_set.insert(b);
 				}
 			}
 		}
