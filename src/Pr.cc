@@ -192,6 +192,10 @@ void Pr::computePr() {
 	Pw_set.insert(Pr_set.begin(),Pr_set.end());
 	Pr_set.insert(F->begin());
 
+	const std::string assert_fail ("__assert_fail");
+	const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
+	const std::string gnat_rcheck ("__gnat_rcheck_");
+
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
@@ -199,11 +203,20 @@ void Pr::computePr() {
 				Pr_set.insert(b); 
 			} else if (CallInst * c = dyn_cast<CallInst>((Instruction*)it)) {
 				Function * cF = c->getCalledFunction();
+				if (cF == NULL) {
+					Value * calledvalue = c->getCalledValue();
+					ConstantExpr * bc;
+					if (calledvalue != NULL && (bc = dyn_cast<ConstantExpr>(calledvalue))) {
+						Instruction * inst = bc->getAsInstruction();
+						if (BitCastInst * bitcast = dyn_cast<BitCastInst>(inst)) {
+							if (Function * f = dyn_cast<Function>(bitcast->getOperand(0))) {
+								cF = f;
+							}
+						}
+					}
+				}
 				if (cF != NULL) {
 					std::string fname = cF->getName();
-					const std::string assert_fail ("__assert_fail");
-					const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
-					const std::string gnat_rcheck ("__gnat_rcheck_");
 					if (fname.compare(assert_fail) == 0) {
 						Pr_set.insert(b);
 						Assert_set.insert(b);
