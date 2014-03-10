@@ -572,8 +572,8 @@ int SMTlib::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 	}
 	if (ret == 0) {
 		// UNSAT
-		pwrite("(get-unsat-core)\n");
-		pread();
+		//pwrite("(get-unsat-core)\n");
+		//pread();
 	}
 	return ret;
 }

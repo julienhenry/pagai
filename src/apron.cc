@@ -33,23 +33,26 @@ ap_var_operations_t var_op_manager;
  * new to_string function for the var_op_manager
  */
 char* ap_var_to_string(ap_var_t var) {
-	if (Expr::is_undef_ap_var(var)) return "undef";
-	Value * val = dyn_cast<Value>((Value*)var);
-
 	std::string name;
-	if (useSourceName()) {
-		const Value * val1=val;	
-		Info IN = recoverName::getMDInfos(val1);	
-		if(!IN.empty()) {
-			name=IN.getName();
+	if (Expr::is_undef_ap_var(var)) {
+		name = "undef";
+	} else {
+		Value * val = dyn_cast<Value>((Value*)var);
+	
+		if (useSourceName()) {
+			const Value * val1=val;	
+			Info IN = recoverName::getMDInfos(val1);	
+			if(!IN.empty()) {
+				name=IN.getName();
+			} else {
+				DEBUG(
+					*Out << "IN is empty\n";
+				);
+				name = SMTpass::getVarName(val);
+			}
 		} else {
-			DEBUG(
-				*Out << "IN is empty\n";
-			);
 			name = SMTpass::getVarName(val);
 		}
-	} else {
-		name = SMTpass::getVarName(val);
 	}
 	char * cname = (char*)malloc((name.size()+1)*sizeof(char));
 	strcpy(cname,name.c_str());

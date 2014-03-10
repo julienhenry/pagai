@@ -79,12 +79,12 @@ void show_help() {
 		  * incr (s followed by lw+pf, results of s are injected in lw+pf)\n \
 		example: pagai -i <file> --technique pf\n \
 --solver (-s) : select SMT Solver\n \
-		  * z3 (default)\n \
+		  * z3 \n \
 		  * z3_qfnra\n \
 		  * mathsat\n \
 		  * smtinterpol\n \
 		  * cvc3\n \
-		  * z3_api (deprecated)\n \
+		  * z3_api (default)\n \
 		  * yices_api (deprecated)\n \
 		example: pagai -i <file> --technique pf --solver z3_api\n \
 -n : new version of narrowing (only for s technique)\n \
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 
 	filename=NULL;
-	Solver = Z3;
+	Solver = API_Z3;
 	ap_manager[0] = PK;
 	ap_manager[1] = PK;
 	Narrowing[0] = false;

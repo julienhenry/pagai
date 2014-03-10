@@ -96,7 +96,8 @@ void AIPass::initFunction(Function * F) {
 		}
 	}
 
-	if (!quiet_mode()) {
+	//if (!quiet_mode()) {
+	if (1) {
 		Out->changeColor(raw_ostream::BLUE,true);
 		*Out  	<< "/* processing Function "<<F->getName()<< " */\n";
 		Out->resetColor();

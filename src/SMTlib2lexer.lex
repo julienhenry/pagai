@@ -49,7 +49,9 @@ varname		{var}+
 "("					return(token::LEFTPAR);			
 ")"					return(token::RIGHTPAR);		
  /* ")\n"	      yylloc->lines (yyleng); return(token::RIGHTPAR); */		
-"/"					return(token::DIVIDE);		
+"/"|"div"			return(token::DIVIDE);		
+"*"					return(token::MULTIPLY);		
+"+"					return(token::ADD);		
                 
 "unknown"			return(token::UNKNOWN);			
 "unsat"				return(token::UNSAT);			

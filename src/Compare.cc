@@ -73,8 +73,7 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
-	assert(A!= NULL);
-	assert(B!= NULL);
+	if (A == NULL || B == NULL) return -3;
 	Environment A_env(A);
 	Environment B_env(B);
 	Environment cenv = Environment::intersection(&A_env,&B_env);
@@ -137,7 +136,6 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	P1.TH = useThreshold();
 	P2.TH = useThreshold();
 
-	*Out << "Comparing " << *n->bb << "\n";
 	switch (compareAbstract(n->X_s[P1],n->X_s[P2])) {
 		case 0:
 			results[t1][t2].eq++;
