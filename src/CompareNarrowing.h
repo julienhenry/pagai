@@ -165,12 +165,12 @@ void CompareNarrowing<T>::printEqTime(params P) {
 		Eq_Time[P] = zero;
 	}
 	std::string tname;
-	if (P.N == true) tname = "SN";
-	else tname = "S";
+	if (P.N == true) tname = "NEWNARROWING";
+	else tname = "CLASSIC";
 	*Out 
 		<< Eq_Time[P]->seconds() 
 		<< " " << Eq_Time[P]->microseconds() 
-		<< " " << tname << "\n";
+		<< " // " << tname << "\n";
 }
 
 template<Techniques T>
@@ -180,12 +180,12 @@ void CompareNarrowing<T>::printTime(params P) {
 		Time[P] = zero;
 	}
 	std::string tname;
-	if (P.N == true) tname = "SN";
-	else tname = "S";
+	if (P.N == true) tname = "NEWNARROWING";
+	else tname = "CLASSIC";
 	*Out 
 		<< Time[P]->seconds() 
 		<< " " << Time[P]->microseconds() 
-		<< " " << tname << "\n";
+		<< " // " << tname << "\n";
 }
 
 template<Techniques T>
@@ -307,7 +307,7 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	*Out << "ITERATIONS_END\n";
 
 	*Out << "\n\nMATRIX:\n";
-	*Out << eq << " " << lt << " " << gt << " " << un << " SN/S\n";
+	*Out << eq << " " << lt << " " << gt << " " << un << " // NEWNARROWING / CLASSIC\n";
 	*Out << "MATRIX_END\n";
 	return true;
 }

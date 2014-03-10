@@ -904,7 +904,11 @@ bool AIPass::computeWideningSeed(Function * F) {
 
 			// we check if the Abstract value is a good seed for Halbwachs's
 			// narrowing
-			if (!Xtemp->is_leq(Succ->X_i[passID])) {
+			Environment Xtemp_env(Xtemp);
+			Abstract * XSucci = aman->NewAbstract(Succ->X_i[passID]);
+			XSucci->change_environment(&Xtemp_env);
+
+			if (!Xtemp->is_leq(XSucci)) {
 
 				Abstract * Xseed = aman->NewAbstract(Xtemp);
 				std::vector<Abstract*> Join;
@@ -912,7 +916,16 @@ bool AIPass::computeWideningSeed(Function * F) {
 				Join.push_back(aman->NewAbstract(Succ->X_i[passID]));
 				Environment Xtemp_env(Xtemp);
 				Xseed->join_array(&Xtemp_env,Join);
-				if (Xseed->compare(Succ->X_s[passID]) == 1) {
+
+				Environment CommonEnv(Succ->X_s[passID]);
+				CommonEnv = Environment::common_environment(&CommonEnv,&Xtemp_env);
+				Xseed->change_environment(&CommonEnv);
+				
+				Abstract * XSucc = aman->NewAbstract(Succ->X_s[passID]);
+				XSucc->change_environment(&CommonEnv);
+
+				if (Xseed->compare(XSucc) == 1) {
+				//if (Xseed->compare(Succ->X_s[passID]) == 1) {
 					DEBUG(
 							*Out << "n\n";
 							n->X_s[passID]->print();
@@ -925,11 +938,15 @@ bool AIPass::computeWideningSeed(Function * F) {
 					Join.clear();
 					Join.push_back(aman->NewAbstract(Xtemp));
 					Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
-					Succ->X_d[passID]->join_array(&Xtemp_env,Join);
+					Succ->X_d[passID]->join_array(&CommonEnv,Join);
+					Succ->X_d[passID]->change_environment(&Xtemp_env);
 					A.push(Succ);
 					found = true;
-				}
+				}  
+				delete XSucc;
+				delete Xseed;
 			}
+			delete XSucci;
 		}
 	}
 	return found;

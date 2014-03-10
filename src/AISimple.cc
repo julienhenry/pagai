@@ -52,10 +52,8 @@ void AISimple::computeFunc(Function * F) {
 		step++;
 	}
 
-
 	if (NewNarrowing) {
 		copy_Xs_to_Xf(F);
-
 		if (!computeWideningSeed(F)) {
 			DEBUG(
 				*Out << "NO SEEDS\n";
@@ -65,7 +63,6 @@ void AISimple::computeFunc(Function * F) {
 		}
 		
 		copy_Xd_to_Xs(F);
-	
 		ascendingIter(n, F);
 		narrowingIter(n);
 		step = 0;

@@ -39,6 +39,7 @@ def to_technique(string):
     res = res.replace("PATH FOCUSING","PF")
     res = res.replace("GUIDED","G")
     res = res.replace("CLASSIC","S")
+    res = res.replace("NEWNARROWING","N")
     res = res.replace("COMBINED","C")
     res = res.replace("DISJUNCTIVE","DIS")
     res = res.replace("LOOKAHEAD WIDENING","LW")
@@ -63,7 +64,7 @@ def process_time(filename,time_s_array, time_ms_array,time_SMT_s_array, time_SMT
             time_ms_array[t] -= 1000000
             time_s_array[t] += 1
         #same for time_SMT arrays
-        if len(elements) > 3:
+        if len(elements) > 3 and elements[2] != "//":
             if t in time_SMT_s_array:
                 time_SMT_s_array[t] += int(elements[2])
             else:

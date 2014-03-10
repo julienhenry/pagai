@@ -510,6 +510,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			return cond;
 		} else {
 			*Out << "ERROR: getValueExpr returns NULL\n";
+			*Out << *v << "\n";
 			return NULL_res;
 		}
 	}

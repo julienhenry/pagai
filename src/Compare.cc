@@ -73,6 +73,8 @@ int Compare::compareAbstract(Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
+	assert(A!= NULL);
+	assert(B!= NULL);
 	Environment A_env(A);
 	Environment B_env(B);
 	Environment cenv = Environment::intersection(&A_env,&B_env);
@@ -135,6 +137,7 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	P1.TH = useThreshold();
 	P2.TH = useThreshold();
 
+	*Out << "Comparing " << *n->bb << "\n";
 	switch (compareAbstract(n->X_s[P1],n->X_s[P2])) {
 		case 0:
 			results[t1][t2].eq++;
@@ -163,12 +166,20 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 	P.D = getApronManager();
 	P.N = useNewNarrowing();
 	P.TH = useThreshold();
+
+	if (Total_time[P].count(F) == 0) {
+		sys::TimeValue * time = new sys::TimeValue(0,0);
+		Total_time[P][F] = time;
+	}
 	
 	if (Time.count(t)) {
+		assert(Time[t] != NULL);
+		assert(Total_time[P][F] != NULL);
 		*Time[t] = *Time[t]+*Total_time[P][F];
 	} else {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time[t] = zero;
+		assert(Total_time[P][F] != NULL);
 		*Time[t] = *Total_time[P][F];
 	}
 
@@ -178,8 +189,11 @@ void Compare::ComputeTime(Techniques t, Function * F) {
 	}
 
 	if (Time_SMT.count(t)) {
+		assert(Time_SMT[t] != NULL);
+		assert(Total_time_SMT[P][F] != NULL);
 		*Time_SMT[t] = *Time_SMT[t]+*Total_time_SMT[P][F];
 	} else {
+		assert(Total_time_SMT[P][F] != NULL);
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time_SMT[t] = zero;
 		*Time_SMT[t] = *Total_time_SMT[P][F];

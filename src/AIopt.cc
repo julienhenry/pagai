@@ -235,6 +235,13 @@ void AIopt::computeNewPaths(Node * n) {
 	Abstract * Xtemp = NULL;
 	std::vector<Abstract*> Join;
 
+	// if useXd = true, prevent the Xs abstract values to be updated during the
+	// computation of the new paths.
+	// this can be relaxed for decreasing the number of subgraphs to work on,
+	// but the computation of new paths may be much longer in the presence of
+	// self loops
+	bool useXd = true;
+
 	if (is_computed.count(n) && is_computed[n]) {
 		return;
 	}
@@ -257,6 +264,7 @@ void AIopt::computeNewPaths(Node * n) {
 		Succ->X_d[passID] = aman->NewAbstract(Succ->X_s[passID]);
 	}
 
+
 	while (true) {
 		is_computed[n] = true;
 		DEBUG(
@@ -267,7 +275,7 @@ void AIopt::computeNewPaths(Node * n) {
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
 		SMT_expr pathtree_smt = pathtree[n->bb]->generateSMTformula(LSMT,true);
-		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,pathtree_smt);
+		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,useXd,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
 			*Out
@@ -292,14 +300,17 @@ void AIopt::computeNewPaths(Node * n) {
 		}
 
 		Succ = Nodes[path.back()];
+		Abstract * SuccX;
+		if (useXd) SuccX = Succ->X_d[passID];
+		else SuccX = Succ->X_s[passID];
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,Xtemp);
 		Environment Xtemp_env(Xtemp);
-		Succ->X_s[passID]->change_environment(&Xtemp_env);
+		SuccX->change_environment(&Xtemp_env);
 
 		Join.clear();
-		Join.push_back(Succ->X_s[passID]);
+		Join.push_back(SuccX);
 		Join.push_back(aman->NewAbstract(Xtemp));
 		Xtemp->join_array(&Xtemp_env,Join);
 
@@ -311,7 +322,8 @@ void AIopt::computeNewPaths(Node * n) {
 		P.TH = useThreshold();
 		intersect_with_known_properties(Xtemp,Succ,P);
 
-		Succ->X_s[passID] = Xtemp;
+		//Succ->X_s[passID] = Xtemp;
+		SuccX = Xtemp;
 		Xtemp = NULL;
 
 		// there is a new path that has to be explored
@@ -319,11 +331,14 @@ void AIopt::computeNewPaths(Node * n) {
 		DEBUG(
 			*Out << "THE FOLLOWING PATH IS INSERTED INTO P'\n";	
 			printPath(path);
+			*Out << "NEW SUCC:" << *SuccX << "\n";	
 		);
 		A.push(n);
 		A.push(Succ);
 		//is_computed[Succ] = false;
 		A_prime.push(Succ);
+		if (useXd) Succ->X_d[passID] = SuccX;
+		else Succ->X_s[passID] = SuccX;
 	}
 }
 
