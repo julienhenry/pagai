@@ -57,6 +57,7 @@
 
 %type<sval> FunName
 %type<bval> FunValue
+%type<bval> FunValue_List
 %type<bval> FunType
 %type<bval> BoolValue
 
@@ -117,14 +118,18 @@ FunName:
 FunArgs:
 	   LEFTPAR Argslist RIGHTPAR;
 
+FunValue_List:
+		FunValue FunValue_List {$$ = false;}
+		| /*empty*/ {$$ = false;}
+		;
+
 FunValue:
 		INTVALUE						{$$ = false;}
 		| REALVALUE						{$$ = false;}
 		| LEFTPAR DIVIDE FunValue FunValue RIGHTPAR {$$ = false;}
-		| LEFTPAR MULTIPLY FunValue FunValue RIGHTPAR {$$ = false;}
-		| LEFTPAR ADD FunValue FunValue RIGHTPAR {$$ = false;}
-		| LEFTPAR MINUS FunValue RIGHTPAR{$$ = false;}
-		| LEFTPAR MINUS FunValue FunValue RIGHTPAR		{$$ = false;}
+		| LEFTPAR MULTIPLY FunValue_List RIGHTPAR {$$ = false;}
+		| LEFTPAR ADD FunValue_List RIGHTPAR {$$ = false;}
+		| LEFTPAR MINUS FunValue_List RIGHTPAR{$$ = false;}
 		| LEFTPAR MODULO FunValue FunValue RIGHTPAR {$$ = false;}
 		| BoolValue						{$$ = $1;}
 		| LEFTPAR FunValue RIGHTPAR		{$$ = $2;}
