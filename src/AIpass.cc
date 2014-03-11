@@ -50,12 +50,12 @@ void AIPass::narrowingIter(Node * n) {
 	std::map<Node*, int> narrowing_limit;
 	while (!A.empty()) {
 		Node * current = A.top();
-		if (narrowing_limit.count(current) == 0)
-			narrowing_limit.insert(std::pair<Node*,int>(current,0));
+		//if (narrowing_limit.count(current) == 0)
+		//	narrowing_limit.insert(std::pair<Node*,int>(current,0));
 		narrowing_limit[current]++;
 		A.pop();
-		if (narrowing_limit[current] < NARROWING_LIMIT);
-			narrowNode(current);
+		//if (narrowing_limit[current] < NARROWING_LIMIT);
+		narrowNode(current);
 		if (unknown) {
 			ignoreFunction[passID].insert(n->bb->getParent());
 			while (!A.empty()) A.pop();
@@ -955,6 +955,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 				delete Xseed;
 			}
 			delete XSucci;
+			delete Xtemp;
 		}
 	}
 	*Out << "computeSeed ok\n";
