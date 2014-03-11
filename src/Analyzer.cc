@@ -84,6 +84,7 @@ void show_help() {
 		  * mathsat\n \
 		  * smtinterpol\n \
 		  * cvc3\n \
+		  * cvc4\n \
 		  * z3_api (default)\n \
 		  * yices_api (deprecated)\n \
 		example: pagai -i <file> --technique pf --solver z3_api\n \
