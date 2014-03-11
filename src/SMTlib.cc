@@ -24,8 +24,14 @@
 
 
 SMTlib::SMTlib() {
+	stack_level = 0;
+	SMTlib_init();
+}
+
+static int logfile_counter = 0;
+
+void SMTlib::SMTlib_init() {
 	if (log_smt_into_file()) {
-		static int logfile_counter = 0;
 		char filename[sizeof("logfile-000.smt2")];
 		sprintf(filename, "logfile-%03d.smt2", logfile_counter++);
 		log_file = fopen(filename, "w");
@@ -33,7 +39,6 @@ SMTlib::SMTlib() {
 		log_file = NULL;
 	}
 
-	stack_level = 0;
 
 	int_type.s = "Int";
 	float_type.s = "Real";
@@ -157,12 +162,16 @@ SMTlib::SMTlib() {
 	//pwrite("(set-logic QF_LRA)\n");
 }
 
-SMTlib::~SMTlib() {
+void SMTlib::SMTlib_close() {
 	pwrite("(exit)\n");
 	close(wpipefd[1]); /* Reader will see EOF */
 	close(rpipefd[0]);
 	if (log_file) fclose(log_file);
 	wait(NULL);
+}
+
+SMTlib::~SMTlib() {
+	SMTlib_close();
 }
 
 void SMTlib::pwrite(std::string s) {
@@ -196,6 +205,11 @@ int SMTlib::pread() {
 			break;
 		case ERROR:
 			*Out << "SMT-SOLVER INTERNAL ERROR\n";
+			SMTlib_close();
+			SMTlib_init();
+			for (int i = 0; i < stack_level; i++) {
+				pwrite("(push 1)\n");
+			}
 			ret = -1;
 			break;
 		default:

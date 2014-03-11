@@ -27,6 +27,9 @@ class SMTlib: public SMT_manager {
 
 	private:
 
+		void SMTlib_init();
+		void SMTlib_close();
+
 		struct definedvars {
 			SMT_var var;
 			int stack_level;
