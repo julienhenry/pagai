@@ -61,6 +61,7 @@ enum SMTSolver {
 	Z3_QFNRA,
 	SMTINTERPOL,
 	CVC3, 
+	CVC4, 
 	API_Z3,
 	API_YICES
 };

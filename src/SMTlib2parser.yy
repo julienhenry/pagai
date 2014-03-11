@@ -52,6 +52,7 @@
 %token<bval> TYPE
 %token BOOLTYPE
 %token<sval> VARNAME
+%token<sval> STRING
 
 %start Smt
 
@@ -64,19 +65,24 @@
 %%
 
 Smt:
-        successes Smt0 { YYACCEPT; };
+        successes Smt0 { YYACCEPT;};
 
 successes:
         /* */ { }
         | SUCCESS successes { }
 
 Smt0:
-	 SAT 					{driver.ans = SAT; }
-	|UNSAT					{driver.ans = UNSAT; }
-	|UNKNOWN 				{driver.ans = UNKNOWN; }
-	|Model 					{driver.ans = SAT; }
-	|Model_MathSAT 				{driver.ans = SAT; }
+	 SAT 					{driver.ans = SAT;}
+	|UNSAT					{driver.ans = UNSAT;}
+	|UNKNOWN 				{driver.ans = UNKNOWN;}
+	|Model 					{driver.ans = SAT;}
+	|Model_MathSAT 			{driver.ans = SAT;}
+	|Error					{driver.ans = ERROR;}
 	;
+
+Error:
+	 LEFTPAR ERROR STRING RIGHTPAR {*Out << *$3 << "\n"; delete $3;}
+	 ;
 
 Assoc_list:
        Assoc Assoc_list

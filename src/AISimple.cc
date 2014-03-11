@@ -41,8 +41,10 @@ void AISimple::computeFunc(Function * F) {
 	n->X_d[passID]->set_top(&env);
 	n->X_i[passID]->set_top(&env);
 	n->X_f[passID]->set_top(&env);
+	*Out << "ascending\n";
 	ascendingIter(n, F);
 
+	*Out << "narrowing\n";
 	narrowingIter(n);
 
 	// then we move X_d abstract values to X_s abstract values
@@ -51,6 +53,7 @@ void AISimple::computeFunc(Function * F) {
 		narrowingIter(n);
 		step++;
 	}
+	*Out << "narrowing ok\n";
 
 	if (NewNarrowing) {
 		copy_Xs_to_Xf(F);
@@ -63,10 +66,13 @@ void AISimple::computeFunc(Function * F) {
 		}
 		
 		copy_Xd_to_Xs(F);
+		*Out << "ascend -1\n"; 
 		ascendingIter(n, F);
+		*Out << "narrow -1\n"; 
 		narrowingIter(n);
 		step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 5) {
+			*Out << "narrow "<<step<<"\n"; 
 			narrowingIter(n);
 			step++;
 		}

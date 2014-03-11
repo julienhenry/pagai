@@ -324,6 +324,8 @@ bool setSolver(char * t) {
 		Solver = SMTINTERPOL;
 	} else if (!d.compare("cvc3")) {
 		Solver = CVC3;
+	} else if (!d.compare("cvc4")) {
+		Solver = CVC4;
 	} else if (!d.compare("z3_api")) {
 		Solver = API_Z3;
 	} else if (!d.compare("yices_api")) {

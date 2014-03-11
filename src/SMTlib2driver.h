@@ -8,6 +8,7 @@
 # include <string>
 # include <map>
 # include "SMTlib2parser.hh"
+#include <sstream>
 
 // for FILE* etc.
 #include <stdio.h>
@@ -24,7 +25,8 @@ YY_DECL;
 typedef enum {
 	SAT,
 	UNSAT,
-	UNKNOWN
+	UNKNOWN,
+	ERROR
 } SMTans;
 
 /**
@@ -45,6 +47,8 @@ class SMTlib2driver
 		void scan_begin ();
 		void scan_end ();
 		bool trace_scanning;
+
+		std::ostringstream log;
 
 		// Run the parser.  Return 0 on success.
 		int parse (FILE* f);

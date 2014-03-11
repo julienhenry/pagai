@@ -43,13 +43,19 @@ void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	}
 }
 
+#define NARROWING_LIMIT 10
 void AIPass::narrowingIter(Node * n) {
 	A.push(n);
 	is_computed.clear();
+	std::map<Node*, int> narrowing_limit;
 	while (!A.empty()) {
 		Node * current = A.top();
+		if (narrowing_limit.count(current) == 0)
+			narrowing_limit.insert(std::pair<Node*,int>(current,0));
+		narrowing_limit[current]++;
 		A.pop();
-		narrowNode(current);
+		if (narrowing_limit[current] < NARROWING_LIMIT);
+			narrowNode(current);
 		if (unknown) {
 			ignoreFunction[passID].insert(n->bb->getParent());
 			while (!A.empty()) A.pop();
@@ -880,6 +886,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 // TODO :
 // make it work for path-focused techniques
 bool AIPass::computeWideningSeed(Function * F) {
+	*Out << "computeSeed\n";
 	Abstract * Xtemp;
 	Node * n;
 	Node * Succ;
@@ -950,6 +957,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 			delete XSucci;
 		}
 	}
+	*Out << "computeSeed ok\n";
 	return found;
 }
 

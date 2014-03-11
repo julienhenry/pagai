@@ -34,6 +34,8 @@ integer		{neginteger}|{posinteger}
 var			{letter}|{num}|_|\.|\%|!|-
 varname		{var}+
 
+string       \"(\\.|[^"])*\"
+
 %{
 # define YY_USER_ACTION  yylloc->columns (yyleng);
 %}
@@ -43,51 +45,43 @@ varname		{var}+
 %{
   yylloc->step ();
 %}
-{blank}   yylloc->step ();
-[\n]      yylloc->lines (yyleng); yylloc->step ();
+{blank}				{driver.log << " ";yylloc->step ();}
+[\n]				{driver.log << "\n";yylloc->lines (yyleng); yylloc->step ();}
 
-"("					return(token::LEFTPAR);			
-")"					return(token::RIGHTPAR);		
+"("					{driver.log << "(";return(token::LEFTPAR);}
+")"					{driver.log << ")";return(token::RIGHTPAR);}
  /* ")\n"	      yylloc->lines (yyleng); return(token::RIGHTPAR); */		
-"/"|"div"			return(token::DIVIDE);		
-"*"					return(token::MULTIPLY);		
-"+"					return(token::ADD);		
-                
-"unknown"			return(token::UNKNOWN);			
-"unsat"				return(token::UNSAT);			
-"sat"				return(token::SAT);
-"error"                         return(token::ERROR);
-"unsupported"                   return(token::UNSUPPORTED);
-"success"                       return(token::SUCCESS);
-
-"true"				return(token::TRUE);			
-"false"				return(token::FALSE);			
-"model"				return(token::MODEL);			
-
- /*
-"unknown\n"   yylloc->lines (yyleng); return(token::UNKNOWN);			
-"unsat\n"     yylloc->lines (yyleng); return(token::UNSAT);			
-"sat\n"	      yylloc->lines (yyleng); return(token::SAT);
-"model\n"     yylloc->lines (yyleng); return(token::MODEL);
-*/			
-         
-"Int"				return(token::TYPE);			
-"Real"				return(token::TYPE);			
-"Bool"				return(token::BOOLTYPE);			
-
-"define-fun"		return(token::DEFINEFUN);
-
-{real}				return(token::REALVALUE);
-
-{integer}			return(token::INTVALUE);
-
-"-"					return(token::MINUS);
-
-"mod"				return(token::MODULO);
+"/"					{driver.log << "/";return(token::DIVIDE);}		
+"div"				{driver.log << "div";return(token::DIVIDE);}		
+"*"					{driver.log << "*";return(token::MULTIPLY);}		
+"+"					{driver.log << "+";return(token::ADD);}
+"unknown"			{driver.log << "unknown";return(token::UNKNOWN);}
+"unsat"				{driver.log << "unsat";return(token::UNSAT);}			
+"sat"				{driver.log << "sat";return(token::SAT);}
+"error"             {driver.log << "error";return(token::ERROR);}
+"unsupported"       {driver.log << "unsupported";return(token::UNSUPPORTED);}
+"success"           {driver.log << "success";return(token::SUCCESS);}
+"true"				{driver.log << "true";return(token::TRUE);}		
+"false"				{driver.log << "false";return(token::FALSE);}			
+"model"				{driver.log << "model";return(token::MODEL);}			
+"Int"				{driver.log << "Int";return(token::TYPE);}
+"Real"				{driver.log << "Real";return(token::TYPE);}			
+"Bool"				{driver.log << "Bool";return(token::BOOLTYPE);}			
+"define-fun"		{driver.log << "define-fun";return(token::DEFINEFUN);}
+{real}				{driver.log << "real";return(token::REALVALUE);}
+{integer}			{driver.log << "integer";return(token::INTVALUE);}
+"-"					{driver.log << "-";return(token::MINUS);}
+"mod"				{driver.log << "mod";return(token::MODULO);}
 
 {varname}			{
 						yylval->sval=new std::string(yytext);
+						driver.log << *yylval->sval;
 						return(token::VARNAME);
+					}
+{string}			{
+						yylval->sval=new std::string(yytext);
+						driver.log << *yylval->sval;
+						return(token::STRING);
 					}
 
 

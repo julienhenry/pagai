@@ -102,6 +102,22 @@ SMTlib::SMTlib() {
 					exit(1);
 				}
 				break;
+			case CVC4:
+				char * cvc4_argv[9];
+				cvc4_argv[0] = const_cast<char*>("cvc4");
+				cvc4_argv[1] = const_cast<char*>("--lang");
+				cvc4_argv[2] = const_cast<char*>("smt2");
+				cvc4_argv[3] = const_cast<char*>("--output-lang");
+				cvc4_argv[4] = const_cast<char*>("smt2");
+				cvc4_argv[5] = const_cast<char*>("--quiet");
+				cvc4_argv[6] = const_cast<char*>("--produce-models");
+				cvc4_argv[7] = const_cast<char*>("--incremental");
+				cvc4_argv[8] = NULL;
+				if (execvp("cvc4",cvc4_argv)) {
+					perror("exec cvc4");
+					exit(1);
+				}
+				break;
 			default:
 				exit(1);
 		}
@@ -119,7 +135,7 @@ SMTlib::SMTlib() {
 	}
 
 	//Enable model construction
-	if (getSMTSolver() == CVC3) {
+	if (getSMTSolver() == CVC3 || getSMTSolver() == CVC4) {
 		pwrite("(set-logic AUFLIRA)\n");
 	} else {
 		pwrite("(set-option :produce-models true)\n");
@@ -176,6 +192,10 @@ int SMTlib::pread() {
 			break;
 		case UNKNOWN:
 			*Out << "UNKNOWN\n";
+			ret = -1;
+			break;
+		case ERROR:
+			*Out << "SMT-SOLVER INTERNAL ERROR\n";
 			ret = -1;
 			break;
 		default:

@@ -96,23 +96,27 @@ SMT_expr SMTpass::getRho(Function &F) {
 
 void SMTpass::reset_SMTcontext() {
 	rho.clear();
-#if 1
+#if 0
 	while (stack_level > 0)
 		pop_context();
 #else
-	stack_level = 0;
-	delete man;
 	switch (getSMTSolver()) {
 		case API_Z3:
+			stack_level = 0;
+			delete man;
 			man = new z3_manager();
 			break;
 #ifdef HASH_YICES
 		case API_YICES: 
+			stack_level = 0;
+			delete man;
 			man = new yices();
 			break;
 #endif
 		default:
-			man = new SMTlib();
+			while (stack_level > 0)
+				pop_context();
+			//man = new SMTlib();
 	}
 #endif
 }
