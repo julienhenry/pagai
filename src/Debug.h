@@ -54,6 +54,7 @@ extern void ReleaseTimingData();
  * one technique)
  */
 extern std::map<params,std::set<llvm::Function*> > ignoreFunction;
+extern std::map<llvm::Function*,int> numNarrowingSeedsInFunction;
 
 extern bool ignored(Function * F);
 extern int nb_ignored();

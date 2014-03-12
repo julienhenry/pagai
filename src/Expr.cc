@@ -56,6 +56,7 @@ ap_texpr1_t * Expr::create_expression(Value * val) {
 }
 
 Expr::Expr(Value * val) {
+	assert(val != NULL);
 	ap_expr = create_expression(val);
 }
 

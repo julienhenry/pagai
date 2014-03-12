@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import sys
-from os import system, remove
+import json
+from os import system
+import os
 
 def getFileBetween(filename,begin,end):
     try:
@@ -45,7 +47,22 @@ def to_technique(string):
     res = res.replace("LOOKAHEAD WIDENING","LW")
     return res
 
-def process_time(filename,time_s_array, time_ms_array,time_SMT_s_array, time_SMT_ms_array):
+def process_time_eq(filename,json_dict):
+    string = getFileBetween(filename,"TIME_EQ:","TIME_EQ_END")
+    filename = json_name(filename)
+    if not string :
+        return
+    for lines in string.rstrip().split('\n') :
+        elements = lines.split(' ', 4 )
+        t = to_technique(elements[-1]) # last element of the list
+        cat = "seeds"
+        if cat not in json_dict[filename]:
+            json_dict[filename][cat] = dict()
+        if "time eq" not in json_dict[filename][cat]:
+            json_dict[filename][cat]["time eq"] = dict()
+        json_dict[filename][cat]["time eq"][t] = float(elements[0] + "." + elements[1])
+
+def process_time(filename,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,json_dict):
     string = getFileBetween(filename,"TIME:","TIME_END")
     if not string :
         return
@@ -80,7 +97,20 @@ def process_time(filename,time_s_array, time_ms_array,time_SMT_s_array, time_SMT
             time_SMT_s_array[t] = 0
             time_SMT_ms_array[t] = 0
 
-def process_warnings(filename,warnings_array,safe_array):
+        filename = json_name(filename)
+        cat = "time"
+        if cat not in json_dict[filename]:
+            json_dict[filename][cat] = dict()
+        json_dict[filename][cat][t] = float(elements[0] + "." + elements[1])
+        cat = "time SMT"
+        if cat not in json_dict[filename]:
+            json_dict[filename][cat] = dict()
+        if len(elements) > 3 and elements[2] != "//":
+            json_dict[filename][cat][t] = float(elements[2] + "." + elements[3])
+        else:
+            json_dict[filename][cat][t] = float("0.0")
+
+def process_warnings(filename,warnings_array,safe_array,json_dict):
     string = getFileBetween(filename,"WARNINGS:","WARNINGS_END")
     if not string :
         return
@@ -102,26 +132,47 @@ def process_warnings(filename,warnings_array,safe_array):
         else:
             safe_array[t] = int(elements[0])
 
-def process_count_functions(filename):
+def process_count_functions(filename,json_dict):
     string = getFileBetween(filename,"FUNCTIONS:","FUNCTIONS_END")
+    filename = json_name(filename)
     if not string :
         return 0
     n = 0
     for lines in string.rstrip().split('\n') :
         n += int(lines)
+    json_dict[filename]["functions"] = n
     return n
 
-def process_count_functions_skipped(filename):
+def process_function_seeds(filename,json_dict):
+    string = getFileBetween(filename,"FUNCTIONS_SEEDS:","FUNCTIONS_SEEDS_END")
+    filename = json_name(filename)
+    if not string :
+        return 0
+    for lines in string.rstrip().split('\n') :
+        elements = lines.split(' ', 4 )
+        cat = "seeds"
+        if cat not in json_dict[filename]:
+            json_dict[filename][cat] = dict()
+        json_dict[filename][cat]["functions equal"] = int(elements[0])
+        json_dict[filename][cat]["functions improved"] = int(elements[1])
+        json_dict[filename][cat]["functions with seeds"] = int(elements[2])
+        json_dict[filename][cat]["functions with no seeds"] = int(elements[3])
+
+
+def process_count_functions_skipped(filename,json_dict):
     string = getFileBetween(filename,"IGNORED:","IGNORED_END")
     if not string :
         return 0
     n = 0
     for lines in string.rstrip().split('\n') :
         n += int(lines)
+    filename = json_name(filename)
+    json_dict[filename]["functions_skipped"] = n
     return n
 
-def process_skipped(filename,skipped_array):
+def process_skipped(filename,skipped_array,json_dict):
     string = getFileBetween(filename,"SKIPPED:","SKIPPED_END")
+    filename = json_name(filename)
     if not string :
         return
     for lines in string.rstrip().split('\n') :
@@ -132,25 +183,39 @@ def process_skipped(filename,skipped_array):
         else:
             skipped_array[t] = int(elements[0])
 
+        cat = "skipped"
+        if cat not in json_dict[filename]:
+            json_dict[filename][cat] = dict()
+        json_dict[filename][cat][t] = elements[0]
 
-def process_matrix(filename,matrix):
+
+def process_matrix(filename,matrix,json_dict):
     string = getFileBetween(filename,"MATRIX:","MATRIX_END")
+    filename = json_name(filename)
     if not string :
         return
     for lines in string.rstrip().split('\n') :
         elements = lines.split(' ', 4 )
         t = to_technique(elements[4])
-        if t in matrix :
-            matrix[t][0] += int(elements[0])
-            matrix[t][1] += int(elements[1])
-            matrix[t][2] += int(elements[2])
-            matrix[t][3] += int(elements[3])
-        else :
+        if t not in matrix :
             matrix[t] = dict()
             matrix[t][0] = int(elements[0])
             matrix[t][1] = int(elements[1])
             matrix[t][2] = int(elements[2])
             matrix[t][3] = int(elements[3])
+        else:
+            matrix[t][0] += int(elements[0])
+            matrix[t][1] += int(elements[1])
+            matrix[t][2] += int(elements[2])
+            matrix[t][3] += int(elements[3])
+        if "comparison" not in json_dict[filename]:
+            json_dict[filename]["comparison"] = dict()
+        if t not in json_dict[filename]["comparison"]:
+            json_dict[filename]["comparison"][t] = dict()
+        json_dict[filename]["comparison"][t]["eq"] = int(elements[0])
+        json_dict[filename]["comparison"][t]["lt"] = int(elements[1])
+        json_dict[filename]["comparison"][t]["gt"] = int(elements[2])
+        json_dict[filename]["comparison"][t]["un"] = int(elements[3])
 
 def compute_bb_number(matrix):
     n = 0
@@ -217,6 +282,12 @@ def generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench,graph_name)
     system('gnuplot '+root_dir+'/techniques_skipped.gnuplot')
     system('mv techniques_skipped.png '+graph_name+'.skipped.png')
 
+def json_name(name):
+    res = os.path.basename(name)
+    res = res.replace(".all.res","")
+    res = res.replace(".narrowing.res","")
+    return res
+
 def process_input_files():
     time_s_array = dict()
     time_ms_array = dict()
@@ -231,13 +302,25 @@ def process_input_files():
     root_dir = sys.argv[1]
     bench = sys.argv[2]
     graph_name = sys.argv[3]
+
+    if os.path.isfile('results.json'):
+        json_data=open('results.json')
+        json_dict = json.load(json_data)
+        json_data.close()
+    else:
+        json_dict = dict()
+
     for filename in sys.argv[4:]:
-        process_time(filename,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array)
-        process_warnings(filename,warnings_array,safe_array)
-        process_skipped(filename,skipped_array)
-        n_func += process_count_functions(filename)
-        n_skipped += process_count_functions_skipped(filename)
-        process_matrix(filename,matrix)
+        if json_name(filename) not in json_dict:
+            json_dict[json_name(filename)] = dict()
+        process_time(filename,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,json_dict)
+        process_warnings(filename,warnings_array,safe_array,json_dict)
+        process_skipped(filename,skipped_array,json_dict)
+        n_func += process_count_functions(filename,json_dict)
+        n_skipped += process_count_functions_skipped(filename,json_dict)
+        process_matrix(filename,matrix,json_dict)
+        process_function_seeds(filename,json_dict)
+        process_time_eq(filename,json_dict)
 
     matrix_average = compute_matrix_average(matrix)
 
@@ -245,6 +328,9 @@ def process_input_files():
     generate_gnuplot_from_time_array(time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,root_dir,bench,graph_name)
     generate_gnuplot_from_warnings_array(warnings_array,safe_array,root_dir,bench,graph_name)
     generate_gnuplot_from_skipped_array(skipped_array,root_dir,bench,graph_name)
+    jsonfile = open("results.json", "w")
+    jsonfile.write(json.dumps(json_dict))
+    jsonfile.close()
 
 process_input_files()
 

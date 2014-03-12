@@ -886,7 +886,6 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 // TODO :
 // make it work for path-focused techniques
 bool AIPass::computeWideningSeed(Function * F) {
-	*Out << "computeSeed\n";
 	Abstract * Xtemp;
 	Node * n;
 	Node * Succ;
@@ -894,6 +893,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 	std::list<BasicBlock*> path;
 	bool found = false;
 
+	numNarrowingSeedsInFunction.insert(std::pair<Function*,int>(F,0));
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		n = Nodes[i];
 		std::set<BasicBlock*> Succs = getSuccessors(n->bb);
@@ -933,7 +933,6 @@ bool AIPass::computeWideningSeed(Function * F) {
 				XSucc->change_environment(&CommonEnv);
 
 				if (Xseed->compare(XSucc) == 1) {
-				//if (Xseed->compare(Succ->X_s[passID]) == 1) {
 					DEBUG(
 							*Out << "n\n";
 							n->X_s[passID]->print();
@@ -950,6 +949,8 @@ bool AIPass::computeWideningSeed(Function * F) {
 					Succ->X_d[passID]->change_environment(&Xtemp_env);
 					A.push(Succ);
 					found = true;
+
+					numNarrowingSeedsInFunction[F]++;
 				}  
 				delete XSucc;
 				delete Xseed;
@@ -958,7 +959,6 @@ bool AIPass::computeWideningSeed(Function * F) {
 			delete Xtemp;
 		}
 	}
-	*Out << "computeSeed ok\n";
 	return found;
 }
 

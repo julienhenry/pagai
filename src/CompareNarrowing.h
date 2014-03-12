@@ -202,6 +202,8 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 
 	int F_equal = 0;
 	int F_distinct = 0;
+	int F_noseeds = 0;
+	int F_withseeds = 0;
 
 	params P1, P2;
 	P1.T = T;
@@ -235,7 +237,6 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		ComputeIterations(P2,F);
 
 		bool distinct = false;
-
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
@@ -277,6 +278,12 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		} else {
 			F_distinct++;
 		}
+
+		if (numNarrowingSeedsInFunction[F] == 0) {
+			F_noseeds++;
+		} else {
+			F_withseeds++;
+		}
 	}
 
 	Out->changeColor(raw_ostream::MAGENTA,true);
@@ -294,12 +301,17 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	*Out << "TIME_EQ_END\n";
 
 	*Out << "\nFUNCTIONS:\n";
-	*Out << F_equal << "\n";
-	//*Out 
-	//	<< F_equal 
-	//	<< " " << F_distinct 
-	//	<<  " " << F_equal+F_distinct << "\n";
+	*Out << F_equal+F_distinct << "\n";
 	*Out << "FUNCTIONS_END\n";
+
+	*Out << "\nFUNCTIONS_SEEDS:\n";
+	*Out 
+		<< F_equal 
+		<< " " << F_distinct 
+		<< " " << F_withseeds
+		<< " " << F_noseeds
+		<<  " " << F_equal+F_distinct << "\n";
+	*Out << "FUNCTIONS_SEEDS_END\n";
 
 	*Out << "\nITERATIONS:\n";
 	printIterations(P1);

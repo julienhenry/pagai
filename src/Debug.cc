@@ -17,6 +17,9 @@ std::map<params,std::map<Function*,sys::TimeValue *> > Total_time_SMT;
 std::map<params,std::map<Function*,int> > asc_iterations;
 std::map<params,std::map<Function*,int> > desc_iterations;
 
+std::map<params,std::set<llvm::Function*> > ignoreFunction;
+std::map<llvm::Function*,int> numNarrowingSeedsInFunction;
+
 void ReleaseTimeArray(std::map<params,std::map<Function*,sys::TimeValue *> > * T) {
 	std::map<params,std::map<Function*,sys::TimeValue *> >::iterator it = T->begin(), et = T->end();
 	for (; it!=et; it++) {
@@ -32,8 +35,6 @@ void ReleaseTimingData() {
 	ReleaseTimeArray(&Total_time);
 	ReleaseTimeArray(&Total_time_SMT);
 }
-
-std::map<params,std::set<llvm::Function*> > ignoreFunction;
 
 bool ignored(Function * F) {
 	std::map<params,std::set<llvm::Function*> >::iterator 
