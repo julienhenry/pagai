@@ -66,7 +66,7 @@ void AISimple::computeFunc(Function * F) {
 		ascendingIter(n, F);
 		narrowingIter(n);
 		step = 0;
-		while (copy_Xd_to_Xs(F) && step <= 5) {
+		while (copy_Xd_to_Xs(F) && step <= 2) {
 			narrowingIter(n);
 			step++;
 		}
