@@ -69,7 +69,7 @@ void Compare::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 }
 
-int Compare::compareAbstract(Abstract * A, Abstract * B) {
+int Compare::compareAbstract(SMTpass * LSMT, Abstract * A, Abstract * B) {
 	bool f = false;
 	bool g = false;
 
@@ -136,7 +136,7 @@ void Compare::compareTechniques(Node * n, Techniques t1, Techniques t2) {
 	P1.TH = useThreshold();
 	P2.TH = useThreshold();
 
-	switch (compareAbstract(n->X_s[P1],n->X_s[P2])) {
+	switch (compareAbstract(LSMT,n->X_s[P1],n->X_s[P2])) {
 		case 0:
 			results[t1][t2].eq++;
 			results[t2][t1].eq++;

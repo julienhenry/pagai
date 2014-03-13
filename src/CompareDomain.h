@@ -18,6 +18,7 @@
 #include "AIClassic.h"
 #include "AIdis.h"
 #include "Debug.h"
+#include "Compare.h"
 
 using namespace llvm;
 
@@ -31,6 +32,11 @@ class CompareDomain : public ModulePass {
 	private:	
 		SMTpass * LSMT;
 	
+		std::map<params, sys::TimeValue *> Time;
+		std::map<params, sys::TimeValue *> Time_SMT;
+		void ComputeTime(params P, Function * F);
+		void printTime(params P);
+
 	public:
 		/**
 		 * \brief unique pass identifier
@@ -97,6 +103,60 @@ void CompareDomain<T>::getAnalysisUsage(AnalysisUsage &AU) const {
 	AU.setPreservesAll();
 }
 
+template<Techniques T>
+void CompareDomain<T>::ComputeTime(params P, Function * F) {
+
+	if (Total_time[P].count(F) == 0) {
+		sys::TimeValue * time = new sys::TimeValue(0,0);
+		Total_time[P][F] = time;
+	}
+	
+	if (Time.count(P)) {
+		assert(Time[P] != NULL);
+		assert(Total_time[P][F] != NULL);
+		*Time[P] = *Time[P]+*Total_time[P][F];
+	} else {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[P] = zero;
+		assert(Total_time[P][F] != NULL);
+		*Time[P] = *Total_time[P][F];
+	}
+
+	if (Total_time_SMT[P].count(F) == 0) {
+		sys::TimeValue * time_SMT = new sys::TimeValue(0,0);
+		Total_time_SMT[P][F] = time_SMT;
+	}
+
+	if (Time_SMT.count(P)) {
+		assert(Time_SMT[P] != NULL);
+		assert(Total_time_SMT[P][F] != NULL);
+		*Time_SMT[P] = *Time_SMT[P]+*Total_time_SMT[P][F];
+	} else {
+		assert(Total_time_SMT[P][F] != NULL);
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[P] = zero;
+		*Time_SMT[P] = *Total_time_SMT[P][F];
+	}
+}
+
+template<Techniques T>
+void CompareDomain<T>::printTime(params P) {
+	if (!Time.count(P)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time[P] = zero;
+	}
+	if (!Time_SMT.count(P)) {
+		sys::TimeValue * zero = new sys::TimeValue((double)0);
+		Time_SMT[P] = zero;
+	}
+	*Out 
+		<< Time[P]->seconds() 
+		<< " " << Time[P]->microseconds() 
+		<< " " << Time_SMT[P]->seconds() 
+		<< " " << Time_SMT[P]->microseconds() 
+		<< " " << ApronManagerToString(P.D)
+		<<  "\n";
+}
 
 template<Techniques T>
 bool CompareDomain<T>::runOnModule(Module &M) {
@@ -117,6 +177,16 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 			<< "---------------------------------\n";
 	Out->resetColor();
 
+	params P1, P2;
+	P1.T = T;
+	P2.T = T;
+	P1.D = getApronManager(0);
+	P2.D = getApronManager(1);
+	P1.N = useNewNarrowing(0);
+	P2.N = useNewNarrowing(1);
+	P1.TH = useThreshold(0);
+	P2.TH = useThreshold(1);
+
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		LSMT->reset_SMTcontext();
 		F = mIt;
@@ -131,21 +201,16 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 			Pr * FPr = Pr::getInstance(F);
 			if (FPr->getPw()->count(b)) {
 				// TODO
-				params P1, P2;
-				P1.T = T;
-				P2.T = T;
-				P1.D = getApronManager(0);
-				P2.D = getApronManager(1);
-				P1.N = useNewNarrowing(0);
-				P2.N = useNewNarrowing(1);
-				P1.TH = useThreshold(0);
-				P2.TH = useThreshold(1);
+			
+				ComputeTime(P1,F);
+				ComputeTime(P2,F);
+
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";
 				n->X_s[P1]->print();
 				n->X_s[P2]->print();
 				);
-				switch (n->X_s[P1]->compare(n->X_s[P2])) {
+				switch (Compare::compareAbstract(LSMT,n->X_s[P1],n->X_s[P2])) {
 					case 0:
 						eq++;
 						break;
@@ -175,8 +240,20 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	*Out << "GT " << gt << "\n";
 	*Out << "UN " << un << "\n";
 
+	*Out << "\nTIME:\n";
+	printTime(P1);
+	printTime(P2);
+	*Out << "TIME_END\n";
+
+	*Out << "\n\nTECHNIQUE:\n";
+	*Out << TechniquesToString(T);
+	*Out << "\nTECHNIQUE_END\n";
+
 	*Out << "\n\nMATRIX:\n";
-	*Out << eq << " " << lt << " " << gt << " " << un << "\n";
+	*Out << eq << " " << lt << " " << gt << " " << un << " ";
+	*Out << ApronManagerToString(getApronManager(0)) << " // " 
+		<< ApronManagerToString(getApronManager(1)) << "\n";
+	*Out << "MATRIX_END\n";
 	return true;
 }
 #endif

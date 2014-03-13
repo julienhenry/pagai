@@ -38,6 +38,9 @@ class CmpResults {
  */
 class Compare : public ModulePass {
 
+	public:
+		static int compareAbstract(SMTpass * LSMT, Abstract * A, Abstract * B);
+
 	private:
 		std::vector<Techniques> ComparedTechniques;
 
@@ -57,7 +60,6 @@ class Compare : public ModulePass {
 		// count the number of safe properties emitted by each technique
 		std::map<Techniques,int> Safe_properties;
 
-		int compareAbstract(Abstract * A, Abstract * B);
 
 		void compareTechniques(
 			Node * n, 
