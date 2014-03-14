@@ -131,9 +131,24 @@ SMT_expr z3_manager::SMT_mk_num (int n){
 }
 
 SMT_expr z3_manager::SMT_mk_num_mpq (mpq_t mpq) {
-	char * x = mpq_get_str (NULL,10,mpq);
-	SMT_expr res(expr(ctx.int_val(x)));
-	free(x);
+	//char * x = mpq_get_str (NULL,10,mpq);
+	//SMT_expr res(expr(ctx.int_val(x)));
+	//free(x);
+
+	SMT_expr res;
+	char * cnum = mpz_get_str(NULL,10,mpq_numref(mpq));
+	char * cden = mpz_get_str(NULL,10,mpq_denref(mpq));
+	std::string snum(cnum);
+	std::string sden(cden);
+	if (sden.compare("1")) {
+		SMT_expr numerator(expr(ctx.int_val(cnum)));
+		SMT_expr denominator(expr(ctx.int_val(cden)));
+		res = SMT_mk_div(numerator,denominator);
+	} else {
+		res = expr(ctx.int_val(cnum));
+	}
+	free(cnum);
+	free(cden);
 	return res;
 }
 

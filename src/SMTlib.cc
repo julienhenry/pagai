@@ -337,19 +337,35 @@ SMT_expr SMTlib::SMT_mk_num (int n){
 SMT_expr SMTlib::SMT_mk_num_mpq (mpq_t mpq) {
 	SMT_expr res;
 	char * charmpq;
+	char * cnum;
+	char * cden;
 	if (mpq_sgn(mpq) < 0) {
 		mpq_t nmpq;
 		mpq_init(nmpq);
 		mpq_neg(nmpq,mpq);
-		charmpq = mpq_get_str(NULL,10,nmpq);
-		std::string s(charmpq);
-		res = SMT_expr("(- " + s + ")");
+		cnum = mpz_get_str(NULL,10,mpq_numref(nmpq));
+		cden = mpz_get_str(NULL,10,mpq_denref(nmpq));
+		std::string snum(cnum);
+		std::string sden(cden);
+		if (sden.compare("1")) {
+			res = SMT_expr("(- (/ " + snum + " " + sden + "))");
+		} else {
+			res = SMT_expr("(- " + snum + ")");
+		}
 		mpq_clear(nmpq);
 	} else {
-		charmpq = mpq_get_str(NULL,10,mpq);
-		res = SMT_expr(charmpq);
+		cnum = mpz_get_str(NULL,10,mpq_numref(mpq));
+		cden = mpz_get_str(NULL,10,mpq_denref(mpq));
+		std::string snum(cnum);
+		std::string sden(cden);
+		if (sden.compare("1")) {
+			res = SMT_expr("(/ " + snum + " " + sden + ")");
+		} else {
+			res = SMT_expr(snum);
+		}
 	}
-	free(charmpq);
+	free(cnum);
+	free(cden);
 	return res;
 }
 
