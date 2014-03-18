@@ -25,6 +25,7 @@ bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
 bool printAll;
+bool oflcheck;
 bool force_old_output;
 bool output_annotated;
 bool log_smt;
@@ -47,9 +48,8 @@ void show_help() {
 \tpagai -h OR pagai [options]  -i <filename> \n \
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
+--no-undefined-check : do not verify integer overflows\n \
 --force-old-output : force to use the old output\n \
---annotated : specify the name of the outputted annotated source file\n \
---source : specify the path and name of the source file (in C, C++,etc.) \n \
 --quiet (-q) : quiet mode : does not print anything \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
@@ -91,6 +91,8 @@ void show_help() {
 -n : new version of narrowing (only for s technique)\n \
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
+--annotated : specify the name of the outputted annotated source file\n \
+--source : specify the path and name of the source file (in C, C++,etc.) \n \
 --timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
 --log-smt : SMT-lib2 queries are logged in files\n \
 --compare (-c) : use this argument to compare techniques\n \
@@ -135,6 +137,10 @@ bool useSourceName() {
 
 bool printAllInvariants() {
 	return printAll;
+}
+
+bool check_overflow() {
+	return oflcheck;
 }
 
 bool generateMetadata() {
@@ -402,6 +408,7 @@ int main(int argc, char* argv[]) {
 	printAll = false;
 	force_old_output = false;
 	output_annotated = false;
+	oflcheck = true;
 	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
@@ -427,6 +434,7 @@ int main(int argc, char* argv[]) {
 			{"printall",    no_argument, 0, 'p'},
 			{"skipnonlinear",    no_argument, 0, 'L'},
 			{"quiet",    no_argument, 0, 'q'},
+			{"no-undefined-check",    no_argument, 0, 'v'},
 			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
 			{"source",    required_argument, 0, 'A'},
@@ -437,7 +445,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:p",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pv",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -456,6 +464,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'D':
         	    debug = true;
+        	    break;
+        	case 'v':
+        	    oflcheck = false;
         	    break;
         	case 'c':
         	    compare = true;

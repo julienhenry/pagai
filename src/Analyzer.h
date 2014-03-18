@@ -90,6 +90,7 @@ bool onlyOutputsRho();
 bool skipNonLinearInSMT();
 
 bool printAllInvariants();
+bool check_overflow();
 
 enum outputs preferedOutput();
 bool useSourceName();

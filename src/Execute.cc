@@ -37,6 +37,7 @@
 #include "CompareNarrowing.h"
 #include "Analyzer.h"
 #include "GenerateSMT.h"
+#include "instrOverflow.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -92,6 +93,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		std::vector<const char *> args;
 		args.push_back(InputFilename.c_str());
 		args.push_back("-g");
+		if (check_overflow()) {
+			args.push_back("-ftrapv");
+			args.push_back("-fsanitize=local-bounds");
+		}
 
 		llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
 		 
@@ -107,7 +112,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
 		
 		clang::CompilerInstance Clang;
-		Clang.getCodeGenOpts().DebugColumnInfo = 1;
+		//Clang.getCodeGenOpts().DebugColumnInfo = 1;
+		CI->getCodeGenOpts().DebugColumnInfo = 1;
 		Clang.setInvocation(CI.take());
 		Clang.setDiagnostics(Diags);
 
@@ -148,12 +154,15 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	Passes.add(LoopInfoPass);
 
 	// in case we want to run an Alias analysis pass : 
-	//
 	//Passes.add(createGlobalsModRefPass());
 	//Passes.add(createBasicAliasAnalysisPass());
 	//Passes.add(createScalarEvolutionAliasAnalysisPass());
 	//Passes.add(createTypeBasedAliasAnalysisPass());
+		
+	if (check_overflow()) Passes.add(new instrOverflow());
 
+	// make sure everything is run before AI analysis
+	Passes.run(*M);
 
 	if (onlyOutputsRho()) {
 		Passes.add(new GenerateSMT());

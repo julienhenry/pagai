@@ -388,7 +388,7 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 }
 
 std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
-	return "possible overflow";
+	return "possible undefined behavior";
 }
 
 void AIPass::printResult(Function * F) {
