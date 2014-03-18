@@ -112,7 +112,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
 		
 		clang::CompilerInstance Clang;
-		//Clang.getCodeGenOpts().DebugColumnInfo = 1;
+		// equivalent to the -gcolumn-info command line option for clang
 		CI->getCodeGenOpts().DebugColumnInfo = 1;
 		Clang.setInvocation(CI.take());
 		Clang.setDiagnostics(Diags);
