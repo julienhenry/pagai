@@ -270,14 +270,13 @@ void AIPass::printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream 
 		} else if (FPr->getUndefinedBehaviour()->count(b)) {
 			if (Nodes[b]->X_s[passID]->is_bottom()) {
 				oss->changeColor(raw_ostream::GREEN,true);
-				*oss << "/* " << getUndefinedBehaviourPosition(b) << " : safe */\n"; 
+				*oss << "// safe\n"; 
 				oss->resetColor();
 				*oss << left;
 			} else {
 				oss->changeColor(raw_ostream::RED,true);
-				*oss << "/* " << getUndefinedBehaviourPosition(b);
-				*oss << " : unsafe: "; 
-				*oss << getUndefinedBehaviourMessage(b) << " */\n";
+				*oss << "// unsafe: "; 
+				*oss << getUndefinedBehaviourMessage(b) << "\n";
 				oss->resetColor();
 				*oss << left;
 			}
@@ -388,36 +387,8 @@ void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
 	}
 }
 
-std::string getUndefinedBehaviourElement(BasicBlock * b, int pos) {
-	std::string res("");
-	for (BasicBlock::iterator i = b->begin(), e = b->end(); i != e; ++i) {
-		Instruction * I = i;
-		if (CallInst * CI = dyn_cast<CallInst>(I)) {
-			// we can access the information only if the function called is
-			// undefined_behavior_trap_handler
-			Function * cF = CI->getCalledFunction();
-			static const std::string undefined_behavior_trap ("undefined_behavior_trap_handler");
-			std::string fname = cF->getName();
-			if (fname.compare(undefined_behavior_trap) == 0) {
-				Value * arg = CI->getArgOperand(pos);
-				if (ConstantExpr * exp = dyn_cast<ConstantExpr>(arg)) {
-					GlobalVariable * op = dyn_cast<GlobalVariable>(exp->getOperand(0));
-					ConstantDataArray * Init = dyn_cast<ConstantDataArray>(op->getInitializer());
-					res = Init->getAsCString().str();
-					return res;
-				}
-			}
-		}
-	}
-	return res;
-}
-
-std::string AIPass::getUndefinedBehaviourPosition(BasicBlock * b) {
-	return getUndefinedBehaviourElement(b,3);
-}
-
 std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
-	return getUndefinedBehaviourElement(b,4);
+	return "possible overflow";
 }
 
 void AIPass::printResult(Function * F) {
@@ -990,8 +961,31 @@ void AIPass::insert_env_vars_into_node_vars(Environment * env, Node * n, Value *
 	n->realVar[V].insert(realvars.begin(),realvars.end());
 }
 
+bool AIPass::computeCondition(Value * val, 
+		bool result,
+		std::vector<Constraint*> * cons) {
 
-bool AIPass::computeCondition(	CmpInst * inst, 
+	bool res;
+	if (CmpInst * cmp = dyn_cast<CmpInst>(val)) {
+		ap_texpr_rtype_t ap_type;
+		if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) {
+			return false;
+		}
+		res = computeCmpCondition(cmp,result,cons);
+	} else if (ConstantInt * c = dyn_cast<ConstantInt>(val)) {
+		res = computeConstantCondition(c,result,cons);
+	} else if (PHINode * phi = dyn_cast<PHINode>(val)) {
+		res = computePHINodeCondition(phi,result,cons);
+	} else if (BinaryOperator * binop = dyn_cast<BinaryOperator>(val)) {
+		res = computeBinaryOpCondition(binop,result,cons);
+	} else {
+		// loss of precision...
+		return false;
+	}
+	return res;
+}
+
+bool AIPass::computeCmpCondition(	CmpInst * inst, 
 		bool result,
 		std::vector<Constraint*> * cons) {
 
@@ -1111,6 +1105,48 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 	}
 }
 
+bool AIPass::computeBinaryOpCondition(BinaryOperator * inst, 
+		bool result,
+		std::vector<Constraint*> * cons) {
+
+	bool res = false;
+	switch(inst->getOpcode()) {
+		case Instruction::Or:
+			// cond takes two constraints, one per operand
+			if (result) {
+				res = computeCondition(inst->getOperand(0),result,cons);
+				res |= computeCondition(inst->getOperand(1),result,cons);
+			} else {
+				res = computeCondition(inst->getOperand(0),result,cons);
+				// overapproximation: we do not consider the second operand
+			}
+			break;
+		case Instruction::And:
+			// cond takes one constraint
+			// which should be the intersection of the two operands
+			// TODO: we just take the first constraint for the moment...
+			if (result) {
+				res = computeCondition(inst->getOperand(0),result,cons);
+			} else {
+				// not (A and B) is not A or not B
+				res = computeCondition(inst->getOperand(0),result,cons);
+				res |= computeCondition(inst->getOperand(1),result,cons);
+			}
+			break;
+		case Instruction::Xor:
+			// if the xor encodes a not, we can be precise,
+			// otherwise we just ignore...
+			if (BinaryOperator::isNot(inst)) {
+				Value * notval = BinaryOperator::getNotArgument(inst);
+				res = computeCondition(notval,!result,cons);
+			}
+			break;
+		default:
+			break;
+	}
+	return res;
+}
+
 bool AIPass::computePHINodeCondition(PHINode * inst, 
 		bool result,
 		std::vector<Constraint*> * cons) {
@@ -1128,21 +1164,7 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 	for (unsigned i = 0; i < inst->getNumIncomingValues(); i++) {
 		if (pred == inst->getIncomingBlock(i)) {
 			pv = inst->getIncomingValue(i);
-
-			if (CmpInst * cmp = dyn_cast<CmpInst>(pv)) {
-				ap_texpr_rtype_t ap_type;
-				if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) return false;
-				res = computeCondition(cmp,result,cons);
-			} else if (ConstantInt * c = dyn_cast<ConstantInt>(pv)) {
-				res = computeConstantCondition(c,result,cons);
-			} else if (PHINode * phi = dyn_cast<PHINode>(pv)) {
-				// I.getOperand(0) could also be a
-				// boolean PHI-variable
-				res = computePHINodeCondition(phi,result,cons);
-			} else {
-				// loss of precision...
-				res = false;
-			}
+			res = computeCondition(pv,result,cons);
 		}
 	}
 	return res;
@@ -1177,24 +1199,7 @@ void AIPass::visitBranchInst (BranchInst &I){
 
 	std::vector<Constraint*> * cons = new std::vector<Constraint*>();
 
-	if (CmpInst * cmp = dyn_cast<CmpInst>(I.getOperand(0))) {
-		ap_texpr_rtype_t ap_type;
-		if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) {
-			delete cons;
-			return;
-		}
-		res = computeCondition(cmp,test,cons);
-	} else if (ConstantInt * c = dyn_cast<ConstantInt>(I.getOperand(0))) {
-		res = computeConstantCondition(c,test,cons);
-	} else if (PHINode * phi = dyn_cast<PHINode>(I.getOperand(0))) {
-		// I.getOperand(0) could also be a
-		// boolean PHI-variable
-		res = computePHINodeCondition(phi,test,cons);
-	} else {
-		// loss of precision...
-		delete cons;
-		return;
-	}
+	res = computeCondition(I.getOperand(0),test,cons);
 
 	// we add cons in the set of constraints of the path
 	if (res) 

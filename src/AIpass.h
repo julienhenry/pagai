@@ -279,9 +279,17 @@ class AIPass : private InstVisitor<AIPass> {
 		
 		/** 
 		 * \brief creates the constraint arrays resulting from a
+		 * value.
+		 */
+		bool computeCondition(Value * val, 
+				bool result,
+				std::vector<Constraint*> * cons);
+
+		/** 
+		 * \brief creates the constraint arrays resulting from a
 		 * comparison instruction.
 		 */
-		bool computeCondition(CmpInst * inst, 
+		bool computeCmpCondition(CmpInst * inst, 
 				bool result,
 				std::vector<Constraint*> * cons);
 
@@ -298,6 +306,14 @@ class AIPass : private InstVisitor<AIPass> {
 		 * boolean PHINode
 		 */
 		bool computePHINodeCondition(PHINode * inst, 
+				bool result,
+				std::vector<Constraint*> * cons);
+
+		/** 
+		 * \brief creates the constraint arrays resulting from a
+		 * boolean Binary Operator
+		 */
+		bool computeBinaryOpCondition(BinaryOperator * inst, 
 				bool result,
 				std::vector<Constraint*> * cons);
 
@@ -325,7 +341,6 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		void printResult(Function * F);
 		
-		std::string getUndefinedBehaviourPosition(BasicBlock * b);
 		std::string getUndefinedBehaviourMessage(BasicBlock * b);
 
 		void generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F);
