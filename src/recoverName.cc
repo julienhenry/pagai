@@ -294,50 +294,9 @@ Info recoverName::resolveMetDescriptor(MDNode* md) {
 			lineNo=LineNo->getZExtValue();	
 		}
 
-		if(const MDNode *Type=dyn_cast<MDNode>(md->getOperand(typeLoc))) 
-		{
-			if(Type->getOperand(2)!=NULL){
-				if(const MDString *MDS2 = dyn_cast<MDString>(Type->getOperand(2))) 
-				{
-					type=MDS2->getString().str();
-    			}}
-		//using the tag value to find type name..
-			else if(const ConstantInt *Tag = dyn_cast<ConstantInt>(Type->getOperand(0)))
-			{
-				tag=Tag->getZExtValue()-LLVM_DEBUG_VERSION;
-				switch(tag)
-				{
-					case 36: //DW_TAG_base_type
-							type="base_type";
-							break;
-					case 16: //DW_TAG_reference_type 
-							type="reference_type";
-							break;
-					case 15: //DW_TAG_pointer_type 
-							type="pointer_type";
-							break;
-					case 5: //DW_TAG_formal_parameter
-							type="formal_parameter";
-							break;
-					case 13: //DW_TAG_member
-							type="member";
-							break;
-					case 22: //DW_TAG_typedef
-							type="typedef";
-							break;
-					case 38: //DW_TAG_const_type
-							type="const_type";
-							break;
-					case 53: //DW_TAG_volatile_type 
-							type="volatile_type";
-							break;
-					case 55: //DW_TAG_restrict_type
-							type="restrict_type";
-							break;
-					default: type="Unknown_type!!";
-				}
-			}
-		}
+		// type is set to unknown, since we do not use it anyway
+		type="unknown";
+
 		Info res(name,lineNo,type,islocal,isarg,isret,isglobal);
 		return res;
 	}
@@ -438,6 +397,7 @@ int recoverName::getFunctionLineNo(Function* F) {
 	MDNode * MD = I->getMetadata(0);
 	//MD = dyn_cast<MDNode>(MD->getOperand(2));
 	MDNode * MDNode_subprogram = get_DW_TAG_subprogram(MD);
+	assert(MDNode_subprogram != NULL);
 	const ConstantInt *LineNo = dyn_cast<ConstantInt>(MDNode_subprogram->getOperand(19));
 	return LineNo->getZExtValue();
 }
@@ -449,6 +409,7 @@ std::string recoverName::getSourceFileName(Function * F) {
 	MDNode * MD = I->getMetadata("dbg");
 	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	if (MDNode_file_type == NULL) return "";
 	MD = dyn_cast<MDNode>(MDNode_file_type->getOperand(1));
 	const MDString * Filename = dyn_cast<MDString>(MD->getOperand(0));
 
@@ -463,6 +424,7 @@ std::string recoverName::getSourceFileDir(Function * F) {
 	MDNode * MD = I->getMetadata("dbg");
 	if (MD == NULL) return "";
 	MDNode * MDNode_file_type = get_DW_TAG_file_type(MD);
+	if (MDNode_file_type == NULL) return "";
 	MD = dyn_cast<MDNode>(MDNode_file_type->getOperand(1));
 	const MDString * Filename = dyn_cast<MDString>(MD->getOperand(1));
 

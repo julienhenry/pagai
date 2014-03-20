@@ -94,8 +94,18 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		args.push_back(InputFilename.c_str());
 		args.push_back("-g");
 		if (check_overflow()) {
-			args.push_back("-ftrapv");
+			//args.push_back("-ftrapv");
+			args.push_back("-fsanitize=bool");
+			args.push_back("-fsanitize=enum");
+			args.push_back("-fsanitize=null");
+			args.push_back("-fsanitize=signed-integer-overflow");
+			args.push_back("-fsanitize=unsigned-integer-overflow");
+			args.push_back("-fsanitize=integer-divide-by-zero");
+			args.push_back("-fsanitize=float-divide-by-zero");
+			args.push_back("-fsanitize=float-cast-overflow");
+			args.push_back("-fsanitize=array-bounds");
 			args.push_back("-fsanitize=local-bounds");
+			//args.push_back("-fsanitize=local-bounds");
 		}
 
 		llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());

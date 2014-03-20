@@ -194,6 +194,7 @@ void Pr::computePr() {
 
 	const std::string assert_fail ("__assert_fail");
 	const std::string llvm_trap ("llvm.trap");
+	const std::string assert_fail_overflow ("__assert_fail_overflow");
 	const std::string gnat_rcheck ("__gnat_rcheck_");
 
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
@@ -222,7 +223,8 @@ void Pr::computePr() {
 					Assert_set.insert(b);
 				}
 				if (fname.compare(llvm_trap) == 0
-				    || fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
+						|| fname.compare(assert_fail_overflow) == 0
+						|| fname.substr(0, gnat_rcheck.length()).compare(gnat_rcheck) == 0) {
 					Pr_set.insert(b);
 					UndefBehaviour_set.insert(b);
 				}

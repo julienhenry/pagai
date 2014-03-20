@@ -9,4 +9,6 @@ int main() {
 		if (y < 0) break;
 		x++;
 	}
+
+	x = x*x;
 }

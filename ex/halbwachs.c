@@ -1,6 +1,6 @@
 int f() {
-	int i = 0;
-	int j = 0;
+	unsigned i = 0;
+	unsigned j = 0;
 
 	while (i < 50) {
 		j = 0;

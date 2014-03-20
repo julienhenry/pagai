@@ -90,6 +90,32 @@ bool instrOverflow::visitBranchInst(BranchInst &inst) {
 	return false;
 }
 
+bool instrOverflow::visitCallInst(CallInst &inst) {
+		Function * f = inst.getCalledFunction();	
+		if (f == NULL) return false;
+		if (f->getName() == "__ubsan_handle_add_overflow" ||
+			f->getName() == "__ubsan_handle_sub_overflow" ||
+			f->getName() == "__ubsan_handle_mul_overflow" ||
+			f->getName() == "__ubsan_handle_divrem_overflow" 
+				) {
+			LLVMContext &C = inst.getContext();
+			FunctionType * ftype = FunctionType::get(Type::getVoidTy(inst.getContext()),true);
+			Module * M = inst.getParent()->getParent()->getParent();
+			Constant * assert_fail_func = M->getOrInsertFunction("__assert_fail_overflow",ftype);
+			inst.setCalledFunction(assert_fail_func);
+			inst.setDoesNotReturn();
+			
+			//Value* v = llvm::ConstantArray::get(C, "toto");
+
+			//CallInst * newcall = CallInst::Create(assert_fail_func);
+			//ReplaceInstWithInst(&inst,newcall);
+			// get the terminatorinst and replace it by unreachable
+			TerminatorInst * term = inst.getParent()->getTerminator();
+			TerminatorInst * unreachable = new UnreachableInst::UnreachableInst(C);
+			ReplaceInstWithInst(term,unreachable);
+		}
+		return false;
+}
 
 void instrOverflow::replaceWithUsualOp(
 		Instruction * old, 

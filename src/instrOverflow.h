@@ -39,6 +39,7 @@ class instrOverflow : public FunctionPass,
 
 			bool visitExtractValueInst(ExtractValueInst &inst);
 			bool visitBranchInst(BranchInst &inst);
+			bool visitCallInst(CallInst &inst);
 
 			bool visitInstruction(Instruction &inst) {return false;}
 	};
