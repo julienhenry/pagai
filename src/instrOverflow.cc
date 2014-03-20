@@ -13,6 +13,11 @@
 using namespace llvm;
 
 bool instrOverflow::runOnFunction(Function &F) {
+	// first pass replaces the binary instructions
+	pass1 = true;
+	while (updateFunction(F)) {}
+	// second pass inserts the comparisons
+	pass1 = false;
 	while (updateFunction(F)) {}
 	return false;
 }
@@ -20,6 +25,7 @@ bool instrOverflow::runOnFunction(Function &F) {
 bool instrOverflow::updateFunction(Function &F) {
 	for (Function::iterator i = F.begin(), e = F.end(); i != e; ++i) {
 		BasicBlock * b = i;
+
 		for (BasicBlock::iterator it = b->begin(), et = b->end(); it != et; ++it) {
 			if (visit(*it)) return true;
 		}
@@ -45,15 +51,19 @@ bool instrOverflow::visitExtractValueInst(ExtractValueInst &inst) {
 					indice = inst.getIndices()[0];
 					if (indice == 0) {
 						// this is the instruction
-						std::vector<Value*> args;
-						args.push_back(call->getArgOperand(0));
-						args.push_back(call->getArgOperand(1));
-						replaceWithUsualOp(&inst,intrinsicID,&args,call);
-						return true;
+						if (pass1) {
+							std::vector<Value*> args;
+							args.push_back(call->getArgOperand(0));
+							args.push_back(call->getArgOperand(1));
+							replaceWithUsualOp(&inst,intrinsicID,&args,call);
+							return true;
+						}
 					} else {
 						// this is the ofl flag
-						replaceWithCmp(&inst,intrinsicID,call);
-						return true;
+						if (!pass1) {
+							replaceWithCmp(&inst,intrinsicID,call);
+							return true;
+						}
 					}
 					break;
 				default:
@@ -115,8 +125,10 @@ void instrOverflow::replaceWithUsualOp(
 			break;
 	}
 	// the old and the new instruction share the same dbg info
-	MDNode * dbg = old->getMetadata(LLVMContext::MD_dbg);
-	new_inst->setMetadata(LLVMContext::MD_dbg,dbg);
+	if (old->hasMetadata()) {
+		MDNode * dbg = old->getMetadata(LLVMContext::MD_dbg);
+		new_inst->setMetadata(LLVMContext::MD_dbg,dbg);
+	}
 	ReplaceInstWithInst(old, new_inst);
 	replaced.insert(std::pair<CallInst*,Instruction*>(intrinsicCall,new_inst));
 }
@@ -127,12 +139,17 @@ void instrOverflow::replaceWithCmp(
 		CallInst * intrinsicCall
 		){
 	// the old and the new instructions all share the same dbg info
-	MDNode * dbg = old->getMetadata(LLVMContext::MD_dbg);
+	MDNode * dbg = NULL;
+		
+	if (old->hasMetadata()) {
+		dbg = old->getMetadata(LLVMContext::MD_dbg);
+	}
 
 	Instruction * new_inst_max = NULL;
 	Instruction * new_inst_min = NULL;
 	Instruction * new_inst = NULL;
 	Instruction * re = replaced[intrinsicCall];
+	assert(re != NULL);
 	unsigned bitwidth = re->getType()->getIntegerBitWidth();
 	LLVMContext& C = re->getContext();
 	ConstantInt * maxsignedval = ConstantInt::get(C,APInt::getSignedMaxValue(bitwidth));
@@ -157,9 +174,11 @@ void instrOverflow::replaceWithCmp(
 	}
 	new_inst = BinaryOperator::Create(llvm::Instruction::Or,new_inst_max,new_inst_min);
 
-	new_inst->setMetadata(LLVMContext::MD_dbg,dbg);
-	new_inst_min->setMetadata(LLVMContext::MD_dbg,dbg);
-	new_inst_max->setMetadata(LLVMContext::MD_dbg,dbg);
+	if (dbg != NULL) {
+		new_inst->setMetadata(LLVMContext::MD_dbg,dbg);
+		new_inst_min->setMetadata(LLVMContext::MD_dbg,dbg);
+		new_inst_max->setMetadata(LLVMContext::MD_dbg,dbg);
+	}
 
 	ReplaceInstWithInst(old, new_inst);
 

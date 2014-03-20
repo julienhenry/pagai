@@ -15,6 +15,8 @@ class instrOverflow : public FunctionPass,
 		private:
 			std::map<CallInst*, Instruction*> replaced;
 
+			bool pass1;
+
 		public:
 			static char ID;
 			instrOverflow() : FunctionPass(ID) {}

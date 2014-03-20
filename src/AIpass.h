@@ -418,7 +418,7 @@ class AIPass : private InstVisitor<AIPass> {
 
 
 		void visitInstruction(Instruction &I) {
-			ferrs() << I.getOpcodeName();
+			ferrs() << I;
 			assert(0 && "Instruction not interpretable yet!");
 		}
 		/** 

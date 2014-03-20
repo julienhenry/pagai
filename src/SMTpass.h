@@ -313,8 +313,8 @@ class SMTpass : private InstVisitor<SMTpass> {
 		void visitCastInst (CastInst &I);
 
 		void visitInstruction(Instruction &I) {
-			ferrs() << I.getOpcodeName();
-			assert(0 && "Instruction not interpretable yet!");
+			//ferrs() << I.getOpcodeName();
+			//assert(0 && ": Instruction not interpretable yet!");
 		}
 		/**
 		 * \}

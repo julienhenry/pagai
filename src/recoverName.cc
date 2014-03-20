@@ -95,8 +95,12 @@ Info recoverName::getMDInfos(const Value* V) {
 		std::set<Value*> seen;
 		seen.insert(phi);
 		std::set<Info> s = getMDInfos_rec(v,seen);
-		computed_mappings[v] = *s.begin();
-		return *s.begin();
+		if (s.empty()) {
+			computed_mappings[v] = Info(SMTpass::getVarName(v),-1,"unknown");
+		} else {
+			computed_mappings[v] = *s.begin();
+		}
+		return computed_mappings[v];
 	}
 	std::pair<std::multimap<const Value*,Info>::iterator,std::multimap<const Value*,Info>::iterator> ret1;
 	ret1=M1.equal_range(V);
