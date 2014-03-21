@@ -83,9 +83,7 @@ fi
 if [ $NOTRAP -eq 1 ] ; then
  TRAP=" "
 else
- TRAP=" "
- # this argument is not working with recent versions of LLVM
- #TRAP=" -fcatch-undefined-c99-behavior "
+ TRAP=" -fsanitize=undefined -fsanitize=local-bounds "
 fi
 
 if [ $M64BITS -eq 1 ] ; then

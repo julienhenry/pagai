@@ -103,9 +103,7 @@ void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	    ap_abstract1_clear(man,main);
 	    *main = new_main;
 	}
-
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
-
 }
 
 void AbstractClassic::canonicalize() {

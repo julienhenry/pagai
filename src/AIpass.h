@@ -283,7 +283,8 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeCondition(Value * val, 
 				bool result,
-				std::vector<Constraint*> * cons);
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -291,7 +292,8 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeCmpCondition(CmpInst * inst, 
 				bool result,
-				std::vector<Constraint*> * cons);
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -299,7 +301,8 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeConstantCondition(ConstantInt * inst, 
 				bool result,
-				std::vector<Constraint*> * cons);
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -307,7 +310,8 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computePHINodeCondition(PHINode * inst, 
 				bool result,
-				std::vector<Constraint*> * cons);
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief creates the constraint arrays resulting from a
@@ -315,7 +319,8 @@ class AIPass : private InstVisitor<AIPass> {
 		 */
 		bool computeBinaryOpCondition(BinaryOperator * inst, 
 				bool result,
-				std::vector<Constraint*> * cons);
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief Insert all the dimensions of the environment into the node

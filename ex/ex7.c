@@ -2,9 +2,9 @@
 
 int main(int argc, char ** argv) {
 
-	int a,b,c,d,e,f,g,h;
-	int x,y,z;
-	int i, j;
+	int a=0,b=0,c=0,d=0,e=0,f=0,g=0,h=0;
+	int x=0,y=0,z=0;
+	int i=0,j=0;
 	
 	x = 0;
 	y = 1000;

@@ -963,7 +963,8 @@ void AIPass::insert_env_vars_into_node_vars(Environment * env, Node * n, Value *
 
 bool AIPass::computeCondition(Value * val, 
 		bool result,
-		std::vector<Constraint*> * cons) {
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
 
 	bool res;
 	if (CmpInst * cmp = dyn_cast<CmpInst>(val)) {
@@ -971,13 +972,13 @@ bool AIPass::computeCondition(Value * val,
 		if (Expr::get_ap_type(cmp->getOperand(0), ap_type)) {
 			return false;
 		}
-		res = computeCmpCondition(cmp,result,cons);
+		res = computeCmpCondition(cmp,result,cons_index,cons);
 	} else if (ConstantInt * c = dyn_cast<ConstantInt>(val)) {
-		res = computeConstantCondition(c,result,cons);
+		res = computeConstantCondition(c,result,cons_index,cons);
 	} else if (PHINode * phi = dyn_cast<PHINode>(val)) {
-		res = computePHINodeCondition(phi,result,cons);
+		res = computePHINodeCondition(phi,result,cons_index,cons);
 	} else if (BinaryOperator * binop = dyn_cast<BinaryOperator>(val)) {
-		res = computeBinaryOpCondition(binop,result,cons);
+		res = computeBinaryOpCondition(binop,result,cons_index,cons);
 	} else {
 		// loss of precision...
 		return false;
@@ -987,7 +988,8 @@ bool AIPass::computeCondition(Value * val,
 
 bool AIPass::computeCmpCondition(	CmpInst * inst, 
 		bool result,
-		std::vector<Constraint*> * cons) {
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
 
 	//Node * n = Nodes[inst->getParent()];
 	Node * n = Nodes[focuspath.back()];
@@ -1072,17 +1074,18 @@ bool AIPass::computeCmpCondition(	CmpInst * inst,
 	}
 	if (result) {
 		// creating the TRUE constraints
-		Expr::create_constraints(constyp,&expr,&nexpr,cons);
+		Expr::create_constraints(constyp,&expr,&nexpr,(*cons)[cons_index]);
 	} else {
 		// creating the FALSE constraints
-		Expr::create_constraints(nconstyp,&nexpr,&expr,cons);
+		Expr::create_constraints(nconstyp,&nexpr,&expr,(*cons)[cons_index]);
 	}
 	return true;
 }
 
 bool AIPass::computeConstantCondition(	ConstantInt * inst, 
 		bool result,
-		std::vector<Constraint*> * cons) {
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
 
 	bool is_null = inst->isNullValue();
 	if ((is_null && result) || (is_null && result)) {
@@ -1097,7 +1100,7 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 				NULL);
 
 		// condition is always false
-		cons->push_back(c);
+		(*cons)[cons_index]->push_back(c);
 		return true;
 	} else {
 		// there is no constraint 
@@ -1107,30 +1110,38 @@ bool AIPass::computeConstantCondition(	ConstantInt * inst,
 
 bool AIPass::computeBinaryOpCondition(BinaryOperator * inst, 
 		bool result,
-		std::vector<Constraint*> * cons) {
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
 
 	bool res = false;
 	switch(inst->getOpcode()) {
 		case Instruction::Or:
 			// cond takes two constraints, one per operand
 			if (result) {
-				res = computeCondition(inst->getOperand(0),result,cons);
-				res |= computeCondition(inst->getOperand(1),result,cons);
+				res = computeCondition(inst->getOperand(0),result,cons_index,cons);
+				res |= computeCondition(inst->getOperand(1),result,cons_index,cons);
 			} else {
-				res = computeCondition(inst->getOperand(0),result,cons);
+				res = computeCondition(inst->getOperand(0),result,cons_index,cons);
 				// overapproximation: we do not consider the second operand
+				if (cons->size() < cons_index+2) {
+					cons->push_back(new std::vector<Constraint*>());
+				}
+				res |= computeCondition(inst->getOperand(1),result,cons_index+1,cons);
 			}
 			break;
 		case Instruction::And:
 			// cond takes one constraint
 			// which should be the intersection of the two operands
-			// TODO: we just take the first constraint for the moment...
 			if (result) {
-				res = computeCondition(inst->getOperand(0),result,cons);
+				res = computeCondition(inst->getOperand(0),result,cons_index,cons);
+				if (cons->size() < cons_index+2) {
+					cons->push_back(new std::vector<Constraint*>());
+				}
+				res |= computeCondition(inst->getOperand(1),result,cons_index+1,cons);
 			} else {
 				// not (A and B) is not A or not B
-				res = computeCondition(inst->getOperand(0),result,cons);
-				res |= computeCondition(inst->getOperand(1),result,cons);
+				res = computeCondition(inst->getOperand(0),result,cons_index,cons);
+				res |= computeCondition(inst->getOperand(1),result,cons_index,cons);
 			}
 			break;
 		case Instruction::Xor:
@@ -1138,7 +1149,7 @@ bool AIPass::computeBinaryOpCondition(BinaryOperator * inst,
 			// otherwise we just ignore...
 			if (BinaryOperator::isNot(inst)) {
 				Value * notval = BinaryOperator::getNotArgument(inst);
-				res = computeCondition(notval,!result,cons);
+				res = computeCondition(notval,!result,cons_index,cons);
 			}
 			break;
 		default:
@@ -1149,7 +1160,8 @@ bool AIPass::computeBinaryOpCondition(BinaryOperator * inst,
 
 bool AIPass::computePHINodeCondition(PHINode * inst, 
 		bool result,
-		std::vector<Constraint*> * cons) {
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
 
 	bool res = false;
 
@@ -1164,7 +1176,7 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 	for (unsigned i = 0; i < inst->getNumIncomingValues(); i++) {
 		if (pred == inst->getIncomingBlock(i)) {
 			pv = inst->getIncomingValue(i);
-			res = computeCondition(pv,result,cons);
+			res = computeCondition(pv,result,cons_index,cons);
 		}
 	}
 	return res;
@@ -1197,15 +1209,18 @@ void AIPass::visitBranchInst (BranchInst &I){
 		test = false;
 	}
 
-	std::vector<Constraint*> * cons = new std::vector<Constraint*>();
-
-	res = computeCondition(I.getOperand(0),test,cons);
+	std::vector< std::vector<Constraint*> * > * cons = new std::vector< std::vector<Constraint*> * >();
+	cons->push_back(new std::vector<Constraint*>());
+	res = computeCondition(I.getOperand(0),test,0,cons);
 
 	// we add cons in the set of constraints of the path
-	if (res) 
-		constraints.push_back(cons);
-	else
-		delete cons;
+	for (unsigned i = 0; i < cons->size(); i++) {
+		if ((*cons)[i]->size() > 0) 
+			constraints.push_back((*cons)[i]);
+		else
+			delete (*cons)[i];
+	}
+	delete cons;
 }
 
 /*
