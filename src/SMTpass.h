@@ -120,14 +120,6 @@ class SMTpass : private InstVisitor<SMTpass> {
 			int &index);
 		
 		/**
-		 * \brief compute and return the expression associated to a
-		 * condition
-		 */
-		SMT_expr computeCondition(Constant * inst);
-		SMT_expr computeCondition(PHINode * inst);
-		SMT_expr computeCondition(CmpInst * inst);
-
-		/**
 		 * \brief called by visitPHINode
 		 */
 		SMT_expr construct_phi_ite(PHINode &I, unsigned i, unsigned n);
@@ -280,8 +272,6 @@ class SMTpass : private InstVisitor<SMTpass> {
 		void visitUnwindInst (UnwindInst &I);
 #endif
 		void visitUnreachableInst (UnreachableInst &I);
-		void visitICmpInst (ICmpInst &I);
-		void visitFCmpInst (FCmpInst &I);
 		void visitAllocaInst (AllocaInst &I);
 		void visitLoadInst (LoadInst &I);
 		void visitStoreInst (StoreInst &I);

@@ -494,13 +494,11 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			// this is a boolean
 			// so we can create a boolean variable
 			SMT_expr cond;
-			if (isa<CmpInst>(v)) {
-				cond = computeCondition(dyn_cast<CmpInst>(v));
-			} else if (PHINode * phi = dyn_cast<PHINode>(v)) {
-				SMT_var var = getBoolVar(v,primed);
+			if (isa<Instruction>(v) || isa<Argument>(v)) {
+				var = getBoolVar(v,primed);
 				return man->SMT_mk_expr_from_bool_var(var);
-				//cond = computeCondition(dyn_cast<PHINode>(v));
 			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
+				// the constant is either true or false
 				if (vint->isZero()) {
 					cond = man->SMT_mk_false();
 				} else if (vint->isOne()) {
@@ -513,8 +511,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 			}
 			return cond;
 		} else {
-			*Out << "ERROR: getValueExpr returns NULL\n";
-			*Out << *v << "\n";
+			assert(false && "ERROR: getValueExpr returns NULL");
 			return NULL_res;
 		}
 	}
@@ -852,84 +849,6 @@ int SMTpass::SMTsolve_simple(SMT_expr expr) {
 void SMTpass::visitReturnInst (ReturnInst &I) {
 }
 
-SMT_expr SMTpass::computeCondition(PHINode * inst) {
-	return construct_phi_ite(*inst,0,inst->getNumIncomingValues());
-}
-
-SMT_expr SMTpass::computeCondition(Constant * inst) {
-	if (inst->isNullValue())
-		return man->SMT_mk_false();
-	else
-		return man->SMT_mk_true();
-}
-
-SMT_expr SMTpass::computeCondition(CmpInst * inst) {
-
-	ap_texpr_rtype_t ap_type;
-	if (Expr::get_ap_type((Value*)inst->getOperand(0), ap_type)) {
-		// the comparison is not between integers or reals
-		// we create an undeterministic choice variable
-		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(inst));
-		SMT_expr cexpr = man->SMT_mk_expr_from_bool_var(cvar);
-		return cexpr;
-	}
-
-	SMT_expr op1, op2;
-
-	op1 = getValueExpr(inst->getOperand(0), false);
-	op2 = getValueExpr(inst->getOperand(1), false);
-
-	if (op1.is_empty() || op2.is_empty()) {
-		// the comparison involve at least an operand that is nan
-		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(inst));
-		SMT_expr cexpr = man->SMT_mk_expr_from_bool_var(cvar);
-		return cexpr;
-	}
-
-	SMT_expr NULL_res;
-	switch (inst->getPredicate()) {
-		case CmpInst::FCMP_FALSE:
-			return man->SMT_mk_false();
-		case CmpInst::FCMP_TRUE: 
-			return man->SMT_mk_true();
-		case CmpInst::FCMP_OEQ: 
-		case CmpInst::FCMP_UEQ: 
-		case CmpInst::ICMP_EQ:
-			return man->SMT_mk_eq(op1,op2);
-		case CmpInst::FCMP_OGT:
-		case CmpInst::FCMP_UGT:
-		case CmpInst::ICMP_UGT: 
-		case CmpInst::ICMP_SGT: 
-			return man->SMT_mk_gt(op1,op2);
-		case CmpInst::FCMP_OLT: 
-		case CmpInst::FCMP_ULT: 
-		case CmpInst::ICMP_ULT: 
-		case CmpInst::ICMP_SLT: 
-			return man->SMT_mk_lt(op1,op2);
-		case CmpInst::FCMP_OGE:
-		case CmpInst::FCMP_UGE:
-		case CmpInst::ICMP_UGE:
-		case CmpInst::ICMP_SGE:
-			return man->SMT_mk_ge(op1,op2);
-		case CmpInst::FCMP_OLE:
-		case CmpInst::FCMP_ULE:
-		case CmpInst::ICMP_ULE:
-		case CmpInst::ICMP_SLE:
-			return man->SMT_mk_le(op1,op2);
-		case CmpInst::FCMP_ONE:
-		case CmpInst::FCMP_UNE: 
-		case CmpInst::ICMP_NE: 
-			return man->SMT_mk_diseq(op1,op2);
-		case CmpInst::FCMP_ORD: 
-		case CmpInst::FCMP_UNO:
-		case CmpInst::BAD_ICMP_PREDICATE:
-		case CmpInst::BAD_FCMP_PREDICATE:
-			*Out << "ERROR : Unknown predicate\n";
-			return NULL_res;
-	}
-	return NULL_res;
-}
-
 void SMTpass::visitBranchInst (BranchInst &I) {
 	BasicBlock * b = I.getParent();
 
@@ -944,17 +863,8 @@ void SMTpass::visitBranchInst (BranchInst &I) {
 	} else {
 		SMT_expr components_and;
 		std::vector<SMT_expr> components;
-		SMT_expr cond;
-		if (isa<CmpInst>(I.getOperand(0)))
-			cond = computeCondition(dyn_cast<CmpInst>(I.getOperand(0)));
-		else if (isa<PHINode>(I.getOperand(0))) 
-			cond = computeCondition(dyn_cast<PHINode>(I.getOperand(0)));
-		else if (isa<Constant>(I.getOperand(0))) {
-			cond = computeCondition(dyn_cast<Constant>(I.getOperand(0)));
-		} else {
-			SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(I.getOperand(0)));
-			cond = man->SMT_mk_expr_from_bool_var(cvar);
-		}
+		
+		SMT_expr cond = getValueExpr(I.getOperand(0),false);
 
 		components.push_back(bexpr);
 		if (!cond.is_empty())
@@ -1016,12 +926,6 @@ void SMTpass::visitUnwindInst (UnwindInst &I) {
 #endif
 
 void SMTpass::visitUnreachableInst (UnreachableInst &I) {
-}
-
-void SMTpass::visitICmpInst (ICmpInst &I) {
-}
-
-void SMTpass::visitFCmpInst (FCmpInst &I) {
 }
 
 void SMTpass::visitAllocaInst (AllocaInst &I) {
@@ -1275,6 +1179,84 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 }
 
 void SMTpass::visitCmpInst (CmpInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr assign;	
+	
+	ap_texpr_rtype_t ap_type;
+	if (Expr::get_ap_type((Value*)I.getOperand(0), ap_type)) {
+		// the comparison is not between integers or reals
+		// we create an undeterministic choice variable
+		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(&I));
+		assign = man->SMT_mk_expr_from_bool_var(cvar);
+		rho_components.push_back(man->SMT_mk_eq(expr,assign));
+		return;
+	}
+
+	SMT_expr op1, op2;
+
+	op1 = getValueExpr(I.getOperand(0), false);
+	op2 = getValueExpr(I.getOperand(1), false);
+
+	if (op1.is_empty() || op2.is_empty()) {
+		// the comparison involve at least an operand that is nan
+		SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(&I));
+		assign = man->SMT_mk_expr_from_bool_var(cvar);
+		rho_components.push_back(man->SMT_mk_eq(expr,assign));
+		return;
+	}
+
+	switch (I.getPredicate()) {
+		case CmpInst::FCMP_FALSE:
+			assign = man->SMT_mk_false();
+			break;
+		case CmpInst::FCMP_TRUE: 
+			assign = man->SMT_mk_true();
+			break;
+		case CmpInst::FCMP_OEQ: 
+		case CmpInst::FCMP_UEQ: 
+		case CmpInst::ICMP_EQ:
+			assign = man->SMT_mk_eq(op1,op2);
+			break;
+		case CmpInst::FCMP_OGT:
+		case CmpInst::FCMP_UGT:
+		case CmpInst::ICMP_UGT: 
+		case CmpInst::ICMP_SGT: 
+			assign = man->SMT_mk_gt(op1,op2);
+			break;
+		case CmpInst::FCMP_OLT: 
+		case CmpInst::FCMP_ULT: 
+		case CmpInst::ICMP_ULT: 
+		case CmpInst::ICMP_SLT: 
+			assign = man->SMT_mk_lt(op1,op2);
+			break;
+		case CmpInst::FCMP_OGE:
+		case CmpInst::FCMP_UGE:
+		case CmpInst::ICMP_UGE:
+		case CmpInst::ICMP_SGE:
+			assign = man->SMT_mk_ge(op1,op2);
+			break;
+		case CmpInst::FCMP_OLE:
+		case CmpInst::FCMP_ULE:
+		case CmpInst::ICMP_ULE:
+		case CmpInst::ICMP_SLE:
+			assign = man->SMT_mk_le(op1,op2);
+			break;
+		case CmpInst::FCMP_ONE:
+		case CmpInst::FCMP_UNE: 
+		case CmpInst::ICMP_NE: 
+			assign = man->SMT_mk_diseq(op1,op2);
+			break;
+		case CmpInst::FCMP_ORD: 
+		case CmpInst::FCMP_UNO:
+		case CmpInst::BAD_ICMP_PREDICATE:
+		case CmpInst::BAD_FCMP_PREDICATE:
+			{
+				SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(&I));
+				assign = man->SMT_mk_expr_from_bool_var(cvar);
+			}
+			break;
+	}
+	rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitCastInst (CastInst &I) {
