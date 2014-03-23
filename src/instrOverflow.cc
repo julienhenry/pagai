@@ -105,7 +105,10 @@ bool instrOverflow::visitCallInst(CallInst &inst) {
 			inst.setCalledFunction(assert_fail_func);
 			inst.setDoesNotReturn();
 			
-			//Value* v = llvm::ConstantArray::get(C, "toto");
+			Constant * s = ConstantDataArray::getString(C,"overflow");
+			for (unsigned i = 0; i < inst.getNumArgOperands(); i++) {
+				inst.setArgOperand(i,s);
+			}
 
 			//CallInst * newcall = CallInst::Create(assert_fail_func);
 			//ReplaceInstWithInst(&inst,newcall);
