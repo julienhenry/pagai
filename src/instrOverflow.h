@@ -1,3 +1,11 @@
+/**
+ * \file instrOverflow.h
+ * \brief LLVM pass that instruments LLVM IR for overflow checking
+ * \author Julien Henry
+ */
+#ifndef _INSTROVERFLOW_H
+#define _INSTROVERFLOW_H
+
 #include "llvm/Config/config.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/InstVisitor.h"
@@ -44,3 +52,5 @@ class instrOverflow : public FunctionPass,
 			bool visitInstruction(Instruction &inst) {return false;}
 	};
 
+
+#endif

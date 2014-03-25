@@ -114,7 +114,7 @@ bool instrOverflow::visitCallInst(CallInst &inst) {
 			//ReplaceInstWithInst(&inst,newcall);
 			// get the terminatorinst and replace it by unreachable
 			TerminatorInst * term = inst.getParent()->getTerminator();
-			TerminatorInst * unreachable = new UnreachableInst::UnreachableInst(C);
+			TerminatorInst * unreachable = new UnreachableInst(C);
 			ReplaceInstWithInst(term,unreachable);
 		}
 		return false;
