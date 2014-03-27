@@ -1,13 +1,14 @@
+extern int input();
 
 int f(int x) {
 	return x+2;
 }
 
 int main(int argc, char ** argv) {
-	int x;
-	int y;
-	int i;
-	int toto;
+	int x = input();
+	int y = input();
+	int i = input();
+	int toto = input();
 	
 	while (argc > 100000 || x >= 42) {
 	x = 2;

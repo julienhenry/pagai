@@ -974,7 +974,7 @@ bool SMTpass::is_primed(BasicBlock * b, Instruction &I) {
 
 void SMTpass::visitPHINode (PHINode &I) {
 	ap_texpr_rtype_t ap_type;
-	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
+	if (Expr::get_ap_type((Value*)&I, ap_type) == 1) return;
 
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr assign = construct_phi_ite(I,0,I.getNumIncomingValues());

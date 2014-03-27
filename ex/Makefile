@@ -9,6 +9,7 @@ RESFILES=$(CFILES:%.c=res/%.res)
 ANNOTATEDFILES=$(CFILES:%.c=annotated/%.c)
 
 all: $(BCFILES)
+analyse: $(RESFILES) 
 
 bin/%.bc: %.c
 	$(COMPILE_LLVM) -g -i $*.c -o $@
@@ -17,7 +18,8 @@ res/%.res: bin/%.bc
 	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ -s z3_api "
 
 annotated/%.c: bin/%.bc %.c
-	$(PAGAI_SH) -i bin/$*.bc -a " -o /tmp/output.txt --source $*.c --annotated $@ "
+	#$(PAGAI_SH) -i bin/$*.bc -a " -o /tmp/output.txt --source $*.c --annotated $@ "
+	$(PAGAI_SH) -i bin/$*.bc -a " -o $@ "
 
 realclean:
 	rm bin/*.bc

@@ -60,6 +60,7 @@ fi
 ulimit -t $TIME_LIMIT 
 ulimit -m $MEMORY_LIMIT -v $MEMORY_LIMIT
 
+echo $PAGAI -i $FILENAME $ARGS
 $PAGAI -i $FILENAME $ARGS
 xs=$?
 
