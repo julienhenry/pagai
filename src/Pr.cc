@@ -193,6 +193,7 @@ void Pr::computePr() {
 	Pr_set.insert(F->begin());
 
 	const std::string assert_fail ("__assert_fail");
+	const std::string SVcomp_error ("__VERIFIER_error");
 	const std::string llvm_trap ("llvm.trap");
 	const std::string assert_fail_overflow ("__assert_fail_overflow");
 	const std::string gnat_rcheck ("__gnat_rcheck_");
@@ -218,7 +219,8 @@ void Pr::computePr() {
 				} else {
 					fname = cF->getName();
 				}
-				if (fname.compare(assert_fail) == 0) {
+				if (fname.compare(assert_fail) == 0
+						|| fname.compare(SVcomp_error) == 0) {
 					Pr_set.insert(b);
 					Assert_set.insert(b);
 				}

@@ -33,7 +33,7 @@ class AIGuided : public ModulePass, public AIPass {
 		 * \brief remembers all the paths that have already been
 		 * visited
 		 */
-		std::map<BasicBlock*,PathTree*> pathtree;
+		std::map<BasicBlock*,std::set<BasicBlock* > * > pathtree;
 
 		/**
 		 * \brief Temporary Pathtree that stores the transitions that have been visited
@@ -77,7 +77,7 @@ class AIGuided : public ModulePass, public AIPass {
 		}
 
 		~AIGuided () {
-			for (std::map<BasicBlock*,PathTree*>::iterator 
+			for (std::map<BasicBlock*,std::set<BasicBlock*>*>::iterator 
 				it = pathtree.begin(),
 				et = pathtree.end(); 
 				it != et; 

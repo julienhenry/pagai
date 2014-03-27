@@ -62,7 +62,7 @@ bool AIGuided::runOnModule(Module &M) {
 		// we create the new pathtree
 		for (Function::iterator it = F->begin(), et = F->end(); it != et; ++it) {
 			BasicBlock * b = it;
-			pathtree[b] = new PathTree_br(b);
+			pathtree[b] = new std::set<BasicBlock*>();
 		}
 
 		computeFunction(F);
@@ -72,7 +72,7 @@ bool AIGuided::runOnModule(Module &M) {
 		TerminateFunction();
 
 		// we delete the pathtree
-		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
+		for (std::map<BasicBlock*,std::set<BasicBlock*>*>::iterator it = pathtree.begin(), et = pathtree.end();
 			it != et;
 			it++) {
 			delete (*it).second;
@@ -203,7 +203,7 @@ void AIGuided::computeNewPaths(Node * n) {
 		path.push_back(b);
 		path.push_back(*s);
 
-		if (pathtree[b]->exist(path)) continue;
+		if (pathtree[b]->count(*s)) continue;
 		
 		Succ = Nodes[*s];
 		
@@ -235,7 +235,7 @@ void AIGuided::computeNewPaths(Node * n) {
 			}
 			Succ->X_s[passID] = Xtemp;
 			Xtemp = NULL;
-			pathtree[n->bb]->insert(path,false);
+			pathtree[n->bb]->insert(*s);
 			A_prime.push(Succ);
 			A.push(Succ);
 			A.push(n);
@@ -281,7 +281,7 @@ void AIGuided::computeNode(Node * n) {
 		path.push_back(b);
 		path.push_back(*s);
 		
-		if (!pathtree[b]->exist(path)) continue;
+		if (!pathtree[b]->count(*s)) continue;
 
 		Succ = Nodes[*s];
 		
@@ -369,7 +369,7 @@ void AIGuided::narrowNode(Node * n) {
 		path.clear();
 		path.push_back(n->bb);
 		path.push_back(*s);
-		if (!pathtree[n->bb]->exist(path)) continue;
+		if (!pathtree[n->bb]->count(*s)) continue;
 		Succ = Nodes[*s];
 
 		// computing the image of the abstract value by the path's tranformation
