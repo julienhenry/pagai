@@ -348,23 +348,37 @@ class AIPass : private InstVisitor<AIPass> {
 		
 		std::string getUndefinedBehaviourMessage(BasicBlock * b);
 
-		void generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F);
-
+		/** 
+		 * \brief process the sequence of positions where an invariant has to be
+		 * displayed
+		 */
 		void computeResultsPositions(
 			Function * F,
 			std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > * files 
 		);
+		
+		/** 
+		 * \brief generates annotated C code for every C file used in this
+		 * bitcode
+		 */
 		void generateAnnotatedFiles(Module * M, bool outputfile);
 		void generateAnnotatedCode(llvm::raw_ostream * oss, std::string filename, std::multimap<std::pair<int,int>,BasicBlock*> * positions);
+
+		/** 
+		 * \brief inserts pagai invariants into the LLVM Module
+		 */
+		void InstrumentLLVMBitcode(Function * F);
 
 		/** 
 		 * \brief print a basicBlock on standard output
 		 */
 		static void printBasicBlock(BasicBlock * b);
 
+		/** 
+		 * \brief print an invariant on oss, with an optional padding
+		 */
 		void printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream * oss);
 
-	
 		/** 
 		 * \brief computes the set of predecessors for a BasicBlock
 		 */

@@ -267,11 +267,11 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//*Out << *M;
 	std::string error;
 
-#ifdef OUTPUT_BC
-	raw_fd_ostream * BitcodeOutput = new raw_fd_ostream("pagai_output.bc", error);
-	WriteBitcodeToFile(M, *BitcodeOutput);
-	BitcodeOutput->close();
-#endif
+	if (generateMetadata()) {
+		raw_fd_ostream * BitcodeOutput = new raw_fd_ostream(getAnnotatedBCFilename().c_str(), error);
+		WriteBitcodeToFile(M, *BitcodeOutput);
+		BitcodeOutput->close();
+	}
 
 	if (onlyOutputsRho()) {
 		return;

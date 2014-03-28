@@ -301,102 +301,32 @@ void AIPass::printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream 
 	}
 }
 
-void AIPass::generateAnnotatedFunction(llvm::raw_ostream * oss, Function * F) {
-
-	// compute a map associating a (line,column) to a basicblock
-	// the map is ordered, so that we can use an iterator for displaying the
-	// invariant for the basicblock when needed
-	std::multimap<std::pair<int,int>,BasicBlock*> BasicBlock_position; 
-	BasicBlock * b;
-	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
-		b = i;
-		int l = recoverName::getBasicBlockLineNo(b);
-		int c = recoverName::getBasicBlockColumnNo(b);
-		BasicBlock_position.insert( 
-				std::pair<std::pair<int,int>,BasicBlock*>(std::pair<int,int>(l,c),b)
-				);
-		DEBUG(
-				*Out << "basicblock at (" << l << "," << c << ")\n" << *b << "\n"; 
-			 );
-	}
-	// now, we open the source file in read mode, and the output file in write
-	// mode
-	std::string source = recoverName::getSourceFileDir(F)
-		+"/"+recoverName::getSourceFileName(F);
-	std::ifstream sourceFile(source.c_str());
-	int lineNo = 0;
-	int columnNo;
-
-	std::multimap<std::pair<int,int>,BasicBlock*>::iterator Iit, Iet;
-	Iit = BasicBlock_position.begin();
-	Iet = BasicBlock_position.end();
-
-	while (Iit->first.first < 0) Iit++;
-
-	if ( sourceFile )
-	{
-		std::string line;
-		for(int l = 1; l < recoverName::getFunctionLineNo(F); l++) {
-			lineNo++;
-			std::getline( sourceFile, line );
-		}
-
-		// this counter is used to count the number of { and }
-		// this is used to find the end of the function
-		int counter = 0;
-		// true when we enter the body of the function
-		// i.e the first occurence of {
-		bool entered = false;
-
-		while ( std::getline( sourceFile, line ) )
-		{
-			lineNo++;
-			columnNo = 1;
-			std::string::iterator it = line.begin(); 
-			while (it < line.end()) {
-				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
-					// here, we can print an invariant !
-					b = Iit->second;
-					// compute the left padding
-					std::string left = line.substr(0,columnNo-1);
-					printInvariant(b,left, oss);
-					Iit++;
-				}
-				if (lineNo == Iit->first.first && columnNo == Iit->first.second) {
-					continue;
-				} else {
-
-					*oss << *it;
-					if (*it == '{') {
-						counter++;
-						entered = true;
-					}
-					if (*it == '}') {
-						counter--;
-						if (counter == 0 && entered) {
-							*oss << "\n";
-							return;
-						}
-					}
-					columnNo++;
-					it++;
-				}
-			}
-			*oss << "\n";
-		}
-	}
-}
-
 std::string AIPass::getUndefinedBehaviourMessage(BasicBlock * b) {
 	return "possible undefined behavior";
 }
 
-void AIPass::printResult(Function * F) {
-	if (quiet_mode()) return;
-	if (useSourceName()) {
-		//generateAnnotatedFunction(Out,F);
-		return;
+void AIPass::InstrumentLLVMBitcode(Function * F) {
+	BasicBlock * b;
+	Node * n;
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
+		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
+			Instruction * Inst = b->getFirstNonPHI();
+			std::vector<Value*> arr;
+			n->X_s[passID]->to_MDNode(Inst,&arr);
+			LLVMContext& C = Inst->getContext();
+			MDNode* N = MDNode::get(C,arr);
+			Inst->setMetadata("pagai.invariant", N);
+		}
 	}
+}
+
+void AIPass::printResult(Function * F) {
+	if (generateMetadata()) InstrumentLLVMBitcode(F);
+	if (quiet_mode() || useSourceName()) return;
 	BasicBlock * b;
 	Node * n;
 	Pr * FPr = Pr::getInstance(F);

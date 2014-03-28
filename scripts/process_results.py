@@ -114,6 +114,11 @@ def process_warnings(filename,warnings_array,safe_array,json_dict):
     string = getFileBetween(filename,"WARNINGS:","WARNINGS_END")
     if not string :
         return
+    jsonfilename = json_name(filename)
+    cat = "warnings"
+    if cat not in json_dict[jsonfilename]:
+        json_dict[jsonfilename][cat] = dict()
+
     for lines in string.rstrip().split('\n') :
         elements = lines.split(' ', 1 )
         t = to_technique(elements[1])
@@ -121,6 +126,11 @@ def process_warnings(filename,warnings_array,safe_array,json_dict):
             warnings_array[t] += int(elements[0])
         else:
             warnings_array[t] = int(elements[0])
+
+        if t not in json_dict[jsonfilename][cat]:
+            json_dict[jsonfilename][cat][t] = dict()
+        json_dict[jsonfilename][cat][t]["ko"] = int(elements[0])
+
     string = getFileBetween(filename,"SAFE_PROPERTIES:","SAFE_PROPERTIES_END")
     if not string :
         return
@@ -131,6 +141,11 @@ def process_warnings(filename,warnings_array,safe_array,json_dict):
             safe_array[t] += int(elements[0])
         else:
             safe_array[t] = int(elements[0])
+
+        if t not in json_dict[jsonfilename][cat]:
+            json_dict[jsonfilename][cat][t] = dict()
+        json_dict[jsonfilename][cat][t]["ok"] = int(elements[0])
+
 
 def process_count_functions(filename,json_dict):
     string = getFileBetween(filename,"FUNCTIONS:","FUNCTIONS_END")

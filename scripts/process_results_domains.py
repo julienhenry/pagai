@@ -91,6 +91,43 @@ def process_time(filename,technique,time_s_array,time_ms_array,time_SMT_s_array,
         else:
             json_dict[filename]["domain"][technique][cat][t] = float("0.0")
 
+def process_warnings(filename,technique,warnings_array,safe_array,json_dict):
+    string = getFileBetween(filename,"WARNINGS:","WARNINGS_END")
+    if not string :
+        return
+    jsonfilename = json_name(filename)
+    cat = "warnings"
+    if cat not in json_dict[jsonfilename]["domain"][technique]:
+        json_dict[jsonfilename]["domain"][technique][cat] = dict()
+
+    for lines in string.rstrip().split('\n') :
+        elements = lines.split(' ', 1 )
+        t = to_technique(elements[1])
+        if t in warnings_array:
+            warnings_array[t] += int(elements[0])
+        else:
+            warnings_array[t] = int(elements[0])
+
+        if t not in json_dict[jsonfilename]["domain"][technique][cat]:
+            json_dict[jsonfilename]["domain"][technique][cat][t] = dict()
+        json_dict[jsonfilename]["domain"][technique][cat][t]["ko"] = int(elements[0])
+
+    string = getFileBetween(filename,"SAFE_PROPERTIES:","SAFE_PROPERTIES_END")
+    if not string :
+        return
+    for lines in string.rstrip().split('\n') :
+        elements = lines.split(' ', 1 )
+        t = to_technique(elements[1])
+        if t in safe_array:
+            safe_array[t] += int(elements[0])
+        else:
+            safe_array[t] = int(elements[0])
+
+        if t not in json_dict[jsonfilename]["domain"][technique][cat]:
+            json_dict[jsonfilename]["domain"][technique][cat][t] = dict()
+        json_dict[jsonfilename]["domain"][technique][cat][t]["ok"] = int(elements[0])
+
+
 def process_matrix(filename,technique,matrix,json_dict):
     string = getFileBetween(filename,"MATRIX:","MATRIX_END")
     filename = json_name(filename)
@@ -135,6 +172,8 @@ def process_input_files():
     time_ms_array = dict()
     time_SMT_s_array = dict()
     time_SMT_ms_array = dict()
+    warnings_array = dict()
+    safe_array = dict()
     matrix = dict()
     root_dir = sys.argv[1]
     bench = sys.argv[2]
@@ -157,7 +196,7 @@ def process_input_files():
             json_dict[json_name(filename)]["domain"][technique] = dict()
 
         process_time(filename,technique,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,json_dict)
-        #process_warnings(filename,warnings_array,safe_array,json_dict)
+        process_warnings(filename,technique,warnings_array,safe_array,json_dict)
         #process_skipped(filename,skipped_array,json_dict)
         #n_func += process_count_functions(filename,json_dict)
         #n_skipped += process_count_functions_skipped(filename,json_dict)

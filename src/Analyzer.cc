@@ -37,7 +37,7 @@ bool Threshold[2];
 llvm::raw_ostream *Out;
 char* filename;
 char* annotatedFilename;
-char* sourceFilename;
+std::string annotatedBCFilename;
 int npass;
 int timeout;
 std::map<Techniques,int> Passes;
@@ -92,7 +92,6 @@ void show_help() {
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
 --annotated : specify the name of the outputted annotated source file\n \
---source : specify the path and name of the source file (in C, C++,etc.) \n \
 --timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
 --log-smt : SMT-lib2 queries are logged in files\n \
 --compare (-c) : use this argument to compare techniques\n \
@@ -144,8 +143,11 @@ bool check_overflow() {
 }
 
 bool generateMetadata() {
-	// TODO
-	return false;
+	return annotatedBCFilename.size();
+}
+
+std::string getAnnotatedBCFilename() {
+	return annotatedBCFilename;
 }
 
 void set_useSourceName(bool b) {
@@ -165,10 +167,6 @@ bool OutputAnnotatedFile() {
 
 char* getAnnotatedFilename() {
 	return annotatedFilename;
-}
-
-char* getSourceFilename() {
-	return sourceFilename;
 }
 
 int getTimeout() {
@@ -415,7 +413,7 @@ int main(int argc, char* argv[]) {
 	npass = 0;
 	timeout = 0;
 	annotatedFilename = NULL;
-	sourceFilename = NULL;
+	annotatedBCFilename = "";
 
 	static struct option long_options[] =
 		{
@@ -437,15 +435,15 @@ int main(int argc, char* argv[]) {
 			{"no-undefined-check",    no_argument, 0, 'v'},
 			{"force-old-output",    no_argument, 0, 'S'},
 			{"annotated",    required_argument, 0, 'a'},
-			{"source",    required_argument, 0, 'A'},
 			{"timeout",    required_argument, 0, 'k'},
 			{"log-smt",    no_argument, 0, 'l'},
+			{"output-bc",  required_argument, 0, 'b'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pv",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -467,6 +465,10 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'v':
         	    oflcheck = false;
+        	    break;
+        	case 'b':
+        	    arg = optarg;
+				annotatedBCFilename.assign(arg);
         	    break;
         	case 'c':
         	    compare = true;
@@ -535,9 +537,6 @@ int main(int argc, char* argv[]) {
         	    use_source_name = true;
         	    annotatedFilename = optarg;
         	    break;
-        	case 'A':
-        	    sourceFilename = optarg;
-        	    break;
         	case 's':
         	    arg = optarg;
 				if (setSolver(arg)) {
@@ -558,10 +557,6 @@ int main(int argc, char* argv[]) {
         	    bad_use = true;
         }   
     }
-	 //if (annotatedFilename != NULL && sourceFilename == NULL) {
-     //   std::cout << "ERROR : You must specify the source Filename\n\n";
-	 //   bad_use = true;
-	 //}
     if (!help) {
         if (!filename) {
             std::cout << "No input file specified\n";

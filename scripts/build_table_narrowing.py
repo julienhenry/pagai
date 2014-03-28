@@ -63,6 +63,9 @@ def print_line_header():
 begin_tabular()
 print_line_header()
 for benchmark_name in json_dict:
+    if "comparison" not in json_dict[benchmark_name]:
+        continue
+
     print escape_latex(benchmark_name) \
     + ' & ' + str(json_dict[benchmark_name]["comparison"]["N / S"]["lt"])\
     + ' & ' + str(json_dict[benchmark_name]["comparison"]["N / S"]["eq"])\
