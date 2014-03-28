@@ -113,7 +113,7 @@ bool instrOverflow::visitCallInst(CallInst &inst) {
 			//CallInst * newcall = CallInst::Create(assert_fail_func);
 			//ReplaceInstWithInst(&inst,newcall);
 			
-			// the following is turned of, because it is source of constraints
+			// the following is turned off, because it is source of constraints
 			// with huge coefficient in the polyhedra abstract domain
 #if 0
 			// get the terminatorinst and replace it by unreachable

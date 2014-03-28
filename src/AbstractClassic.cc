@@ -310,6 +310,11 @@ void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Valu
 			std::vector<llvm::Value*> c;
 			ap_tcons1_t_to_MDNode(cons,Inst,&c);
 			met->push_back(MDNode::get(C,c));
+
+			FunctionType * ftype = FunctionType::get(Type::getVoidTy(Inst->getContext()),true);
+			Module * M = Inst->getParent()->getParent()->getParent();
+			//Constant * pagai_inv = M->getOrInsertFunction("__pagai_invariant",ftype);
+			//CallInst * call = CallInst::Create(pagai_inv,MDNode::get(C,c),"",Inst);
 		}
 	}
 	ap_tcons1_array_clear(&tcons_array);

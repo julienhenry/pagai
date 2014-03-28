@@ -108,13 +108,12 @@ void texpr0_to_MDNode(ap_texpr0_t* a, ap_environment_t * env, llvm::Instruction 
 				MDString * dim = MDString::get(C, ap_var_to_string(var));
 				MDNode* N = MDNode::get(C,dim);
 				if (Instruction * i = dyn_cast<Instruction>(val)) {
-					//N = MDNode::get(C,i);
-					//i->setMetadata("pagai.var", N);
 					met->push_back(N);
+					//met->push_back(val);
+					i->setMetadata("pagai.var", N);
 				} else if (Argument * arg = dyn_cast<Argument>(val)) {
-					//N = MDNode::get(C,arg);
 					met->push_back(N);
-					//met->push_back(arg);
+					//met->push_back(val);
 				} else {
 					assert(false);
 				}
@@ -171,30 +170,11 @@ void texpr0_node_to_MDNode(ap_texpr0_node_t * a, ap_environment_t * env, llvm::I
 				texpr0_to_MDNode(a->exprA,env,Inst,met);
 				return;
 			}
-			//if (A == MINUSONE) {
-			//	std::vector<llvm::Value*> child;
-			//	child.push_back(MDString::get(C,"-"));
-			//	texpr0_to_MDNode(a->exprB,env,Inst,&child);
-			//	MDNode* N = MDNode::get(C,child);
-			//	met->push_back(N);
-			//	return;
-			//}
-			//if (B == MINUSONE) {
-			//	std::vector<llvm::Value*> child;
-			//	child.push_back(MDString::get(C,"-"));
-			//	texpr0_to_MDNode(a->exprA,env,Inst,&child);
-			//	MDNode* N = MDNode::get(C,child);
-			//	met->push_back(N);
-			//	return;
-			//}
 		}
 
 		/* left argument (if binary) */
 		int prec2 = ap_texpr0_precedence(a->exprA);
-		//if (prec2<prec) *stream << "(";
 		texpr0_to_MDNode(a->exprA, env,Inst,met);
-		//if (prec2<prec) *stream << ")";
-		//*stream << "";
 	}
 
 	/* operator & rounding mode */
@@ -205,10 +185,7 @@ void texpr0_node_to_MDNode(ap_texpr0_node_t * a, ap_environment_t * env, llvm::I
 	{
 		ap_texpr0_t* arg = a->exprB ? a->exprB : a->exprA;
 		int prec2 = ap_texpr0_precedence(arg);
-		//if (a->exprB) *stream << "";
-		//if (prec2<=prec) *stream << "(";
 		texpr0_to_MDNode(arg,env,Inst,met);
-		//if (prec2<=prec) *stream << ")";
 	}
 }
 
