@@ -38,6 +38,11 @@ class CompareNarrowing : public ModulePass {
 		std::map<params, int> total_asc;
 		std::map<params, int> total_desc;
 
+		// count the number of warnings emitted by each technique
+		std::map<params,int> Warnings;
+		// count the number of safe properties emitted by each technique
+		std::map<params,int> Safe_properties;
+
 	public:
 		/**
 		 * \brief unique pass identifier
@@ -58,6 +63,8 @@ class CompareNarrowing : public ModulePass {
 		void printEqTime(params P);
 
 		void ComputeIterations(params P, Function * F);
+	
+		void CountNumberOfWarnings(params P, Function * F);
 		
 		void printIterations(params P);
 
@@ -122,6 +129,30 @@ void CompareNarrowing<T>::ComputeIterations(params P, Function * F) {
 	} else {
 		total_asc[P] = asc_iterations[P][F];
 		total_desc[P] = desc_iterations[P][F];
+	}
+}
+
+template<Techniques T>
+void CompareNarrowing<T>::CountNumberOfWarnings(params P, Function * F) {
+	BasicBlock * b;
+	Node * n;
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if (FPr->getAssert()->count(b) || FPr->getUndefinedBehaviour()->count(b)) {
+			if (!n->X_s[P]->is_bottom()) {
+				if (Warnings.count(P))
+					Warnings[P]++;
+				else
+					Warnings[P] = 1;
+			} else {
+				if (Safe_properties.count(P))
+					Safe_properties[P]++;
+				else
+					Safe_properties[P] = 1;
+			}
+		}
 	}
 }
 
@@ -235,6 +266,8 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		AddTime(P2,F);
 		ComputeIterations(P1,F);
 		ComputeIterations(P2,F);
+		CountNumberOfWarnings(P1,F);
+		CountNumberOfWarnings(P2,F);
 
 		bool distinct = false;
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
@@ -317,6 +350,16 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	printIterations(P1);
 	printIterations(P2);
 	*Out << "ITERATIONS_END\n";
+
+	*Out << "\nWARNINGS:\n";
+	*Out << Warnings[P1] << " // NEWNARROWING\n";
+	*Out << Warnings[P2] << " // CLASSIC\n";
+	*Out << "WARNINGS_END\n";
+
+	*Out << "\nSAFE_PROPERTIES:\n";
+	*Out << Safe_properties[P1] << " // NEWNARROWING\n";
+	*Out << Safe_properties[P2] << " // CLASSIC\n";
+	*Out << "SAFE_PROPERTIES_END\n";
 
 	*Out << "\n\nMATRIX:\n";
 	*Out << eq << " " << lt << " " << gt << " " << un << " // NEWNARROWING / CLASSIC\n";

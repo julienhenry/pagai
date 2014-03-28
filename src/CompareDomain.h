@@ -35,7 +35,13 @@ class CompareDomain : public ModulePass {
 		std::map<params, sys::TimeValue *> Time;
 		std::map<params, sys::TimeValue *> Time_SMT;
 		void ComputeTime(params P, Function * F);
+		void CountNumberOfWarnings(params P, Function * F);
 		void printTime(params P);
+
+		// count the number of warnings emitted by each technique
+		std::map<params,int> Warnings;
+		// count the number of safe properties emitted by each technique
+		std::map<params,int> Safe_properties;
 
 	public:
 		/**
@@ -159,6 +165,30 @@ void CompareDomain<T>::printTime(params P) {
 }
 
 template<Techniques T>
+void CompareDomain<T>::CountNumberOfWarnings(params P, Function * F) {
+	BasicBlock * b;
+	Node * n;
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		b = i;
+		n = Nodes[b];
+		if (FPr->getAssert()->count(b) || FPr->getUndefinedBehaviour()->count(b)) {
+			if (!n->X_s[P]->is_bottom()) {
+				if (Warnings.count(P))
+					Warnings[P]++;
+				else
+					Warnings[P] = 1;
+			} else {
+				if (Safe_properties.count(P))
+					Safe_properties[P]++;
+				else
+					Safe_properties[P] = 1;
+			}
+		}
+	}
+}
+
+template<Techniques T>
 bool CompareDomain<T>::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
@@ -195,16 +225,17 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		if (F->begin() == F->end()) continue;
 
 		if (ignored(F)) continue;
+		
+		ComputeTime(P1,F);
+		ComputeTime(P2,F);
+		CountNumberOfWarnings(P1,F);
+		CountNumberOfWarnings(P2,F);
+
 		for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 			b = i;
 			n = Nodes[b];
 			Pr * FPr = Pr::getInstance(F);
 			if (FPr->getPw()->count(b)) {
-				// TODO
-			
-				ComputeTime(P1,F);
-				ComputeTime(P2,F);
-
 				DEBUG(
 				*Out << "Comparing the two abstracts :\n";
 				n->X_s[P1]->print();
@@ -248,6 +279,16 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	*Out << "\n\nTECHNIQUE:\n";
 	*Out << TechniquesToString(T);
 	*Out << "\nTECHNIQUE_END\n";
+
+	*Out << "\nWARNINGS:\n";
+	*Out << Warnings[P1] << " // " << ApronManagerToString(getApronManager(0)) << "\n";
+	*Out << Warnings[P2] << " // " << ApronManagerToString(getApronManager(1)) << "\n";
+	*Out << "WARNINGS_END\n";
+
+	*Out << "\nSAFE_PROPERTIES:\n";
+	*Out << Safe_properties[P1] << " // " << ApronManagerToString(getApronManager(0)) << "\n";
+	*Out << Safe_properties[P2] << " // " << ApronManagerToString(getApronManager(1)) << "\n";
+	*Out << "SAFE_PROPERTIES_END\n";
 
 	*Out << "\n\nMATRIX:\n";
 	*Out << eq << " " << lt << " " << gt << " " << un << " ";

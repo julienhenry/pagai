@@ -1062,15 +1062,6 @@ void SMTpass::visitSelectInst (SelectInst &I) {
 }
 
 void SMTpass::visitCallInst(CallInst &I) {
-	Function * cF = I.getCalledFunction();
-	if (cF != NULL) {
-		std::string fname = cF->getName();
-		std::string assume ("assume");
-		if (fname.compare(assume) == 0) {
-			*Out << "ASSUME !\n"
-			<< *I.getArgOperand(0) << "\n";
-		}
-	}
 }
 
 void SMTpass::visitVAArgInst (VAArgInst &I) {

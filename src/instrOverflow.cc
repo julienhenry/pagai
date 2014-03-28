@@ -112,10 +112,15 @@ bool instrOverflow::visitCallInst(CallInst &inst) {
 
 			//CallInst * newcall = CallInst::Create(assert_fail_func);
 			//ReplaceInstWithInst(&inst,newcall);
+			
+			// the following is turned of, because it is source of constraints
+			// with huge coefficient in the polyhedra abstract domain
+#if 0
 			// get the terminatorinst and replace it by unreachable
 			TerminatorInst * term = inst.getParent()->getTerminator();
 			TerminatorInst * unreachable = new UnreachableInst(C);
 			ReplaceInstWithInst(term,unreachable);
+#endif
 		}
 		return false;
 }
