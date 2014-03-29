@@ -21,6 +21,7 @@
 #include "PathTree.h"
 #include "Constraint.h"
 #include "AbstractMan.h"
+#include "AnalysisPass.h"
 
 using namespace llvm;
 
@@ -36,14 +37,9 @@ class Node;
  * perform Abstract Interpretation (i.e. graph traversal on the CFG,
  * Apron Manager, SMTpass solver, ...).
  */
-class AIPass : private InstVisitor<AIPass> {
+class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 	friend class InstVisitor<AIPass>;
 
-	public:
-		/** 
-		 * \brief pass unique identifier
-		 */
-		params passID;
 	protected:
 		/** 
 		 * \brief access to the Live pass
@@ -342,11 +338,9 @@ class AIPass : private InstVisitor<AIPass> {
 		void TerminateFunction();
 		
 		/** 
-		 * \brief outputs the result of the analysis
+		 * \brief print a basicBlock on standard output
 		 */
-		void printResult(Function * F);
-		
-		std::string getUndefinedBehaviourMessage(BasicBlock * b);
+		static void printBasicBlock(BasicBlock * b);
 
 		/** 
 		 * \brief process the sequence of positions where an invariant has to be
@@ -356,23 +350,11 @@ class AIPass : private InstVisitor<AIPass> {
 			Function * F,
 			std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > * files 
 		);
-		
-		/** 
-		 * \brief generates annotated C code for every C file used in this
-		 * bitcode
-		 */
-		void generateAnnotatedFiles(Module * M, bool outputfile);
-		void generateAnnotatedCode(llvm::raw_ostream * oss, std::string filename, std::multimap<std::pair<int,int>,BasicBlock*> * positions);
 
 		/** 
 		 * \brief inserts pagai invariants into the LLVM Module
 		 */
 		void InstrumentLLVMBitcode(Function * F);
-
-		/** 
-		 * \brief print a basicBlock on standard output
-		 */
-		static void printBasicBlock(BasicBlock * b);
 
 		/** 
 		 * \brief print an invariant on oss, with an optional padding
