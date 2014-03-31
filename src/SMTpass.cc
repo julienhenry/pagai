@@ -577,7 +577,7 @@ void SMTpass::getElementFromString(
 	split( fields, name, is_any_of( "_" ) );
 
 	// case 1 : this is an edge
-	found = name.find(edge);
+	found = name.substr(0,edge.size()).find(edge);
 	if (found!=std::string::npos) {
 		isEdge = true;
 		src = getNodeBasicBlock(fields[1]);
@@ -587,7 +587,7 @@ void SMTpass::getElementFromString(
 	isEdge = false;
 
 	// case 2 : this is a disjunctive index
-	found = name.find(disjunctive_index);
+	found = name.substr(0,disjunctive_index.size()).find(disjunctive_index);
 	if (found!=std::string::npos) {
 		isIndex = true;
 		std::string source = name.substr (2,9);
@@ -601,12 +601,12 @@ void SMTpass::getElementFromString(
 	
 	std::string nodename;
 	// case 3 : this is a node
-	found = name.find(simple_node);
+	found = name.substr(0,simple_node.size()).find(simple_node);
 	if (found!=std::string::npos) {
 		// this is a node of the form b_*
 		src = getNodeBasicBlock(fields[1]);
 	} else {
-		found = name.find(source_node);
+		found = name.substr(0,source_node.size()).find(source_node);
 		if (found==std::string::npos) found = name.find(dest_node);
 		else start = true;
 		if (found!=std::string::npos) {
