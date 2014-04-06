@@ -85,10 +85,17 @@ void show_help() {
 		  * mathsat\n \
 		  * smtinterpol\n \
 		  * cvc3\n \
-		  * cvc4\n \
-		  * z3_api (default)\n \
-		  * yices_api (deprecated)\n \
-		example: pagai -i <file> --technique pf --solver z3_api\n \
+		  * cvc4\n";
+#ifdef HAS_Z3 
+		std::cout << 
+"		  * z3_api (default)\n";
+#endif
+#ifdef HAS_YICES
+		std::cout << 
+"		  * yices_api (deprecated)\n";
+#endif
+		std::cout << 
+"		example: pagai -i <file> --technique pf --solver cvc4\n \
 -n : new version of narrowing (only for s technique)\n \
 -T : apply widening with threshold instead of classical widening\n \
 -M : compare the two versions of narrowing (only for s technique)\n \
@@ -332,10 +339,14 @@ bool setSolver(char * t) {
 		Solver = CVC3;
 	} else if (!d.compare("cvc4")) {
 		Solver = CVC4;
+#ifdef HAS_Z3 
 	} else if (!d.compare("z3_api")) {
 		Solver = API_Z3;
+#endif
+#ifdef HAS_YICES
 	} else if (!d.compare("yices_api")) {
 		Solver = API_YICES;
+#endif
 	} else {
 		std::cout << "Wrong parameter defining the solver\n";
 		return 1;
@@ -388,7 +399,11 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 
 	filename=NULL;
+#ifdef HAS_Z3 
 	Solver = API_Z3;
+#else
+	Solver = Z3;
+#endif
 	ap_manager[0] = PK;
 	ap_manager[1] = PK;
 	Narrowing[0] = false;

@@ -15,7 +15,9 @@
 #include "gmp.h"
 #include "mpfr.h"
 #include "Debug.h"
+#ifdef HAS_Z3
 #include "z3++.h"
+#endif
 
 /**
  * \class SMT_expr
@@ -24,53 +26,53 @@
 class SMT_expr {
 	private:
 		std::string s;
-		boost::shared_ptr<z3::expr> z3;
+		Z3(boost::shared_ptr<z3::expr> z3;)
 
 	public:
 		void * i;
 
 		SMT_expr () {
 			s = std::string("");
-			z3.reset();
+			Z3(z3.reset();)
 			i = NULL;
 		}
 
 		SMT_expr (const SMT_expr& e): s(e.s), i(e.i) {
-			z3 = e.z3;
+			Z3(z3 = e.z3;)
 		}
 
-		SMT_expr(z3::expr e) {
+		Z3(SMT_expr(z3::expr e) {
 			s = std::string("");
 			z3.reset(new z3::expr(e));
 			i = NULL;
-		}
+		})
 
 		SMT_expr(std::string _s) : s(_s) {
-			z3.reset();
+			Z3(z3.reset();)
 			i = NULL;
 		}
 
-		z3::expr * expr() {
+		Z3(z3::expr * expr() {
 			return z3.get();
-		}
+		})
 
 		std::string SMTlib() {
 			return s;
 		}
 
 		~SMT_expr(){
-			z3.reset();
+			Z3(z3.reset();)
 			s.clear();
 		}
 
 		bool is_empty() {
-			return i == NULL && z3.get() == NULL && s == "";
+			return i == NULL Z3(&& z3.get() == NULL) && s == "";
 		}
 
 		SMT_expr& operator=(const SMT_expr &e) {
 			s.clear();
 			s = e.s;
-			z3 = e.z3;
+			Z3(z3 = e.z3;)
 			i = e.i;
 			return *this;
 		}
@@ -84,45 +86,45 @@ class SMT_type {
 	public:
 		std::string s;
 		void* i;
-		boost::shared_ptr<z3::sort> z3;
+		Z3(boost::shared_ptr<z3::sort> z3;)
 
 		SMT_type () {
 			s = std::string("");
 			i = NULL;
-			z3.reset();
+			Z3(z3.reset();)
 		}
 
 		SMT_type (const SMT_type& t): s(t.s), i(t.i) {
-			z3 = t.z3;
+			Z3(z3 = t.z3;)
 		}
 
 		~SMT_type(){
-			z3.reset();
+			Z3(z3.reset();)
 			s.clear();
 		}
 
-		SMT_type(z3::sort t) {
+		Z3(SMT_type(z3::sort t) {
 			s = std::string("");
 			z3.reset(new z3::sort(t));
 			i = NULL;
-		}
+		})
 
-		z3::sort * sort() {
+		Z3(z3::sort * sort() {
 			return z3.get();
-		}
+		})
 
-		void z3_clear() {
+		Z3(void z3_clear() {
 			z3.reset();
-		}
+		})
 
 		bool is_empty() {
-			return i == NULL && z3.get() == NULL && s == "";
+			return i == NULL Z3(&& z3.get() == NULL) && s == "";
 		}
 
 		SMT_type& operator=(const SMT_type &t) {
 			s.clear();
 			s = t.s;
-			z3 = t.z3;
+			Z3(z3 = t.z3;)
 			i = t.i;
 			return *this;
 		}
@@ -135,34 +137,34 @@ class SMT_type {
 class SMT_var {
 	public:
 		std::string s;
-		boost::shared_ptr<z3::symbol> z3;
+		Z3(boost::shared_ptr<z3::symbol> z3;)
 		void* i;
 
 		SMT_var () {
 			s = std::string("");
-			z3.reset();
+			Z3(z3.reset();)
 			i = NULL;
 		}
 
-		SMT_var(z3::symbol n) {
+		Z3(SMT_var(z3::symbol n) {
 			s = n.str();
 			z3.reset(new z3::symbol(n));
 			i = NULL;
-		};
+		};)
 
 		~SMT_var() { }
 
 		SMT_var& operator=(const SMT_var &v) {
 			s.clear();
 			s = v.s;
-			z3 = v.z3;
+			Z3(z3 = v.z3;)
 			i = v.i;
 			return *this;
 		}
 
-		z3::symbol * symb() {
+		Z3(z3::symbol * symb() {
 			return z3.get();
-		}
+		})
 
 		int Compare (const SMT_var& v) const {
 			if (i < v.i)

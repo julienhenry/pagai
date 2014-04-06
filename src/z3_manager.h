@@ -5,6 +5,7 @@
  */
 #ifndef Z3_MANAGER_H
 #define Z3_MANAGER_H
+#if HAS_Z3
 
 #include <vector>
 #include <map>
@@ -87,4 +88,5 @@ class z3_manager: public SMT_manager {
 
 		bool interrupt();
 };
+#endif
 #endif

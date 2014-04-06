@@ -43,9 +43,11 @@ int SMTpass::nundef = 0;
 
 SMTpass::SMTpass() {
 	switch (getSMTSolver()) {
+#if HAS_Z3
 		case API_Z3:
 			man = new z3_manager();
 			break;
+#endif
 #ifdef HAS_YICES
 		case API_YICES: 
 			man = new yices();
@@ -101,12 +103,14 @@ void SMTpass::reset_SMTcontext() {
 		pop_context();
 #else
 	switch (getSMTSolver()) {
+#ifdef HAS_Z3
 		case API_Z3:
 			stack_level = 0;
 			delete man;
 			man = new z3_manager();
 			break;
-#ifdef HASH_YICES
+#endif
+#ifdef HAS_YICES
 		case API_YICES: 
 			stack_level = 0;
 			delete man;

@@ -3,6 +3,7 @@
  * \brief Implementation of the z3_manager class
  * \author Julien Henry
  */
+#if HAS_Z3
 #include <algorithm>
 #include <cstddef>
 #include <string.h>
@@ -374,3 +375,4 @@ bool z3_manager::interrupt() {
 	Z3_interrupt(ctx);
 	return true;
 }
+#endif

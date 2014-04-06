@@ -23,6 +23,13 @@
 #define DEBUG_SMT(X) do { } while (0)
 #endif
 
+#ifdef HAS_Z3 
+#define Z3(X)  X
+#else
+#define Z3(X)  
+#endif
+
+
 #include <time.h>
 #include <map>
 #include "Node.h"

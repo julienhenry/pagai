@@ -77,9 +77,15 @@ add_apron_library(pagai apron)
 # SMT solvers
 if(${ENABLE_YICES})
 	add_yices_library(pagai)
+	add_definitions(-DHAS_YICES)
 endif()
 
-add_z3_library(pagai)
+if(${ENABLE_Z3})
+	add_z3_library(pagai)
+	add_definitions(-DHAS_Z3)
+endif()
+
+
 target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES})
 
 # TODO: these libraries are not always needed
