@@ -50,3 +50,7 @@ build with e.g.
   cmake -DSTATIC_LINK=ON .
   cmake -i .
   cmake-gui .
+
+
+For running Pagai, you should make sure your PATH variable contains the
+directory of the SMT solver you want to use (e.g. Z3, CVC4, etc.)
