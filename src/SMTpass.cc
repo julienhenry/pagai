@@ -5,6 +5,7 @@
  */
 #include <sstream>
 #include <vector>
+#include <queue>
 #include <iostream>
 #include <string>
 #include <limits>
@@ -620,71 +621,78 @@ void SMTpass::getElementFromString(
 }
 
 void SMTpass::computeRhoRec(Function &F, 
-		BasicBlock * b,
 		BasicBlock * dest,
 		bool newPr,
 		std::set<BasicBlock*> * visited) {
 	Pr * FPr = Pr::getInstance(&F);
-	bool first = (visited->count(b) > 0);
-	visited->insert(b);
 
-	if (!FPr->inPr(b) || newPr) {
-		// we recursively construct Rho, starting from the predecessors
-		BasicBlock * pred;
-		for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
-			pred = *p;
-			if (!FPr->inPr(pred)) {
-				if (!visited->count(pred)) {
-					computeRhoRec(F,pred,dest,false,visited);
+	std::queue<BasicBlock*> ToBeComputed;
+	ToBeComputed.push(dest);
+
+	while (!ToBeComputed.empty()) {
+		BasicBlock * b = ToBeComputed.front();
+		ToBeComputed.pop();
+		bool first = (visited->count(b) > 0);
+		visited->insert(b);
+
+		if (!FPr->inPr(b) || newPr) {
+			// we recursively construct Rho, starting from the predecessors
+			BasicBlock * pred;
+			for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+				pred = *p;
+				if (!FPr->inPr(pred)) {
+					if (!visited->count(pred)) {
+						ToBeComputed.push(pred);
+					}
+					FPr->Pr_pred[b].insert(FPr->Pr_pred[pred].begin(),FPr->Pr_pred[pred].end());
+				} else {
+					FPr->Pr_pred[b].insert(pred);
 				}
-				FPr->Pr_pred[b].insert(FPr->Pr_pred[pred].begin(),FPr->Pr_pred[pred].end());
-			} else {
-				FPr->Pr_pred[b].insert(pred);
+				FPr->Pr_succ[pred].insert(dest);
 			}
-			FPr->Pr_succ[pred].insert(dest);
 		}
-	}
 
-	if (first) return;
+		if (first) continue;
 
-	// we create a boolean reachability predicate for the basicblock
-	SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
-	// we associate it the right predicate depending on its incoming edges
-	std::vector<SMT_expr> predicate;
-	for (pred_iterator p = pred_begin(b), e = pred_end(b); p != e; ++p) {
-		SMT_var evar = man->SMT_mk_bool_var(getEdgeName(*p,b));
-		predicate.push_back(man->SMT_mk_expr_from_bool_var(evar));
-	}
-	SMT_expr bpredicate;
+		// we create a boolean reachability predicate for the basicblock
+		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
+		// we associate it the right predicate depending on its incoming edges
+		std::vector<SMT_expr> predicate;
+		for (pred_iterator p = pred_begin(b), e = pred_end(b); p != e; ++p) {
+			SMT_var evar = man->SMT_mk_bool_var(getEdgeName(*p,b));
+			predicate.push_back(man->SMT_mk_expr_from_bool_var(evar));
+		}
+		SMT_expr bpredicate;
 
-	if (predicate.size() != 0)
-		bpredicate = man->SMT_mk_or(predicate);
-	else
-		bpredicate = man->SMT_mk_false();
+		if (predicate.size() != 0)
+			bpredicate = man->SMT_mk_or(predicate);
+		else
+			bpredicate = man->SMT_mk_false();
 
-	SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
-	bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
-	rho_components.push_back(bvar_exp);
-	// we compute the transformation due to the basicblock's
-	// instructions
-	bvar = man->SMT_mk_bool_var(getNodeName(b,false));
-	instructions.clear();
-
-	for (BasicBlock::iterator i = b->begin(), e = b->end();
-			i != e; ++i) {
-		visit(*i);
-	}
-
-	if (instructions.size() > 0) {
-		bpredicate = man->SMT_mk_and(instructions);
-		instructions.clear();
 		SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
-		bvar_exp = man->SMT_mk_not(bvar_exp);
-		std::vector<SMT_expr> implies;
-		implies.push_back(bvar_exp);
-		implies.push_back(bpredicate);
-		bvar_exp = man->SMT_mk_or(implies);
+		bvar_exp = man->SMT_mk_eq(bvar_exp,bpredicate);
 		rho_components.push_back(bvar_exp);
+		// we compute the transformation due to the basicblock's
+		// instructions
+		bvar = man->SMT_mk_bool_var(getNodeName(b,false));
+		instructions.clear();
+
+		for (BasicBlock::iterator i = b->begin(), e = b->end();
+				i != e; ++i) {
+			visit(*i);
+		}
+
+		if (instructions.size() > 0) {
+			bpredicate = man->SMT_mk_and(instructions);
+			instructions.clear();
+			SMT_expr bvar_exp = man->SMT_mk_expr_from_bool_var(bvar);
+			bvar_exp = man->SMT_mk_not(bvar_exp);
+			std::vector<SMT_expr> implies;
+			implies.push_back(bvar_exp);
+			implies.push_back(bpredicate);
+			bvar_exp = man->SMT_mk_or(implies);
+			rho_components.push_back(bvar_exp);
+		}
 	}
 }
 
@@ -697,7 +705,7 @@ void SMTpass::computeRho(Function &F) {
 	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b,b,true,&visited);
+		computeRhoRec(F,b,true,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	rho_components.clear();
