@@ -88,10 +88,11 @@ endif()
 
 target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES})
 
-# TODO: these libraries are not always needed
-# (it seems they are by libz3.a but not libz3.so ...),
-# we should detect and adapt...
-#target_link_libraries(pagai rt gomp)
+if(${ENABLE_Z3})
+	if (${STATIC_LINK})
+		target_link_libraries(pagai rt gomp pthread)
+	endif()
+endif()
 
 # CUDD (BDD library)
 # TODO: There is a confusion between /lib/libutil and CUDD's libutil,
