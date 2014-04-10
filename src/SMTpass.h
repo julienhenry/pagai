@@ -133,8 +133,7 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 * \brief recursive function called by computeRho
 		 */
 		void computeRhoRec(	Function &F, 
-							BasicBlock * dest,
-							std::set<BasicBlock*> * visited);
+							BasicBlock * dest);
 		void computeRho(Function &F);
 
 	public:

@@ -621,18 +621,18 @@ void SMTpass::getElementFromString(
 }
 
 void SMTpass::computeRhoRec(Function &F, 
-		BasicBlock * dest,
-		std::set<BasicBlock*> * visited) {
+		BasicBlock * dest) {
 	Pr * FPr = Pr::getInstance(&F);
 
+	std::set<BasicBlock*> visited;
 	std::queue<BasicBlock*> ToBeComputed;
 	ToBeComputed.push(dest);
 
 	while (!ToBeComputed.empty()) {
 		BasicBlock * b = ToBeComputed.front();
 		ToBeComputed.pop();
-		bool first = (visited->count(b) > 0);
-		visited->insert(b);
+		bool first = (visited.count(b) > 0);
+		visited.insert(b);
 
 		if (!FPr->inPr(b) || b == dest) {
 			// we recursively construct Rho, starting from the predecessors
@@ -640,7 +640,7 @@ void SMTpass::computeRhoRec(Function &F,
 			for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 				pred = *p;
 				if (!FPr->inPr(pred)) {
-					if (!visited->count(pred)) {
+					if (!visited.count(pred)) {
 						ToBeComputed.push(pred);
 					}
 				} else {
@@ -695,7 +695,6 @@ void SMTpass::computeRhoRec(Function &F,
 }
 
 void SMTpass::computeRho(Function &F) {
-	std::set<BasicBlock*> visited;
 	BasicBlock * b;
 	Pr * FPr = Pr::getInstance(&F);
 
@@ -703,22 +702,10 @@ void SMTpass::computeRho(Function &F) {
 	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b,&visited);
+		computeRhoRec(F,b);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	rho_components.clear();
-
-	// Pr_pred has already been computed, but not Pr_succ
-	// Now, we can easily compute Pr_succ
-	//i = FPr->getPr()->begin();
-	//e = FPr->getPr()->end();
-	//for (;i!= e; ++i) {
-	//	b = *i;
-	//	std::set<BasicBlock*>::iterator it = FPr->Pr_pred[b].begin(), et = FPr->Pr_pred[b].end();
-	//	for (;it != et; it++) {
-	//		FPr->Pr_succ[*it].insert(b);
-	//	}
-	//}
 }
 
 
