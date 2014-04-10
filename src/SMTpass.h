@@ -134,7 +134,6 @@ class SMTpass : private InstVisitor<SMTpass> {
 		 */
 		void computeRhoRec(	Function &F, 
 							BasicBlock * dest,
-							bool newPr,
 							std::set<BasicBlock*> * visited);
 		void computeRho(Function &F);
 

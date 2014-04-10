@@ -622,7 +622,6 @@ void SMTpass::getElementFromString(
 
 void SMTpass::computeRhoRec(Function &F, 
 		BasicBlock * dest,
-		bool newPr,
 		std::set<BasicBlock*> * visited) {
 	Pr * FPr = Pr::getInstance(&F);
 
@@ -635,7 +634,7 @@ void SMTpass::computeRhoRec(Function &F,
 		bool first = (visited->count(b) > 0);
 		visited->insert(b);
 
-		if (!FPr->inPr(b) || newPr) {
+		if (!FPr->inPr(b) || b == dest) {
 			// we recursively construct Rho, starting from the predecessors
 			BasicBlock * pred;
 			for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
@@ -644,11 +643,10 @@ void SMTpass::computeRhoRec(Function &F,
 					if (!visited->count(pred)) {
 						ToBeComputed.push(pred);
 					}
-					FPr->Pr_pred[b].insert(FPr->Pr_pred[pred].begin(),FPr->Pr_pred[pred].end());
 				} else {
-					FPr->Pr_pred[b].insert(pred);
+					FPr->Pr_pred[dest].insert(pred);
+					FPr->Pr_succ[pred].insert(dest);
 				}
-				FPr->Pr_succ[pred].insert(dest);
 			}
 		}
 
@@ -694,31 +692,6 @@ void SMTpass::computeRhoRec(Function &F,
 			rho_components.push_back(bvar_exp);
 		}
 	}
-
-	ToBeComputed.push(dest);
-	std::set<BasicBlock*> visited2;
-	while (!ToBeComputed.empty()) {
-		BasicBlock * b = ToBeComputed.front();
-		ToBeComputed.pop();
-		visited2.insert(b);
-
-		if (!FPr->inPr(b) || newPr) {
-			// we recursively construct Rho, starting from the predecessors
-			BasicBlock * pred;
-			for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
-				pred = *p;
-				if (!FPr->inPr(pred)) {
-					if (!visited2.count(pred)) {
-						ToBeComputed.push(pred);
-					}
-					FPr->Pr_pred[b].insert(FPr->Pr_pred[pred].begin(),FPr->Pr_pred[pred].end());
-				} else {
-					FPr->Pr_pred[b].insert(pred);
-				}
-				FPr->Pr_succ[pred].insert(dest);
-			}
-		}
-	}
 }
 
 void SMTpass::computeRho(Function &F) {
@@ -730,22 +703,22 @@ void SMTpass::computeRho(Function &F) {
 	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b,true,&visited);
+		computeRhoRec(F,b,&visited);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	rho_components.clear();
 
 	// Pr_pred has already been computed, but not Pr_succ
 	// Now, we can easily compute Pr_succ
-	i = FPr->getPr()->begin();
-	e = FPr->getPr()->end();
-	for (;i!= e; ++i) {
-		b = *i;
-		std::set<BasicBlock*>::iterator it = FPr->Pr_pred[b].begin(), et = FPr->Pr_pred[b].end();
-		for (;it != et; it++) {
-			FPr->Pr_succ[*it].insert(b);
-		}
-	}
+	//i = FPr->getPr()->begin();
+	//e = FPr->getPr()->end();
+	//for (;i!= e; ++i) {
+	//	b = *i;
+	//	std::set<BasicBlock*>::iterator it = FPr->Pr_pred[b].begin(), et = FPr->Pr_pred[b].end();
+	//	for (;it != et; it++) {
+	//		FPr->Pr_succ[*it].insert(b);
+	//	}
+	//}
 }
 
 
