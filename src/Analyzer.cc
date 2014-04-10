@@ -51,6 +51,7 @@ void show_help() {
 --no-undefined-check : do not verify integer overflows\n \
 --output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
 --force-old-output : force to use the old output\n \
+--skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
 --quiet (-q) : quiet mode : does not print anything \n \
 --domain (-d) : abstract domain\n \
          possible abstract domains:\n \
@@ -134,7 +135,7 @@ bool onlyOutputsRho() {
 	return onlyrho;
 }
 
-bool skipNonLinearInSMT() {
+bool skipNonLinear() {
 	return skipnonlinear;
 }
 

@@ -87,7 +87,7 @@ bool compareDomain();
 bool compareNarrowing();
 
 bool onlyOutputsRho();
-bool skipNonLinearInSMT();
+bool skipNonLinear();
 
 bool printAllInvariants();
 bool check_overflow();

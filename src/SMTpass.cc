@@ -1150,8 +1150,8 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
-			skip = true;
-			assign = man->SMT_mk_mul(operand0,operand1);
+			if (!skipNonLinear())
+				assign = man->SMT_mk_mul(operand0,operand1);
 			break;
 		case Instruction::And :
 			//if (!t) return;
@@ -1180,18 +1180,19 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
-			skip = true;
-			assign = man->SMT_mk_div(operand0,operand1);
+			if (!skipNonLinear())
+				assign = man->SMT_mk_div(operand0,operand1);
 			break;
 		case Instruction::FDiv: 
-			skip = true;
-			assign = man->SMT_mk_div(operand0,operand1,false);
+			if (!skipNonLinear())
+				assign = man->SMT_mk_div(operand0,operand1,false);
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
 			//skip = true;
-			assign = man->SMT_mk_rem(operand0,operand1);
+			if (!skipNonLinear())
+				assign = man->SMT_mk_rem(operand0,operand1);
 			break;
 			// the others are not implemented
 		case Instruction::Shl : // Shift left  (logical)
@@ -1201,9 +1202,8 @@ void SMTpass::visitBinaryOperator (BinaryOperator &I) {
 			// NOT IMPLEMENTED
 			return;
 	}
-	//instructions.push_back(man->SMT_mk_eq(expr,assign));
-	if (skip && onlyOutputsRho() && skipNonLinearInSMT()) return;
-	rho_components.push_back(man->SMT_mk_eq(expr,assign));
+	if (!assign.is_empty())
+		rho_components.push_back(man->SMT_mk_eq(expr,assign));
 }
 
 void SMTpass::visitCmpInst (CmpInst &I) {

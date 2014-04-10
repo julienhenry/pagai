@@ -463,16 +463,19 @@ ap_texpr1_t * Expr::visitBinaryOperator (BinaryOperator &I){
 			break;
 		case Instruction::Mul : 
 		case Instruction::FMul: 
+			if (skipNonLinear()) return visitInstAndAddVar(I);
 			op = AP_TEXPR_MUL;
 			break;
 		case Instruction::UDiv: 
 		case Instruction::SDiv: 
 		case Instruction::FDiv: 
+			if (skipNonLinear()) return visitInstAndAddVar(I);
 			op = AP_TEXPR_DIV;
 			break;
 		case Instruction::URem: 
 		case Instruction::SRem: 
 		case Instruction::FRem: 
+			if (skipNonLinear()) return visitInstAndAddVar(I);
 			op = AP_TEXPR_MOD;
 			break;
 			// Logical operators
