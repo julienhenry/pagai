@@ -10,8 +10,9 @@ OPTIONS :
 
 	-a        : arguments given to pagai
 	-s        : silent mode
+	-S        : SV-Comp mode
 	-p        : specify the pagai executable
-	-t        : set a time limit (Pagai is killed after this time, default 800s)
+	-t        : set a time limit (Pagai is killed after this time, default 1200s)
 "
 }
 
