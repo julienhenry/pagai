@@ -2,7 +2,25 @@
 
 #include "AnalysisPass.h"
 
+bool AnalysisPass::asserts_proved(Function * F) {
+	Pr * FPr = Pr::getInstance(F);
+	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
+		BasicBlock * b = i;
+		if (FPr->getAssert()->count(b) && !Nodes[b]->X_s[passID]->is_bottom())
+			return false;
+	}
+	return true;
+}
+
+
 void AnalysisPass::generateAnnotatedFiles(Module * M, bool outputfile) {
+	if (SVComp()) {
+		if (assert_fail_found || nb_ignored() > 0)
+			*Out << "UNKNOWN\n";
+		else
+			*Out << "TRUE\n";
+		return;
+	}
 	if (!useSourceName()) 
 		return;
 	std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > files;
@@ -89,6 +107,10 @@ void AnalysisPass::generateAnnotatedCode(
 }
 		
 void AnalysisPass::printResult(Function * F) {
+	if (SVComp()) {
+		assert_fail_found = assert_fail_found || !asserts_proved(F);
+		return;
+	}
 	if (generateMetadata()) InstrumentLLVMBitcode(F);
 	if (quiet_mode() || useSourceName()) return;
 	printResult_oldoutput(F);

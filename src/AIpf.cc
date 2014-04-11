@@ -50,6 +50,8 @@ bool AIpf::runOnModule(Module &M) {
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
+		Pr * FPr = Pr::getInstance(F);
+		if (SVComp() && FPr->getAssert()->size() == 0) continue;
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -58,7 +60,6 @@ bool AIpf::runOnModule(Module &M) {
 		initFunction(F);
 		
 		// we create the new pathtree
-		Pr * FPr = Pr::getInstance(F);
 		std::set<BasicBlock*>* Pr = FPr->getPr();
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
@@ -144,12 +145,14 @@ void AIpf::computeFunction(Function * F) {
 	ascendingIter(n, F);
 	if (unknown) goto end;
 
+	if (SVComp() && asserts_proved(F)) goto end;
 	narrowingIter(n);
 	if (unknown) goto end;
 	// then we move X_d abstract values to X_s abstract values
 	{
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
+			if (SVComp() && asserts_proved(F)) goto end;
 			narrowingIter(n);
 			if (unknown) goto end;
 			step++;

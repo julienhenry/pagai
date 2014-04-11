@@ -54,9 +54,12 @@ bool AIopt::runOnModule(Module &M) {
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 
+
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
 		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
+		Pr * FPr = Pr::getInstance(F);
+		if (SVComp() && FPr->getAssert()->size() == 0) continue;
 
 		sys::TimeValue * time = new sys::TimeValue(0,0);
 		*time = sys::TimeValue::now();
@@ -65,7 +68,6 @@ bool AIopt::runOnModule(Module &M) {
 		initFunction(F);
 
 		// we create the new pathtree
-		Pr * FPr = Pr::getInstance(F);
 		std::set<BasicBlock*>* Pr = FPr->getPr();
 		for (std::set<BasicBlock*>::iterator it = Pr->begin(), et = Pr->end();
 			it != et;
@@ -194,7 +196,15 @@ void AIopt::computeFunction(Function * F) {
 		W = new PathTree_br(n->bb);
 		is_computed.clear();
 		ascendingIter(n, F, true);
-		if (unknown) goto end;
+		if (unknown) {
+			delete W;
+			goto end;
+		}
+
+		if (SVComp() && asserts_proved(F)) {
+			delete W;
+			continue;
+		}
 
 		// we set X_d abstract values to bottom for narrowing
 		Pr * FPr = Pr::getInstance(F);
@@ -206,12 +216,18 @@ void AIopt::computeFunction(Function * F) {
 		}
 
 		narrowingIter(n);
-		if (unknown) goto end;
+		if (unknown) {
+			delete W;
+			goto end;
+		}
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
 			narrowingIter(n);
-			if (unknown) goto end;
+			if (unknown) {
+				delete W;
+				goto end;
+			}
 			step++;
 		}
 		delete W;

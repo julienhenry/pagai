@@ -91,6 +91,7 @@ bool skipNonLinear();
 
 bool printAllInvariants();
 bool check_overflow();
+bool SVComp();
 
 enum outputs preferedOutput();
 bool useSourceName();

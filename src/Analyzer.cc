@@ -26,6 +26,7 @@ bool defined_main;
 bool use_source_name;
 bool printAll;
 bool oflcheck;
+bool svcomp;
 bool force_old_output;
 bool output_annotated;
 bool log_smt;
@@ -49,6 +50,7 @@ void show_help() {
 --help (-h) : help\n \
 --main <name> (-m) : only analyze the function <name>\n \
 --no-undefined-check : do not verify integer overflows\n \
+--svcomp : SV-Comp mode\n \
 --output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
 --force-old-output : force to use the old output\n \
 --skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
@@ -184,6 +186,10 @@ int getTimeout() {
 
 char* getFilename() {
 	return filename;
+}
+
+bool SVComp() {
+	return svcomp;
 }
 
 Apron_Manager_Type getApronManager() {
@@ -424,6 +430,7 @@ int main(int argc, char* argv[]) {
 	force_old_output = false;
 	output_annotated = false;
 	oflcheck = true;
+	svcomp = false;
 	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
@@ -455,18 +462,23 @@ int main(int argc, char* argv[]) {
 			{"timeout",    required_argument, 0, 'k'},
 			{"log-smt",    no_argument, 0, 'l'},
 			{"output-bc",  required_argument, 0, 'b'},
+			{"svcomp",  no_argument, 0, 'V'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:V",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
 				break;
 			case 'q':
 				quiet = true;
+        	    break;
+			case 'V':
+				svcomp = true;
+				technique = PATH_FOCUSING;
         	    break;
 			case 'l':
 				log_smt = true;

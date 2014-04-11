@@ -1136,7 +1136,23 @@ void AIPass::visitTruncInst (TruncInst &I){
 
 void AIPass::visitZExtInst (ZExtInst &I){
 	//*Out << "ZExtInst\n" << I << "\n";	
-	visitInstAndAddVarIfNecessary(I);
+	Value * pv;
+	Node * nb;
+	Node * n = Nodes[focuspath.back()];
+	
+	if(I.getSrcTy()->isIntegerTy(1) && I.getDestTy()->isIntegerTy()) {
+		// we cast a boolean to an integer
+		// we overapproximate here...
+	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
+		ap_texpr_rtype_t ap_type;
+		if (Expr::get_ap_type((Value*)&I, ap_type)) return;
+		pv = I.getOperand(0);
+		Expr expr(pv);
+		Expr::set_expr(&I,&expr);
+		Environment * env = expr.getEnv();
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
+		delete env;
+	}
 }
 
 void AIPass::visitSExtInst (SExtInst &I){

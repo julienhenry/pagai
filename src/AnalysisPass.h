@@ -15,13 +15,21 @@
 #include "Debug.h"
 
 class AnalysisPass {
-	
+
+	private:
+		/** 
+		 * \brief use for the SV-comp
+		 * set to true if an error state has been found reachable
+		 */
+		bool assert_fail_found;
+
 	public:
 		/** 
 		 * \brief pass unique identifier
 		 */
 		params passID;
 
+		AnalysisPass() : assert_fail_found(false) {}
 
 		/** 
 		 * \brief process the sequence of positions (order by lines and columns) where an invariant has to be
@@ -31,6 +39,12 @@ class AnalysisPass {
 			Function * F,
 			std::map<std::string,std::multimap<std::pair<int,int>,BasicBlock*> > * files 
 		) = 0;
+
+		/** 
+		 * \brief returns true iff all the asserts in the Function are proved
+		 * correct by the AIpass
+		 */
+		bool asserts_proved(Function * F);
 
 		/** 
 		 * \brief generates annotated C code for every C file used in this
