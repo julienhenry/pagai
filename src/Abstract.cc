@@ -79,6 +79,7 @@ bool Abstract::has_same_environment(Abstract * A) {
 }
 
 bool Abstract::CanJoinPrecisely(AbstractMan * aman, Abstract * A) {
+	return false;
 	bool res = true;
 	SMTpass * LSMT = SMTpass::getInstance();
 	std::vector<Abstract*> Join;
