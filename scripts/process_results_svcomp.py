@@ -22,14 +22,27 @@ def getFileBetween(filename,begin,end):
         return ""
 
 def process_result(filename,json_dict):
+    res = "UNKNOWN (ERROR)"
+    if "true-unreach" in filename:
+        expected = "TRUE"
+    else:
+        expected = "FALSE"
+
     try:
         f = open(filename,"r")
         for line in f:
             if "TRUE" in line :
-                json_dict[json_name(filename)] = "TRUE"
+                res = "TRUE"
             if "UNKNOWN" in line :
-                json_dict[json_name(filename)] = "UNKNOWN"
+                res = "UNKNOWN"
+            if "TIME:" in line :
+                time = line.replace("TIME: ","")
+                time = time.replace("\n","")
         f.close()
+        json_dict[json_name(filename)] = dict()
+        json_dict[json_name(filename)]["result"] = res
+        json_dict[json_name(filename)]["expected"] = expected
+        json_dict[json_name(filename)]["time"] = time
     except IOError:
         return
 
