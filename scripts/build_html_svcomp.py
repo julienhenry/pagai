@@ -41,6 +41,11 @@ def header():
 </style>\n\
 '
 
+def max(a,b):
+    if a > b:
+        return a
+    return b
+
 def title():
     print r'<h1>PAGAI Results</h1>'
 
@@ -76,7 +81,9 @@ def print_line_header():
     print r"<thead>"
     print r"<tr>"
     print r"<td>Benchmark</td>"
-    print r"<td>Result</td>"
+    print r"<td>Result (pk)</td>"
+    print r"<td>Time (in seconds)</td>"
+    print r"<td>Result (box)</td>"
     print r"<td>Time (in seconds)</td>"
     print r"</tr>"
     print r"</thead>"
@@ -85,54 +92,74 @@ def print_line_header():
 header()
 title()
 points = 0
-total_time = 0.0
+total_time = dict()
+total_time["box"] = 0.0
+total_time["pk"] = 0.0
 
 true_results = ""
 false_results = ""
 
-for benchmark_name in json_dict:
-    if "result" not in json_dict[benchmark_name]:
-        continue
-    res = json_dict[benchmark_name]["result"]
-    expected = json_dict[benchmark_name]["expected"]
+def get_status(res,expected):
+    points = 0
     if expected not in "UNKNOWN":
         # SV-comp benchmark
         if res in expected:
             status="ok"
-            trclass="success"
             if res in "TRUE":
-                points += 2
+                points = 2
             if res in "FALSE":
-                points += 1
+                points = 1
         elif res in "UNKNOWN":
             status="unknown"
-            trclass="warning"
         else:
             status="ko"
-            trclass="error"
             if res in "TRUE":
-                points -= 8
+                points = -8
             if res in "FALSE":
-                points -= 4
+                points = -4
     else:
         if res in "TRUE":
             status="ok"
         if res in "UNKNOWN":
             status="unknown"
+    return status, points
+
+def get_trclass(statusbox,statuspk):
+    if "ko" in statuspk or "ko" in statusbox:
+        return "error"
+    if "ok" in statuspk or "ok" in statusbox:
+        return "success"
+    return "warning"
+
+for benchmark_name in json_dict:
+    if "result" not in json_dict[benchmark_name]["box"]:
+        continue
+    expected = json_dict[benchmark_name]["box"]["expected"]
+
+    statusbox,pointsbox = get_status(json_dict[benchmark_name]["box"]["result"], expected)
+    statuspk,pointspk = get_status(json_dict[benchmark_name]["pk"]["result"], expected)
+    trclass = get_trclass(statusbox,statuspk)
+
+    points += max(pointsbox,pointspk)
 
     if expected in "TRUE":
         true_results += r'<tr class="' + trclass + '\">'
         true_results += '<td>' + escape_html(benchmark_name) + '</td>'
-        true_results += '<td class=\"' + status + '\">' + str(json_dict[benchmark_name]["result"]) + '</td>'
-        true_results += '<td>' + str(json_dict[benchmark_name]["time"]) + '</td>'
+        true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
+        true_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
+        true_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
+        true_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
         true_results += r"</tr>"
     else:
         false_results += r'<tr class="' + trclass + '\">'
         false_results += '<td>' + escape_html(benchmark_name) + '</td>'
-        false_results += '<td class=\"' + status + '\">' + str(json_dict[benchmark_name]["result"]) + '</td>'
-        false_results += '<td>' + str(json_dict[benchmark_name]["time"]) + '</td>'
+        false_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
+        false_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
+        false_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
+        false_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
         false_results += r"</tr>"
-    total_time += float(json_dict[benchmark_name]["time"])
+    total_time["box"] += float(json_dict[benchmark_name]["box"]["time"])
+    total_time["pk"] += float(json_dict[benchmark_name]["pk"]["time"])
 
 print r"<div>"
 print r"<p>TRUE Benchmarks</p>"
@@ -155,7 +182,10 @@ print r"<p>"
 print "TOTAL POINTS: " + str(points)
 print r"</p>"
 print r"<p>"
-print "TOTAL TIME: " + str(total_time)
+print "TOTAL TIME (box): " + str(total_time["box"])
+print r"</p>"
+print r"<p>"
+print "TOTAL TIME (pk): " + str(total_time["pk"])
 print r"</p>"
 
 footer()

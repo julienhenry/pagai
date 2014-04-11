@@ -41,16 +41,26 @@ def process_result(filename,json_dict):
                 time = line.replace("TIME: ","")
                 time = time.replace("\n","")
         f.close()
-        json_dict[json_name(filename)] = dict()
-        json_dict[json_name(filename)]["result"] = res
-        json_dict[json_name(filename)]["expected"] = expected
-        json_dict[json_name(filename)]["time"] = time
+        domain = get_domain(filename)
+        json_dict[json_name(filename)][domain] = dict()
+        json_dict[json_name(filename)][domain]["result"] = res
+        json_dict[json_name(filename)][domain]["expected"] = expected
+        json_dict[json_name(filename)][domain]["time"] = time
     except IOError:
         return
 
+def get_domain(name):
+    if ".box." in name:
+        return "box"
+    elif ".pk." in name:
+        return "pk"
+    else:
+        return "unknown"
+
 def json_name(name):
     res = os.path.basename(name)
-    res = res.replace(".svcomp.res",".c")
+    res = res.replace(".box.svcomp.res",".c")
+    res = res.replace(".pk.svcomp.res",".c")
     return res
 
 def process_input_files():
