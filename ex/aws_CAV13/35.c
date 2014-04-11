@@ -9,7 +9,7 @@ int unknown4();
  */
 
 void main() {
-  int n;
+  int n = unknown1();
   int x= 0;
   while(x<=n-1) {
     x++;

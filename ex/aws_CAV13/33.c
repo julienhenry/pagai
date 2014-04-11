@@ -5,7 +5,7 @@ int unknown3();
 
 int main()
 {
-  int k;
+  int k = unknown1();
   int z = k;
   int x = 0;
   int y = 0;

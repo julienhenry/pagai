@@ -1,9 +1,11 @@
 #include "../../pagai_assert.h"
+int input();
+
 int main(){
 
   int x = 0;
   int y = 0;
-  int N;
+  int N = input();
 
   if(N < 0)
     return 1;

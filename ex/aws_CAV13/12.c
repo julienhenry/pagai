@@ -9,7 +9,8 @@ int main()
   int s = 0;
   int a = 0;
   int b = 0;
-  int x,y;
+  int x = unknown1();
+  int y = unknown1();
   while(unknown1()){
     a++;
     b++;

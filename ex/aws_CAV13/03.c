@@ -1,14 +1,7 @@
 #include "../../pagai_assert.h"
 
-int unknown1(){
-    int x; return x;
-}
-
-int unknown2()
-{
-    int x; return x;
-}
-
+int unknown1();
+int unknown2();
 int unknown3();
 int unknown4();
 

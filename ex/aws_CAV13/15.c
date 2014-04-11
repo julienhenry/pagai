@@ -6,11 +6,11 @@ extern int unknown4();
 
 void main(int argc, char* argv[]) {
 
-  int n;
-  int i, k, j;
+  int n = unknown1();
+  int i = unknown1();
+  int j = unknown1();
+  int k = unknown1();
 
-
-  n = unknown1();
   if(n < 1)
     return;
   if(k < n)

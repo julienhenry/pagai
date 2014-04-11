@@ -3,6 +3,7 @@
 extern int unknown1();
 extern int unknown2();
 extern int unknown3();
+extern int input();
 
 
 /*
@@ -11,11 +12,12 @@ extern int unknown3();
 
 
 void main(){
-  int i,pvlen ;
-  int t;
+  int i = input();
+  int pvlen = input();
+  int t = input();
   int k = 0;
-  int n;
-  int j;
+  int n = input();
+  int j = input();
   i = 0;
 
   //  pkt = pktq->tqh_first;

@@ -1,9 +1,11 @@
 #include "../../pagai_assert.h"
+int input();
 void main () {
-int i, j;
-int from;
-int to;
-int k;
+int i = input();
+int j = input();
+int from = input();
+int to = input();
+int k = input();
 
 if (!(k >= 0)) return;
 if (!(k <= 100)) return;

@@ -8,7 +8,11 @@ int unknown1();
 
 
 void main() {
-  int i,j,k,n,m;
+	int i = unknown1();
+	int j = unknown1();
+	int k = unknown1();
+	int n = unknown1();
+	int m = unknown1();
   if( m+1 > n - 1 )
      return;
   for ( i=0; i<=n-1; i+=4 ) {

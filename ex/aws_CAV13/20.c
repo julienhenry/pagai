@@ -3,10 +3,16 @@ int unknown1();
 int unknown2();
 int unknown3();
 int unknown4();
+int input();
 
 void main()
 {
-  int x; int y; int k; int j;int i; int n;
+  int x = input(); 
+  int y = input(); 
+  int k = input(); 
+  int j = input();
+  int i = input(); 
+  int n = input();
     int m = 0;
     if((x+y) != k)
       return;

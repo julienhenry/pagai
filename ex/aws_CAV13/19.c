@@ -8,8 +8,7 @@ void main()
 {
   int n = unknown1(), m = unknown2();
   int x=0; 
-  int y;
-  y = m;
+  int y = m;
   if(n < 0)
     return;
   if(m < 0)

@@ -5,7 +5,7 @@ int main ()
 {
   int x = 0;
   int y = 0;
-  int z;
+  int z = nondet();
 
   while (nondet()){
     x += 10;
