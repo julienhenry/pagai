@@ -16,9 +16,9 @@ bool AnalysisPass::asserts_proved(Function * F) {
 void AnalysisPass::generateAnnotatedFiles(Module * M, bool outputfile) {
 	if (SVComp()) {
 		if (assert_fail_found || nb_ignored() > 0)
-			*Out << "UNKNOWN\n";
+			*Out << "RESULT: UNKNOWN\n";
 		else
-			*Out << "TRUE\n";
+			*Out << "RESULT: TRUE\n";
 		return;
 	}
 	if (!useSourceName()) 
