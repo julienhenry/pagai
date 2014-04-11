@@ -754,11 +754,38 @@ bool AIPass::computeCondition(Value * val,
 		res = computePHINodeCondition(phi,result,cons_index,cons);
 	} else if (BinaryOperator * binop = dyn_cast<BinaryOperator>(val)) {
 		res = computeBinaryOpCondition(binop,result,cons_index,cons);
+	} else if (CastInst * cast = dyn_cast<CastInst>(val)) {
+		res = computeCastCondition(cast,result,cons_index,cons);
 	} else {
 		// loss of precision...
 		return false;
 	}
 	return res;
+}
+bool AIPass::computeCastCondition(CastInst * inst, 
+		bool result,
+		int cons_index,
+		std::vector< std::vector<Constraint*> * > * cons) {
+
+	*Out << "CAST CONDITION\n";
+	if(inst->getSrcTy()->isIntegerTy() && inst->getDestTy()->isIntegerTy(1)) {
+		// we cast an integer to a boolean
+		Value * pv = inst->getOperand(0);
+		Expr expr(pv);
+		Expr nexpr(pv);
+		ap_constyp_t constyp = AP_CONS_EQ;
+		ap_constyp_t nconstyp = AP_CONS_DISEQ;
+
+		if (result) {
+			// creating the TRUE constraints
+			Expr::create_constraints(constyp,&expr,&nexpr,(*cons)[cons_index]);
+		} else {
+			// creating the FALSE constraints
+			Expr::create_constraints(nconstyp,&nexpr,&expr,(*cons)[cons_index]);
+		}
+		return true;
+	}
+	return false;
 }
 
 bool AIPass::computeCmpCondition(	CmpInst * inst, 
@@ -1144,12 +1171,15 @@ void AIPass::visitZExtInst (ZExtInst &I){
 		// we cast a boolean to an integer
 		// we overapproximate here...
 	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
+
 		ap_texpr_rtype_t ap_type;
-		if (Expr::get_ap_type((Value*)&I, ap_type)) return;
-		pv = I.getOperand(0);
-		Expr expr(pv);
-		Expr::set_expr(&I,&expr);
-		Environment * env = expr.getEnv();
+		Expr exp((Value*)&I);
+
+		// this value may use some apron variables 
+		// we add these variables in the Node's variable structure, such that we
+		// remember that instruction I uses these variables
+		//
+		Environment * env = exp.getEnv();
 		insert_env_vars_into_node_vars(env,n,(Value*)&I);
 		delete env;
 	}

@@ -370,6 +370,15 @@ ap_texpr1_t * Expr::visitTruncInst (TruncInst &I){
 }
 
 ap_texpr1_t * Expr::visitZExtInst (ZExtInst &I){
+
+	Value * pv;
+	Node * nb;
+	if(I.getSrcTy()->isIntegerTy(1) && I.getDestTy()->isIntegerTy()) {
+		// we cast a boolean to an integer
+		// we overapproximate here...
+	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
+		return create_expression(I.getOperand(0));
+	}
 	return visitInstAndAddVar(I);
 }
 

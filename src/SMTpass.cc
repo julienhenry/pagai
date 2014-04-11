@@ -993,6 +993,15 @@ void SMTpass::visitPHINode (PHINode &I) {
 }
 
 void SMTpass::visitTruncInst (TruncInst &I) {
+	if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy(1)) {
+		// we cast an integer to boolean
+		SMT_expr operand0 = getValueExpr(I.getOperand(0), false);
+		SMT_expr zero = man->SMT_mk_num(0);
+		SMT_expr cmp = man->SMT_mk_eq(operand0,zero);
+		
+		SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+		rho_components.push_back(man->SMT_mk_eq(expr,cmp));
+	}
 }
 
 void SMTpass::visitZExtInst (ZExtInst &I) {

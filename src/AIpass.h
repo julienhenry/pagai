@@ -317,6 +317,15 @@ class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 				bool result,
 				int cons_index,
 				std::vector< std::vector<Constraint*> * > * cons);
+		
+		/** 
+		 * \brief creates the constraint arrays resulting from a
+		 * cast between a boolean and an integer
+		 */
+		bool computeCastCondition(CastInst * inst, 
+				bool result,
+				int cons_index,
+				std::vector< std::vector<Constraint*> * > * cons);
 
 		/** 
 		 * \brief Insert all the dimensions of the environment into the node

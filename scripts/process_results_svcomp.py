@@ -25,8 +25,10 @@ def process_result(filename,json_dict):
     res = "UNKNOWN (ERROR)"
     if "true-unreach" in filename:
         expected = "TRUE"
-    else:
+    elif "false-unreach" in filename:
         expected = "FALSE"
+    else:
+        expected = "UNKNOWN"
 
     try:
         f = open(filename,"r")
@@ -48,8 +50,7 @@ def process_result(filename,json_dict):
 
 def json_name(name):
     res = os.path.basename(name)
-    res = res.replace(".all.res","")
-    res = res.replace(".narrowing.res","")
+    res = res.replace(".svcomp.res",".c")
     return res
 
 def process_input_files():
