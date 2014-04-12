@@ -145,21 +145,21 @@ for benchmark_name in json_dict:
     if expected in "TRUE":
         true_results += r'<tr class="' + trclass + '\">'
         true_results += '<td>' + escape_html(benchmark_name) + '</td>'
-        true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
-        true_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
         true_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
         true_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
+        true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
+        true_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
         true_results += r"</tr>"
     else:
         false_results += r'<tr class="' + trclass + '\">'
         false_results += '<td>' + escape_html(benchmark_name) + '</td>'
-        false_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
-        false_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
         false_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
         false_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
+        false_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
+        false_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
         false_results += r"</tr>"
-    total_time["box"] += float(json_dict[benchmark_name]["box"]["time"])
-    total_time["pk"] += float(json_dict[benchmark_name]["pk"]["time"])
+    #total_time["box"] += float(json_dict[benchmark_name]["box"]["time"])
+    #total_time["pk"] += float(json_dict[benchmark_name]["pk"]["time"])
 
 print r"<div>"
 print r"<p>TRUE Benchmarks</p>"
