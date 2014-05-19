@@ -767,7 +767,9 @@ bool AIPass::computeCastCondition(CastInst * inst,
 		int cons_index,
 		std::vector< std::vector<Constraint*> * > * cons) {
 
-	*Out << "CAST CONDITION\n";
+	DEBUG(
+			*Out << "CAST CONDITION\n";
+		 );
 	if(inst->getSrcTy()->isIntegerTy() && inst->getDestTy()->isIntegerTy(1)) {
 		// we cast an integer to a boolean
 		Value * pv = inst->getOperand(0);
