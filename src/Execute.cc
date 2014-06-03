@@ -143,7 +143,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		M = module;
 	}
 
-	if (M == NULL) return;
+	if (M == NULL) {
+		*Out << "ERROR: Unable to read bitcode file.\n";
+		return;
+	}
 
 	PassRegistry &Registry = *PassRegistry::getPassRegistry();
 	initializeAnalysis(Registry);

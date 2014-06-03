@@ -54,10 +54,9 @@ void ap_tcons1_t_to_MDNode(ap_tcons1_t & cons, llvm::Instruction * Inst, std::ve
 			met->push_back(MDString::get(C, "!="));
 			break;
 	}
-	// should not be a string
-	// met->push_back(MDString::get(C, "0"));
-	ConstantInt * i = ConstantInt::get(llvm::Type::getInt32Ty(C),0);
-	met->push_back(i);
+	met->push_back(MDString::get(C, "0"));
+	//ConstantInt * i = ConstantInt::get(llvm::Type::getInt32Ty(C),0);
+	//met->push_back(i);
 }
 
 void coeff_to_MDNode(ap_coeff_t * a, llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
@@ -120,7 +119,7 @@ void texpr0_to_MDNode(ap_texpr0_t* a, ap_environment_t * env, llvm::Instruction 
 			}
 			break;
 		case AP_TEXPR_NODE:
-			if (false) {
+			if (true) {
 				std::vector<llvm::Value*> child;
 				texpr0_node_to_MDNode(a->val.node,env,Inst,&child);
 				MDNode* N = MDNode::get(C,child);
