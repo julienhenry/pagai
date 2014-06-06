@@ -290,6 +290,7 @@ void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) con
 }
 		
 void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
+
 	LLVMContext& C = Inst->getContext();
 	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
 	size_t size = ap_tcons1_array_size(&tcons_array);
@@ -299,6 +300,22 @@ void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Valu
 	} else if (size == 0) {
 		met->push_back(MDString::get(C, "true"));
 	} else {
+#if 1
+		// alternative invariant representation
+		Environment env(this);
+		std::vector<Value*> MDenv;
+		env.to_MDNode(&C,&MDenv);
+		met->push_back(MDNode::get(C,MDenv));
+		std::vector<Value*> MDconstraints;
+		for (size_t k = 0; k < size; k++) {
+			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+
+			std::vector<llvm::Value*> c;
+			ap_tcons1_t_to_MDNode(cons,Inst,&c);
+			MDconstraints.push_back(MDNode::get(C,c));
+		}
+		met->push_back(MDNode::get(C,MDconstraints));
+#else
 		for (size_t k = 0; k < size; k++) {
 			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
 			//std::string s_string;
@@ -316,6 +333,7 @@ void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Valu
 			//Constant * pagai_inv = M->getOrInsertFunction("__pagai_invariant",ftype);
 			//CallInst * call = CallInst::Create(pagai_inv,MDNode::get(C,c),"",Inst);
 		}
+#endif
 	}
 	ap_tcons1_array_clear(&tcons_array);
 }

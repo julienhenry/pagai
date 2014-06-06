@@ -76,25 +76,24 @@ void coeff_to_MDNode(ap_coeff_t * a, llvm::Instruction * Inst, std::vector<llvm:
 }
 
 void ap_texpr1_t_to_MDNode(ap_texpr1_t & expr, llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
-	//ap_environment_name_of_dim_t* name_of_dim;
-
-	//name_of_dim = ap_environment_name_of_dim_alloc(expr.env);
-	//texpr0_to_MDNode(expr.texpr0, name_of_dim->p,Inst,met);
 	texpr0_to_MDNode(expr.texpr0, expr.env,Inst,met);
-	//ap_environment_name_of_dim_free(name_of_dim);
-
-	//LLVMContext& C = Inst->getContext();
-	//std::string s_string;
-	//raw_string_ostream * s = new raw_string_ostream(s_string);
-	//*s << expr;
-	//std::string & cstr = s->str();
-	//met->push_back(MDString::get(C, cstr));
 }
-
 
 void texpr0_to_MDNode(ap_texpr0_t* a, ap_environment_t * env, llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
 	if (!a) return;
 	LLVMContext& C = Inst->getContext();
+#if 1
+	switch (a->discr) {
+		case AP_TEXPR_CST:
+			coeff_to_MDNode(&a->val.cst,Inst,met);
+			break;
+		case AP_TEXPR_NODE:
+			texpr0_node_to_MDNode(a->val.node, env,Inst,met);
+			break;
+		default:
+			break;
+	}
+#else
 	switch (a->discr) {
 		case AP_TEXPR_CST:
 			coeff_to_MDNode(&a->val.cst,Inst,met);
@@ -131,12 +130,22 @@ void texpr0_to_MDNode(ap_texpr0_t* a, ap_environment_t * env, llvm::Instruction 
 		default:
 			assert(false);
 	}
+#endif
 }
 
 void texpr0_node_to_MDNode(ap_texpr0_node_t * a, ap_environment_t * env, llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {
 	int prec = ap_texpr_op_precedence[a->op];
 	LLVMContext& C = Inst->getContext();
 
+#if 1
+	if (a->exprB) {
+		/* left argument (if binary) */
+		texpr0_to_MDNode(a->exprA, env,Inst,met);
+	}
+	/* right argument */
+	ap_texpr0_t* arg = a->exprB ? a->exprB : a->exprA;
+	texpr0_to_MDNode(arg,env,Inst,met);
+#else
 	if (a->exprB) {
 		int A = check_texpr0(a->exprA);
 		int B = check_texpr0(a->exprB);
@@ -186,5 +195,6 @@ void texpr0_node_to_MDNode(ap_texpr0_node_t * a, ap_environment_t * env, llvm::I
 		int prec2 = ap_texpr0_precedence(arg);
 		texpr0_to_MDNode(arg,env,Inst,met);
 	}
+#endif
 }
 

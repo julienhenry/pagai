@@ -7,6 +7,7 @@
 #include "llvm/Support/FormattedStream.h"
 
 #include "ap_global1.h"
+#include "apron.h"
 #include "Environment.h"
 #include "Debug.h"
 
@@ -229,6 +230,16 @@ void Environment::display(llvm::raw_ostream &stream) const {
 		char* c = ap_var_operations->to_string(env->var_of_dim[i]);
 		stream << i << ": " << c << (i<env->intdim ? " (int)" : " (real)") << "\n";
 		free(c);
+	}
+}
+		
+void Environment::to_MDNode(LLVMContext * C, std::vector<llvm::Value*> * met) {
+	for (size_t i=0; i<env->intdim+env->realdim; i++) {
+		ap_var_t var = env->var_of_dim[i];
+		Value * val = (Value*) var;
+		MDString * dim = MDString::get(*C, ap_var_to_string(var));
+		MDNode* N = MDNode::get(*C,dim);
+		met->push_back(N);
 	}
 }
 

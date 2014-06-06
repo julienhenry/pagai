@@ -105,6 +105,9 @@ class Environment {
 		 */
 		void display(llvm::raw_ostream &stream) const;
 
+		
+		void to_MDNode(LLVMContext * C, std::vector<llvm::Value*> * met);
+
 	private:
 
 		/**
