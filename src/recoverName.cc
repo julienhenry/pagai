@@ -330,10 +330,7 @@ void recoverName::pass1(Function *F) {
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {
 		unsigned bbline=MAX,bbcolumn=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
-			*Out << "updatelinecolumn\n";
-			*Out << *I << "\n";
 			update_line_column(I,bbline,bbcolumn);	
-			*Out << "updatelinecolumn ok\n";
 			//now check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
 			bool dbgInstFlag=false;
 			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
