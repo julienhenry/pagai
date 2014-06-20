@@ -115,27 +115,6 @@ void AIopt::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
-/**
- * test : Alias Analysis
- *
- *	AA = &(getAnalysis<AliasAnalysis>());
- *	AST = new AliasSetTracker(*AA);
- *	
- *	for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; ++I) {
- *		AST->add(&*I,4,NULL);
- *	}
- *	for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
- *		AST->add(&*I);
- *	}
- *	for (AliasSetTracker::iterator I = AST->begin(), E = AST->end();
- *           I != E; ++I) {
- *        AliasSet &AS = *I;
- *		*Out << "\n";
- *		AS.print(*Out);
- *		*Out << "\n";
- *	}
- */
-
 	LSMT->push_context();
 	
 	DEBUG(

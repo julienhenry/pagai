@@ -304,21 +304,20 @@ Info recoverName::resolveMetDescriptor(MDNode* md) {
 }
 
 void recoverName::update_line_column(Instruction * I, unsigned & line, unsigned & column) {
-	if(I->hasMetadata() && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I)) {
+	MDNode *BlockMD = I->getMetadata("dbg");
+	if(BlockMD != NULL && ! isa<DbgValueInst>(I) && ! isa<DbgDeclareInst>(I)) {
 		unsigned l,c;
-		if(MDNode *BlockMD=dyn_cast<MDNode>(I->getMetadata(0))) {
-			if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0))) {
-				l=BBLineNo->getZExtValue();
-			}
-			if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1))) {
-				c=BBColumnNo->getZExtValue();
-			}
-			if(l<line) {
-				line=l;
-				column=c;
-			} else if(l==line && c<column) {
-				column=c;
-			}
+		if(const ConstantInt *BBLineNo = dyn_cast<ConstantInt>(BlockMD->getOperand(0))) {
+			l=BBLineNo->getZExtValue();
+		}
+		if(const ConstantInt *BBColumnNo = dyn_cast<ConstantInt>(BlockMD->getOperand(1))) {
+			c=BBColumnNo->getZExtValue();
+		}
+		if(l<line) {
+			line=l;
+			column=c;
+		} else if(l==line && c<column) {
+			column=c;
 		}
 	}
 }
@@ -331,9 +330,10 @@ void recoverName::pass1(Function *F) {
 	for (Function::iterator bb = F->begin(), e = F->end(); bb != e; ++bb) {
 		unsigned bbline=MAX,bbcolumn=MAX;
 		for (BasicBlock::iterator I = bb->begin(), E = bb->end(); I != E; ++I) {
-			
+			*Out << "updatelinecolumn\n";
+			*Out << *I << "\n";
 			update_line_column(I,bbline,bbcolumn);	
-
+			*Out << "updatelinecolumn ok\n";
 			//now check if the instruction is of type llvm.dbg.value or llvm.dbg.declare
 			bool dbgInstFlag=false;
 			if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(I)) {
@@ -367,7 +367,6 @@ void recoverName::pass1(Function *F) {
 			}
 		}
 		Block_line.insert(std::make_pair(bb,bbline));
-
 		// bbcolumn is set to 1 at least, since new versions of LLVM always set it to 0
 		// instead of the correct column number...
 		// if we keep 0, invariants won't be printed correctly
