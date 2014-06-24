@@ -144,7 +144,8 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 	}
 	if (isa<UndefValue>(val)) {
 		//assert(false && "non-initialised value in the analysed code");
-		res = create_ap_expr((ap_var_t)val);
+		UndefValue * undef = dyn_cast<UndefValue>(val);
+		res = create_ap_expr(undef);
 	}
 	if (res == NULL)
 		res = create_ap_expr((ap_var_t)val);
@@ -153,16 +154,18 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 }
 
 int undef_ai_counter = 0;
-std::set<ap_var_t> undef_ap_vars;
+std::map<ap_var_t,ap_texpr_rtype_t> undef_ap_vars;
 		
 bool Expr::is_undef_ap_var(ap_var_t var) {
 	return undef_ap_vars.count(var);
 }
 
 ap_texpr1_t * Expr::create_ap_expr(UndefValue * undef) {
+	ap_texpr_rtype_t ap_type;
+	if (get_ap_type(undef, ap_type)) return NULL;
 	undef_ai_counter++;
 	ap_var_t v = (ap_var_t)(UNDEF_ADRESS + undef_ai_counter);
-	undef_ap_vars.insert(v);
+	undef_ap_vars.insert(std::pair<ap_var_t,ap_texpr_rtype_t>(v,ap_type));
 	return create_ap_expr(v);
 }
 
@@ -170,7 +173,11 @@ ap_texpr1_t * Expr::create_ap_expr(ap_var_t var) {
 	ap_environment_t* env = NULL;
 	ap_texpr_rtype_t ap_type;
 
-	if (get_ap_type((Value*)var, ap_type)) return NULL;
+	if (is_undef_ap_var(var)) {
+		ap_type = undef_ap_vars[var];
+	} else {
+		if (get_ap_type((Value*)var, ap_type)) return NULL;
+	}
 
 	if (ap_type == AP_RTYPE_INT) { 
 		env = ap_environment_alloc(&var,1,NULL,0);

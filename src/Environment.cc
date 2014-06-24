@@ -139,6 +139,7 @@ void Environment::get_vars_live_in(BasicBlock * b, Live * LV, std::set<ap_var_t>
 	Value* val;
 	for (size_t i = 0; i < env->intdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
+		if (Expr::is_undef_ap_var(var)) continue;
 		val = (Value*)var;
 		if (LV->isLiveByLinearityInBlock(val,b,true)) {
 			intdims->insert(var);
@@ -146,6 +147,7 @@ void Environment::get_vars_live_in(BasicBlock * b, Live * LV, std::set<ap_var_t>
 	}
 	for (size_t i = env->intdim; i < env->intdim + env->realdim; i++) {
 		var = ap_environment_var_of_dim(env,i);
+		if (Expr::is_undef_ap_var(var)) continue;
 		val = (Value*)var;
 		if (LV->isLiveByLinearityInBlock(val,b,true)) {
 			realdims->insert(var);
