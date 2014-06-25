@@ -90,6 +90,18 @@ void texpr0_to_MDNode(ap_texpr0_t* a, ap_environment_t * env, llvm::Instruction 
 		case AP_TEXPR_NODE:
 			texpr0_node_to_MDNode(a->val.node, env,Inst,met);
 			break;
+		case AP_TEXPR_DIM:
+			{
+				ap_dim_t d = a->val.dim;
+				ap_var_t var = ap_environment_var_of_dim(env,d);
+				Value * val = (Value*)var;
+				MDString * dim = MDString::get(C, ap_var_to_string(var));
+				MDNode* N = MDNode::get(C,dim);
+				if (Instruction * i = dyn_cast<Instruction>(val)) {
+					i->setMetadata("pagai.var", N);
+				}
+			}
+			break;
 		default:
 			break;
 	}

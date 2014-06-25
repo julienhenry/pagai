@@ -97,6 +97,21 @@ Info recoverName::getMDInfos(const Value* V) {
 		std::set<Info> s = getMDInfos_rec(v,seen);
 		if (s.empty()) {
 			computed_mappings[v] = Info(SMTpass::getVarName(v),-1,"unknown");
+		} else if (s.size() > 1) {
+			// there are several choices...
+			// we choose one depending on teh syntactic name of the LLVM
+			// variable
+			std::string syntactic_name = SMTpass::getVarName(v);
+			std::set<Info>::iterator it = s.begin(), et = s.end();
+			bool found = false;
+			for (; it != et; it++) {
+				if (it->getName().compare(syntactic_name)) {
+					computed_mappings[v] = *it;
+					found = true;
+				}
+			}
+			if (!found)
+				computed_mappings[v] = Info(SMTpass::getVarName(v),-1,"unknown");
 		} else {
 			computed_mappings[v] = *s.begin();
 		}
