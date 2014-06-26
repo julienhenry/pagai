@@ -279,5 +279,6 @@ void AISimple::computeFunction(Function * F) {
 	// get the information about live variables from the LiveValues pass
 	LV = &(getAnalysis<Live>(*F));
 
+	START();
 	computeFunc(F);
 }
