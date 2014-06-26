@@ -620,26 +620,54 @@ void SMTpass::getElementFromString(
 	}
 }
 
+void SMTpass::computePrSuccAndPred(
+		Function &F
+		) {
+	Pr * FPr = Pr::getInstance(&F);
+	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
+	for (;i!= e; ++i) {
+		int counter = 0;
+		BasicBlock * dest = *i;
+		std::set<BasicBlock*> visited;
+		std::queue<BasicBlock*> ToBeComputed;
+		ToBeComputed.push(dest);
+		while (!ToBeComputed.empty()) {
+			counter++;
+			BasicBlock * b = ToBeComputed.front();
+			ToBeComputed.pop();
+			if (visited.count(b)) continue;
+			visited.insert(b);
+			if (!FPr->inPr(b) || b == dest) {
+				BasicBlock * pred;
+				for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
+					pred = *p;
+					if (!FPr->inPr(pred)) {
+						if (!visited.count(pred)) {
+							ToBeComputed.push(pred);
+						}
+					} else {
+						FPr->Pr_pred[dest].insert(pred);
+						FPr->Pr_succ[pred].insert(dest);
+					}
+				}
+			}
+		}
+	}
+}
+
 void SMTpass::computeRhoRec(Function &F, 
+		std::set<BasicBlock*> * visited,
 		BasicBlock * dest) {
 	Pr * FPr = Pr::getInstance(&F);
 
-	*Out << "dest " << *dest << "\n";
-	*Out << "computeRhoRec " << dest << "\n";
-	std::set<BasicBlock*> visited;
 	std::queue<BasicBlock*> ToBeComputed;
 	ToBeComputed.push(dest);
 
-	*Out << "NB BASICBLOCKS " << F.size() << "\n";
-
-	int counter = 0;
 	while (!ToBeComputed.empty()) {
-		counter++;
 		BasicBlock * b = ToBeComputed.front();
-		*Out << "pick " << b << " (" << counter << ")\n" ;
 		ToBeComputed.pop();
-		bool first = (visited.count(b) > 0);
-		visited.insert(b);
+		bool first = (visited->count(b) > 0);
+		visited->insert(b);
 
 		if (!FPr->inPr(b) || b == dest) {
 			// we recursively construct Rho, starting from the predecessors
@@ -647,19 +675,15 @@ void SMTpass::computeRhoRec(Function &F,
 			for (pred_iterator p = pred_begin(b), E = pred_end(b); p != E; ++p) {
 				pred = *p;
 				if (!FPr->inPr(pred)) {
-					if (!visited.count(pred)) {
+					if (!visited->count(pred)) {
 						ToBeComputed.push(pred);
 					}
-				} else {
-					FPr->Pr_pred[dest].insert(pred);
-					FPr->Pr_succ[pred].insert(dest);
 				}
 			}
 		}
 
 		if (first) continue;
 
-		*Out << "firsttime " << b << "\n";
 		// we create a boolean reachability predicate for the basicblock
 		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 		// we associate it the right predicate depending on its incoming edges
@@ -708,12 +732,14 @@ void SMTpass::computeRho(Function &F) {
 
 	rho_components.clear();
 	std::set<BasicBlock*>::iterator i = FPr->getPr()->begin(), e = FPr->getPr()->end();
+	std::set<BasicBlock*> visited;
 	for (;i!= e; ++i) {
 		b = *i;
-		computeRhoRec(F,b);
+		computeRhoRec(F,&visited,b);
 	}
 	rho[&F] = man->SMT_mk_and(rho_components); 
 	rho_components.clear();
+	computePrSuccAndPred(F);
 }
 
 
