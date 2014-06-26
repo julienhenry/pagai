@@ -68,8 +68,8 @@ bool AIGuided::runOnModule(Module &M) {
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
+		TerminateFunction(F);
 		printResult(F);
-		TerminateFunction();
 
 		// we delete the pathtree
 		for (std::map<BasicBlock*,std::set<BasicBlock*>*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -119,6 +119,7 @@ void AIGuided::computeFunction(Function * F) {
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
+	START();
 	while (!A_prime.empty()) {
 		
 		// compute the new paths starting in a point in A'
@@ -146,8 +147,9 @@ void AIGuided::computeFunction(Function * F) {
 
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
-		while (copy_Xd_to_Xs(F) && step <= 5) {
+		while (copy_Xd_to_Xs(F) && step <= 5 && !unknown) {
 			narrowingIter(n);
+			TIMEOUT(unknown = true;);
 			step++;
 		}
 		delete W;

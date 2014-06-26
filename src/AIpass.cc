@@ -7,6 +7,11 @@
 #include <list>
 #include <fstream>
 
+#include <time.h>
+#include <pthread.h>
+#include <errno.h>
+
+
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -35,8 +40,8 @@ void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 		Node * current = A.top();
 		A.pop();
 		computeNode(current);
+		TIMEOUT(unknown = true);
 		if (unknown) {
-			ignoreFunction[passID].insert(F);
 			while (!A.empty()) A.pop();
 			return;
 		}
@@ -56,8 +61,8 @@ void AIPass::narrowingIter(Node * n) {
 		A.pop();
 		//if (narrowing_limit[current] < NARROWING_LIMIT);
 		narrowNode(current);
+		TIMEOUT(unknown = true);
 		if (unknown) {
-			ignoreFunction[passID].insert(n->bb->getParent());
 			while (!A.empty()) A.pop();
 			return;
 		}
@@ -102,6 +107,8 @@ void AIPass::initFunction(Function * F) {
 		}
 	}
 
+	unknown = false;
+
 	//if (!quiet_mode()) {
 	if (1) {
 		Out->changeColor(raw_ostream::BLUE,true);
@@ -114,7 +121,7 @@ void AIPass::initFunction(Function * F) {
 	}
 }
 
-void AIPass::TerminateFunction() {
+void AIPass::TerminateFunction(Function * F) {
 	// Analysis of the function is finished, we can delete and clear internal
 	// data
 	if (!threshold_empty) {
@@ -127,6 +134,10 @@ void AIPass::TerminateFunction() {
 	PHIvars_prime.name.clear();
 	PHIvars_prime.expr.clear();
 	focuspath.clear();
+	
+	if (unknown) {
+		ignoreFunction[passID].insert(F);
+	}
 }
 
 void format_string(std::string & left) {
@@ -1342,3 +1353,65 @@ void AIPass::ClearPathtreeMap(std::map<BasicBlock*,PathTree*> & pathtree) {
 	}
 	pathtree.clear();
 }
+
+
+
+
+pthread_mutex_t calculating = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t done = PTHREAD_COND_INITIALIZER;
+
+struct computeFunction_args {
+	AIPass * pass;
+	Function * F;
+};
+
+void* AIPass::computeFunctionInThread(void * args)
+{
+        int oldtype;
+
+        /* allow the thread to be killed at any time */
+        pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);
+		
+		AIPass * pass = ((struct computeFunction_args *)args)->pass;
+		Function * F = ((struct computeFunction_args *)args)->F;
+		pass->computeFunction(F);
+
+        /* wake up the caller if we've completed in time */
+        pthread_cond_signal(&done);
+		return NULL;
+}
+
+/* note: this is not thread safe as it uses a global condition/mutex */
+int AIPass::computeFunction_or_timeout(Function * F, struct timespec *max_wait)
+{
+        struct timespec abs_time;
+        pthread_t tid;
+        int err;
+
+        pthread_mutex_lock(&calculating);
+
+        /* pthread cond_timedwait expects an absolute time to wait until */
+        clock_gettime(CLOCK_REALTIME, &abs_time);
+        abs_time.tv_sec += max_wait->tv_sec;
+        abs_time.tv_nsec += max_wait->tv_nsec;
+
+		struct computeFunction_args * args = new struct computeFunction_args();
+		args->pass = this;
+		args->F = F;
+        pthread_create(&tid, NULL, computeFunctionInThread, args);
+
+        /* pthread_cond_timedwait can return spuriously: this should
+         * be in a loop for production code
+         */
+        err = pthread_cond_timedwait(&done, &calculating, &abs_time);
+
+        if (err == ETIMEDOUT) {
+                fprintf(stderr, "%s: calculation timed out\n", __func__);
+				LSMT->reset_SMTcontext();
+		}
+
+        pthread_mutex_unlock(&calculating);
+
+        return err;
+}
+

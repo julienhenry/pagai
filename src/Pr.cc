@@ -185,9 +185,11 @@ void Pr::computePr() {
 	computeLoopHeaders(&Pr_set);
 
 	//minimize_Pr(F);
-	if (!check_acyclic(&Pr_set)) {
-		//*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
-	}
+	
+	//if (!check_acyclic(&Pr_set)) {
+	//	*Out << "ERROR : GRAPH IS NOT ACYCLIC !\n";
+	//	assert(false);
+	//}
 	
 	Pw_set.insert(Pr_set.begin(),Pr_set.end());
 	Pr_set.insert(F->begin());

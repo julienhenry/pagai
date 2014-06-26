@@ -83,10 +83,21 @@ bool AIopt::runOnModule(Module &M) {
 		}
 
 		computeFunction(F);
+#if 0
+		struct timespec max_wait;
+        memset(&max_wait, 0, sizeof(max_wait));
+        /* wait at most 2 seconds */
+        max_wait.tv_sec = 1;
+		int timeout = computeFunction_or_timeout(F,&max_wait);
+
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
+		if (timeout) {
+			continue;
+		}
+#endif
 		
+		TerminateFunction(F);
 		printResult(F);
-		TerminateFunction();
 
 		// deleting the pathtrees
 		ClearPathtreeMap(pathtree);
@@ -105,7 +116,6 @@ void AIopt::computeFunction(Function * F) {
 	BasicBlock * b;
 	Node * const n = Nodes[F->begin()];
 	Node * current;
-	unknown = false;
 
 	// A = {first basicblock}
 	b = F->begin();
@@ -157,6 +167,7 @@ void AIopt::computeFunction(Function * F) {
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
+	START();
 	while (!A_prime.empty() && !unknown) {
 		
 		// compute the new paths starting in a point in A'
@@ -165,8 +176,8 @@ void AIopt::computeFunction(Function * F) {
 			Node * current = A_prime.top();
 			A_prime.pop();
 			computeNewPaths(current); // this method adds elements in A and A'
+			TIMEOUT(unknown = true;);
 			if (unknown) {
-				ignoreFunction[passID].insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				goto end;
 			}
@@ -201,8 +212,9 @@ void AIopt::computeFunction(Function * F) {
 		}
 		// then we move X_d abstract values to X_s abstract values
 		int step = 0;
-		while (copy_Xd_to_Xs(F) && step <= 1) {
+		while (copy_Xd_to_Xs(F) && step <= 1 && !unknown) {
 			narrowingIter(n);
+			TIMEOUT(unknown = true;);
 			if (unknown) {
 				delete W;
 				goto end;
@@ -293,6 +305,8 @@ void AIopt::computeNewPaths(Node * n) {
 			}
 			break;
 		}
+
+		TIMEOUT(unknown = true; return;);
 
 		Succ = Nodes[path.back()];
 		Abstract * SuccX;
@@ -397,6 +411,9 @@ void AIopt::computeNode(Node * n) {
 			}
 			break;
 		}
+
+		TIMEOUT(unknown = true; return;);
+
 		DEBUG(
 			printPath(path);
 		);
@@ -513,6 +530,9 @@ void AIopt::narrowNode(Node * n) {
 			if (res == -1) unknown = true;
 			return;
 		}
+
+		TIMEOUT(unknown = true; return;);
+
 		DEBUG(
 			printPath(path);
 		);

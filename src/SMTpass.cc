@@ -624,12 +624,19 @@ void SMTpass::computeRhoRec(Function &F,
 		BasicBlock * dest) {
 	Pr * FPr = Pr::getInstance(&F);
 
+	*Out << "dest " << *dest << "\n";
+	*Out << "computeRhoRec " << dest << "\n";
 	std::set<BasicBlock*> visited;
 	std::queue<BasicBlock*> ToBeComputed;
 	ToBeComputed.push(dest);
 
+	*Out << "NB BASICBLOCKS " << F.size() << "\n";
+
+	int counter = 0;
 	while (!ToBeComputed.empty()) {
+		counter++;
 		BasicBlock * b = ToBeComputed.front();
+		*Out << "pick " << b << " (" << counter << ")\n" ;
 		ToBeComputed.pop();
 		bool first = (visited.count(b) > 0);
 		visited.insert(b);
@@ -652,6 +659,7 @@ void SMTpass::computeRhoRec(Function &F,
 
 		if (first) continue;
 
+		*Out << "firsttime " << b << "\n";
 		// we create a boolean reachability predicate for the basicblock
 		SMT_var bvar = man->SMT_mk_bool_var(getNodeName(b,false));
 		// we associate it the right predicate depending on its incoming edges

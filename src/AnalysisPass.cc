@@ -27,7 +27,7 @@ void AnalysisPass::generateAnnotatedFiles(Module * M, bool outputfile) {
 
 	for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
 		Function * F = mIt;
-		if (!F->isDeclaration())
+		if (!F->isDeclaration() && ! ignored(F))
 			computeResultsPositions(F,&files);
 	}
 
@@ -120,6 +120,7 @@ void AnalysisPass::printResult_oldoutput(Function * F) {
 	BasicBlock * b;
 	Node * n;
 	Pr * FPr = Pr::getInstance(F);
+	if (ignored(F)) return;
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		b = i;
 		n = Nodes[b];

@@ -72,8 +72,8 @@ bool AIdis::runOnModule(Module &M) {
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
+		TerminateFunction(F);
 		printResult(F);
-		TerminateFunction();
 
 		// we delete the previous pathtree
 		for (std::map<BasicBlock*,PathTree*>::iterator it = pathtree.begin(), et = pathtree.end();
@@ -145,7 +145,8 @@ void AIdis::computeFunction(Function * F) {
 	A_prime.push(n);
 
 	// Abstract Interpretation algorithm
-	while (!A_prime.empty()) {
+	START();
+	while (!A_prime.empty() && !unknown) {
 		
 		// compute the new paths starting in a point in A'
 		is_computed.clear();
@@ -153,8 +154,8 @@ void AIdis::computeFunction(Function * F) {
 			Node * current = A_prime.top();
 			A_prime.pop();
 			computeNewPaths(current); // this method adds elements in A and A'
+			TIMEOUT(unknown = true;);
 			if (unknown) {
-				ignoreFunction[passID].insert(F);
 				while (!A_prime.empty()) A_prime.pop();
 				goto end;
 			}
@@ -180,6 +181,7 @@ void AIdis::computeFunction(Function * F) {
 		int step = 0;
 		while (copy_Xd_to_Xs(F) && step <= 1) {
 			narrowingIter(n);
+			TIMEOUT(unknown = true;);
 			if (unknown) goto end;
 			step++;
 		}
@@ -249,6 +251,9 @@ void AIdis::computeNewPaths(Node * n) {
 			}
 			break;
 		}
+
+		TIMEOUT(unknown = true; return;);
+
 		Succ = Nodes[path.back()];
 		// computing the image of the abstract value by the path's tranformation
 		AbstractDisj * Xdisj = dynamic_cast<AbstractDisj*>(n->X_s[passID]);
@@ -404,17 +409,13 @@ void AIdis::computeNode(Node * n) {
 		if (res != 1 || path.size() == 1) {
 			if (res == -1) {
 				unknown = true;
-				// delete all path trees and return
-				for (std::map<int,PathTree*>::iterator it = U.begin(), 
-						et = U.end(); it != et; it++) 
-					delete it->second;
-				for (std::map<int,PathTree*>::iterator it = V.begin(), 
-						et = V.end(); it != et; it++) 
-					delete it->second;
-				return;
+				goto end;
 			}
 			break;
 		}
+
+		TIMEOUT(unknown = true; goto end;);
+
 		DEBUG(
 			printPath(path);
 		);
@@ -479,6 +480,7 @@ void AIdis::computeNode(Node * n) {
 		A_prime.push(Succ);
 	}
 
+end:
 	//delete U;
 	for (std::map<int,PathTree*>::iterator it = U.begin(), et = U.end(); it != et; it++) {
 		delete it->second;
@@ -521,6 +523,9 @@ void AIdis::narrowNode(Node * n) {
 			if (res == -1) unknown = true;
 			return;
 		}
+
+		TIMEOUT(unknown = true; return;);
+
 		DEBUG(
 			printPath(path);
 		);

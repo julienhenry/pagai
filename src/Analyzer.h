@@ -104,6 +104,7 @@ char* getSourceFilename();
 char* getFilename();
 
 int getTimeout();
+bool hasTimeout();
 
 bool definedMain();
 std::string getMain();

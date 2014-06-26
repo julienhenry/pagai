@@ -66,4 +66,11 @@ extern std::map<llvm::Function*,int> numNarrowingSeedsInFunction;
 extern bool ignored(Function * F);
 extern int nb_ignored();
 
+extern sys::TimeValue TIMEOUT_LIMIT;
+extern sys::TimeValue start_timing;
+
+#define START() do {start_timing = sys::TimeValue::now();} while (0)
+#define TIMEOUT_COND() (sys::TimeValue::now() - start_timing > TIMEOUT_LIMIT)
+
+#define TIMEOUT(X) do {if(hasTimeout() && (TIMEOUT_COND())) {*Out << "ERROR: TIMEOUT\n"; X;}} while (0)
 #endif

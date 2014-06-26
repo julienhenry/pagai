@@ -76,8 +76,8 @@ bool AIpf::runOnModule(Module &M) {
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 
+		TerminateFunction(F);
 		printResult(F);
-		TerminateFunction();
 
 		// deleting the pathtrees
 		ClearPathtreeMap(U);
@@ -142,6 +142,7 @@ void AIpf::computeFunction(Function * F) {
 	n->X_i[passID]->set_top(&env);
 	A.push(n);
 
+	START();
 	ascendingIter(n, F);
 	if (unknown) goto end;
 
@@ -233,6 +234,8 @@ void AIpf::computeNode(Node * n) {
 			return;
 		}
 	
+		TIMEOUT(unknown = true; return;);
+
 		DEBUG(
 			printPath(path);
 		);
@@ -350,6 +353,9 @@ void AIpf::narrowNode(Node * n) {
 			}
 			return;
 		}
+		
+		TIMEOUT(unknown = true; return;);
+
 		DEBUG(
 			printPath(path);
 		);

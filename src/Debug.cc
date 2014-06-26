@@ -56,3 +56,7 @@ int nb_ignored() {
 	}
 	return ignored_funcs.size();
 }
+
+sys::TimeValue TIMEOUT_LIMIT(3.);
+sys::TimeValue start_timing;
+

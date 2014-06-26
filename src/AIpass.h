@@ -193,7 +193,9 @@ class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 		 */
 		static void printPath(std::list<BasicBlock*> path);
 	protected:
-		
+		static void* computeFunctionInThread(void * args);
+		int computeFunction_or_timeout(Function * F, struct timespec *max_wait);
+
 		virtual void computeFunction(Function * F) = 0;
 
 		/** 
@@ -344,7 +346,7 @@ class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 		 * function
 		 * Has to be called after the analysis of each function
 		 */
-		void TerminateFunction();
+		void TerminateFunction(Function * F);
 		
 		/** 
 		 * \brief print a basicBlock on standard output

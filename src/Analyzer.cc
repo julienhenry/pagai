@@ -31,6 +31,7 @@ bool force_old_output;
 bool output_annotated;
 bool log_smt;
 bool skipnonlinear;
+bool has_timeout;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -182,6 +183,10 @@ char* getAnnotatedFilename() {
 
 int getTimeout() {
 	return timeout;
+}
+
+bool hasTimeout() {
+	return has_timeout;
 }
 
 char* getFilename() {
@@ -370,13 +375,22 @@ bool setMain(char * m) {
 bool setTimeout(char * t) {
 	std::string d;
 	d.assign(t);
+	has_timeout = true;
+	bool error = false;
 	try {
 		timeout = boost::lexical_cast< int >( d );
 	} catch( const boost::bad_lexical_cast & ) {
 		//unable to convert
-		return 1;
+		error = true;
 	}
-	return 0;
+	try {
+		double timeout_double = boost::lexical_cast< double >( d );
+		TIMEOUT_LIMIT = sys::TimeValue(timeout_double);
+	} catch( const boost::bad_lexical_cast & ) {
+		//unable to convert
+		error = true;
+	}
+	return error;
 }
 
 bool definedMain() {
@@ -436,6 +450,7 @@ int main(int argc, char* argv[]) {
 	n_paths = 0;
 	npass = 0;
 	timeout = 0;
+	has_timeout = false;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
 

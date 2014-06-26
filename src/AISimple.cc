@@ -120,8 +120,8 @@ bool AISimple::runOnModule(Module &M) {
 		initFunction(F);
 		computeFunction(F);
 		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
+		TerminateFunction(F);
 		printResult(F);
-		TerminateFunction();
 	}
 	generateAnnotatedFiles(F->getParent(),OutputAnnotatedFile());
 	return 0;
