@@ -193,8 +193,6 @@ class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 		 */
 		static void printPath(std::list<BasicBlock*> path);
 	protected:
-		static void* computeFunctionInThread(void * args);
-		int computeFunction_or_timeout(Function * F, struct timespec *max_wait);
 
 		virtual void computeFunction(Function * F) = 0;
 

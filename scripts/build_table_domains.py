@@ -34,18 +34,19 @@ def escape_latex(name):
 
 
 def begin_tabular():
-    print r"\begin{tabular}{|l|rrrr|rrrr|rrrr|rrrr|}\hline"
+    print r"\begin{tabular}{|l|rrrr|rrrr|rrrr|rrrr|rrrr|}\hline"
 def end_tabular():
     print r"\hline"
     print r"\end{tabular}"
 
 def print_line_header():
     print r"\multirow{2}{*}{Benchmark}"\
-    + ' & ' +r"\multicolumn{3}{c|}{PK // OCT}"\
-    + ' & ' +r"\multicolumn{3}{c|}{PK // BOX}"\
-    + ' & ' +r"\multicolumn{3}{c|}{OCT // BOX}"\
-    + ' & ' +r"\multicolumn{3}{c|}{PKGRID // PK}"\
-    + r"\\ \cline{2-13}"
+    + ' & ' +r"\multicolumn{4}{c|}{PK // OCT}"\
+    + ' & ' +r"\multicolumn{4}{c|}{PK // BOX}"\
+    + ' & ' +r"\multicolumn{4}{c|}{OCT // BOX}"\
+    + ' & ' +r"\multicolumn{4}{c|}{PKGRID // PK}"\
+    + ' & ' +r"\multicolumn{4}{c|}{PPL\_B // PPL}"\
+    + r"\\ \cline{2-21}"
     print \
       ' & ' + r"\multicolumn{1}{c|}{$\sqsubset$}"\
     + ' & ' + r"\multicolumn{1}{c|}{$\sqsupset$}"\
@@ -63,30 +64,45 @@ def print_line_header():
     + ' & ' + r"\multicolumn{1}{c|}{$\sqsupset$}"\
     + ' & ' + r"\multicolumn{1}{c|}{$=$}"\
     + ' & ' + r"\multicolumn{1}{c|}{$\neq$}"\
+    + ' & ' + r"\multicolumn{1}{c|}{$\sqsubset$}"\
+    + ' & ' + r"\multicolumn{1}{c|}{$\sqsupset$}"\
+    + ' & ' + r"\multicolumn{1}{c|}{$=$}"\
+    + ' & ' + r"\multicolumn{1}{c|}{$\neq$}"\
     + r"\\ \hline"
 
+def get_str_comparison(benchmark_name,technique,comparison,result):
+    try:
+        r = str(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison][result])
+    except:
+        r = "-"
+    return r
+
 begin_tabular()
-#print_line_header()
+print_line_header()
 
 t = sys.argv[1] # technique
 
 for benchmark_name in json_dict:
     print escape_latex(benchmark_name) \
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // OCT"]["lt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // OCT"]["gt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // OCT"]["eq"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // OCT"]["un"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // BOX"]["lt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // BOX"]["gt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // BOX"]["eq"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PK // BOX"]["un"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["OCT // BOX"]["lt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["OCT // BOX"]["gt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["OCT // BOX"]["eq"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["OCT // BOX"]["un"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PKGRID // PK"]["lt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PKGRID // PK"]["gt"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PKGRID // PK"]["eq"])\
-    + ' & ' + str(json_dict[benchmark_name]["domain"][t]["comparison"]["PKGRID // PK"]["un"])\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "lt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "gt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "eq")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "un")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "lt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "gt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "eq")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "un")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "lt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "gt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "eq")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "un")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "lt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "gt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "eq")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "un")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
+    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
     + r"\\"
 end_tabular()
