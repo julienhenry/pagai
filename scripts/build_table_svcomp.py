@@ -26,34 +26,42 @@ def escape_latex(name):
         '\\': r'\backslash',
     }
     escaped_name="".join([CHARS.get(char, char) for char in name])
-    #if len(escaped_name) > 15:
-    #    #index = escaped_name.find('_')
-    #    index = 15
-    #    escaped_name = escaped_name[0:index]
+    if len(escaped_name) > 15:
+        index = escaped_name.find('\_true')
+        #index = 25
+        escaped_name = escaped_name[0:index]
     return escaped_name
 
 
 def begin_tabular():
-    print r"\begin{tabular}{|l|r|S|}\hline"
+    print r"\begin{tabular}{|l|r|S|r|S|}\hline"
 def end_tabular():
     print r"\hline"
     print r"\end{tabular}"
 
 def print_line_header():
     print \
-    "Benchmark & result & time"\
+    "Benchmark & result & time & result & time"\
     + r"\\ \hline"
 
 
 begin_tabular()
 print_line_header()
 for benchmark_name in json_dict:
-    if "result" not in json_dict[benchmark_name]:
+    if "box" not in json_dict[benchmark_name]:
         continue
-    if "FALSE" in json_dict[benchmark_name]["expected"]:
+    if "pk" not in json_dict[benchmark_name]:
+        continue
+    if "result" not in json_dict[benchmark_name]["box"]:
+        continue
+    if "result" not in json_dict[benchmark_name]["pk"]:
+        continue
+    if "FALSE" in json_dict[benchmark_name]["box"]["expected"]:
         continue
     print escape_latex(benchmark_name) \
-    + ' & ' + str(json_dict[benchmark_name]["result"])\
-    + ' & ' + str(json_dict[benchmark_name]["time"])\
+    + ' & ' + str(json_dict[benchmark_name]["pk"]["result"])\
+    + ' & ' + str(json_dict[benchmark_name]["pk"]["time"])\
+    + ' & ' + str(json_dict[benchmark_name]["box"]["result"])\
+    + ' & ' + str(json_dict[benchmark_name]["box"]["time"])\
     + r"\\"
 end_tabular()

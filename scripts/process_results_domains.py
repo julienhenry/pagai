@@ -41,6 +41,8 @@ def to_technique(string):
 
 def get_technique(filename):
     string = getFileBetween(filename,"TECHNIQUE:","TECHNIQUE_END")
+    if not string :
+        return
     return to_technique(string.rstrip())
 
 def process_time(filename,technique,time_s_array,time_ms_array,time_SMT_s_array,time_SMT_ms_array,json_dict):
