@@ -90,11 +90,11 @@ bool AIopt::runOnModule(Module &M) {
         max_wait.tv_sec = 1;
 		int timeout = computeFunction_or_timeout(F,&max_wait);
 
-		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		if (timeout) {
 			continue;
 		}
 #endif
+		*Total_time[passID][F] = sys::TimeValue::now()-*Total_time[passID][F];
 		
 		TerminateFunction(F);
 		printResult(F);
