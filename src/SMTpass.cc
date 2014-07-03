@@ -1099,6 +1099,14 @@ void SMTpass::visitBitCastInst (BitCastInst &I) {
 }
 
 void SMTpass::visitSelectInst (SelectInst &I) {
+	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
+	SMT_expr TrueValue = getValueExpr(I.getTrueValue(), false);
+	SMT_expr FalseValue = getValueExpr(I.getFalseValue(), false);
+	SMT_expr cond = getValueExpr(I.getCondition(), false);
+	rho_components.push_back(man->SMT_mk_eq(
+				expr,
+				man->SMT_mk_ite(cond,TrueValue,FalseValue)
+		));
 }
 
 void SMTpass::visitCallInst(CallInst &I) {
