@@ -18,6 +18,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Transforms/IPO.h"
 
 #include "AIpf.h"
 #include "AIpf_incr.h"
@@ -40,6 +41,7 @@
 #include "GenerateSMT.h"
 #include "instrOverflow.h"
 #include "globaltolocal.h"
+#include "taginline.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -178,6 +180,11 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createBasicAliasAnalysisPass());
 	//Passes.add(createScalarEvolutionAliasAnalysisPass());
 	//Passes.add(createTypeBasedAliasAnalysisPass());
+	//
+	if (inline_functions()) {
+		Passes.add(new TagInline());
+		Passes.add(llvm::createAlwaysInlinerPass());
+	}
 		
 	if (check_overflow()) Passes.add(new instrOverflow());
 	Passes.add(new GlobalToLocal());
