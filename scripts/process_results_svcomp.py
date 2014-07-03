@@ -46,7 +46,7 @@ def process_result(filename,json_dict):
         json_dict[json_name(filename)][domain]["result"] = res
         json_dict[json_name(filename)][domain]["expected"] = expected
         json_dict[json_name(filename)][domain]["time"] = time
-    except IOError:
+    except:
         return
 
 def get_domain(name):
