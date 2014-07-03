@@ -39,6 +39,7 @@
 #include "Analyzer.h"
 #include "GenerateSMT.h"
 #include "instrOverflow.h"
+#include "globaltolocal.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -180,6 +181,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createTypeBasedAliasAnalysisPass());
 		
 	if (check_overflow()) Passes.add(new instrOverflow());
+	Passes.add(new GlobalToLocal());
 
 	// make sure everything is run before AI analysis
 	Passes.run(*M);
