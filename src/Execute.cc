@@ -170,7 +170,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// binary branch instructions, much easier to deal with
 	Passes.add(createLowerSwitchPass());	
 	Passes.add(createLowerInvokePass());
-	Passes.add(createPromoteMemoryToRegisterPass());
 	//Passes.add(createLoopSimplifyPass());	
 	Passes.add(LoopInfoPass);
 
@@ -182,6 +181,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		
 	if (check_overflow()) Passes.add(new instrOverflow());
 	Passes.add(new GlobalToLocal());
+
+	Passes.add(createPromoteMemoryToRegisterPass());
 
 	// make sure everything is run before AI analysis
 	Passes.run(*M);
