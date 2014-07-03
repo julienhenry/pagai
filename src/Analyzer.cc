@@ -32,6 +32,7 @@ bool output_annotated;
 bool log_smt;
 bool skipnonlinear;
 bool has_timeout;
+bool optimize;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -52,6 +53,7 @@ void show_help() {
 --main <name> (-m) : only analyze the function <name>\n \
 --no-undefined-check : do not verify integer overflows\n \
 --svcomp : SV-Comp mode\n \
+--optimize (-O) : optimize input with -O3 before analysis\n \
 --output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
 --force-old-output : force to use the old output\n \
 --skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
@@ -408,6 +410,10 @@ bool quiet_mode() {
 bool log_smt_into_file() {
 	return log_smt;
 }
+	
+bool optimizeBC() {
+	return optimize;
+}
 
 int main(int argc, char* argv[]) {
 
@@ -451,6 +457,7 @@ int main(int argc, char* argv[]) {
 	npass = 0;
 	timeout = 0;
 	has_timeout = false;
+	optimize = false;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
 
@@ -478,12 +485,13 @@ int main(int argc, char* argv[]) {
 			{"log-smt",    no_argument, 0, 'l'},
 			{"output-bc",  required_argument, 0, 'b'},
 			{"svcomp",  no_argument, 0, 'V'},
+			{"optimize",  no_argument, 0, 'O'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:V",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VO",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -575,6 +583,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'o':
         	    outputname = optarg;
+        	    break;
+        	case 'O':
+        	    optimize = true;
         	    break;
         	case 'a':
 				output_annotated = true;

@@ -81,7 +81,8 @@ for benchmark_name in json_dict:
 
 li.sort()
 points = 0
-for elt in sum_time(li):
+#for elt in sum_time(li):
+for elt in li:
     points = points + 2
     print str(points)+" "+str(elt)
 

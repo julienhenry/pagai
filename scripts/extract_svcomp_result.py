@@ -34,11 +34,15 @@ for s in filelist :
         if "cputime" in title:
             cputime = value
     if "true" in expected_status and "true" in status:
-        li.append(cputime)
+        li.append(float(cputime))
 
 
 li.sort()
 points = 0
-for elt in sum_time(li):
+#for elt in sum_time(li):
+#    points = points + 2
+#    print str(points)+" "+str(elt)
+
+for elt in li:
     points = points + 2
     print str(points)+" "+str(elt)

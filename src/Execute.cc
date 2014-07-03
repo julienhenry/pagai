@@ -7,6 +7,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/system_error.h"
@@ -153,6 +154,12 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 
 	// Build up all of the passes that we want to do to the module.
 	PassManager Passes;
+
+	if (optimizeBC()) {
+		PassManagerBuilder Builder; 
+		Builder.OptLevel = 3; 
+		Builder.populateModulePassManager(Passes);
+	}
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
 

@@ -123,6 +123,8 @@ bool useNewNarrowing(int i);
 bool useThreshold();
 bool useThreshold(int i);
 
+bool optimizeBC();
+
 extern llvm::raw_ostream *Out;
 
 #endif
