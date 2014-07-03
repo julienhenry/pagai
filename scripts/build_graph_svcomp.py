@@ -46,6 +46,11 @@ def sum_time(l):
         sum_l.append(current)
     return sum_l
 
+def get_time(benchmark_name,domain):
+    return float(remove_color(json_dict[benchmark_name][domain]["time"]))
+
+def get_res(benchmark_name,domain):
+    return float(remove_color(json_dict[benchmark_name][domain]["result"]))
 
 
 li = []
@@ -61,10 +66,10 @@ for benchmark_name in json_dict:
     if "FALSE" in json_dict[benchmark_name]["box"]["expected"]:
         continue
 
-    res_pk = json_dict[benchmark_name]["pk"]["result"]
-    res_box = json_dict[benchmark_name]["box"]["result"]
-    time_pk = float(remove_color(json_dict[benchmark_name]["pk"]["time"]))
-    time_box = float(remove_color(json_dict[benchmark_name]["box"]["time"]))
+    res_pk   = get_res("pk")
+    res_box  = get_res("box")
+    time_pk  = get_time("pk")
+    time_box = get_time("box")
 
     if "TRUE" not in res_pk and "TRUE" not in res_box:
         # not proved, 0 points
