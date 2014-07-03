@@ -50,7 +50,11 @@ def process_result(filename,json_dict):
         return
 
 def get_domain(name):
-    if ".box." in name:
+    if ".box.O3." in name:
+        return "boxO3"
+    elif ".pk.O3." in name:
+        return "pkO3"
+    elif ".box." in name:
         return "box"
     elif ".pk." in name:
         return "pk"
@@ -59,6 +63,8 @@ def get_domain(name):
 
 def json_name(name):
     res = os.path.basename(name)
+    res = res.replace(".box.O3.svcomp.res",".c")
+    res = res.replace(".pk.O3.svcomp.res",".c")
     res = res.replace(".box.svcomp.res",".c")
     res = res.replace(".pk.svcomp.res",".c")
     return res
