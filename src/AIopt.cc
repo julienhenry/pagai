@@ -57,7 +57,7 @@ bool AIopt::runOnModule(Module &M) {
 
 		// if the function is only a declaration, do nothing
 		if (F->begin() == F->end()) continue;
-		if (definedMain() && getMain().compare(F->getName().str()) != 0) continue;
+		if (definedMain() && !isMain(F)) continue;
 		Pr * FPr = Pr::getInstance(F);
 		if (SVComp() && FPr->getAssert()->size() == 0) continue;
 

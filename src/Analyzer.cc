@@ -55,7 +55,7 @@ void show_help() {
 --no-undefined-check : do not verify integer overflows\n \
 --svcomp : SV-Comp mode\n \
 --optimize (-O) : optimize input with -O3 before analysis\n \
---inline : inline functions\n \
+--noinline : do not inline functions\n \
 --output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
 --force-old-output : force to use the old output\n \
 --skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
@@ -409,6 +409,11 @@ std::string getMain() {
 	return main_function;
 }
 
+bool isMain(llvm::Function * F) {
+	if (!definedMain()) return false;
+	return (main_function.compare(F->getName().str()) == 0);
+}
+
 bool quiet_mode() {
 	return quiet;
 } 
@@ -464,7 +469,7 @@ int main(int argc, char* argv[]) {
 	timeout = 0;
 	has_timeout = false;
 	optimize = false;
-	withinlining = false;
+	withinlining = true;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
 
@@ -493,7 +498,7 @@ int main(int argc, char* argv[]) {
 			{"output-bc",  required_argument, 0, 'b'},
 			{"svcomp",  no_argument, 0, 'V'},
 			{"optimize",  no_argument, 0, 'O'},
-			{"inline",  no_argument, 0, 'I'},
+			{"noinline",  no_argument, 0, 'I'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
@@ -527,7 +532,7 @@ int main(int argc, char* argv[]) {
         	    oflcheck = false;
         	    break;
         	case 'I':
-        	    withinlining = true;
+        	    withinlining = false;
         	    break;
         	case 'b':
         	    arg = optarg;

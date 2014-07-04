@@ -9,11 +9,17 @@
 using namespace llvm;
 
 class TagInline : public ModulePass {
- public:
-  static char ID;
-  TagInline() : ModulePass(ID) {}
 
-  bool runOnModule(Module &M);
-	
+	private:	
+		static std::vector<const char *> ToAnalyze;
+
+	public:
+		static char ID;
+		TagInline() : ModulePass(ID) {}
+
+		bool runOnModule(Module &M);
+
+		static ArrayRef<const char *> GetFunctionsToAnalyze();
+
 };
 

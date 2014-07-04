@@ -29,6 +29,7 @@
 
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/CFG.h"
+#include "llvm/IR/Function.h"
 
 
 enum Apron_Manager_Type {
@@ -108,6 +109,7 @@ bool hasTimeout();
 
 bool definedMain();
 std::string getMain();
+bool isMain(llvm::Function * F);
 
 bool quiet_mode();
 bool log_smt_into_file();

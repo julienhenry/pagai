@@ -156,24 +156,26 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	initializeAnalysis(Registry);
 
 	// Build up all of the passes that we want to do to the module.
-	PassManager Passes;
+	PassManager InitialPasses;
+	PassManager AnalysisPasses;
 
 	if (optimizeBC()) {
+		// may degrade precision of the analysis
 		PassManagerBuilder Builder; 
 		Builder.OptLevel = 3; 
-		Builder.populateModulePassManager(Passes);
+		Builder.populateModulePassManager(InitialPasses);
 	}
 
 	FunctionPass *LoopInfoPass = new LoopInfo();
 
-	Passes.add(createGCLoweringPass());
+	InitialPasses.add(createGCLoweringPass());
 	
 	// this pass converts SwitchInst instructions into a sequence of
-	// binary branch instructions, much easier to deal with
-	Passes.add(createLowerSwitchPass());	
-	Passes.add(createLowerInvokePass());
+	// binary branch instructions, easier to deal with
+	InitialPasses.add(createLowerSwitchPass());	
+	InitialPasses.add(createLowerInvokePass());
 	//Passes.add(createLoopSimplifyPass());	
-	Passes.add(LoopInfoPass);
+	InitialPasses.add(LoopInfoPass);
 
 	// in case we want to run an Alias analysis pass : 
 	//Passes.add(createGlobalsModRefPass());
@@ -181,75 +183,82 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	//Passes.add(createScalarEvolutionAliasAnalysisPass());
 	//Passes.add(createTypeBasedAliasAnalysisPass());
 	//
+	TagInline * taginlinepass = new TagInline();
 	if (inline_functions()) {
-		Passes.add(new TagInline());
-		Passes.add(llvm::createAlwaysInlinerPass());
+		InitialPasses.add(taginlinepass); // this pass has to be run before the internalizepass, since it builds the list of functions to analyze
+		InitialPasses.add(llvm::createAlwaysInlinerPass());
 	}
 		
-	if (check_overflow()) Passes.add(new instrOverflow());
-	Passes.add(new GlobalToLocal());
-
-	Passes.add(createPromoteMemoryToRegisterPass());
+	if (check_overflow()) InitialPasses.add(new instrOverflow());
 
 	// make sure everything is run before AI analysis
-	Passes.run(*M);
+	InitialPasses.run(*M);
+	if (inline_functions()) {
+		PassManager InlinePasses;
+		InlinePasses.add(createInternalizePass(TagInline::GetFunctionsToAnalyze()));
+		InlinePasses.add(createGlobalDCEPass());
+		InlinePasses.run(*M);
+	}
+	
+	AnalysisPasses.add(new GlobalToLocal());
+	AnalysisPasses.add(createPromoteMemoryToRegisterPass());
 
 	if (onlyOutputsRho()) {
-		Passes.add(new GenerateSMT());
+		AnalysisPasses.add(new GenerateSMT());
 	} else if (compareTechniques()) {
-		Passes.add(new Compare(getComparedTechniques()));
+		AnalysisPasses.add(new Compare(getComparedTechniques()));
 	} else if (compareNarrowing()) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
-				Passes.add(new CompareNarrowing<LOOKAHEAD_WIDENING>());
+				AnalysisPasses.add(new CompareNarrowing<LOOKAHEAD_WIDENING>());
 				break;
 			case GUIDED:
-				Passes.add(new CompareNarrowing<GUIDED>());
+				AnalysisPasses.add(new CompareNarrowing<GUIDED>());
 				break;
 			case PATH_FOCUSING:
-				Passes.add(new CompareNarrowing<PATH_FOCUSING>());
+				AnalysisPasses.add(new CompareNarrowing<PATH_FOCUSING>());
 				break;
 			case PATH_FOCUSING_INCR:
-				Passes.add(new CompareNarrowing<PATH_FOCUSING_INCR>());
+				AnalysisPasses.add(new CompareNarrowing<PATH_FOCUSING_INCR>());
 				break;
 			case LW_WITH_PF:
-				Passes.add(new CompareNarrowing<LW_WITH_PF>());
+				AnalysisPasses.add(new CompareNarrowing<LW_WITH_PF>());
 				break;
 			case COMBINED_INCR:
-				Passes.add(new CompareNarrowing<COMBINED_INCR>());
+				AnalysisPasses.add(new CompareNarrowing<COMBINED_INCR>());
 				break;
 			case SIMPLE:
-				Passes.add(new CompareNarrowing<SIMPLE>());
+				AnalysisPasses.add(new CompareNarrowing<SIMPLE>());
 				break;
 			case LW_WITH_PF_DISJ:
-				Passes.add(new CompareNarrowing<LW_WITH_PF_DISJ>());
+				AnalysisPasses.add(new CompareNarrowing<LW_WITH_PF_DISJ>());
 				break;
 		}
 	} else if (compareDomain()) {
 		switch (getTechnique()) {
 			case LOOKAHEAD_WIDENING:
-				Passes.add(new CompareDomain<LOOKAHEAD_WIDENING>());
+				AnalysisPasses.add(new CompareDomain<LOOKAHEAD_WIDENING>());
 				break;
 			case GUIDED:
-				Passes.add(new CompareNarrowing<GUIDED>());
+				AnalysisPasses.add(new CompareNarrowing<GUIDED>());
 				break;
 			case PATH_FOCUSING:
-				Passes.add(new CompareDomain<PATH_FOCUSING>());
+				AnalysisPasses.add(new CompareDomain<PATH_FOCUSING>());
 				break;
 			case PATH_FOCUSING_INCR:
-				Passes.add(new CompareDomain<PATH_FOCUSING_INCR>());
+				AnalysisPasses.add(new CompareDomain<PATH_FOCUSING_INCR>());
 				break;
 			case LW_WITH_PF:
-				Passes.add(new CompareDomain<LW_WITH_PF>());
+				AnalysisPasses.add(new CompareDomain<LW_WITH_PF>());
 				break;
 			case COMBINED_INCR:
-				Passes.add(new CompareDomain<COMBINED_INCR>());
+				AnalysisPasses.add(new CompareDomain<COMBINED_INCR>());
 				break;
 			case SIMPLE:
-				Passes.add(new CompareDomain<SIMPLE>());
+				AnalysisPasses.add(new CompareDomain<SIMPLE>());
 				break;
 			case LW_WITH_PF_DISJ:
-				Passes.add(new CompareDomain<LW_WITH_PF_DISJ>());
+				AnalysisPasses.add(new CompareDomain<LW_WITH_PF_DISJ>());
 				break;
 		}
 	} else { 
@@ -280,9 +289,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 				AIPass = new ModulePassWrapper<AIdis, 0>();
 				break;
 		}
-		Passes.add(AIPass);
+		AnalysisPasses.add(AIPass);
 	}
-	Passes.run(*M);
+	AnalysisPasses.run(*M);
 
 	//*Out << *M;
 	std::string error;
