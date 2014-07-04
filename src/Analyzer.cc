@@ -524,8 +524,6 @@ int main(int argc, char* argv[]) {
 				{ 
 					svcomp = true;
 					technique = PATH_FOCUSING;
-					std::string fname("main");
-					setMain(fname.c_str());
 				}
         	    break;
 			case 'l':
