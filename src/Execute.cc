@@ -42,6 +42,7 @@
 #include "instrOverflow.h"
 #include "globaltolocal.h"
 #include "taginline.h"
+#include "RemoveUndet.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -201,6 +202,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 	
 	AnalysisPasses.add(new GlobalToLocal());
+	AnalysisPasses.add(new RemoveUndet());
 	AnalysisPasses.add(createPromoteMemoryToRegisterPass());
 
 	if (onlyOutputsRho()) {
