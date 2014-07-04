@@ -198,6 +198,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		PassManager InlinePasses;
 		InlinePasses.add(createInternalizePass(TagInline::GetFunctionsToAnalyze()));
 		InlinePasses.add(createGlobalDCEPass());
+		InlinePasses.add(createGlobalOptimizerPass());
 		InlinePasses.run(*M);
 	}
 	
