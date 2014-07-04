@@ -19,7 +19,7 @@ bool TagInline::runOnModule(Module &M) {
 		// if the function is only a declaration, skip
 		if (F->begin() == F->end()) continue;
 		F->addAttribute(llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
-		if (F->use_empty()) {
+		if (!definedMain() && F->use_empty()) {
 			ToAnalyze.push_back(F->getName().data());
 		}
 		if (definedMain() && isMain(F)) {

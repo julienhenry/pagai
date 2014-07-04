@@ -380,7 +380,7 @@ bool setSolver(char * t) {
 	return 0;
 }
 
-bool setMain(char * m) {
+bool setMain(const char * m) {
 	main_function.assign(m);
 	defined_main = true;
 	return 0;
@@ -521,8 +521,12 @@ int main(int argc, char* argv[]) {
 				quiet = true;
         	    break;
 			case 'V':
-				svcomp = true;
-				technique = PATH_FOCUSING;
+				{ 
+					svcomp = true;
+					technique = PATH_FOCUSING;
+					std::string fname("main");
+					setMain(fname.c_str());
+				}
         	    break;
 			case 'l':
 				log_smt = true;
