@@ -20,6 +20,10 @@ class TagInline : public ModulePass {
 		bool runOnModule(Module &M);
 
 		static ArrayRef<const char *> GetFunctionsToAnalyze();
+	
+		const char * getPassName() const;
+
+		void getAnalysisUsage(AnalysisUsage &AU) const;
 
 };
 

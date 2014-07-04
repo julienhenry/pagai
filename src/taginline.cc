@@ -35,5 +35,13 @@ ArrayRef<const char *> TagInline::GetFunctionsToAnalyze() {
 
 std::vector<const char *> TagInline::ToAnalyze;
 
+const char * TagInline::getPassName() const {
+	return "TagInline";
+}
+
+void TagInline::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.setPreservesAll();
+}
+
 char TagInline::ID = 0;
 static RegisterPass<TagInline> X("taginline", "Tag functions for being inlined", false, false);

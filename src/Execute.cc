@@ -187,7 +187,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	TagInline * taginlinepass = new TagInline();
 	if (inline_functions()) {
 		InitialPasses.add(taginlinepass); // this pass has to be run before the internalizepass, since it builds the list of functions to analyze
-		InitialPasses.add(llvm::createAlwaysInlinerPass());
 	}
 		
 	if (check_overflow()) InitialPasses.add(new instrOverflow());
@@ -196,14 +195,16 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	InitialPasses.run(*M);
 	if (inline_functions()) {
 		PassManager InlinePasses;
+		InlinePasses.add(llvm::createAlwaysInlinerPass());
 		InlinePasses.add(createInternalizePass(TagInline::GetFunctionsToAnalyze()));
 		InlinePasses.add(createGlobalDCEPass());
+		InlinePasses.add(createGlobalOptimizerPass());
 		InlinePasses.run(*M);
 	}
 	
 	PassManager OptPasses;
-	OptPasses.add(new GlobalToLocal());
 	OptPasses.add(new RemoveUndet());
+	OptPasses.add(new GlobalToLocal());
 	OptPasses.add(createPromoteMemoryToRegisterPass());
 	OptPasses.run(*M);
 
