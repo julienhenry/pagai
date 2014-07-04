@@ -128,6 +128,7 @@ bool useThreshold(int i);
 bool optimizeBC();
 
 bool inline_functions();
+bool dumpll();
 
 extern llvm::raw_ostream *Out;
 

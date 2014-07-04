@@ -8,7 +8,6 @@
 #include "RemoveUndet.h"
 #include <boost/format.hpp>
 
-
 using namespace llvm;
 
 Constant* RemoveUndet::getNondetFn (Module * M, Type *type) {

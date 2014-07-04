@@ -201,10 +201,16 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		InlinePasses.run(*M);
 	}
 	
-	AnalysisPasses.add(new GlobalToLocal());
-	AnalysisPasses.add(new RemoveUndet());
-	AnalysisPasses.add(createPromoteMemoryToRegisterPass());
+	PassManager OptPasses;
+	OptPasses.add(new GlobalToLocal());
+	OptPasses.add(new RemoveUndet());
+	OptPasses.add(createPromoteMemoryToRegisterPass());
+	OptPasses.run(*M);
 
+	if (dumpll()) {
+		*Out << *M;
+		return;
+	}
 	if (onlyOutputsRho()) {
 		AnalysisPasses.add(new GenerateSMT());
 	} else if (compareTechniques()) {

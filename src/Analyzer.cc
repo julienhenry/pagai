@@ -34,6 +34,7 @@ bool skipnonlinear;
 bool has_timeout;
 bool optimize;
 bool withinlining;
+bool onlydumpll;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -54,6 +55,7 @@ void show_help() {
 --main <name> (-m) : only analyze the function <name>\n \
 --no-undefined-check : do not verify integer overflows\n \
 --svcomp : SV-Comp mode\n \
+--dump-ll : only dump the analyzed .ll\n \
 --optimize (-O) : optimize input with -O3 before analysis\n \
 --noinline : do not inline functions\n \
 --output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
@@ -160,6 +162,10 @@ bool check_overflow() {
 
 bool inline_functions() {
 	return withinlining;
+}
+
+bool dumpll() {
+	return onlydumpll;
 }
 
 bool generateMetadata() {
@@ -470,6 +476,7 @@ int main(int argc, char* argv[]) {
 	has_timeout = false;
 	optimize = false;
 	withinlining = true;
+	onlydumpll = false;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
 
@@ -499,12 +506,13 @@ int main(int argc, char* argv[]) {
 			{"svcomp",  no_argument, 0, 'V'},
 			{"optimize",  no_argument, 0, 'O'},
 			{"noinline",  no_argument, 0, 'I'},
+			{"dump-ll",  no_argument, 0, 'z'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOI",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIz",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -533,6 +541,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'I':
         	    withinlining = false;
+        	    break;
+        	case 'z':
+				onlydumpll = true;
         	    break;
         	case 'b':
         	    arg = optarg;
