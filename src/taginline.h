@@ -1,3 +1,5 @@
+#ifndef TAGINLINE_H
+#define TAGINLINE_H
 #include "llvm/Config/config.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/InstVisitor.h"
@@ -26,4 +28,4 @@ class TagInline : public ModulePass {
 		void getAnalysisUsage(AnalysisUsage &AU) const;
 
 };
-
+#endif

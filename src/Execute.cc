@@ -43,6 +43,8 @@
 #include "globaltolocal.h"
 #include "taginline.h"
 #include "RemoveUndet.h"
+#include "expandequalities.h"
+#include "NameAllValues.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -177,6 +179,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	InitialPasses.add(createLowerInvokePass());
 	//Passes.add(createLoopSimplifyPass());	
 	InitialPasses.add(LoopInfoPass);
+	InitialPasses.add(new ExpandEqualities());
 
 	// in case we want to run an Alias analysis pass : 
 	//Passes.add(createGlobalsModRefPass());
@@ -190,6 +193,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 		
 	if (check_overflow()) InitialPasses.add(new instrOverflow());
+
+	InitialPasses.add(new NameAllValues());
 
 	// make sure everything is run before AI analysis
 	InitialPasses.run(*M);
