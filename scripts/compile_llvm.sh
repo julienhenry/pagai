@@ -89,6 +89,7 @@ fi
 if [ $M64BITS -eq 1 ] ; then
  TRAP="$TRAP  -m64 "
 fi
+TRAP="$TRAP -Wno-return-type "
 
 QUIET=" -Wno-implicit-function-declaration -Wno-parentheses-equality "
 if [ $DEBUG -eq 1 ] ; then
