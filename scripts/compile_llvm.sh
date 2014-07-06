@@ -106,9 +106,9 @@ else
 fi
 
 if [ $INLINE -eq 1 ] ; then
-	opt -inline -inline-threshold=15000000 $OUTPUT -o $OUTPUT
+	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
 	opt -internalize $OUTPUT -o $OUTPUT -internalize-public-api-list=main
-	opt -inline -inline-threshold=15000000 $OUTPUT -o $OUTPUT
+	opt -inline -inline-threshold=150000 $OUTPUT -o $OUTPUT
 fi
 
 if [ $GRAPH -eq 1 ] ; then
