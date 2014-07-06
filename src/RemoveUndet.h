@@ -1,3 +1,5 @@
+#ifndef REMOVEUNDET_H
+#define REMOVEUNDET_H
 #include "llvm/Config/config.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/InstVisitor.h"
@@ -21,3 +23,4 @@ class RemoveUndet : public ModulePass {
 		bool runOnModule(Module &M);
 
 };
+#endif

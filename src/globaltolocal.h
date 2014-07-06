@@ -1,3 +1,5 @@
+#ifndef GLOBALTOLOCAL_H
+#define GLOBALTOLOCAL_H
 #include "llvm/Config/config.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/InstVisitor.h"
@@ -18,3 +20,4 @@ class GlobalToLocal : public ModulePass {
   bool hasOnlyOneFunction(Module &M);
 };
 
+#endif
