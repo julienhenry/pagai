@@ -135,6 +135,12 @@ def get_trclass(statusbox,statuspk,statusbox_opt,statuspk_opt):
         return "success"
     return "warning"
 
+def get_result(benchmark_name,domain,result):
+    try:
+        return str(json_dict[benchmark_name][domain][result])
+    except:
+        return "-"
+
 for benchmark_name in json_dict:
     try:
         if "result" not in json_dict[benchmark_name]["box"]:
@@ -149,32 +155,39 @@ for benchmark_name in json_dict:
 
         points += max(pointsbox,pointspk)
 
+        result_pk       = get_result(benchmark_name,"pk","result")
+        result_box      = get_result(benchmark_name,"box","result")
+        result_pkO3     = get_result(benchmark_name,"pkO3","result")
+        result_boxO3    = get_result(benchmark_name,"boxO3","result")
+        time_pk         = get_result(benchmark_name,"pk","time")
+        time_box        = get_result(benchmark_name,"box","time")
+        time_pkO3       = get_result(benchmark_name,"pkO3","time")
+        time_boxO3      = get_result(benchmark_name,"boxO3","time")
+
         if expected in "TRUE":
             true_results += r'<tr class="' + trclass + '\">'
             true_results += '<td>' + escape_html(benchmark_name) + '</td>'
-            true_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
-            true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
-            true_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pkO3"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["pkO3"]["time"]) + '</td>'
-            true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["boxO3"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["boxO3"]["time"]) + '</td>'
+            true_results += '<td class=\"' + statuspk + '\">' + result_pk + '</td>'
+            true_results += '<td>' + time_pk + '</td>'
+            true_results += '<td class=\"' + statusbox + '\">' + result_box + '</td>'
+            true_results += '<td>' + time_box + '</td>'
+            true_results += '<td class=\"' + statuspk_opt + '\">' + result_pkO3 + '</td>'
+            true_results += '<td>' + time_pkO3 + '</td>'
+            true_results += '<td class=\"' + statusbox_opt + '\">' + result_boxO3 + '</td>'
+            true_results += '<td>' + time_boxO3 + '</td>'
             true_results += r"</tr>"
         else:
             false_results += r'<tr class="' + trclass + '\">'
             false_results += '<td>' + escape_html(benchmark_name) + '</td>'
-            false_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pk"]["result"]) + '</td>'
-            false_results += '<td>' + str(json_dict[benchmark_name]["pk"]["time"]) + '</td>'
-            false_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["box"]["result"]) + '</td>'
-            false_results += '<td>' + str(json_dict[benchmark_name]["box"]["time"]) + '</td>'
-            true_results += '<td class=\"' + statuspk + '\">' + str(json_dict[benchmark_name]["pkO3"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["pkO3"]["time"]) + '</td>'
-            true_results += '<td class=\"' + statusbox + '\">' + str(json_dict[benchmark_name]["boxO3"]["result"]) + '</td>'
-            true_results += '<td>' + str(json_dict[benchmark_name]["boxO3"]["time"]) + '</td>'
+            false_results += '<td class=\"' + statuspk + '\">' + result_pk + '</td>'
+            false_results += '<td>' + time_pk + '</td>'
+            false_results += '<td class=\"' + statusbox + '\">' + result_box + '</td>'
+            false_results += '<td>' + time_box + '</td>'
+            false_results += '<td class=\"' + statuspk_opt + '\">' + result_pkO3 + '</td>'
+            false_results += '<td>' + time_pkO3 + '</td>'
+            false_results += '<td class=\"' + statusbox_opt + '\">' + result_boxO3 + '</td>'
+            false_results += '<td>' + time_boxO3 + '</td>'
             false_results += r"</tr>"
-        #total_time["box"] += float(json_dict[benchmark_name]["box"]["time"])
-        #total_time["pk"] += float(json_dict[benchmark_name]["pk"]["time"])
     except:
         continue
 
@@ -197,12 +210,6 @@ print r"</div>"
 
 print r"<p>"
 print "TOTAL POINTS: " + str(points)
-print r"</p>"
-print r"<p>"
-print "TOTAL TIME (box): " + str(total_time["box"])
-print r"</p>"
-print r"<p>"
-print "TOTAL TIME (pk): " + str(total_time["pk"])
 print r"</p>"
 
 footer()

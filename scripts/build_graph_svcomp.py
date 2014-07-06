@@ -54,44 +54,55 @@ def get_time(benchmark_name,domain):
 
 def get_res(benchmark_name,domain):
     try:
+        # do not consider the files analyzed with -O3
+        if "O3" in domain:
+            return "UNKNOWN"
         return str(remove_color(json_dict[benchmark_name][domain]["result"]))
     except:
         return "UNKNOWN"
 
 
 li = []
+points = 0
 for benchmark_name in json_dict:
     if "FALSE" in json_dict[benchmark_name]["box"]["expected"]:
+        # benchmark is FALSE
+        res_pk   = get_res(benchmark_name,"pk")
+        res_box  = get_res(benchmark_name,"box")
+        res_pkO3   = get_res(benchmark_name,"pkO3")
+        res_boxO3  = get_res(benchmark_name,"boxO3")
+        if "TRUE" in res_pk or "TRUE" in res_box or "TRUE" in res_pkO3 or "TRUE" in res_boxO3:
+            points = points - 8
         continue
+    else:
+        # benchmark is TRUE
+        res_pk   = get_res(benchmark_name,"pk")
+        res_box  = get_res(benchmark_name,"box")
+        time_pk  = get_time(benchmark_name,"pk")
+        time_box = get_time(benchmark_name,"box")
 
-    res_pk   = get_res(benchmark_name,"pk")
-    res_box  = get_res(benchmark_name,"box")
-    time_pk  = get_time(benchmark_name,"pk")
-    time_box = get_time(benchmark_name,"box")
+        res_pkO3   = get_res(benchmark_name,"pkO3")
+        res_boxO3  = get_res(benchmark_name,"boxO3")
+        time_pkO3  = get_time(benchmark_name,"pkO3")
+        time_boxO3 = get_time(benchmark_name,"boxO3")
 
-    res_pkO3   = get_res(benchmark_name,"pkO3")
-    res_boxO3  = get_res(benchmark_name,"boxO3")
-    time_pkO3  = get_time(benchmark_name,"pkO3")
-    time_boxO3 = get_time(benchmark_name,"boxO3")
+        if "TRUE" not in res_pk and "TRUE" not in res_box and "TRUE" not in res_pkO3 and "TRUE" not in res_boxO3:
+            # not proved, 0 points
+            continue
 
-    if "TRUE" not in res_pk and "TRUE" not in res_box and "TRUE" not in res_pkO3 and "TRUE" not in res_boxO3:
-        # not proved, 0 points
-        continue
-
-    min_time = 1000000.
-    if "TRUE" in res_pk:
-        min_time = min(min_time,time_pk)
-    if "TRUE" in res_box:
-        min_time = min(min_time,time_box)
-    if "TRUE" in res_pkO3:
-        min_time = min(min_time,time_pkO3)
-    if "TRUE" in res_boxO3:
-        min_time = min(min_time,time_boxO3)
-    li.append(min_time)
+        min_time = 1000000.
+        if "TRUE" in res_pk:
+            min_time = min(min_time,time_pk)
+        if "TRUE" in res_box:
+            min_time = min(min_time,time_box)
+        if "TRUE" in res_pkO3:
+            min_time = min(min_time,time_pkO3)
+        if "TRUE" in res_boxO3:
+            min_time = min(min_time,time_boxO3)
+        li.append(min_time)
 
 
 li.sort()
-points = 0
 #for elt in sum_time(li):
 for elt in li:
     points = points + 2

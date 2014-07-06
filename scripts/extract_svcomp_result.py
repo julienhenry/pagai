@@ -22,6 +22,8 @@ def sum_time(l):
 li = []
 xmldoc = minidom.parse(input)
 filelist = xmldoc.getElementsByTagName('sourcefile')
+
+points = 0
 for s in filelist :
     eltlist = s.getElementsByTagName('column')
     filename = s.attributes["name"].value
@@ -35,14 +37,20 @@ for s in filelist :
             cputime = value
     if "true" in expected_status and "true" in status:
         li.append(float(cputime))
+        li.append(float(cputime))
+    if "false" in expected_status and "false" in status:
+        li.append(float(cputime))
+    if "false" in expected_status and "true" in status:
+        points = points - 8
+    if "true" in expected_status and "false" in status:
+        points = points - 4
 
 
 li.sort()
-points = 0
 #for elt in sum_time(li):
 #    points = points + 2
 #    print str(points)+" "+str(elt)
 
 for elt in li:
-    points = points + 2
+    points = points + 1
     print str(points)+" "+str(elt)
