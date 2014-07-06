@@ -43,7 +43,6 @@ bool AIpf::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 	*Out << "// analysis: " << getPassName() << "\n";
-
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 
