@@ -31,14 +31,17 @@ void ExpandEqualities::visitBranchInst(BranchInst &I) {
 	BasicBlock * neblock;
 	Value * leftop = cond->getOperand(0);
 	Value * rightop = cond->getOperand(1);
+	bool isFloat = false;
 	switch (cond->getPredicate()) {
-		case CmpInst::ICMP_EQ:
 		case CmpInst::FCMP_OEQ:
+			isFloat = true;
+		case CmpInst::ICMP_EQ:
 			eqblock = I.getSuccessor(0);
 			neblock = I.getSuccessor(1);
 			break;
-		case CmpInst::ICMP_NE:
 		case CmpInst::FCMP_ONE:
+			isFloat = true;
+		case CmpInst::ICMP_NE:
 			eqblock = I.getSuccessor(1);
 			neblock = I.getSuccessor(0);
 			break;
@@ -52,8 +55,15 @@ void ExpandEqualities::visitBranchInst(BranchInst &I) {
 	// ...
 	IRBuilder<> Builder(I.getContext());
 	Builder.SetInsertPoint(&I);
-	CmpInst * cmpSLT = dyn_cast<CmpInst>(Builder.CreateICmpSLT(leftop,rightop));
-	CmpInst * cmpSGT = dyn_cast<CmpInst>(Builder.CreateICmpSGT(leftop,rightop));
+	CmpInst * cmpSLT;
+	CmpInst * cmpSGT;
+	if (isFloat) {
+		cmpSLT = dyn_cast<CmpInst>(Builder.CreateFCmpOLT(leftop,rightop));
+		cmpSGT = dyn_cast<CmpInst>(Builder.CreateFCmpOGT(leftop,rightop));
+	} else {
+		cmpSLT = dyn_cast<CmpInst>(Builder.CreateICmpSLT(leftop,rightop));
+		cmpSGT = dyn_cast<CmpInst>(Builder.CreateICmpSGT(leftop,rightop));
+	}
 	llvm::SplitBlockAndInsertIfThen(
 			cmpSLT, 
 			false
