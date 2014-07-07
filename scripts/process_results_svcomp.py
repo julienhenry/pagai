@@ -23,9 +23,9 @@ def getFileBetween(filename,begin,end):
 
 def process_result(filename,json_dict):
     res = "UNKNOWN (ERROR)"
-    if "true-unreach" in filename:
+    if "_true" in filename:
         expected = "TRUE"
-    elif "false-unreach" in filename:
+    elif "_false" in filename:
         expected = "FALSE"
     else:
         expected = "UNKNOWN"

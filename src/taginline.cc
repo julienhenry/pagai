@@ -22,9 +22,9 @@ bool TagInline::runOnModule(Module &M) {
 		if (!definedMain() && F->use_empty()) {
 			std::string name = F->getName().str();
 			// if SVComp, we focus on the main function only
-			//if (!SVComp() || name.compare("main") == 0) {
+			if (!SVComp() || name.compare("main") == 0) {
 				ToAnalyze.push_back(F->getName().data());
-			//}
+			}
 		}
 		if (definedMain() && isMain(F)) {
 			ToAnalyze.push_back(F->getName().data());
