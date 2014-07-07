@@ -178,6 +178,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// binary branch instructions, easier to deal with
 	InitialPasses.add(createLowerSwitchPass());	
 	InitialPasses.add(createLowerInvokePass());
+	InitialPasses.add(createInstructionCombiningPass());
 	//Passes.add(createLoopSimplifyPass());	
 	InitialPasses.add(LoopInfoPass);
 	InitialPasses.add(new ExpandEqualities());
