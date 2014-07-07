@@ -11,6 +11,7 @@
 #include "Pr.h"
 #include "Analyzer.h"
 #include "Debug.h"
+#include "IdentifyLoops.h"
 
 using namespace llvm;
 
@@ -126,11 +127,15 @@ bool Pr::computeLoopHeaders(std::set<BasicBlock*>* FPr) {
 	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i) {
 		index[Nodes[i]] = 0;
 	}
+#if 1
+	for (std::set<BasicBlock*>::iterator it = Loop_headers.begin(), et = Loop_headers.end(); it != et; it++) {
+		FPr->insert(*it);
+	}
+#else
 	std::set<Node*> S;
 	std::set<Node*> Seen;
-
 	computeLoopHeaders_rec(n,&Seen,&S,FPr);
-	
+#endif
 	return true;
 }
 

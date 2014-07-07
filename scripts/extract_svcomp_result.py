@@ -51,6 +51,9 @@ li.sort()
 #    points = points + 2
 #    print str(points)+" "+str(elt)
 
+pair = 1
 for elt in li:
     points = points + 1
-    print str(points)+" "+str(elt)
+    if len(li) < 2000 or pair == 1:
+        print str(points)+" "+str(elt)
+    pair = 1 - pair

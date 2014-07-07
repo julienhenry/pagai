@@ -45,6 +45,7 @@
 #include "RemoveUndet.h"
 #include "expandequalities.h"
 #include "NameAllValues.h"
+#include "IdentifyLoops.h"
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -217,6 +218,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		*Out << *M;
 		return;
 	}
+	AnalysisPasses.add(new IdentifyLoops());
 	if (onlyOutputsRho()) {
 		AnalysisPasses.add(new GenerateSMT());
 	} else if (compareTechniques()) {
