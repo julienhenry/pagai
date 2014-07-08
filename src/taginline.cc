@@ -31,6 +31,7 @@ bool TagInline::runOnModule(Module &M) {
 			continue;
 		}
 		if (!definedMain() && F->use_empty()) {
+			ToAnalyze.push_back(F->getName().data());
 			std::string name = F->getName().str();
 		}
 	}
