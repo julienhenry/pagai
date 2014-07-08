@@ -179,8 +179,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	InitialPasses.add(createLowerSwitchPass());	
 	InitialPasses.add(createLowerInvokePass());
 	InitialPasses.add(LoopInfoPass);
-	if (!WCETSettings()) {
+	if (SVComp()) {
 		InitialPasses.add(createInstructionCombiningPass());
+	}
+	if (!WCETSettings()) {
 		InitialPasses.add(new ExpandEqualities());
 	}
 	//Passes.add(createLoopSimplifyPass());	
@@ -212,9 +214,9 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 	
 	PassManager OptPasses;
+	OptPasses.add(new GlobalToLocal());
 	if (!WCETSettings())
 		OptPasses.add(new RemoveUndet());
-	OptPasses.add(new GlobalToLocal());
 	OptPasses.add(createPromoteMemoryToRegisterPass());
 	OptPasses.run(*M);
 
