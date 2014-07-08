@@ -18,6 +18,8 @@ class GlobalToLocal : public ModulePass {
   bool runOnModule(Module &M);
 	
   bool hasOnlyOneFunction(Module &M);
+
+  bool replaceAllUsesInFunction(Function * F, Value * oldvalue, Value * newvalue);
 };
 
 #endif

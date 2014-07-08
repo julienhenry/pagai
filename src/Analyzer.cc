@@ -35,6 +35,7 @@ bool has_timeout;
 bool optimize;
 bool withinlining;
 bool onlydumpll;
+bool wcet_settings;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -55,6 +56,7 @@ void show_help() {
 --main <name> (-m) : only analyze the function <name>\n \
 --no-undefined-check : do not verify integer overflows\n \
 --svcomp : SV-Comp mode\n \
+--wcet : WCET mode (does not inserts counters yet)\n \
 --dump-ll : only dump the analyzed .ll\n \
 --optimize (-O) : optimize input with -O3 before analysis\n \
 --noinline : do not inline functions\n \
@@ -166,6 +168,10 @@ bool inline_functions() {
 
 bool dumpll() {
 	return onlydumpll;
+}
+
+bool WCETSettings() {
+	return wcet_settings;
 }
 
 bool generateMetadata() {
@@ -477,6 +483,7 @@ int main(int argc, char* argv[]) {
 	optimize = false;
 	withinlining = true;
 	onlydumpll = false;
+	wcet_settings = false;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
 
@@ -507,12 +514,13 @@ int main(int argc, char* argv[]) {
 			{"optimize",  no_argument, 0, 'O'},
 			{"noinline",  no_argument, 0, 'I'},
 			{"dump-ll",  no_argument, 0, 'z'},
+			{"wcet",  no_argument, 0, 'w'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIz",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzw",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -636,9 +644,18 @@ int main(int argc, char* argv[]) {
 			case 'p':
 				printAll = true;
 				break;
+        	case 'w':
+				// settings for computing WCET with counters
+        	    force_old_output = true;
+				printAll = true;
+        	    oflcheck = false;
+				//technique = PATH_FOCUSING;
+				wcet_settings = true;
+        	    break;
         	case '?':
         	    std::cout << "Error : Unknown option " << optopt << "\n";
         	    bad_use = true;
+				break;
         }   
     }
     if (!help) {

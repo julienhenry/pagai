@@ -20,6 +20,49 @@ bool ExpandEqualities::runOnFunction(Function &F) {
 	return 0;
 }
 
+/// SplitBlockAndInsertIfThen - Split the containing block at the
+/// specified instruction - everything before and including SplitBefore
+/// in the old basic block, and everything after SplitBefore is moved to
+/// new block. The two blocks are connected by a conditional branch
+/// (with value of Cmp being the condition).
+/// Before:
+///   Head
+///   SplitBefore
+///   Tail
+/// After:
+///   Head
+///   if (Cond)
+///     ThenBlock
+///   SplitBefore
+///   Tail
+///
+/// If Unreachable is true, then ThenBlock ends with
+/// UnreachableInst, otherwise it branches to Tail.
+/// Returns the NewBasicBlock's terminator.
+
+TerminatorInst *ExpandEqualities::SplitBlockAndInsertIfThen(Value *Cond,
+		Instruction *SplitBefore,
+		bool Unreachable,
+		MDNode *BranchWeights) {
+	BasicBlock *Head = SplitBefore->getParent();
+	BasicBlock *Tail = Head->splitBasicBlock(SplitBefore);
+	TerminatorInst *HeadOldTerm = Head->getTerminator();
+	LLVMContext &C = Head->getContext();
+	BasicBlock *ThenBlock = BasicBlock::Create(C, "", Head->getParent(), Tail);
+	TerminatorInst *CheckTerm;
+	if (Unreachable)
+		CheckTerm = new UnreachableInst(C, ThenBlock);
+	else
+		CheckTerm = BranchInst::Create(Tail, ThenBlock);
+	CheckTerm->setDebugLoc(SplitBefore->getDebugLoc());
+	BranchInst *HeadNewTerm =
+		BranchInst::Create(/*ifTrue*/ThenBlock, /*ifFalse*/Tail, Cond);
+	HeadNewTerm->setDebugLoc(SplitBefore->getDebugLoc());
+	HeadNewTerm->setMetadata(LLVMContext::MD_prof, BranchWeights);
+	ReplaceInstWithInst(HeadOldTerm, HeadNewTerm);
+	return CheckTerm;
+}
+
 void ExpandEqualities::visitBranchInst(BranchInst &I) {
 	if (seen.count(&I)) return;
 	seen.insert(&I);
@@ -55,21 +98,23 @@ void ExpandEqualities::visitBranchInst(BranchInst &I) {
 	// ...
 	IRBuilder<> Builder(I.getContext());
 	Builder.SetInsertPoint(&I);
-	CmpInst * cmpSLT;
-	CmpInst * cmpSGT;
+	Value * cmpSLT;
+	Value * cmpSGT;
 	if (isFloat) {
-		cmpSLT = dyn_cast<CmpInst>(Builder.CreateFCmpOLT(leftop,rightop));
-		cmpSGT = dyn_cast<CmpInst>(Builder.CreateFCmpOGT(leftop,rightop));
+		cmpSLT = Builder.CreateFCmpOLT(leftop,rightop);
+		cmpSGT = Builder.CreateFCmpOGT(leftop,rightop);
 	} else {
-		cmpSLT = dyn_cast<CmpInst>(Builder.CreateICmpSLT(leftop,rightop));
-		cmpSGT = dyn_cast<CmpInst>(Builder.CreateICmpSGT(leftop,rightop));
+		cmpSLT = Builder.CreateICmpSLT(leftop,rightop);
+		cmpSGT = Builder.CreateICmpSGT(leftop,rightop);
 	}
-	llvm::SplitBlockAndInsertIfThen(
+	SplitBlockAndInsertIfThen(
 			cmpSLT, 
+			cond->getParent()->getTerminator(),
 			false
 			);
-	llvm::SplitBlockAndInsertIfThen(
+	SplitBlockAndInsertIfThen(
 			cmpSGT, 
+			cond->getParent()->getTerminator(),
 			false
 			);
 }

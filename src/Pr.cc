@@ -129,7 +129,10 @@ bool Pr::computeLoopHeaders(std::set<BasicBlock*>* FPr) {
 	}
 #if 1
 	for (std::set<BasicBlock*>::iterator it = Loop_headers.begin(), et = Loop_headers.end(); it != et; it++) {
-		FPr->insert(*it);
+		BasicBlock * b = *it;
+		if (b->getParent() == F) {
+			FPr->insert(b);
+		}
 	}
 #else
 	std::set<Node*> S;
