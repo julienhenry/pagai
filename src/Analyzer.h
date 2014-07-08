@@ -127,6 +127,7 @@ bool useThreshold(int i);
 
 bool optimizeBC();
 
+bool WCETSettings();
 bool inline_functions();
 bool dumpll();
 

@@ -22,6 +22,12 @@ class ExpandEqualities : public FunctionPass,
   bool runOnFunction(Function &F);
 
   void visitBranchInst(BranchInst &I);
+
+ private:
+  TerminatorInst * SplitBlockAndInsertIfThen(Value *Cond,
+		Instruction *SplitBefore,
+		bool Unreachable,
+		MDNode *BranchWeights = NULL);
 	
 };
 
