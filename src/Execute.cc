@@ -107,7 +107,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 			args.push_back("-fsanitize=enum");
 			args.push_back("-fsanitize=null");
 			args.push_back("-fsanitize=signed-integer-overflow");
-			args.push_back("-fsanitize=unsigned-integer-overflow");
+			//args.push_back("-fsanitize=unsigned-integer-overflow");
 			args.push_back("-fsanitize=integer-divide-by-zero");
 			args.push_back("-fsanitize=float-divide-by-zero");
 			args.push_back("-fsanitize=float-cast-overflow");

@@ -186,10 +186,10 @@ void instrOverflow::replaceWithCmp(
 	assert(re != NULL);
 	unsigned bitwidth = re->getType()->getIntegerBitWidth();
 	LLVMContext& C = re->getContext();
-	ConstantInt * maxsignedval = ConstantInt::get(C,APInt::getSignedMaxValue(bitwidth));
-	ConstantInt * maxunsignedval = ConstantInt::get(C,APInt::getMaxValue(bitwidth));
-	ConstantInt * minsignedval = ConstantInt::get(C,APInt::getSignedMinValue(bitwidth));
-	ConstantInt * minunsignedval = ConstantInt::get(C,APInt::getMinValue(bitwidth));
+	Constant * maxsignedval = ConstantInt::get(re->getType(),APInt::getSignedMaxValue(bitwidth));
+	Constant * maxunsignedval = ConstantInt::get(re->getType(),APInt::getMaxValue(bitwidth));
+	Constant * minsignedval = ConstantInt::get(re->getType(),APInt::getSignedMinValue(bitwidth));
+	Constant * minunsignedval = ConstantInt::get(re->getType(),APInt::getMinValue(bitwidth));
 	switch (intrinsicID) {
 		case llvm::Intrinsic::sadd_with_overflow:
 		case llvm::Intrinsic::smul_with_overflow:
@@ -200,7 +200,12 @@ void instrOverflow::replaceWithCmp(
 		case llvm::Intrinsic::uadd_with_overflow:
 		case llvm::Intrinsic::umul_with_overflow:
 		case llvm::Intrinsic::usub_with_overflow:
-			new_inst_max = CmpInst::Create(llvm::AddrSpaceCastInst::ICmp,llvm::CmpInst::ICMP_UGT,re,maxunsignedval,"",old);
+			// maxunsignedvalue is actually -1 in LLVM
+			// then, the first test cannot be handled by Pagai since it does not
+			// distinguish between signed and unsigned when interpreting
+			// conditions...
+			new_inst_max = CmpInst::Create(llvm::AddrSpaceCastInst::ICmp,llvm::CmpInst::ICMP_ULT,re,maxunsignedval,"",old);
+			//new_inst_max = CmpInst::Create(llvm::AddrSpaceCastInst::ICmp,llvm::CmpInst::ICMP_UGT,re,maxunsignedval,"",old);
 			new_inst_min = CmpInst::Create(llvm::AddrSpaceCastInst::ICmp,llvm::CmpInst::ICMP_ULT,re,minunsignedval,"",old);
 			break;
 		default:
