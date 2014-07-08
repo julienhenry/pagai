@@ -178,11 +178,12 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	// binary branch instructions, easier to deal with
 	InitialPasses.add(createLowerSwitchPass());	
 	InitialPasses.add(createLowerInvokePass());
-	if (!WCETSettings())
-		InitialPasses.add(createInstructionCombiningPass());
-	//Passes.add(createLoopSimplifyPass());	
 	InitialPasses.add(LoopInfoPass);
-	InitialPasses.add(new ExpandEqualities());
+	if (!WCETSettings()) {
+		InitialPasses.add(createInstructionCombiningPass());
+		InitialPasses.add(new ExpandEqualities());
+	}
+	//Passes.add(createLoopSimplifyPass());	
 
 	// in case we want to run an Alias analysis pass : 
 	//Passes.add(createGlobalsModRefPass());
@@ -211,7 +212,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	}
 	
 	PassManager OptPasses;
-	//if (!WCETSettings())
+	if (!WCETSettings())
 		OptPasses.add(new RemoveUndet());
 	OptPasses.add(new GlobalToLocal());
 	OptPasses.add(createPromoteMemoryToRegisterPass());

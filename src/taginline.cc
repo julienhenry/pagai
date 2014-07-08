@@ -13,21 +13,25 @@
 using namespace llvm;
 
 bool TagInline::runOnModule(Module &M) {
-
+	Function * Main_function = M.getFunction("main");
+	if (Main_function != NULL) {
+		ToAnalyze.push_back("main");
+	}
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		Function * F = mIt;
 		// if the function is only a declaration, skip
 		if (F->begin() == F->end()) continue;
 		F->addAttribute(llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
-		if (!definedMain() && F->use_empty()) {
-			std::string name = F->getName().str();
-			// if SVComp, we focus on the main function only
-			if (!SVComp() || name.compare("main") == 0) {
-				ToAnalyze.push_back(F->getName().data());
-			}
-		}
+		outs() << F->getName() << " used " << F->getNumUses() << "\n";
+
 		if (definedMain() && isMain(F)) {
 			ToAnalyze.push_back(F->getName().data());
+		}
+		if (Main_function != NULL) {
+			continue;
+		}
+		if (!definedMain() && F->use_empty()) {
+			std::string name = F->getName().str();
 		}
 	}
 	return 0;
