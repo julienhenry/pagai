@@ -163,6 +163,8 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	PassManager InitialPasses;
 	PassManager AnalysisPasses;
 
+	if (!WCETSettings())
+		InitialPasses.add(new RemoveUndet());
 	if (optimizeBC()) {
 		// may degrade precision of the analysis
 		PassManagerBuilder Builder; 

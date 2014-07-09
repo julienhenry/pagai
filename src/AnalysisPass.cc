@@ -19,6 +19,13 @@ void AnalysisPass::generateAnnotatedFiles(Module * M, bool outputfile) {
 			*Out << "RESULT: UNKNOWN\n";
 		else
 			*Out << "RESULT: TRUE\n";
+		DEBUG(
+		for (Module::iterator mIt = M->begin() ; mIt != M->end() ; ++mIt) {
+			Function * F = mIt;
+			if (F->size() > 0)
+			printResult_oldoutput(F);
+		}
+		);
 		return;
 	}
 	if (!useSourceName()) 
@@ -127,7 +134,6 @@ void AnalysisPass::printResult_oldoutput(Function * F) {
 		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
 		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
 			Out->changeColor(raw_ostream::MAGENTA,true);
-
 			Instruction * Inst = b->getFirstNonPHI();
 			//Instruction * Inst = &b->front();
 			std::vector<Value*> arr;
