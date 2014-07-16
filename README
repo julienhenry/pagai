@@ -54,3 +54,7 @@ build with e.g.
 
 For running Pagai, you should make sure your PATH variable contains the
 directory of the SMT solver you want to use (e.g. Z3, CVC4, etc.)
+
+On MacOS, please compile with clang and not g++: there are strange
+template instantiations errors with g++, leading to duplicate symbols
+when linking.
