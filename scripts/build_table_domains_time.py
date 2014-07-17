@@ -57,6 +57,21 @@ def get_str_time(benchmark_name,technique,domain):
         r = "-"
     return r
 
+def get_str_time_total(technique,domain):
+    global json_dict
+    timeout = ""
+    try:
+        r = 0.
+        for benchmark_name in json_dict:
+            t = get_str_time(benchmark_name,technique,domain)
+            if "-" in t:
+                timeout = ">"
+            else:
+                r = r + float(t)
+        return timeout + ("%.1f" % r)
+    except:
+        return "-"
+
 begin_tabular()
 print_line_header()
 
@@ -72,4 +87,15 @@ for benchmark_name in json_dict:
     + ' & ' + get_str_time(benchmark_name,t,"PK")\
     + ' & ' + get_str_time(benchmark_name,t,"OCT")\
     + r"\\"
+
+print "\hline \\textbf{TOTAL}" \
++ ' & ' + get_str_time_total(t,"BOX")\
++ ' & ' + get_str_time_total(t,"PKEQ")\
++ ' & ' + get_str_time_total(t,"PPL_POLY")\
++ ' & ' + get_str_time_total(t,"PPL_POLY_BAGNARA")\
++ ' & ' + get_str_time_total(t,"PKGRID")\
++ ' & ' + get_str_time_total(t,"PK")\
++ ' & ' + get_str_time_total(t,"OCT")\
++ r"\\"
+
 end_tabular()

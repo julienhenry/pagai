@@ -376,6 +376,14 @@ void AIpf::narrowNode(Node * n) {
 			Xtemp->print();
 		);
 
+		// intersection with the previous invariant
+		params P;
+		P.T = SIMPLE;
+		P.D = getApronManager();
+		P.N = useNewNarrowing();
+		P.TH = useThreshold();
+		intersect_with_known_properties(Xtemp,Succ,P);
+
 		if (Succ->X_d[passID]->is_bottom()) {
 			delete Succ->X_d[passID];
 			Succ->X_d[passID] = Xtemp;

@@ -77,32 +77,154 @@ def get_str_comparison(benchmark_name,technique,comparison,result):
         r = "-"
     return r
 
+def get_str_comparison_total(technique,comparison,result):
+    global json_dict
+    timeout = ""
+    try:
+        r = 0
+        for benchmark_name in json_dict:
+            c = get_str_comparison(benchmark_name,technique,comparison,result)
+            if "-" in c:
+                timeout = "$\\geq$ "
+            else:
+                r = r + int(c)
+        return str(r)
+    except:
+        return "-"
+
+def get_str_comparison_percentage(benchmark_name,technique,comparison,result):
+    try:
+        res = float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison][result])
+
+        total = float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["lt"]) + \
+                float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["gt"]) +\
+                float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["eq"]) +\
+                float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["un"])
+        r = str("%.0f" % round((res*100)/total,0))+"\%"
+    except:
+        r = "-"
+    return r
+
+def get_str_comparison_percentage_total(technique,comparison,result):
+    global json_dict
+    timeout = ""
+    #try:
+    res = 0.
+    total = 0.
+    for benchmark_name in json_dict:
+        val = get_str_comparison(benchmark_name,technique,comparison,result)
+        if "-" in val:
+            continue
+        else:
+            res = res + float(val)
+
+            total = total + float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["lt"]) + \
+                    float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["gt"]) +\
+                    float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["eq"]) +\
+                    float(json_dict[benchmark_name]["domain"][technique]["comparison"][comparison]["un"])
+    return str("%.0f" % round((res*100)/total,0))+"\%"
+    #except:
+    #   return "-"
+
+
 begin_tabular()
 print_line_header()
 
 t = sys.argv[1] # technique
 
-for benchmark_name in json_dict:
-    print escape_latex(benchmark_name) \
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "lt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "gt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "eq")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "un")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "lt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "gt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "eq")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "un")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "lt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "gt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "eq")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "un")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "lt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "gt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "eq")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "un")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
-    + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
+
+if False:
+    for benchmark_name in json_dict:
+        print escape_latex(benchmark_name) \
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "lt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "gt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "eq")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // OCT", "un")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "lt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "gt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "eq")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PK // BOX", "un")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "lt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "gt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "eq")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"OCT // BOX", "un")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "lt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "gt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "eq")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PKGRID // PK", "un")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
+        + ' & ' + get_str_comparison(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
+        + r"\\"
+
+    print "\hline \\textbf{TOTAL}" \
+    + ' & ' + get_str_comparison_total(t,"PK // OCT", "lt")\
+    + ' & ' + get_str_comparison_total(t,"PK // OCT", "gt")\
+    + ' & ' + get_str_comparison_total(t,"PK // OCT", "eq")\
+    + ' & ' + get_str_comparison_total(t,"PK // OCT", "un")\
+    + ' & ' + get_str_comparison_total(t,"PK // BOX", "lt")\
+    + ' & ' + get_str_comparison_total(t,"PK // BOX", "gt")\
+    + ' & ' + get_str_comparison_total(t,"PK // BOX", "eq")\
+    + ' & ' + get_str_comparison_total(t,"PK // BOX", "un")\
+    + ' & ' + get_str_comparison_total(t,"OCT // BOX", "lt")\
+    + ' & ' + get_str_comparison_total(t,"OCT // BOX", "gt")\
+    + ' & ' + get_str_comparison_total(t,"OCT // BOX", "eq")\
+    + ' & ' + get_str_comparison_total(t,"OCT // BOX", "un")\
+    + ' & ' + get_str_comparison_total(t,"PKGRID // PK", "lt")\
+    + ' & ' + get_str_comparison_total(t,"PKGRID // PK", "gt")\
+    + ' & ' + get_str_comparison_total(t,"PKGRID // PK", "eq")\
+    + ' & ' + get_str_comparison_total(t,"PKGRID // PK", "un")\
+    + ' & ' + get_str_comparison_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
+    + ' & ' + get_str_comparison_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
+    + ' & ' + get_str_comparison_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
+    + ' & ' + get_str_comparison_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
+    + r"\\"
+else:
+    for benchmark_name in json_dict:
+        print escape_latex(benchmark_name) \
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // OCT", "lt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // OCT", "gt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // OCT", "eq")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // OCT", "un")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // BOX", "lt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // BOX", "gt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // BOX", "eq")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PK // BOX", "un")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"OCT // BOX", "lt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"OCT // BOX", "gt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"OCT // BOX", "eq")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"OCT // BOX", "un")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PKGRID // PK", "lt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PKGRID // PK", "gt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PKGRID // PK", "eq")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PKGRID // PK", "un")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
+        + ' & ' + get_str_comparison_percentage(benchmark_name,t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
+        + r"\\"
+
+    print "\hline \\textbf{TOTAL}" \
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // OCT", "lt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // OCT", "gt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // OCT", "eq")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // OCT", "un")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // BOX", "lt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // BOX", "gt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // BOX", "eq")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PK // BOX", "un")\
+    + ' & ' + get_str_comparison_percentage_total(t,"OCT // BOX", "lt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"OCT // BOX", "gt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"OCT // BOX", "eq")\
+    + ' & ' + get_str_comparison_percentage_total(t,"OCT // BOX", "un")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PKGRID // PK", "lt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PKGRID // PK", "gt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PKGRID // PK", "eq")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PKGRID // PK", "un")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "lt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "gt")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "eq")\
+    + ' & ' + get_str_comparison_percentage_total(t,"PPL_POLY_BAGNARA // PPL_POLY", "un")\
     + r"\\"
 end_tabular()
