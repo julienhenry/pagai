@@ -530,6 +530,7 @@ int main(int argc, char* argv[]) {
         	    break;
 			case 'V':
 				{ 
+					setMain("main");
 					svcomp = true;
 					technique = PATH_FOCUSING;
 				}
