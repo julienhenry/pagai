@@ -3,6 +3,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/Support/raw_ostream.h"
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 
@@ -24,6 +25,8 @@ bool TagInline::runOnModule(Module &M) {
 		F->addAttribute(llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
 		if (definedMain() && isMain(F)) {
 			ToAnalyze.push_back(F->getName().data());
+			// in case the symbol is marked as internal, put it external
+			F->setLinkage(GlobalValue::ExternalLinkage);
 		}
 		if (Main_function != NULL) {
 			continue;
