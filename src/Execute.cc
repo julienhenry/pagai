@@ -217,6 +217,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	
 	PassManager OptPasses;
 	OptPasses.add(new GlobalToLocal());
+	//OptPasses.add(createLoopSimplifyPass());
+	OptPasses.add(createLoopRotatePass());
+	//OptPasses.add(createLCSSAPass());
+	//OptPasses.add(createLoopUnrollPass(-1,1,1,0));
 	if (!WCETSettings())
 		OptPasses.add(new RemoveUndet());
 	OptPasses.add(createPromoteMemoryToRegisterPass());
