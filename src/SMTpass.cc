@@ -523,7 +523,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 
 	if (isa<ConstantInt>(v)) { 
 		ConstantInt * Int = dyn_cast<ConstantInt>(v);
-		int64_t n = Int->getSExtValue();
+		int n = Int->getSExtValue();
 		return man->SMT_mk_num((int)n);
 	} else if (isa<ConstantFP>(v)) {
 		ConstantFP * FP = dyn_cast<ConstantFP>(v);
@@ -1045,7 +1045,7 @@ void SMTpass::visitZExtInst (ZExtInst &I) {
 		// we cast a boolean to an integer
 		SMT_expr zero = man->SMT_mk_num(0);
 		SMT_expr one = man->SMT_mk_num(1);
-		SMT_expr ite = man->SMT_mk_ite(operand0,zero,one);
+		SMT_expr ite = man->SMT_mk_ite(operand0,one,zero);
 		rho_components.push_back(man->SMT_mk_eq(expr,ite));
 	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
 		rho_components.push_back(man->SMT_mk_eq(operand0,expr));

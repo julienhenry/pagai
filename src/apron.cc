@@ -350,7 +350,7 @@ void texpr0_display(llvm::raw_ostream  * stream, ap_texpr0_t* a, char ** name_of
 			texpr0_node_print(stream, a->val.node, name_of_dim);
 			break;
 		default:
-			assert(false);
+			assert(false && "error in texpr0_display");
 	}
 }
 

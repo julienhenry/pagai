@@ -161,12 +161,18 @@ def process_matrix(filename,technique,matrix,json_dict):
 
 def json_name(name):
     res = os.path.basename(name)
-    res = res.replace(".domain.pk.oct.res","")
-    res = res.replace(".domain.pk.box.res","")
-    res = res.replace(".domain.oct.box.res","")
-    res = res.replace(".domain.pkgrid.pk.res","")
-    res = res.replace(".domain.pkeq.pk.res","")
-    res = res.replace(".domain.ppl_poly_bagnara.ppl_poly.res","")
+    res = res.replace(".domain.s.pk.oct.res","")
+    res = res.replace(".domain.s.pk.box.res","")
+    res = res.replace(".domain.s.oct.box.res","")
+    res = res.replace(".domain.s.pkgrid.pk.res","")
+    res = res.replace(".domain.s.pkeq.pk.res","")
+    res = res.replace(".domain.s.ppl_poly_bagnara.ppl_poly.res","")
+    res = res.replace(".domain.pf.pk.oct.res","")
+    res = res.replace(".domain.pf.pk.box.res","")
+    res = res.replace(".domain.pf.oct.box.res","")
+    res = res.replace(".domain.pf.pkgrid.pk.res","")
+    res = res.replace(".domain.pf.pkeq.pk.res","")
+    res = res.replace(".domain.pf.ppl_poly_bagnara.ppl_poly.res","")
     return res
 
 def process_input_files():
