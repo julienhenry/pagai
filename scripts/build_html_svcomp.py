@@ -141,6 +141,7 @@ def get_result(benchmark_name,domain,result):
     except:
         return "-"
 
+counter = 0
 for benchmark_name in json_dict:
     try:
         if "result" not in json_dict[benchmark_name]["box"]:
@@ -165,8 +166,9 @@ for benchmark_name in json_dict:
         time_boxO3      = get_result(benchmark_name,"boxO3","time")
 
         if expected in "TRUE":
+            counter += 1
             true_results += r'<tr class="' + trclass + '\">'
-            true_results += '<td>' + escape_html(benchmark_name) + '</td>'
+            true_results += '<td> (' + str(counter) + ') ' + escape_html(benchmark_name) + '</td>'
             true_results += '<td class=\"' + statuspk + '\">' + result_pk + '</td>'
             true_results += '<td>' + time_pk + '</td>'
             true_results += '<td class=\"' + statusbox + '\">' + result_box + '</td>'

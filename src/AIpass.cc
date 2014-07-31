@@ -154,7 +154,13 @@ void AIPass::computeResultsPositions(
 		) {
 	std::string sourcedir = recoverName::getSourceFileDir(F);
 	std::string source = recoverName::getSourceFileName(F);
-	std::string sourcefile = sourcedir+"/"+source;
+	std::string sourcefile;
+	std::string dirname;
+	if (source[0] == '/') {
+		sourcefile = source;
+	} else {
+		sourcefile = sourcedir + "/" + source;
+	}
 	// compute a map associating a (line,column) to a basicblock
 	// the map is ordered, so that we can use an iterator for displaying the
 	// invariant for the basicblock when needed

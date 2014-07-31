@@ -38,8 +38,8 @@ for s in filelist :
     if "true" in expected_status and "true" in status:
         li.append(float(cputime))
         li.append(float(cputime))
-    if "false" in expected_status and "false" in status:
-        li.append(float(cputime))
+    #if "false" in expected_status and "false" in status:
+    #    li.append(float(cputime))
     if "false" in expected_status and "true" in status:
         points = points - 8
     if "true" in expected_status and "false" in status:
@@ -52,6 +52,7 @@ li.sort()
 #    print str(points)+" "+str(elt)
 
 pair = 1
+print str(points)+" 0.0"
 for elt in li:
     points = points + 1
     if len(li) < 2000 or pair == 1:

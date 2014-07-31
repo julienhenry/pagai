@@ -447,7 +447,12 @@ bool recoverName::is_readable(Function * F) {
 	std::string dir = getSourceFileDir(F);
 	std::string name = getSourceFileName(F);
 	if (dir.size() == 0 || name.size() == 0) return false;
-	std::string dirname = dir + "/" + name;
+	std::string dirname;
+	if (name[0] == '/') {
+		dirname = name;
+	} else {
+		dirname = dir + "/" + name;
+	}
     std::ifstream File(dirname.c_str()); 
     return !File.fail(); 
 }
