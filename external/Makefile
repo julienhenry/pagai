@@ -16,7 +16,7 @@ DEST=build
 DEST_LINKS=.
 
 CUDD_VERSION=2.5.0
-YICES_VERSION=1.0.37
+YICES_VERSION=1.0.40
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_VERSION=2012-12-21
 LLVM_VERSION=3.4
@@ -26,7 +26,7 @@ CUDD_XCFLAGS=
 
 ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
 ifeq ($(ARCH), x86_64)
-YICES_ARCH=x86_64-pc-linux-gnu-static-gmp
+YICES_ARCH=x86_64-unknown-linux-gnu-static-gmp
 Z3_ARCH=-x64
 CUDD_XCFLAGS='XCFLAGS=-mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8'
 endif
