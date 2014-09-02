@@ -210,3 +210,131 @@ void texpr0_node_to_MDNode(ap_texpr0_node_t * a, ap_environment_t * env, llvm::I
 #endif
 }
 
+Value * ap_tcons1_to_LLVM(ap_tcons1_t & cons, IRBuilder<> * Builder) {
+	ap_constyp_t* constyp = ap_tcons1_constypref(&cons);
+	ap_texpr1_t texpr = ap_tcons1_texpr1ref(&cons);
+
+	Value * expr = ap_texpr1_to_LLVM(texpr,Builder);
+	Value * scal = ConstantInt::get(Builder->getInt32Ty(),0);
+	Value * res;
+	// TODO: currently, works only with integers
+	// TODO: no distinction between signed and unsigned
+	switch (*constyp) {
+		case AP_CONS_EQ:
+			res = Builder->CreateICmpEQ(expr,scal);
+			break;
+		case AP_CONS_DISEQ:
+			res = Builder->CreateICmpNE(expr,scal);
+			break;
+		case AP_CONS_SUPEQ:
+			res = Builder->CreateICmpSGE(expr,scal);
+			break;
+		case AP_CONS_SUP:
+			res = Builder->CreateICmpSGT(expr,scal);
+			break;
+		case AP_CONS_EQMOD:
+			assert(false && "not implemented");
+			break;
+	}
+	return res;
+}
+
+Value * ap_texpr1_to_LLVM(ap_texpr1_t & expr, IRBuilder<> * Builder) {
+	return texpr0_to_LLVM(expr.texpr0,expr.env,Builder);
+}
+
+Value * texpr0_to_LLVM(ap_texpr0_t* a, ap_environment_t * env, IRBuilder<> * Builder) {
+	switch (a->discr) {
+		case AP_TEXPR_CST:
+			return coeff_to_LLVM(&a->val.cst,Builder);
+		case AP_TEXPR_NODE:
+			return texpr0_node_to_LLVM(a->val.node,env,Builder);
+		case AP_TEXPR_DIM:
+			{
+				ap_dim_t d = a->val.dim;
+				ap_var_t var = ap_environment_var_of_dim(env,d);
+				Value * val = (Value*)var;
+				// if the value is a float, we cast it to integer
+				// (LLVM does not like mixing floats and integers in
+				// invariants...)
+				if (!val->getType()->isIntegerTy()) {
+					val = Builder->CreateFPToSI(val,Builder->getInt32Ty());
+				}
+				return val;
+			}
+		default:
+			assert(false && "not implemented");
+			return NULL;
+	}
+}
+
+Value * texpr0_node_to_LLVM(ap_texpr0_node_t * a, ap_environment_t * env, IRBuilder<> * Builder) {
+	Value * leftop = NULL;
+	if (a->exprB) {
+		int A = check_texpr0(a->exprA);
+		int B = check_texpr0(a->exprB);
+
+		if ((a->op == 0 || a->op == 1)) {
+			// this is a + or a -
+			if (A == ZERO) {
+				return texpr0_to_LLVM(a->exprB,env,Builder);
+			}
+			if (B == ZERO) {
+				return texpr0_to_LLVM(a->exprA,env,Builder);
+			}
+		}
+
+		if (a->op == 2) {
+			if (A == ONE) {
+				return texpr0_to_LLVM(a->exprB,env,Builder);
+			}
+			if (B == ONE) {
+				return texpr0_to_LLVM(a->exprA,env,Builder);
+			}
+		}
+
+		/* left argument (if binary) */
+		leftop = texpr0_to_LLVM(a->exprA, env,Builder);
+	}
+
+	/* right argument */
+	ap_texpr0_t* arg = a->exprB ? a->exprB : a->exprA;
+	Value * rightop = texpr0_to_LLVM(arg,env,Builder);
+	
+	/* operator */
+	switch (a->op) {
+		case AP_TEXPR_ADD:
+			return Builder->CreateAdd(leftop,rightop);
+		case AP_TEXPR_SUB:
+			return Builder->CreateSub(leftop,rightop);
+		case AP_TEXPR_MUL: 
+			return Builder->CreateMul(leftop,rightop);
+		case AP_TEXPR_DIV:
+			return Builder->CreateSDiv(leftop,rightop);
+		case AP_TEXPR_MOD:
+			return Builder->CreateSRem(leftop,rightop);
+		case AP_TEXPR_NEG:   
+			/* Unary operator */
+			return Builder->CreateNeg(rightop);
+		case AP_TEXPR_CAST:
+		case AP_TEXPR_SQRT:
+		case AP_TEXPR_POW:
+			assert(false && "not implemented");
+	}
+
+}
+
+Value * ap_scalar_to_LLVM(ap_scalar_t & scalar, IRBuilder<> * Builder) {
+	double d;
+	ap_double_set_scalar(&d,&scalar,GMP_RNDZ);
+	return ConstantInt::get(Builder->getInt32Ty(),d);
+}
+
+Value * coeff_to_LLVM(ap_coeff_t * a, IRBuilder<> * Builder) {
+	switch(a->discr){
+		case AP_COEFF_SCALAR:
+			return ap_scalar_to_LLVM(*a->val.scalar, Builder);
+		case AP_COEFF_INTERVAL:
+			assert(false && "not implemented");
+	}
+}

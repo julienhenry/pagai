@@ -36,6 +36,7 @@ bool optimize;
 bool withinlining;
 bool onlydumpll;
 bool wcet_settings;
+bool invasmetadata;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -60,7 +61,8 @@ void show_help() {
 --dump-ll : only dump the analyzed .ll\n \
 --optimize (-O) : optimize input with -O3 before analysis\n \
 --noinline : do not inline functions\n \
---output-bc <filename> (-b) : create an annotated bc file called <filename>\n \
+--output-bc <filename> (-b) : create an annotated bc file called <filename> with calls to llvm.invariant\n \
+--output-bc-v2 <filename> : create an annotated bc file called <filename>, invariants as metadata\n \
 --force-old-output : force to use the old output\n \
 --skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
 --quiet (-q) : quiet mode : does not print anything \n \
@@ -176,6 +178,10 @@ bool WCETSettings() {
 
 bool generateMetadata() {
 	return annotatedBCFilename.size();
+}
+
+bool InvariantAsMetadata() {
+	return invasmetadata;
 }
 
 std::string getAnnotatedBCFilename() {
@@ -486,6 +492,7 @@ int main(int argc, char* argv[]) {
 	wcet_settings = false;
 	annotatedFilename = NULL;
 	annotatedBCFilename = "";
+	invasmetadata = false;
 
 	static struct option long_options[] =
 		{
@@ -510,6 +517,7 @@ int main(int argc, char* argv[]) {
 			{"timeout",    required_argument, 0, 'k'},
 			{"log-smt",    no_argument, 0, 'l'},
 			{"output-bc",  required_argument, 0, 'b'},
+			{"output-bc-v2",  required_argument, 0, 'B'},
 			{"svcomp",  no_argument, 0, 'V'},
 			{"optimize",  no_argument, 0, 'O'},
 			{"noinline",  no_argument, 0, 'I'},
@@ -520,7 +528,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzw",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -559,6 +567,11 @@ int main(int argc, char* argv[]) {
         	case 'b':
         	    arg = optarg;
 				annotatedBCFilename.assign(arg);
+        	    break;
+        	case 'B':
+        	    arg = optarg;
+				annotatedBCFilename.assign(arg);
+				invasmetadata = true;
         	    break;
         	case 'c':
         	    compare = true;

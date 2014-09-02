@@ -115,6 +115,7 @@ bool quiet_mode();
 bool log_smt_into_file();
 bool generateMetadata();
 std::string getAnnotatedBCFilename();
+bool InvariantAsMetadata();
 
 Apron_Manager_Type getApronManager();
 Apron_Manager_Type getApronManager(int i);

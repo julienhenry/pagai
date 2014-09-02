@@ -223,6 +223,8 @@ class Abstract {
 
 
 		virtual void to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met) {}
+
+		virtual void insert_as_LLVM_invariant(llvm::Instruction * Inst) {}
 };
 
 llvm::raw_ostream& operator<<( llvm::raw_ostream &stream, Abstract const& A);

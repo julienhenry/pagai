@@ -165,5 +165,7 @@ class AbstractClassic: public Abstract {
 
 		
 		void to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Value*> * met);
+
+		void insert_as_LLVM_invariant(llvm::Instruction * Inst);
 };
 #endif

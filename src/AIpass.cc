@@ -134,7 +134,7 @@ void AIPass::TerminateFunction(Function * F) {
 	PHIvars_prime.name.clear();
 	PHIvars_prime.expr.clear();
 	focuspath.clear();
-	
+
 	if (unknown) {
 		ignoreFunction[passID].insert(F);
 	}
@@ -241,13 +241,17 @@ void AIPass::InstrumentLLVMBitcode(Function * F) {
 		b = i;
 		n = Nodes[b];
 		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
-		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
+				(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
 			Instruction * Inst = b->getFirstNonPHI();
-			std::vector<Value*> arr;
-			n->X_s[passID]->to_MDNode(Inst,&arr);
-			LLVMContext& C = Inst->getContext();
-			MDNode* N = MDNode::get(C,arr);
-			Inst->setMetadata("pagai.invariant", N);
+			if (InvariantAsMetadata()) {
+				std::vector<Value*> arr;
+				n->X_s[passID]->to_MDNode(Inst,&arr);
+				LLVMContext& C = Inst->getContext();
+				MDNode* N = MDNode::get(C,arr);
+				Inst->setMetadata("pagai.invariant", N);
+			} else {
+				n->X_s[passID]->insert_as_LLVM_invariant(Inst);
+			}
 		}
 	}
 }
@@ -558,7 +562,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	Environment env2(&intdims,&realdims);
 
 	//std::vector<ap_lincons1_t> cons;
-	
+
 	Constraint_array intersect;
 
 	std::list<std::vector<Constraint*>*>::iterator i, e;
@@ -605,14 +609,14 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	}
 	if (intersect.size() > 0) {
 		DEBUG(
-			*Out << "intersecting with constraints\n";
-			intersect.print();
-			*Out << "\n";
-		 );
+				*Out << "intersecting with constraints\n";
+				intersect.print();
+				*Out << "\n";
+			 );
 		Xtemp->meet_tcons_array(&intersect);
 		DEBUG(
-			*Out << "intersecting with constraints OK\n";
-		 );
+				*Out << "intersecting with constraints OK\n";
+			 );
 	}
 
 
@@ -691,7 +695,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 				Environment CommonEnv(Succ->X_s[passID]);
 				CommonEnv = Environment::common_environment(&CommonEnv,&Xtemp_env);
 				Xseed->change_environment(&CommonEnv);
-				
+
 				Abstract * XSucc = aman->NewAbstract(Succ->X_s[passID]);
 				XSucc->change_environment(&CommonEnv);
 
@@ -1185,7 +1189,7 @@ void AIPass::visitZExtInst (ZExtInst &I){
 	Value * pv;
 	Node * nb;
 	Node * n = Nodes[focuspath.back()];
-	
+
 	if(I.getSrcTy()->isIntegerTy(1) && I.getDestTy()->isIntegerTy()) {
 		// we cast a boolean to an integer
 		// we overapproximate here...

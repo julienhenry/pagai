@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/IR/IRBuilder.h"
 
 #include "ap_global1.h"
 
@@ -336,4 +337,31 @@ void AbstractClassic::to_MDNode(llvm::Instruction * Inst, std::vector<llvm::Valu
 #endif
 	}
 	ap_tcons1_array_clear(&tcons_array);
+}
+
+void AbstractClassic::insert_as_LLVM_invariant(llvm::Instruction * Inst) {
+	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
+	size_t size = ap_tcons1_array_size(&tcons_array);
+    LLVMContext &Context = Inst->getContext();
+	
+	IRBuilder<> Builder(Context);
+	Builder.SetInsertPoint(Inst);
+	Value * invariant = invariant = ConstantInt::getTrue(Context);
+	if (ap_abstract1_is_bottom(man,main)) {
+		invariant = ConstantInt::getFalse(Context);
+	} else if (size == 0) {
+		invariant = ConstantInt::getTrue(Context);
+	} else {
+		for (size_t k = 0; k < size; k++) {
+			ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,k);
+			invariant = Builder.CreateAnd(invariant,ap_tcons1_to_LLVM(cons,&Builder));
+		}
+	}
+
+	Constant * invFn = Inst->getParent()->getParent()->getParent()->getOrInsertFunction(
+			"llvm.invariant", 
+			Type::getVoidTy(Context), 
+			Type::getInt1Ty(Context),
+			NULL);
+	Builder.CreateCall(invFn,invariant);	
 }
