@@ -227,7 +227,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 		OptPasses.add(createLCSSAPass());
 		OptPasses.add(createIndVarSimplifyPass());
 		OptPasses.add(createScalarReplAggregatesPass());
-		OptPasses.add(createLoopUnrollPass(INT_MAX,INT_MAX,1,0));
+		//OptPasses.add(createLoopUnrollPass(INT_MAX,INT_MAX,1,0));
 	}
 	OptPasses.add(createPromoteMemoryToRegisterPass());
 	OptPasses.run(*M);

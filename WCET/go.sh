@@ -5,6 +5,27 @@ SCRIPTDIR=`dirname $0`
 export LD_LIBRARY_PATH=$SCRIPTDIR/../external/z3/lib/:$LD_LIBRARY_PATH
 export PAGAI_PATH=$SCRIPTDIR/../src/
 
+function check_path () {
+	if [ -z "`which pagai`" ] ; then
+		echo "pagai not found in $PAGAI_PATH"
+		exit
+	fi
+	if [ -z "`which z3`" ] ; then
+		echo "z3 not found in \$PATH. Please update your \$PATH variable"
+		exit
+	fi
+	if [ -z "`which clang`" ] ; then
+		echo "clang not found in \$PATH. Please update your \$PATH variable"
+		exit
+	fi
+	if [ -z "`which opt`" ] ; then
+		echo "opt not found in \$PATH. Please update your \$PATH variable"
+		exit
+	fi
+}
+
+check_path
+
 function usage () {
 echo "
 Usage:
@@ -20,7 +41,6 @@ OPTION :
 	-l        : avoid non-linear arithmetic in the SMT formula
 	-d        : create .dot file
 	-n        : skip bitcode optimisations
-	-I        : with input functions when running charcute_bitcode
 	-m        : print model of the longest feasible path
 	-T <int>  : set the ulimit -t time (default:120)
 	-R        : Recursive cuts
@@ -40,7 +60,7 @@ WITHINPUTFUNCTION=""
 MATCHINGFILE=""
 ULIMIT=120
 
-while getopts “hc:lsdbmnM:S:IT:R” opt ; do
+while getopts “hc:lsdbmnM:S:T:R” opt ; do
 	case $opt in
 		h)
 			usage
@@ -71,10 +91,6 @@ while getopts “hc:lsdbmnM:S:IT:R” opt ; do
 			;;
 		b)
 			SKIPCLANG=1
-			;;
-		I)
-			# not required anymore 
-			WITHINPUTFUNCTION=""
 			;;
 		n)
 			SKIPOPTIM=1
@@ -118,13 +134,16 @@ function ccompile {
 }
 
 function bcoptimize {
-	$PAGAI_PATH/pagai -i $dir/$name.bc --dump-ll --wcet --loop-unroll > $dir/$name.ll
+	echo "Optimizing the IR file..."
+	$PAGAI_PATH/pagai -i $dir/$name.bc --dump-ll --wcet --loop-unroll > $dir/$name.opt.ll
+	name="${name}.opt"
 	llvm-as $dir/$name.ll
 }
 
 function gensmtformula {
+	echo "Generating SMT formula..."
 	if [ $NONLINEAR -eq 0 ] ; then
-		echo "$PAGAI_PATH/pagai -i $dir/$name.bc --printformula --skipnonlinear > $dir/$name.gen"
+		echo $PAGAI_PATH/pagai -i $dir/$name.bc -s z3 --wcet --printformula --skipnonlinear 
 		$PAGAI_PATH/pagai -i $dir/$name.bc -s z3 --wcet --printformula --skipnonlinear > $dir/$name.gen
 	else
 		$PAGAI_PATH/pagai -i $dir/$name.bc -s z3 --wcet --printformula > $dir/$name.gen
@@ -137,15 +156,13 @@ fi
 if [ $SKIPOPTIM -eq 0 ] ; then
 	bcoptimize
 fi
+echo -e "IR file is " $GREEN "$dir/$name.bc" $NORMAL
 
 if [ $DOT -eq 1 ] ; then
 	opt -dot-cfg $dir/$name.bc -o $dir/$name.bc
 fi
 
-
-echo "Generating SMT formula..."
 gensmtformula
-echo "Adding counter to SMT formula..."
 
 if [ $DOMATCHING -eq 1 ] ; then
 	TEXFILE=benchmarksedges.tex
@@ -164,6 +181,7 @@ if [ $RECURSIVECUTS -eq 1 ] ; then
 fi
 
 # create the formula with summaries	
+echo "Adding counter to SMT formula..."
 python $SCRIPTDIR/generateSMTwcet.py $dir/$name.gen $matchingoption $printsyntacticoption $printcutsoption > $dir/${name}${MATCHING}.smt2
 FORMULA=$dir/${name}${MATCHING}.smt2
 
@@ -178,7 +196,7 @@ echo -e "SMT formula created :" $GREEN "$FORMULA" $NORMAL
 
 # the last line of the .smt2 file gives the longest syntactic path
 MAX_BOUND=`tail -n 1 $dir/${name}${MATCHING}.smt2 | rev | cut -d' '  -f1 | rev`
-echo -e "max bound = " $RED $MAX_BOUND $NORMAL
+echo -e "Longest syntactic path has cost: " $RED $MAX_BOUND $NORMAL
 
 echo "Searching for the optimal cost..."
 ulimit -t $ULIMIT
@@ -189,8 +207,8 @@ else
 	smtopt=$SCRIPTDIR/smtopt/smtopt
 fi
 
-echo $SCRIPTDIR/$smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 
-$SCRIPTDIR/$smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 2> $FORMULA.time.smtopt\
+echo $smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 
+$smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 2> $FORMULA.time.smtopt\
 >$FORMULA.smtopt 
 HASTERMINATED=$?
 echo "process terminated with code " $HASTERMINATED
@@ -212,19 +230,19 @@ function processresult {
 			SMTTIME='$+\\infty$'
 			;;
 	esac
-	# line for the latex tabular
-	#echo -e $RED "RESULT:" $NORMAL
-	echo -e $RED "RESULT:" $GREEN
-	echo -e "Synt. \t& SMT \t& % \t& Time \t\t& Name"
-	echo -e \
-		$MAX_BOUND "\t&"\
-		$SMTRES "\t&"\
-		$PERCENTAGE_GAINED "\t&"\
-		$SMTTIME "\t& "\
-		$LLVMSIZE "\t& "\
-		$NBLLVMBLOCKS "\t& "\
-		$name $NORMAL
-	
+
+	# terminal output
+	echo -e $RED "RESULT:" $NORMAL
+	echo -e "Syntactic:  " $RED $MAX_BOUND $NORMAL
+	echo -e "SMT:        " $RED $SMTRES $NORMAL
+	echo -e "% gained:   " $BLUE $PERCENTAGE_GAINED"%" $NORMAL
+	echo -e "SMT time:   " $BLUE $SMTTIME $NORMAL
+	echo -e "LLVM size:  " $BLUE $LLVMSIZE $NORMAL
+	echo -e "#LLVM BB:   " $BLUE $NBLLVMBLOCKS $NORMAL
+
+
+	# in the following, we built the latex output
+
 	# add a \ before any occurence of _ in the name, so that LaTeX does not
 	# complain...
 	#name=`echo $name | sed  's/_/\\\\_/g'`

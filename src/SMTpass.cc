@@ -668,6 +668,7 @@ void SMTpass::computeRhoRec(Function &F,
 		ToBeComputed.pop();
 		bool first = (visited->count(b) > 0);
 		visited->insert(b);
+		if (first) continue;
 
 		if (!FPr->inPr(b) || b == dest) {
 			// we recursively construct Rho, starting from the predecessors
