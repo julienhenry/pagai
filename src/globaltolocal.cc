@@ -59,10 +59,16 @@ bool GlobalToLocal::runOnModule(Module &M) {
 				Builder.SetInsertPoint(entry->begin());
 				std::string name(global->getName());
 				AllocaInst * A = Builder.CreateAlloca(ty,NULL,Twine(name));
-				if (init) Builder.CreateStore(init,global,false);
+				if (init) {
+					Builder.CreateStore(init,global,false);
+				}
 				//we replace only inside the function
 				replaceAllUsesInFunction(i,global,A);
 				//global->replaceAllUsesWith(A);
+				if (!init) {
+					LoadInst * load = Builder.CreateLoad(global,false);
+					Builder.CreateStore(load,A);
+				}
 			}
 		}
 	}

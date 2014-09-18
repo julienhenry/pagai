@@ -34,6 +34,7 @@ bool skipnonlinear;
 bool has_timeout;
 bool optimize;
 bool withinlining;
+bool withbrutalunrolling;
 bool onlydumpll;
 bool wcet_settings;
 bool invasmetadata;
@@ -166,6 +167,10 @@ bool check_overflow() {
 
 bool inline_functions() {
 	return withinlining;
+}
+
+bool brutal_unrolling() {
+	return withbrutalunrolling;
 }
 
 bool dumpll() {
@@ -488,6 +493,7 @@ int main(int argc, char* argv[]) {
 	has_timeout = false;
 	optimize = false;
 	withinlining = true;
+	withbrutalunrolling = false;
 	onlydumpll = false;
 	wcet_settings = false;
 	annotatedFilename = NULL;
@@ -521,6 +527,7 @@ int main(int argc, char* argv[]) {
 			{"svcomp",  no_argument, 0, 'V'},
 			{"optimize",  no_argument, 0, 'O'},
 			{"noinline",  no_argument, 0, 'I'},
+			{"loop-unroll",  no_argument, 0, 'U'},
 			{"dump-ll",  no_argument, 0, 'z'},
 			{"wcet",  no_argument, 0, 'w'},
 			{NULL, 0, 0, 0}
@@ -528,7 +535,7 @@ int main(int argc, char* argv[]) {
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:U",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -560,6 +567,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'I':
         	    withinlining = false;
+        	    break;
+        	case 'U':
+        	    withbrutalunrolling = true;
         	    break;
         	case 'z':
 				onlydumpll = true;

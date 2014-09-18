@@ -217,12 +217,18 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	
 	PassManager OptPasses;
 	OptPasses.add(new GlobalToLocal());
-	//OptPasses.add(createLoopSimplifyPass());
 	OptPasses.add(createLoopRotatePass());
-	//OptPasses.add(createLCSSAPass());
-	//OptPasses.add(createLoopUnrollPass(-1,1,1,0));
+
 	if (!WCETSettings())
 		OptPasses.add(new RemoveUndet());
+
+	if (brutal_unrolling()) {
+		OptPasses.add(createLoopSimplifyPass());
+		OptPasses.add(createLCSSAPass());
+		OptPasses.add(createIndVarSimplifyPass());
+		OptPasses.add(createScalarReplAggregatesPass());
+		OptPasses.add(createLoopUnrollPass(INT_MAX,INT_MAX,1,0));
+	}
 	OptPasses.add(createPromoteMemoryToRegisterPass());
 	OptPasses.run(*M);
 
