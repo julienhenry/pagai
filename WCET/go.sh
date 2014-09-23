@@ -37,7 +37,7 @@ OPTION :
 	-M <FILE> : matching file
 	-b        : FILE given by option -c is already a bitcode FILE
 	-s        : do not add summaries in the SMT formula
-	-l        : avoid non-linear arithmetic in the SMT formula
+	-l        : allow non-linear arithmetic in the SMT formula
 	-n        : skip bitcode optimisations
 	-T <int>  : set the ulimit -t time (default:120)
 	-R        : Recursive cuts
@@ -45,7 +45,7 @@ OPTION :
 }
 
 SUMMARIES=1
-NONLINEAR=1
+NONLINEAR=0
 SKIPCLANG=0
 SKIPOPTIM=0
 PRINTMODEL=""
@@ -76,7 +76,7 @@ while getopts “hc:lsbnM:T:R” opt ; do
 			SUMMARIES=0
 			;;
 		l)
-			NONLINEAR=0
+			NONLINEAR=1
 			;;
 		b)
 			SKIPCLANG=1
