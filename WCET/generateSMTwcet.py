@@ -54,6 +54,9 @@ def match_names(blocks):
 
 label_costs = {}
 transition_costs = {}
+# read the file given by Mihail's code, that consists in tuples
+# of the form (source,destination,cost) if cost is attached to transitions
+# or form (block,cost) if cost is attached to blocks
 def readmatchingfile(matchingfile):
     global costs
     #for line in matchingfile:
@@ -533,7 +536,6 @@ def main():
             c = heappop(heap_cuts)
             cuts_file.write(c[1]+' '+c[2]+'\n')
         cuts_file.close()
-
 
     #print json.dumps(my_graph[last_var])
 sys.setrecursionlimit(10000)

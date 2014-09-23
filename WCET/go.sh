@@ -35,13 +35,10 @@ OPTION :
 	-h        : help
 	-c <FILE> : C input file
 	-M <FILE> : matching file
-	-S <FILE> : longest syntactic path file
 	-b        : FILE given by option -c is already a bitcode FILE
 	-s        : do not add summaries in the SMT formula
 	-l        : avoid non-linear arithmetic in the SMT formula
-	-d        : create .dot file
 	-n        : skip bitcode optimisations
-	-m        : print model of the longest feasible path
 	-T <int>  : set the ulimit -t time (default:120)
 	-R        : Recursive cuts
 "
@@ -49,7 +46,6 @@ OPTION :
 
 SUMMARIES=1
 NONLINEAR=1
-DOT=0
 SKIPCLANG=0
 SKIPOPTIM=0
 PRINTMODEL=""
@@ -60,7 +56,7 @@ WITHINPUTFUNCTION=""
 MATCHINGFILE=""
 ULIMIT=120
 
-while getopts “hc:lsdbmnM:S:T:R” opt ; do
+while getopts “hc:lsbnM:T:R” opt ; do
 	case $opt in
 		h)
 			usage
@@ -73,10 +69,6 @@ while getopts “hc:lsdbmnM:S:T:R” opt ; do
             DOMATCHING=1
 			MATCHINGFILE=$OPTARG
 			;;
-		S)
-            PRINTSYNTACTIC=1
-            LONGESTSYNTACTICFILE=$OPTARG
-			;;
 		T)
             ULIMIT=$OPTARG
 			;;
@@ -86,17 +78,11 @@ while getopts “hc:lsdbmnM:S:T:R” opt ; do
 		l)
 			NONLINEAR=0
 			;;
-		d)
-			DOT=1
-			;;
 		b)
 			SKIPCLANG=1
 			;;
 		n)
 			SKIPOPTIM=1
-			;;
-		m)
-			PRINTMODEL="-m"
 			;;
 		R) 
 			RECURSIVECUTS=1
@@ -158,23 +144,24 @@ if [ $SKIPOPTIM -eq 0 ] ; then
 fi
 echo -e "IR file is " $GREEN "$dir/$name.bc" $NORMAL
 
-if [ $DOT -eq 1 ] ; then
-	opt -dot-cfg $dir/$name.bc -o $dir/$name.bc
-fi
 
 gensmtformula
 
 if [ $DOMATCHING -eq 1 ] ; then
 	TEXFILE=benchmarksedges.tex
 	MATCHING=".edges"
-    matchingoption=" --matchingfile $MATCHINGFILE --smtmatching $MATCHINGFILE.smtmatch "
+    matchingoption=" --matchingfile $MATCHINGFILE "
 else
 	TEXFILE=benchmarks.tex
 	MATCHING=""
 fi
-if [ $PRINTSYNTACTIC -eq 1 ] ; then
-    printsyntacticoption=" --printlongestsyntactic $LONGESTSYNTACTICFILE "
-fi
+
+LLVMSMTMATCHING=$dir/$name.llvmtosmtmatch
+matchingoption="$matchingoption --smtmatching $LLVMSMTMATCHING "
+
+
+LONGESTSYNTACTICFILE=$dir/$name.longestsyntactic
+printsyntacticoption=" --printlongestsyntactic $LONGESTSYNTACTICFILE "
 
 if [ $RECURSIVECUTS -eq 1 ] ; then
 	printcutsoption=" --recursivecuts --printcutslist  $dir/$name.cuts"
@@ -208,10 +195,41 @@ else
 fi
 
 echo $smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 
-$smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -M $MAX_BOUND 2> $FORMULA.time.smtopt\
+$smtopt $FORMULA cost $cutsfile -v $PRINTMODEL -m -M $MAX_BOUND 2> $FORMULA.time.smtopt\
 >$FORMULA.smtopt 
 HASTERMINATED=$?
 echo "process terminated with code " $HASTERMINATED
+case $HASTERMINATED in
+	0)
+		;;
+	*)
+        echo "Failed to optimize the variable cost in the formula $FORMULA"
+        exit
+		;;
+esac
+
+function buildsvgtrace () {
+    # build the SVG graph that shows the longest path
+    opt -dot-cfg $dir/$name.bc -o $dir/$name.bc 2> $dir/.scripttmp
+    sed -i "s/'\.\.\.//g" $dir/.scripttmp
+    sed -i "s/Writing '//g" $dir/.scripttmp
+    DOTNAME=`cat $dir/.scripttmp`
+    echo python $SCRIPTDIR/buildworstcasepath.py \
+        --smtoptoutput $FORMULA.smtopt\
+        --smtmatching $LLVMSMTMATCHING\
+        --longestsyntactic $LONGESTSYNTACTICFILE\
+        --dotgraph $DOTNAME
+    python $SCRIPTDIR/buildworstcasepath.py \
+        --smtoptoutput $FORMULA.smtopt\
+        --smtmatching $LLVMSMTMATCHING\
+        --longestsyntactic $LONGESTSYNTACTICFILE\
+        --dotgraph $DOTNAME\
+        > $dir/$name.longestpaths.dot
+    
+    dot -Tsvg $dir/$name.longestpaths.dot > $dir/$name.longestpaths.svg
+}
+
+buildsvgtrace
 
 function processresult {
 	llvm-dis $dir/$name.bc
@@ -239,7 +257,9 @@ function processresult {
 	echo -e "SMT time:   " $BLUE $SMTTIME $NORMAL
 	echo -e "LLVM size:  " $BLUE $LLVMSIZE $NORMAL
 	echo -e "#LLVM BB:   " $BLUE $NBLLVMBLOCKS $NORMAL
-
+    echo -e "Have a look at the Worst-Case Paths here: (open with your favorite web browser...)" 
+    echo -e $RED $dir/$name.longestpaths.svg $NORMAL
+    echo -e ""
 
 	# in the following, we built the latex output
 
