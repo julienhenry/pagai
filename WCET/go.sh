@@ -4,6 +4,7 @@ SCRIPTDIR=`dirname $0`
 
 export LD_LIBRARY_PATH=$SCRIPTDIR/../external/z3/lib/:$LD_LIBRARY_PATH
 export PAGAI_PATH=$SCRIPTDIR/../src/
+export PATH=$SCRIPTDIR/../external/llvm/bin/:$PATH
 
 function check_path () {
 	if [ -z "`which pagai`" ] ; then

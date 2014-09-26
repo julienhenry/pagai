@@ -1,4 +1,4 @@
-Z3_PATH	= /home/henry/git/pagai/external/z3
+Z3_PATH	= ../../external/z3
 CC		= g++
 
 
