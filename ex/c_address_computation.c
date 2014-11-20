@@ -1,5 +1,7 @@
-#include <assert.h>
-#include <stdlib.h>
+#include "pagai_assert.h"
+
+typedef unsigned long size_t;
+extern void *calloc (size_t __nmemb, size_t __size);
 
 typedef double data;
 
