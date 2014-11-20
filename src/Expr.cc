@@ -4,7 +4,7 @@
  * \author Julien Henry
  */
 
-#define UNDEF_ADRESS 0x0
+#define UNDEF_ADDRESS 0x0
 #include <map>
 
 #include "llvm/Support/CFG.h"
@@ -154,7 +154,7 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 	return res;
 }
 
-int undef_ai_counter = 0;
+int* undef_ai_counter = 0;
 std::map<ap_var_t,ap_texpr_rtype_t> undef_ap_vars;
 
 bool Expr::is_undef_ap_var(ap_var_t var) {
@@ -164,8 +164,17 @@ bool Expr::is_undef_ap_var(ap_var_t var) {
 ap_texpr1_t * Expr::create_ap_expr(UndefValue * undef) {
 	ap_texpr_rtype_t ap_type;
 	if (get_ap_type(undef, ap_type)) return NULL;
+	// EACH TIME we encounter an undefined value, we have to assign it an 
+	// expression. However, in LLVM, there is only one UndefValue object and everyone
+	// points to it. As a consequence, we cannot use the address of the UndefValue
+	// to uniquely identify the undef value among the other undef uses in the code. 
+	// The trick is to use a counter, incremented each time we see an Undefvalue, 
+	// and use a fake address (UNDEF_ADDRESS + counter) which is unique to represent the 
+	// particular use of undef.
+	// TODO: this should be fixed: if we are unlucky, after some time the computed 
+	// address might equal the real address of another variable...
 	undef_ai_counter++;
-	ap_var_t v = (ap_var_t)(UNDEF_ADRESS + undef_ai_counter);
+	ap_var_t v = (ap_var_t)(UNDEF_ADDRESS + undef_ai_counter);
 	undef_ap_vars.insert(std::pair<ap_var_t,ap_texpr_rtype_t>(v,ap_type));
 	return create_ap_expr(v);
 }
