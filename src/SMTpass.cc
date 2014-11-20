@@ -494,67 +494,65 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 	SMT_expr NULL_res;
 
 	ap_texpr_rtype_t ap_type;
-	if (Expr::get_ap_type(v, ap_type)) {
-		// this may be a boolean
-		if (ap_type == AP_RTYPE_INT) {
-			// this is a boolean
-			// so we can create a boolean variable
-			SMT_expr cond;
-			if (isa<Instruction>(v) || isa<Argument>(v)) {
-				var = getBoolVar(v,primed);
-				return man->SMT_mk_expr_from_bool_var(var);
-			} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
-				// the constant is either true or false
-				if (vint->isZero()) {
-					cond = man->SMT_mk_false();
-				} else if (vint->isOne()) {
-					cond = man->SMT_mk_true();
+	switch (Expr::get_ap_type(v, ap_type)) {
+		case 0: // this is an integer or float
+			if (isa<ConstantInt>(v)) { 
+				ConstantInt * Int = dyn_cast<ConstantInt>(v);
+				int n = Int->getSExtValue();
+				return man->SMT_mk_num((int)n);
+			} else if (isa<ConstantFP>(v)) {
+				ConstantFP * FP = dyn_cast<ConstantFP>(v);
+				APFloat APF = FP->getValueAPF();
+				double x;
+				if (FP->getType()->isFloatTy()) {
+					x = (double)APF.convertToFloat();
+				} else if (FP->getType()->isDoubleTy()) {
+					x = APF.convertToDouble();
 				}
-			} 
-			if (cond.is_empty()) {
-				SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(v));
-				cond = man->SMT_mk_expr_from_bool_var(cvar);
+				if (isnan(x) || isinf(x)) {
+					// x is not a number or is infinity...
+					std::ostringstream name;
+					name << getValueName(v,false);
+					nundef++;
+					return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
+				}
+				return man->SMT_mk_real(x);
+			} else if (isa<UndefValue>(v)) {
+				std::ostringstream name;
+				//name << getValueName(v,false) << "_" << nundef;
+				name << getValueName(v,false);
+				nundef++;
+				return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
+			} else if (isa<Instruction>(v) || isa<Argument>(v)) {
+				var = getVar(v,primed);
+				return man->SMT_mk_expr_from_var(var);
+			} else {
+				var = getVar(v,primed);
+				return man->SMT_mk_expr_from_var(var);
 			}
-			return cond;
-		} else {
+		case 2: // this is a Boolean
+			{
+				SMT_expr cond;
+				if (isa<Instruction>(v) || isa<Argument>(v)) {
+					var = getBoolVar(v,primed);
+					return man->SMT_mk_expr_from_bool_var(var);
+				} else if (ConstantInt * vint = dyn_cast<ConstantInt>(v)) {
+					// the constant is either true or false
+					if (vint->isZero()) {
+						cond = man->SMT_mk_false();
+					} else if (vint->isOne()) {
+						cond = man->SMT_mk_true();
+					}
+				} 
+				if (cond.is_empty()) {
+					SMT_var cvar = man->SMT_mk_bool_var(getUndeterministicChoiceName(v));
+					cond = man->SMT_mk_expr_from_bool_var(cvar);
+				}
+				return cond;
+			}
+		case 1: // this value is not of interesting type
+			*Out << "ERROR: getValueExpr returns NULL for the following value:\n" << *v << "\n";
 			assert(false && "ERROR: getValueExpr returns NULL");
-			return NULL_res;
-		}
-	}
-
-	if (isa<ConstantInt>(v)) { 
-		ConstantInt * Int = dyn_cast<ConstantInt>(v);
-		int n = Int->getSExtValue();
-		return man->SMT_mk_num((int)n);
-	} else if (isa<ConstantFP>(v)) {
-		ConstantFP * FP = dyn_cast<ConstantFP>(v);
-		APFloat APF = FP->getValueAPF();
-		double x;
-		if (FP->getType()->isFloatTy()) {
-			x = (double)APF.convertToFloat();
-		} else if (FP->getType()->isDoubleTy()) {
-			x = APF.convertToDouble();
-		}
-		if (isnan(x) || isinf(x)) {
-			// x is not a number or is infinity...
-			std::ostringstream name;
-			name << getValueName(v,false);
-			nundef++;
-			return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
-		}
-		return man->SMT_mk_real(x);
-	} else if (isa<UndefValue>(v)) {
-		std::ostringstream name;
-		//name << getValueName(v,false) << "_" << nundef;
-		name << getValueName(v,false);
-		nundef++;
-		return man->SMT_mk_expr_from_var(man->SMT_mk_var(name.str(),getValueType(v)));
-	} else if (isa<Instruction>(v) || isa<Argument>(v)) {
-		var = getVar(v,primed);
-		return man->SMT_mk_expr_from_var(var);
-	} else {
-		var = getVar(v,primed);
-		return man->SMT_mk_expr_from_var(var);
 	}
 	return NULL_res;
 }
@@ -1069,6 +1067,9 @@ void SMTpass::visitZExtInst (ZExtInst &I) {
 		SMT_expr ite = man->SMT_mk_ite(operand0,one,zero);
 		rho_components.push_back(man->SMT_mk_eq(expr,ite));
 	} else if(I.getSrcTy()->isIntegerTy() && I.getDestTy()->isIntegerTy()) {
+		// we cast an integer to an integer of different size
+		// we assume the two integers are equal
+		// TODO: not sound
 		rho_components.push_back(man->SMT_mk_eq(operand0,expr));
 	}
 }
@@ -1145,6 +1146,10 @@ void SMTpass::visitBitCastInst (BitCastInst &I) {
 }
 
 void SMTpass::visitSelectInst (SelectInst &I) {
+	// if not interesting type, skip
+	ap_texpr_rtype_t ap_type;
+	if (Expr::get_ap_type((Value*)&I, ap_type) == 1) return;
+
 	SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 	SMT_expr TrueValue = getValueExpr(I.getTrueValue(), false);
 	SMT_expr FalseValue = getValueExpr(I.getFalseValue(), false);

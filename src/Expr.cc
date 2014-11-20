@@ -241,6 +241,10 @@ void Expr::common_environment(Expr* exp1, Expr* exp2) {
 #endif
 }
 
+// returns:
+// * 0 if the value has an interesting type (i.e. integer or float)
+// * 1 if the value has an unknown type
+// * 2 if the value is a boolean
 int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 
 	switch (val->getType()->getTypeID()) {
@@ -261,6 +265,10 @@ int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 			if (pointer_arithmetic()) {
 				// pointers are considered normal integers
 				ap_type = AP_RTYPE_INT;
+				if (val->getType()->getPrimitiveSizeInBits() == 1) {
+					// actually, this is a boolean variable
+					return 2;
+				}
 			} else { 
 				// pointers are considered unknown type
 				ap_type = AP_RTYPE_REAL;
