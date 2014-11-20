@@ -171,6 +171,8 @@ ap_texpr1_t * Expr::create_ap_expr(UndefValue * undef) {
 	// The trick is to use a counter, incremented each time we see an Undefvalue, 
 	// and use a fake address (UNDEF_ADDRESS + counter) which is unique to represent the 
 	// particular use of undef.
+	// TODO: this should be fixed: if we are unlucky, after some time the computed 
+	// address might equal the real address of another variable...
 	undef_ai_counter++;
 	ap_var_t v = (ap_var_t)(UNDEF_ADDRESS + undef_ai_counter);
 	undef_ap_vars.insert(std::pair<ap_var_t,ap_texpr_rtype_t>(v,ap_type));
