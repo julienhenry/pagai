@@ -88,10 +88,19 @@ bool compareDomain();
 bool compareNarrowing();
 
 bool onlyOutputsRho();
+
+// ignores ALL multiplications and divisions
 bool skipNonLinear();
 
 bool printAllInvariants();
+
+// check for overflows on some arithmetical operations
 bool check_overflow();
+
+// handle pointers as if they were numerical integers
+bool pointer_arithmetic();
+
+// tune for SV-COMP
 bool SVComp();
 
 enum outputs preferedOutput();

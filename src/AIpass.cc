@@ -388,7 +388,7 @@ void AIPass::loopiter(
 					Succ->X_s[passID]->print();
 					*Out << "Xtemp:\n";
 					Xtemp->print();
-				 );
+			     );
 
 			//DEBUG(
 			//	*Out << "THRESHOLD:\n";
@@ -403,13 +403,13 @@ void AIPass::loopiter(
 				Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
 					*Out << "MINIWIDENING!\n";	
-				 );
+			     );
 			delete Succ->X_s[passID];
 			Succ->X_s[passID] = Xtemp;
 			DEBUG(
 					*Out << "AFTER MINIWIDENING\n";	
 					Xtemp->print();
-				 );
+			     );
 
 			Xtemp = aman->NewAbstract(n->X_s[passID]);
 			computeTransform(aman,n,*path,Xtemp);
@@ -418,7 +418,7 @@ void AIPass::loopiter(
 					n->X_s[passID]->print();
 					*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
 					Xtemp->print();
-				 );
+			     );
 
 			delete Succ->X_s[passID];
 			Succ->X_s[passID] = Xpred;
@@ -572,7 +572,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 					*Out << "Constraint: ";
 					((*i)->front())->print();
 					*Out << "\n";
-				 );
+			     );
 			//Xtemp->meet_tcons_array((*i)->front());
 			intersect.add_constraint((*i)->front());
 			//*Out << "constraint : \n";
@@ -585,7 +585,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 		} else {
 			DEBUG(
 					*Out << "multiple contraints:\n";
-				 );
+			     );
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
 			std::vector<Abstract*> A_Constraints;
@@ -602,7 +602,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			Xtemp->join_array(&Xtemp_env,A);
 			DEBUG(
 					*Out << "multiple contraints OK\n";
-				 );
+			     );
 		}
 		// delete the vector
 		delete *i;
@@ -612,11 +612,11 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 				*Out << "intersecting with constraints\n";
 				intersect.print();
 				*Out << "\n";
-			 );
+		     );
 		Xtemp->meet_tcons_array(&intersect);
 		DEBUG(
 				*Out << "intersecting with constraints OK\n";
-			 );
+		     );
 	}
 
 
@@ -628,7 +628,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			expr.print();
 			*Out << "\n";
 			}
-		 );
+	     );
 	Xtemp->assign_texpr_array(&PHIvars_prime.name,&PHIvars_prime.expr,NULL);
 
 	succ->setEnv(&env2);
@@ -708,7 +708,7 @@ bool AIPass::computeWideningSeed(Function * F) {
 							*Out << "Succ\n";
 							Succ->X_s[passID]->print();
 							*Out << "SEED FOUND: " << *(n->bb) << "\n";
-						 );
+					     );
 					Join.clear();
 					Join.push_back(aman->NewAbstract(Xtemp));
 					Join.push_back(aman->NewAbstract(Succ->X_d[passID]));
@@ -790,7 +790,7 @@ bool AIPass::computeCastCondition(CastInst * inst,
 
 	DEBUG(
 			*Out << "CAST CONDITION\n";
-		 );
+	     );
 	if(inst->getSrcTy()->isIntegerTy() && inst->getDestTy()->isIntegerTy(1)) {
 		// we cast an integer to a boolean
 		Value * pv = inst->getOperand(0);
@@ -1059,6 +1059,7 @@ void AIPass::visitSwitchInst (SwitchInst &I){
 
 void AIPass::visitIndirectBrInst (IndirectBrInst &I){
 	//*Out << "IndirectBrInst\n" << I << "\n";	
+	// TODO
 }
 
 void AIPass::visitInvokeInst (InvokeInst &I){
@@ -1099,16 +1100,16 @@ void AIPass::visitStoreInst (StoreInst &I){
 void AIPass::visitGetElementPtrInst (GetElementPtrInst &I){
 	//*Out << "GetElementPtrInst\n" << I << "\n";	
 
-#ifdef POINTER_ARITHMETIC
-	Node * n = Nodes[focuspath.back()];
-	ap_texpr_rtype_t ap_type;
-	Expr exp((Value*)&I);
-	Environment * env = exp.getEnv();
-	insert_env_vars_into_node_vars(env,n,(Value*)&I);
-        delete env;
-#else
-	visitInstAndAddVarIfNecessary(I);
-#endif
+	if (pointer_arithmetic()) {
+		Node * n = Nodes[focuspath.back()];
+		ap_texpr_rtype_t ap_type;
+		Expr exp((Value*)&I);
+		Environment * env = exp.getEnv();
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
+		delete env;
+	} else {
+		visitInstAndAddVarIfNecessary(I);
+	}
 }
 
 void AIPass::visitPHINode (PHINode &I){
@@ -1124,7 +1125,7 @@ void AIPass::visitPHINode (PHINode &I){
 	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 	DEBUG(
 			*Out << I << "\n";
-		 );
+	     );
 
 	// if the PHINode has actually one single incoming edge, we just say the
 	// value is equal to its associated expression
@@ -1158,14 +1159,14 @@ void AIPass::visitPHINode (PHINode &I){
 							*Out << I << " is equal to ";
 							expr.print();
 							*Out << "\n";
-						 );
+					     );
 				}
 			} else {
 				DEBUG(
 						*Out << I << " is equal to ";
 						expr.print();
 						*Out << "\n";
-					 );
+				     );
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
 					if (isa<UndefValue>(pv)) continue;
@@ -1249,31 +1250,31 @@ void AIPass::visitSIToFPInst (SIToFPInst &I){
 void AIPass::visitPtrToIntInst (PtrToIntInst &I){
 	//*Out << "PtrToIntInst\n" << I << "\n";	
 
-#ifdef POINTER_ARITHMETIC
-	Node * n = Nodes[focuspath.back()];
-	ap_texpr_rtype_t ap_type;
-	Expr exp((Value*)&I);
-	Environment * env = exp.getEnv();
-	insert_env_vars_into_node_vars(env,n,(Value*)&I);
-        delete env;
-#else
-	visitInstAndAddVarIfNecessary(I);
-#endif
+	if (pointer_arithmetic()) {
+		Node * n = Nodes[focuspath.back()];
+		ap_texpr_rtype_t ap_type;
+		Expr exp((Value*)&I);
+		Environment * env = exp.getEnv();
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
+		delete env;
+	} else {
+		visitInstAndAddVarIfNecessary(I);
+	}
 }
 
 void AIPass::visitIntToPtrInst (IntToPtrInst &I){
 	//*Out << "IntToPtrInst\n" << I << "\n";	
 
-#ifdef POINTER_ARITHMETIC
-	Node * n = Nodes[focuspath.back()];
-	ap_texpr_rtype_t ap_type;
-	Expr exp((Value*)&I);
-	Environment * env = exp.getEnv();
-	insert_env_vars_into_node_vars(env,n,(Value*)&I);
-        delete env;
-#else
-	visitInstAndAddVarIfNecessary(I);
-#endif
+	if (pointer_arithmetic()) {
+		Node * n = Nodes[focuspath.back()];
+		ap_texpr_rtype_t ap_type;
+		Expr exp((Value*)&I);
+		Environment * env = exp.getEnv();
+		insert_env_vars_into_node_vars(env,n,(Value*)&I);
+		delete env;
+	} else {
+		visitInstAndAddVarIfNecessary(I);
+	}
 }
 
 void AIPass::visitBitCastInst (BitCastInst &I){
@@ -1361,6 +1362,10 @@ void AIPass::visitCastInst (CastInst &I){
 	visitInstAndAddVarIfNecessary(I);
 }
 
+// This method creates a fresh variable for the instruction, to be used as a dimension
+// of the next abstract value, if the instruction satisfies the criteria to be tracked:
+// * its value should be of the right type (e.g. integer of floating point)
+// * its value is live by linearity in the destination node of the path
 void AIPass::visitInstAndAddVarIfNecessary(Instruction &I) {
 	Node * n = Nodes[focuspath.back()];
 	ap_var_t var = (Value *) &I; 

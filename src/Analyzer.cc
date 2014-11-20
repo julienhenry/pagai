@@ -38,6 +38,7 @@ bool withbrutalunrolling;
 bool onlydumpll;
 bool wcet_settings;
 bool invasmetadata;
+bool handlepointers;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
@@ -58,6 +59,7 @@ void show_help() {
 --main <name> (-m) : only analyze the function <name>\n \
 --no-undefined-check : do not verify integer overflows\n \
 --svcomp : SV-Comp mode\n \
+--pointers : handles pointers as integers\n \
 --wcet : WCET mode (does not inserts counters yet)\n \
 --dump-ll : only dump the analyzed .ll\n \
 --optimize (-O) : optimize input with -O3 before analysis\n \
@@ -163,6 +165,10 @@ bool printAllInvariants() {
 
 bool check_overflow() {
 	return oflcheck;
+}
+
+bool pointer_arithmetic() {
+	return handlepointers;
 }
 
 bool inline_functions() {
@@ -484,6 +490,7 @@ int main(int argc, char* argv[]) {
 	force_old_output = false;
 	output_annotated = false;
 	oflcheck = true;
+	handlepointers = false;
 	svcomp = false;
 	log_smt = false;
 	n_totalpaths = 0;
@@ -530,12 +537,13 @@ int main(int argc, char* argv[]) {
 			{"loop-unroll",  no_argument, 0, 'U'},
 			{"dump-ll",  no_argument, 0, 'z'},
 			{"wcet",  no_argument, 0, 'w'},
+			{"pointers",  no_argument, 0, 'P'},
 			{NULL, 0, 0, 0}
 		};
 	/* getopt_long stores the option index here. */
 	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:U",long_options,&option_index)) != -1) {
+	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:UP",long_options,&option_index)) != -1) {
         switch (o) {
 			case 0:
 				assert(false);
@@ -564,6 +572,9 @@ int main(int argc, char* argv[]) {
         	    break;
         	case 'v':
         	    oflcheck = false;
+        	    break;
+        	case 'P':
+        	    handlepointers = true;
         	    break;
         	case 'I':
         	    withinlining = false;

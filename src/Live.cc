@@ -10,6 +10,7 @@
 
 #include "Live.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 using namespace llvm;
 
@@ -60,6 +61,8 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock) {
 		for (Value::use_iterator I = V->use_begin(), E = V->use_end();
 				I != E; ++I) {
 			User *U = *I;
+			// if the use is an operand of a linear binary operation, then we should keep
+			// it live
 			if (BinaryOperator * binop = dyn_cast<BinaryOperator>(U)) {
 				switch (binop->getOpcode()) {
 					case Instruction::Add : 
@@ -73,6 +76,19 @@ bool Live::isLiveByLinearityInBlock(Value *V, BasicBlock *BB, bool PHIblock) {
 						break;
 				}
 			}
+			if (pointer_arithmetic()) {
+				// IF WE USE POINTER ARITHMETIC:
+				// if the use serves for computing a address using a getelementptr intstruction
+				// then the result of this getelementptr will be a linear expression involving
+				// the variable. Then, this case is similar to a standard addition, and we 
+				// have to keep the variable live
+				// (Recall that pointers are considered integers)
+				if (GetElementPtrInst * geteltptr = dyn_cast<GetElementPtrInst>(U)) {
+					if (isLiveByLinearityInBlock(geteltptr,BB,PHIblock)) 
+						return true;
+				}
+			}
+
 		}
 	}
 	//*Out << *V << "is NOT Live Through " << BB << "\n";
@@ -146,9 +162,9 @@ Live::Memo &Live::compute( Value *V) {
 
 			// we should add to LiveThrough Block the predecessors of the block,
 			// which comes to the right path (phi-variable)
-			
+
 			//M.LiveThrough.insert(UseBB);
-			
+
 			Block Pred(phi->getIncomingBlock(I),false);
 			S.push(Pred);
 
@@ -161,31 +177,31 @@ Live::Memo &Live::compute( Value *V) {
 		}
 	}
 
-		while (!S.empty()) {
-			Block BB = S.top();
-			S.pop();
-			if (BB.PHIblock == true) {
-				if (!M.LiveThroughPHI.count(BB.b)) {
-					M.LiveThroughPHI.insert(BB.b);
-					if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
-						for (pred_iterator p = pred_begin(BB.b), e = pred_end(BB.b); 
-								p != e; 
-								++p){
-							Block Pred(*p,false);
-							S.push(Pred);
-						}
-					}
-				}
-			} else {
-				if (!M.LiveThrough.count(BB.b)) {
-					M.LiveThrough.insert(BB.b);
-					if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
-						Block Pred(BB.b,true);
+	while (!S.empty()) {
+		Block BB = S.top();
+		S.pop();
+		if (BB.PHIblock == true) {
+			if (!M.LiveThroughPHI.count(BB.b)) {
+				M.LiveThroughPHI.insert(BB.b);
+				if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
+					for (pred_iterator p = pred_begin(BB.b), e = pred_end(BB.b); 
+							p != e; 
+							++p){
+						Block Pred(*p,false);
 						S.push(Pred);
 					}
 				}
 			}
+		} else {
+			if (!M.LiveThrough.count(BB.b)) {
+				M.LiveThrough.insert(BB.b);
+				if (BB.b != DefB.b || BB.PHIblock != DefB.PHIblock) {
+					Block Pred(BB.b,true);
+					S.push(Pred);
+				}
+			}
 		}
+	}
 
 	return M;
 }

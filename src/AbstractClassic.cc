@@ -19,6 +19,7 @@
 #include "apron.h"
 #include "apron_MD.h"
 #include "Analyzer.h"
+#include "Debug.h"
 
 AbstractClassic::AbstractClassic(ap_manager_t* _man, Environment * env) {
 	main = new ap_abstract1_t(ap_abstract1_bottom(_man,env->getEnv()));
@@ -256,6 +257,12 @@ void AbstractClassic::display(llvm::raw_ostream &stream, std::string * left) con
 	
 
 #if 1
+	DEBUG(
+	// first, print the environment
+	Environment env(main->env);
+	stream << "Abstract value environment:\n" << env << "\n";
+	);
+
 	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
 	size_t size = ap_tcons1_array_size(&tcons_array);
 	if (ap_abstract1_is_bottom(man,main)) {

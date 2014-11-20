@@ -87,7 +87,7 @@ Expr::Expr(const Expr &exp) {
 Expr::Expr(Expr * exp) {
 	ap_expr = ap_texpr1_copy(exp->ap_expr);
 }
-		
+
 Expr::Expr(double d) {
 	Environment env;
 	ap_expr = ap_texpr1_cst_scalar_double(env.getEnv(),d);
@@ -156,7 +156,7 @@ ap_texpr1_t * Expr::create_ap_expr(Constant * val) {
 
 int undef_ai_counter = 0;
 std::map<ap_var_t,ap_texpr_rtype_t> undef_ap_vars;
-		
+
 bool Expr::is_undef_ap_var(ap_var_t var) {
 	return undef_ap_vars.count(var);
 }
@@ -191,14 +191,14 @@ ap_texpr1_t * Expr::create_ap_expr(ap_var_t var) {
 }
 
 void Expr::create_constraints (
-	ap_constyp_t constyp,
-	Expr * expr,
-	Expr * nexpr,
-	std::vector<Constraint*> * t_cons
-	) {
-	
+		ap_constyp_t constyp,
+		Expr * expr,
+		Expr * nexpr,
+		std::vector<Constraint*> * t_cons
+		) {
+
 	Constraint * cons;
-	
+
 	if (constyp == AP_CONS_DISEQ) {
 		// we have a disequality constraint. We tranform it into 2 different
 		// constraints: < and >, in order to create further 2 abstract values
@@ -224,7 +224,7 @@ void Expr::common_environment(Expr* exp1, Expr* exp2) {
 	/* equivalent */
 	ap_texpr1_t * exp1_new = ap_texpr1_extend_environment(exp1->ap_expr,common.getEnv());
 	ap_texpr1_t * exp2_new = ap_texpr1_extend_environment(exp2->ap_expr,common.getEnv());
-	
+
 	ap_texpr1_free(exp1->ap_expr);
 	ap_texpr1_free(exp2->ap_expr);
 	exp1->ap_expr = exp1_new;
@@ -248,11 +248,16 @@ int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 				return 2;
 			}
 			break;
-#ifdef POINTER_ARITHMETIC
-	        case Type::PointerTyID:
-		        ap_type = AP_RTYPE_INT;
-	                break;
-#endif
+		case Type::PointerTyID:
+			if (pointer_arithmetic()) {
+				// pointers are considered normal integers
+				ap_type = AP_RTYPE_INT;
+			} else { 
+				// pointers are considered unknown type
+				ap_type = AP_RTYPE_REAL;
+				return 1;
+			}
+			break;
 		case Type::X86_FP80TyID:
 			ap_type = AP_RTYPE_REAL;
 			break;
@@ -351,30 +356,30 @@ ap_texpr1_t * Expr::visitStoreInst (StoreInst &I){
 }
 
 ap_texpr1_t * Expr::visitGetElementPtrInst (GetElementPtrInst &I){
-#ifdef POINTER_ARITHMETIC
-  const PointerType* ptrType = static_cast<PointerType*>(I.getPointerOperandType());
-  Type* type = ptrType -> getElementType();
+	if (pointer_arithmetic()) {
+		const PointerType* ptrType = static_cast<PointerType*>(I.getPointerOperandType());
+		Type* type = ptrType -> getElementType();
 
-  const BasicBlock *bb = I.getParent();
-  const Function *fn = bb->getParent();
-  const Module *mod = fn->getParent();
-  const DataLayout layout(mod);
-  const ::uint64_t size=layout.getTypeAllocSize(type);
+		const BasicBlock *bb = I.getParent();
+		const Function *fn = bb->getParent();
+		const Module *mod = fn->getParent();
+		const DataLayout layout(mod);
+		const ::uint64_t size=layout.getTypeAllocSize(type);
 
-	Value * op1 = I.getOperand(0);
-	Value * op2 = I.getOperand(1);
-	ap_texpr1_t * exp1 = create_expression(op1);
-	ap_texpr1_t * exp2 = create_expression(op2);
-	Environment::common_environment(exp1,exp2);
-	ap_texpr1_t * exp3 = ap_texpr1_cst_scalar_int(exp1->env, size);
-	ap_texpr1_t * exp4 = ap_texpr1_binop(AP_TEXPR_MUL, exp2, exp3, AP_RTYPE_INT, AP_RDIR_RND);
+		Value * op1 = I.getOperand(0);
+		Value * op2 = I.getOperand(1);
+		ap_texpr1_t * exp1 = create_expression(op1);
+		ap_texpr1_t * exp2 = create_expression(op2);
+		Environment::common_environment(exp1,exp2);
+		ap_texpr1_t * exp3 = ap_texpr1_cst_scalar_int(exp1->env, size);
+		ap_texpr1_t * exp4 = ap_texpr1_binop(AP_TEXPR_MUL, exp2, exp3, AP_RTYPE_INT, AP_RDIR_RND);
 
-	ap_texpr1_t * exp = ap_texpr1_binop(AP_TEXPR_ADD, exp1, exp4, AP_RTYPE_INT, AP_RDIR_RND);
+		ap_texpr1_t * exp = ap_texpr1_binop(AP_TEXPR_ADD, exp1, exp4, AP_RTYPE_INT, AP_RDIR_RND);
 
-	return exp;
-#else
-	return visitInstAndAddVar(I);
-#endif
+		return exp;
+	} else {
+		return visitInstAndAddVar(I);
+	}
 }
 
 ap_texpr1_t * Expr::visitPHINode (PHINode &I){
@@ -447,19 +452,15 @@ ap_texpr1_t * Expr::visitSIToFPInst (SIToFPInst &I){
 }
 
 ap_texpr1_t * Expr::visitPtrToIntInst (PtrToIntInst &I){
-#ifdef POINTER_ARITHMETIC
-	return create_expression(I.getOperand(0));
-#else
+	if (pointer_arithmetic())
+		return create_expression(I.getOperand(0));
 	return visitInstAndAddVar(I);
-#endif
 }
 
 ap_texpr1_t * Expr::visitIntToPtrInst (IntToPtrInst &I){
-#ifdef POINTER_ARITHMETIC
-	return create_expression(I.getOperand(0));
-#else
+	if (pointer_arithmetic())
+		return create_expression(I.getOperand(0));
 	return visitInstAndAddVar(I);
-#endif
 }
 
 ap_texpr1_t * Expr::visitBitCastInst (BitCastInst &I){
