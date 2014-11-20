@@ -247,6 +247,11 @@ int Expr::get_ap_type(Value * val,ap_texpr_rtype_t &ap_type) {
 				return 2;
 			}
 			break;
+#ifdef POINTER_ARITHMETIC
+	        case Type::PointerTyID:
+		        ap_type = AP_RTYPE_INT;
+	                break;
+#endif
 		case Type::X86_FP80TyID:
 			ap_type = AP_RTYPE_REAL;
 			break;

@@ -6,6 +6,9 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+// DM 2014-11-20 experimental
+#define POINTER_ARITHMETIC
+
 // Don't use LLVM's DEBUG statement
 #undef DEBUG
 

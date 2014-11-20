@@ -1091,9 +1091,19 @@ void SMTpass::visitSIToFPInst (SIToFPInst &I) {
 }
 
 void SMTpass::visitPtrToIntInst (PtrToIntInst &I) {
+#ifdef POINTER_ARITHMETIC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitIntToPtrInst (IntToPtrInst &I) {
+#ifdef POINTER_ARITHMETIC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitBitCastInst (BitCastInst &I) {
