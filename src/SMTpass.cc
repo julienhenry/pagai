@@ -1052,6 +1052,11 @@ void SMTpass::visitTruncInst (TruncInst &I) {
 		SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));	
 		rho_components.push_back(man->SMT_mk_eq(expr,cmp));
 	}
+#ifdef NAIVE_TRUNC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitZExtInst (ZExtInst &I) {
@@ -1069,12 +1074,27 @@ void SMTpass::visitZExtInst (ZExtInst &I) {
 }
 
 void SMTpass::visitSExtInst (SExtInst &I) {
+#ifdef NAIVE_TRUNC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitFPTruncInst (FPTruncInst &I) {
+#ifdef NAIVE_TRUNC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitFPExtInst (FPExtInst &I) {
+#ifdef NAIVE_TRUNC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr assign = getValueExpr(I.getOperand(0), false);
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif
 }
 
 void SMTpass::visitFPToUIInst (FPToUIInst &I) {

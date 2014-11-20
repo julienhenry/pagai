@@ -8,6 +8,7 @@
 
 // DM 2014-11-20 experimental
 #define POINTER_ARITHMETIC
+#define NAIVE_TRUNC
 
 // Don't use LLVM's DEBUG statement
 #undef DEBUG
