@@ -7,13 +7,13 @@
 #define DEBUG_H
 
 // DM 2014-11-20 experimental
-#define POINTER_ARITHMETIC
-#define NAIVE_TRUNC
+//#define POINTER_ARITHMETIC
+//#define NAIVE_TRUNC
 
 // Don't use LLVM's DEBUG statement
 #undef DEBUG
 
-#define PRINT_DEBUG
+// #define PRINT_DEBUG
 
 #ifdef PRINT_DEBUG
 #define DEBUG(X) do {X} while (0)
