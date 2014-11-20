@@ -16,6 +16,7 @@
 
 #include "llvm/Support/CFG.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
 
 #include "Pr.h"
 #include "SMTpass.h"
@@ -952,11 +953,6 @@ void SMTpass::visitInvokeInst (InvokeInst &I) {
 	rho_components.push_back(man->SMT_mk_eq(eexpr,man->SMT_mk_and(components)));
 }
 
-#if LLVM_VERSION_MAJOR < 3 || LLVM_VERSION_MINOR == 0
-void SMTpass::visitUnwindInst (UnwindInst &I) {
-}
-#endif
-
 void SMTpass::visitUnreachableInst (UnreachableInst &I) {
 }
 
@@ -970,6 +966,25 @@ void SMTpass::visitStoreInst (StoreInst &I) {
 }
 
 void SMTpass::visitGetElementPtrInst (GetElementPtrInst &I) {
+#ifdef POINTER_ARITHMETIC
+  const SMT_expr expr = getValueExpr(&I, is_primed(I.getParent(),I));
+  const SMT_expr op0 = getValueExpr(I.getOperand(0), false);
+  const SMT_expr op1 = getValueExpr(I.getOperand(1), false);
+  const PointerType* ptrType = static_cast<PointerType*>(I.getPointerOperandType());
+  Type* type = ptrType -> getElementType();
+
+  const BasicBlock *bb = I.getParent();
+  const Function *fn = bb->getParent();
+  const Module *mod = fn->getParent();
+  const DataLayout layout(mod);
+  const ::uint64_t size=layout.getTypeAllocSize(type);
+
+  // TODO check bit width
+  SMT_expr prod = man->SMT_mk_mul(man->SMT_mk_num(size), op1);
+  SMT_expr assign = man->SMT_mk_sum(op0, prod);
+
+  rho_components.push_back(man->SMT_mk_eq(expr,assign));
+#endif  
 }
 
 SMT_expr SMTpass::construct_phi_ite(PHINode &I, unsigned i, unsigned n) {
