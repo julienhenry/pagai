@@ -1105,7 +1105,17 @@ void AIPass::visitStoreInst (StoreInst &I){
 
 void AIPass::visitGetElementPtrInst (GetElementPtrInst &I){
 	//*Out << "GetElementPtrInst\n" << I << "\n";	
+
+#ifdef POINTER_ARITHMETIC
+	Node * n = Nodes[focuspath.back()];
+	ap_texpr_rtype_t ap_type;
+	Expr exp((Value*)&I);
+	Environment * env = exp.getEnv();
+	insert_env_vars_into_node_vars(env,n,(Value*)&I);
+        delete env;
+#else
 	visitInstAndAddVarIfNecessary(I);
+#endif
 }
 
 void AIPass::visitPHINode (PHINode &I){
@@ -1245,12 +1255,32 @@ void AIPass::visitSIToFPInst (SIToFPInst &I){
 
 void AIPass::visitPtrToIntInst (PtrToIntInst &I){
 	//*Out << "PtrToIntInst\n" << I << "\n";	
+
+#ifdef POINTER_ARITHMETIC
+	Node * n = Nodes[focuspath.back()];
+	ap_texpr_rtype_t ap_type;
+	Expr exp((Value*)&I);
+	Environment * env = exp.getEnv();
+	insert_env_vars_into_node_vars(env,n,(Value*)&I);
+        delete env;
+#else
 	visitInstAndAddVarIfNecessary(I);
+#endif
 }
 
 void AIPass::visitIntToPtrInst (IntToPtrInst &I){
 	//*Out << "IntToPtrInst\n" << I << "\n";	
+
+#ifdef POINTER_ARITHMETIC
+	Node * n = Nodes[focuspath.back()];
+	ap_texpr_rtype_t ap_type;
+	Expr exp((Value*)&I);
+	Environment * env = exp.getEnv();
+	insert_env_vars_into_node_vars(env,n,(Value*)&I);
+        delete env;
+#else
 	visitInstAndAddVarIfNecessary(I);
+#endif
 }
 
 void AIPass::visitBitCastInst (BitCastInst &I){

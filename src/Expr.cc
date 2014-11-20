@@ -9,6 +9,7 @@
 
 #include "llvm/Support/CFG.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
 
 #include "Expr.h"
 #include "apron.h"
@@ -350,7 +351,30 @@ ap_texpr1_t * Expr::visitStoreInst (StoreInst &I){
 }
 
 ap_texpr1_t * Expr::visitGetElementPtrInst (GetElementPtrInst &I){
+#ifdef POINTER_ARITHMETIC
+  const PointerType* ptrType = static_cast<PointerType*>(I.getPointerOperandType());
+  Type* type = ptrType -> getElementType();
+
+  const BasicBlock *bb = I.getParent();
+  const Function *fn = bb->getParent();
+  const Module *mod = fn->getParent();
+  const DataLayout layout(mod);
+  const ::uint64_t size=layout.getTypeAllocSize(type);
+
+	Value * op1 = I.getOperand(0);
+	Value * op2 = I.getOperand(1);
+	ap_texpr1_t * exp1 = create_expression(op1);
+	ap_texpr1_t * exp2 = create_expression(op2);
+	Environment::common_environment(exp1,exp2);
+	ap_texpr1_t * exp3 = ap_texpr1_cst_scalar_int(exp1->env, size);
+	ap_texpr1_t * exp4 = ap_texpr1_binop(AP_TEXPR_MUL, exp2, exp3, AP_RTYPE_INT, AP_RDIR_RND);
+
+	ap_texpr1_t * exp = ap_texpr1_binop(AP_TEXPR_ADD, exp1, exp4, AP_RTYPE_INT, AP_RDIR_RND);
+
+	return exp;
+#else
 	return visitInstAndAddVar(I);
+#endif
 }
 
 ap_texpr1_t * Expr::visitPHINode (PHINode &I){
@@ -423,11 +447,19 @@ ap_texpr1_t * Expr::visitSIToFPInst (SIToFPInst &I){
 }
 
 ap_texpr1_t * Expr::visitPtrToIntInst (PtrToIntInst &I){
+#ifdef POINTER_ARITHMETIC
+	return create_expression(I.getOperand(0));
+#else
 	return visitInstAndAddVar(I);
+#endif
 }
 
 ap_texpr1_t * Expr::visitIntToPtrInst (IntToPtrInst &I){
+#ifdef POINTER_ARITHMETIC
+	return create_expression(I.getOperand(0));
+#else
 	return visitInstAndAddVar(I);
+#endif
 }
 
 ap_texpr1_t * Expr::visitBitCastInst (BitCastInst &I){
