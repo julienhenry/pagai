@@ -468,6 +468,9 @@ const std::string SMTpass::getVarName(Value * v) {
 
 SMT_type SMTpass::getValueType(Value * v) {
 	switch (v->getType()->getTypeID()) {
+		case Type::PointerTyID:
+			if (!pointer_arithmetic()) {assert(false && "this code should be unreachable");};
+			// no break is done on purpose, since pointer == integer in this case
 		case Type::IntegerTyID:
 			if (v->getType()->getPrimitiveSizeInBits() == 1) {
 				return man->bool_type;
@@ -500,6 +503,8 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 				ConstantInt * Int = dyn_cast<ConstantInt>(v);
 				int n = Int->getSExtValue();
 				return man->SMT_mk_num((int)n);
+			} else if (isa<ConstantPointerNull>(v)) {
+				return man->SMT_mk_num((int)0);
 			} else if (isa<ConstantFP>(v)) {
 				ConstantFP * FP = dyn_cast<ConstantFP>(v);
 				APFloat APF = FP->getValueAPF();

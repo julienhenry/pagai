@@ -119,7 +119,7 @@ SMT_expr z3_manager::SMT_mk_diseq (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr z3_manager::SMT_mk_ite (SMT_expr c, SMT_expr t, SMT_expr e){
-    expr ite  = to_expr(ctx, Z3_mk_ite(ctx, *c.expr(), *t.expr(), *e.expr()));
+	expr ite  = to_expr(ctx, Z3_mk_ite(ctx, *c.expr(), *t.expr(), *e.expr()));
 	return SMT_expr(expr(ite));
 }
 
@@ -220,12 +220,12 @@ SMT_expr z3_manager::SMT_mk_div (SMT_expr a1, SMT_expr a2, bool integer) {
 }
 
 SMT_expr z3_manager::SMT_mk_rem (SMT_expr a1, SMT_expr a2) {
-    expr r  = to_expr(ctx, Z3_mk_rem(ctx, *a1.expr(), *a2.expr()));
+	expr r  = to_expr(ctx, Z3_mk_rem(ctx, *a1.expr(), *a2.expr()));
 	return SMT_expr(r);
 }
 
 SMT_expr z3_manager::SMT_mk_xor (SMT_expr a1, SMT_expr a2) {
-    expr r = to_expr(ctx, Z3_mk_xor(ctx, *a1.expr(), *a2.expr()));
+	expr r = to_expr(ctx, Z3_mk_xor(ctx, *a1.expr(), *a2.expr()));
 	return SMT_expr(r);
 	// next line is bit-wise xor
 	// return SMT_expr(expr(*a1.expr() ^ *a2.expr()));
@@ -248,18 +248,18 @@ SMT_expr z3_manager::SMT_mk_ge (SMT_expr a1, SMT_expr a2){
 }
 
 SMT_expr z3_manager::SMT_mk_int2real(SMT_expr a) {
-    expr r  = to_real(*a.expr());
+	expr r  = to_real(*a.expr());
 	return SMT_expr(expr(r));
 }
 
 SMT_expr z3_manager::SMT_mk_real2int(SMT_expr a) {
-    expr r  = to_expr(ctx, Z3_mk_real2int(ctx, *a.expr()));
+	expr r  = to_expr(ctx, Z3_mk_real2int(ctx, *a.expr()));
 	return SMT_expr(expr(r));
 }
 
 SMT_expr z3_manager::SMT_mk_is_int(SMT_expr a) {
 	assert(Z3_get_sort_kind(ctx, Z3_get_sort(ctx, *a.expr())) == Z3_REAL_SORT);
-    expr r  = to_expr(ctx, Z3_mk_is_int(ctx, *a.expr()));
+	expr r  = to_expr(ctx, Z3_mk_is_int(ctx, *a.expr()));
 	return SMT_expr(expr(r));
 }
 
@@ -310,54 +310,63 @@ int z3_manager::SMT_check(SMT_expr a, std::set<std::string> * true_booleans){
 		case unsat:
 			DEBUG(
 					*Out << "unsat\n";
-				 );
+			     );
 			ret = 0;
 			break;
 		case unknown:
 			DEBUG(
-			*Out << "unknown\n";
-			);
+					*Out << "unknown\n";
+			     );
 			*Out << "UNKNOWN\n";
 			ret = -1;
 			break;
 		case sat:
 			DEBUG(
 					*Out << "sat\n";
-				 );
+			     );
 			ret = 1;
-			DEBUG(
-					DEBUG_SMT(
-						//*Out << Z3_model_to_string(ctx,m);
-						);
-				 );
 			model m = s->get_model();
+			//DEBUG_SMT(
+			//*Out << Z3_model_to_string(ctx,m);
+			//);
 			unsigned n = m.num_consts();
+			std::ostringstream oss_true;
+			std::ostringstream oss_false;
+			std::ostringstream oss;
 			for (unsigned i = 0; i < n; i++) {
 				func_decl decl = m.get_const_decl(i);
 				expr v = m.get_const_interp(decl);
 				std::string name = decl.name().str();
 
-				if (v.is_bool()) {
-						switch (Z3_get_bool_value(ctx,v)) {
-							case Z3_L_FALSE:
-								//DEBUG(
-								//	*Out << "false\n";
-								//);
-								break;
-							case Z3_L_UNDEF:
-								//DEBUG(
-								//*Out << "undef\n";
-								//);
-								break;
-							case Z3_L_TRUE:
-								//DEBUG(
-								//);
-								true_booleans->insert(name);
-								break;
-						}
 
+				if (v.is_bool()) {
+					switch (Z3_get_bool_value(ctx,v)) {
+						case Z3_L_FALSE:
+							DEBUG_SMT(
+									oss_false << name << " := false\n";
+								 );
+							break;
+						case Z3_L_UNDEF:
+							DEBUG_SMT(
+									oss_true << name << " := undef\n";
+								 );
+							break;
+						case Z3_L_TRUE:
+							DEBUG_SMT(
+									oss_true << name << " := true\n";
+								 );
+							true_booleans->insert(name);
+							break;
+					}
+
+				} else {
+					DEBUG_SMT(
+							oss << name << " := " << Z3_ast_to_string(ctx,v) << "\n";
+						 );
 				}
 			}
+			*Out << oss_true.str();
+			*Out << oss.str();
 			break;
 	}
 	return ret;

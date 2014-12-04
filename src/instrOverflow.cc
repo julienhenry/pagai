@@ -9,8 +9,13 @@
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 #include "instrOverflow.h"
+#include "Live.h"
 
 using namespace llvm;
+
+void instrOverflow::getAnalysisUsage(AnalysisUsage &AU) const {
+	AU.addRequired<Live>();
+}
 
 bool instrOverflow::runOnFunction(Function &F) {
 	// first pass replaces the binary instructions
@@ -19,6 +24,8 @@ bool instrOverflow::runOnFunction(Function &F) {
 	// second pass inserts the comparisons
 	pass1 = false;
 	while (updateFunction(F)) {}
+	Live * LV = &(getAnalysis<Live>());
+	LV->releaseMemory();
 	return false;
 }
 

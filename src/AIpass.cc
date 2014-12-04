@@ -33,6 +33,7 @@ AIPass * CurrentAIpass = NULL;
 
 void AIPass::ascendingIter(Node * n, Function * F, bool dont_reset) {
 	A.push(n);
+	
 	if (!dont_reset) {
 		is_computed.clear();
 	}
@@ -264,17 +265,27 @@ void AIPass::printBasicBlock(BasicBlock* b) {
 void AIPass::printPath(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
 	Out->changeColor(raw_ostream::MAGENTA,true);
+	bool start = true;
 	*Out << "PATH: ";
 	while (i != e) {
 		*Out << *i;
+		Out->changeColor(raw_ostream::CYAN,true);
+		*Out << "[" << SMTpass::getNodeName(*i,start) << "]";
+		Out->changeColor(raw_ostream::MAGENTA,true);
+		start = false;
 		++i;
 		if (i != e) *Out << " --> ";
 	}
 	*Out << "\n";
 	//
 	i = path.begin();
+	start = true;
 	while (i != e) {
+		Out->changeColor(raw_ostream::CYAN,true);
+		*Out << "[" << SMTpass::getNodeName(*i,start) << "]";
+		Out->changeColor(raw_ostream::MAGENTA,true);
 		*Out << **i;
+		start = false;
 		++i;
 	}
 	*Out << "\n";

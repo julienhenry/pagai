@@ -28,6 +28,7 @@ class instrOverflow : public FunctionPass,
 		public:
 			static char ID;
 			instrOverflow() : FunctionPass(ID) {}
+			void getAnalysisUsage(AnalysisUsage &AU) const;
 
 			bool runOnFunction(Function &F);
 			bool updateFunction(Function &F);
