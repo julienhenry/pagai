@@ -13,6 +13,7 @@ PPL_ENABLED=
 .SUFFIXES:
 
 DEST=build
+SOURCE=$(PWD)
 DEST_LINKS=.
 
 CUDD_VERSION=2.5.0
@@ -115,7 +116,7 @@ $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h Â$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE)
-	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < ../../cudd-$(CUDD_VERSION).patch
+	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < $(SOURCE)/cudd-$(CUDD_VERSION).patch
 	touch -c $@
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
@@ -187,7 +188,7 @@ $(DEST)/$(APRON_ARCHIVE):
 
 $(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
 	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
-	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < ../../apron-2012-11-19.patch && patch -p0 < ../../apron-2012-11-19-environment.patch
+	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < $(SOURCE)/apron-2012-11-19.patch && patch -p0 < $(SOURCE)/apron-2012-11-19-environment.patch
 	touch -c "$@"
 
 APRON_HAS_SHARED=1
