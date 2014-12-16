@@ -54,7 +54,7 @@ void AISimple::computeFunc(Function * F) {
 
 	if (NewNarrowing) {
 		copy_Xs_to_Xf(F);
-		if (!computeWideningSeed(F)) {
+		if (!computeNarrowingSeed(F)) {
 			DEBUG(
 				*Out << "NO SEEDS\n";
 			);

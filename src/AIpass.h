@@ -265,7 +265,7 @@ class AIPass : public AnalysisPass, private InstVisitor<AIPass> {
 		 * \brief compute Seeds for Halbwach's narrowing
 		 * returns true iff one ore more seeds have been found
 		 */
-		bool computeWideningSeed(Function * F);
+		bool computeNarrowingSeed(Function * F);
 
 		/** 
 		 * \brief compute the new environment of Node n, based on 

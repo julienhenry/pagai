@@ -663,7 +663,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 
 // TODO :
 // make it work for path-focused techniques
-bool AIPass::computeWideningSeed(Function * F) {
+bool AIPass::computeNarrowingSeed(Function * F) {
 	Abstract * Xtemp;
 	Node * n;
 	Node * Succ;
