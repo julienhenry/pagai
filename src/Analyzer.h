@@ -140,6 +140,7 @@ bool optimizeBC();
 bool WCETSettings();
 bool inline_functions();
 bool brutal_unrolling();
+bool InstCombining();
 bool dumpll();
 
 extern llvm::raw_ostream *Out;

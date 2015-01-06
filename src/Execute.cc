@@ -181,7 +181,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	InitialPasses.add(createLowerSwitchPass());	
 	InitialPasses.add(createLowerInvokePass());
 	InitialPasses.add(LoopInfoPass);
-	if (SVComp()) {
+	if (InstCombining()) {
 		InitialPasses.add(createInstructionCombiningPass());
 	}
 	if (!WCETSettings()) {
