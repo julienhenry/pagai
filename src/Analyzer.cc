@@ -566,6 +566,7 @@ int main(int argc, char* argv[]) {
 				{ 
 					setMain("main");
 					svcomp = true;
+					oflcheck = false;
 					technique = PATH_FOCUSING;
 				}
         	    break;
