@@ -9,256 +9,75 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/program_options.hpp>
 
 #include "Execute.h" 
 #include "Analyzer.h" 
 #include "Debug.h" 
 
+namespace po = boost::program_options; 
+po::variables_map vm; 
+
 SMTSolver Solver;
 Techniques technique;
-bool compare;
-bool compare_Domain;
-bool compare_Narrowing;
-bool onlyrho;
-bool quiet;
+bool oflcheck;
 bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
 bool printAll;
-bool oflcheck;
-bool svcomp;
-bool force_old_output;
 bool output_annotated;
-bool log_smt;
-bool skipnonlinear;
-bool has_timeout;
-bool optimize;
-bool withinlining;
-bool withbrutalunrolling;
-bool instcombining;
-bool onlydumpll;
-bool wcet_settings;
-bool invasmetadata;
-bool handlepointers;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
 bool Threshold[2];
 llvm::raw_ostream *Out;
-char* filename;
-char* annotatedFilename;
+std::string filename;
+std::string annotatedFilename;
 std::string annotatedBCFilename;
 int npass;
 int timeout;
 std::map<Techniques,int> Passes;
 std::vector<enum Techniques> TechniquesToCompare;
 
-void show_help() {
-        std::cout << "Usage :\n \
-\tpagai -h OR pagai [options]  -i <filename> \n \
---help (-h) : help\n \
---main <name> (-m) : only analyze the function <name>\n \
---no-undefined-check : do not verify integer overflows\n \
---svcomp : SV-Comp mode\n \
---instcombining : runs the instcombining optimization pass\n\
---pointers : handles pointers as integers\n \
---wcet : WCET mode (does not inserts counters yet)\n \
---dump-ll : only dump the analyzed .ll\n \
---optimize (-O) : optimize input with -O3 before analysis\n \
---noinline : do not inline functions\n \
---output-bc <filename> (-b) : create an annotated bc file called <filename> with calls to llvm.invariant\n \
---output-bc-v2 <filename> : create an annotated bc file called <filename>, invariants as metadata\n \
---force-old-output : force to use the old output\n \
---skipnonlinear : enforce rough abstraction of nonlinear arithmetic\n \
---quiet (-q) : quiet mode : does not print anything \n \
---domain (-d) : abstract domain\n \
-         possible abstract domains:\n \
-		   * box (Apron boxes)\n \
-		   * oct (Octagons)\n \
-		   * pk (NewPolka strict polyhedra), default\n \
-		   * pkeq (NewPolka linear equalities)\n";
-#ifdef PPL_ENABLED
-		std::cout << 
-"		   * ppl_poly (PPL strict polyhedra)\n \
-		   * ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS’2003)\n \
-		   * ppl_grid (PPL grids)\n \
-		   * pkgrid (Polka strict polyhedra + PPL grids)\n";
-#endif
-		std::cout << 
-"		 example: pagai -i <file> --domain box\n \
---input (-i) : input file\n \
---technique (-t) : use a specific technique\n \
-		possible techniques:\n \
-		  * lw (Lookahead Widening, Gopan & Reps, SAS'06)\n \
-		  * g (Guided Static Analysis, Gopan & Reps, SAS'07)\n \
-		  * pf (Path Focusing, Monniaux & Gonnord, SAS'11)\n \
-		  * lw+pf (Henry, Monniaux & Moy, SAS'12), default\n \
-		  * s (simple abstract interpretation)\n \
-		  * dis (lw+pf, using disjunctive invariants)\n \
-		  * pf_incr (s followed by pf, results of s are injected in pf)\n \
-		  * incr (s followed by lw+pf, results of s are injected in lw+pf)\n \
-		example: pagai -i <file> --technique pf\n \
---solver (-s) : select SMT Solver\n \
-		  * z3 \n \
-		  * z3_qfnra\n \
-		  * mathsat\n \
-		  * smtinterpol\n \
-		  * cvc3\n \
-		  * cvc4\n";
-#ifdef HAS_Z3 
-		std::cout << 
-"		  * z3_api (default)\n";
-#endif
-#ifdef HAS_YICES
-		std::cout << 
-"		  * yices_api (deprecated)\n";
-#endif
-		std::cout << 
-"		example: pagai -i <file> --technique pf --solver cvc4\n \
--n : new version of narrowing (only for s technique)\n \
--T : apply widening with threshold instead of classical widening\n \
--M : compare the two versions of narrowing (only for s technique)\n \
---annotated : specify the name of the outputted annotated source file\n \
---timeout : set a timeout for the SMT queries (available only for z3 solvers)\n \
---log-smt : SMT-lib2 queries are logged in files\n \
---compare (-c) : use this argument to compare techniques\n \
-		example: pagai -i <file> -c pf -c s  will compare the two techniques pf and s\n \
---comparedomains (-C) : compare two abstract domains using the same technique\n \
-          example: ./pagai -i <filename> --comparedomains --domain box --domain2 pkeq --technique pf\n \
---printformula (-f) : only outputs the SMTpass formula\n \
-";
-}
-
-SMTSolver getSMTSolver() {
-	return Solver;
-}
-
-Techniques getTechnique() {
-	return technique;
-}
-
-bool compareTechniques() {
-	return compare;
-}
-
-bool compareDomain() {
-	return compare_Domain;
-}
-
-bool compareNarrowing() {
-	return compare_Narrowing;
-}
-
-bool onlyOutputsRho() {
-	return onlyrho;
-}
-
-bool skipNonLinear() {
-	return skipnonlinear;
-}
-
-bool useSourceName() {
-	return use_source_name;
-}
-
-bool printAllInvariants() {
-	return printAll;
-}
-
-bool check_overflow() {
-	return oflcheck;
-}
-
-bool pointer_arithmetic() {
-	return handlepointers;
-}
-
-bool inline_functions() {
-	return withinlining;
-}
-
-bool brutal_unrolling() {
-	return withbrutalunrolling;
-}
-
-bool dumpll() {
-	return onlydumpll;
-}
-
-bool WCETSettings() {
-	return wcet_settings;
-}
-
-bool generateMetadata() {
-	return annotatedBCFilename.size();
-}
-
-bool InvariantAsMetadata() {
-	return invasmetadata;
-}
-
-std::string getAnnotatedBCFilename() {
-	return annotatedBCFilename;
-}
-
-void set_useSourceName(bool b) {
-	use_source_name = (b && !force_old_output);
-}
-
-enum outputs preferedOutput() {
-	if (force_old_output)
-		return LLVM_OUTPUT;
-	else
-		return C_OUTPUT;
-}
-
-bool OutputAnnotatedFile() {
-	return output_annotated;
-}
-
-char* getAnnotatedFilename() {
-	return annotatedFilename;
-}
-
-int getTimeout() {
-	return timeout;
-}
-
-bool hasTimeout() {
-	return has_timeout;
-}
-
-char* getFilename() {
-	return filename;
-}
-
-bool SVComp() {
-	return svcomp;
-}
-
-Apron_Manager_Type getApronManager() {
-	return ap_manager[0];
-}
-
-Apron_Manager_Type getApronManager(int i) {
-	return ap_manager[i];
-}
-
-bool useNewNarrowing() {
-	return Narrowing[0];
-}
-
-bool useNewNarrowing(int i) {
-	return Narrowing[i];
-}
-
-bool useThreshold() {
-	return Threshold[0];
-}
-
-bool useThreshold(int i) {
-	return Threshold[i];
-}
+SMTSolver getSMTSolver() {return Solver;}
+Techniques getTechnique() {return technique;}
+bool compareTechniques() {return vm.count("compare");}
+bool compareDomain() {return vm.count("comparedomains");}
+bool compareNarrowing() {return vm.count("comparenarrowing");}
+bool onlyOutputsRho() {return vm.count("printformula");}
+bool skipNonLinear() {return vm.count("skipnonlinear");}
+bool useSourceName() {return use_source_name;}
+bool printAllInvariants() {return printAll;}
+bool check_overflow() {return oflcheck && !vm.count("no-undefined-check");}
+bool pointer_arithmetic() {return vm.count("pointers");}
+bool inline_functions() {return !vm.count("noinline");}
+bool brutal_unrolling() {return vm.count("loop-unroll");}
+bool dumpll() {return vm.count("dump-ll");}
+bool WCETSettings() {return vm.count("wcet");}
+bool generateMetadata() {return annotatedBCFilename.size();}
+bool InvariantAsMetadata() {return vm.count("output-bc-v2");}
+std::string getAnnotatedBCFilename() {return annotatedBCFilename;}
+void set_useSourceName(bool b) {use_source_name = (b && !vm.count("force_old_output"));}
+enum outputs preferedOutput() {if (vm.count("force_old_output")) return LLVM_OUTPUT; else return C_OUTPUT;}
+bool OutputAnnotatedFile() {return output_annotated;}
+std::string getAnnotatedFilename() {return annotatedFilename;}
+int getTimeout() {return timeout;}
+bool hasTimeout() {return vm.count("timeout");}
+std::string getFilename() {return vm["input"].as<std::string>();}
+bool SVComp() {return vm.count("svcomp");}
+Apron_Manager_Type getApronManager() {return ap_manager[0];}
+Apron_Manager_Type getApronManager(int i) {return ap_manager[i];}
+bool useNewNarrowing() {return vm.count("new-narrowing");}
+bool useNewNarrowing(int i) {if (i==0) return vm.count("new-narrowing"); else return vm.count("new-narrowing2");}
+bool useThreshold() {return Threshold[0];}
+bool useThreshold(int i) {return Threshold[i];}
+bool definedMain() {return defined_main;}
+std::string getMain() {return main_function;}
+bool quiet_mode() {return vm.count("quiet");} 
+bool log_smt_into_file() {return vm.count("log_smt");}
+bool optimizeBC() {return vm.count("optimize");}
+bool InstCombining() {return vm.count("instcombining");}
+std::vector<enum Techniques> * getComparedTechniques() {return &TechniquesToCompare;}
 
 std::string TechniquesToString(Techniques t) {
 	switch (t) {
@@ -283,13 +102,8 @@ std::string TechniquesToString(Techniques t) {
 	}
 }
 
-std::vector<enum Techniques> * getComparedTechniques() {
-	return &TechniquesToCompare;
-}
 
-bool setApronManager(char * domain, int i) {
-	std::string d;
-	d.assign(domain);
+bool setApronManager(std::string d, int i) {
 	
 	if (!d.compare("box")) {
 		ap_manager[i] = BOX;
@@ -362,9 +176,7 @@ enum Techniques TechniqueFromString(bool &error, std::string d) {
 	return SIMPLE;
 }
 
-bool setTechnique(char * t) {
-	std::string d;
-	d.assign(t);
+bool setTechnique(std::string d) {
 	bool error;
 	enum Techniques r = TechniqueFromString(error,d);
 	technique = r;
@@ -375,9 +187,7 @@ bool setTechnique(char * t) {
 	return 0;
 }
 
-bool setSolver(char * t) {
-	std::string d;
-	d.assign(t);
+bool setSolver(std::string d) {
 	if (!d.compare("z3")) {
 		Solver = Z3;
 	} else if (!d.compare("z3_qfnra")) {
@@ -405,16 +215,13 @@ bool setSolver(char * t) {
 	return 0;
 }
 
-bool setMain(const char * m) {
+bool setMain(std::string m) {
 	main_function.assign(m);
 	defined_main = true;
 	return 0;
 }
 
-bool setTimeout(char * t) {
-	std::string d;
-	d.assign(t);
-	has_timeout = true;
+bool setTimeout(std::string d) {
 	bool error = false;
 	try {
 		timeout = boost::lexical_cast< int >( d );
@@ -432,46 +239,76 @@ bool setTimeout(char * t) {
 	return error;
 }
 
-bool definedMain() {
-	return defined_main;
-}
-
-std::string getMain() {
-	return main_function;
-}
-
 bool isMain(llvm::Function * F) {
 	if (!definedMain()) return false;
 	return (main_function.compare(F->getName().str()) == 0);
 }
 
-bool quiet_mode() {
-	return quiet;
-} 
 
-bool log_smt_into_file() {
-	return log_smt;
-}
-	
-bool optimizeBC() {
-	return optimize;
+
+const char * solver_help() {
+
+   std::string doc = 
+	"\
+	* z3 \n\
+	* z3_qfnra\n\
+	* mathsat\n\
+	* smtinterpol\n\
+	* cvc3\n\
+	* cvc4\n";
+#ifdef HAS_Z3 
+   doc +=
+	"\
+	* z3_api\n";
+#endif
+#ifdef HAS_YICES
+   doc +=
+	"\
+	* yices_api\n";
+#endif
+   return doc.c_str();
 }
 
-bool InstCombining() {
-	return instcombining;
+const char * domain_help() {
+   std::string doc = 
+"abstract domain\n\
+	* box (Apron boxes)\n\
+	* oct (Octagons)\n\
+	* pk (NewPolka strict polyhedra)\n\
+	* pkeq (NewPolka linear equalities)";
+#ifdef PPL_ENABLED
+   doc += 
+	"\n
+	* ppl_poly (PPL strict polyhedra)\n \
+	* ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS2003)\n \
+	* ppl_grid (PPL grids)\n \
+	* pkgrid (Polka strict polyhedra + PPL grids)";
+#endif
+   return doc.c_str();
+}
+
+const char * technique_help() {
+   std::string doc = "technique\n\
+	* lw (Lookahead Widening, SAS'06)\n\
+	* g (Guided Static Analysis, SAS'07)\n\
+	* pf (Path Focusing, SAS'11)\n\
+	* lw+pf (SAS'12)\n\
+	* s (simple abstract interpretation)\n\
+	* dis (lw+pf, using disjunctive invariants)\n\
+	* pf_incr\n\
+	* incr";
+   return doc.c_str();
 }
 
 int main(int argc, char* argv[]) {
 
-	execute run;
+    execute run;
     int o;
     bool help = false;
     bool bad_use = false;
-    const char* outputname="";
 	char* arg;
 	bool debug = false;
 
-	filename=NULL;
 #ifdef HAS_Z3 
 	Solver = API_Z3;
 #else
@@ -484,244 +321,219 @@ int main(int argc, char* argv[]) {
 	Threshold[0] = false;
 	Threshold[1] = false;
 	technique = LW_WITH_PF;
-	compare = false;
-	compare_Domain = false;
-	compare_Narrowing = false;
-	onlyrho = false;
-	skipnonlinear = false;
 	defined_main = false;
-	quiet = false;
 	use_source_name = false;
 	printAll = false;
-	force_old_output = false;
 	output_annotated = false;
-	oflcheck = true;
-	handlepointers = false;
-	svcomp = false;
-	log_smt = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
 	timeout = 0;
-	has_timeout = false;
-	optimize = false;
-	withinlining = true;
-	withbrutalunrolling = false;
-	onlydumpll = false;
-	wcet_settings = false;
-	annotatedFilename = NULL;
+	filename="";
+	annotatedFilename = "";
 	annotatedBCFilename = "";
-	invasmetadata = false;
-	instcombining = false;
+	oflcheck = true;
+	std::vector<std::string> include_paths;
+	std::vector<std::string> compare_list;
 
-	static struct option long_options[] =
-		{
-			{"help", no_argument,       0, 'h'},
-			{"debug",   no_argument,       0, 'D'},
-			{"compare",     required_argument,       0, 'c'},
-			{"technique",  required_argument,       0, 't'},
-			{"comparedomains",  required_argument,       0, 'C'},
-			{"domain",  required_argument, 0, 'd'},
-			{"domain2",  required_argument, 0, 'e'},
-			{"input",  required_argument, 0, 'i'},
-			{"main",  required_argument, 0, 'm'},
-			{"output",    required_argument, 0, 'o'},
-			{"solver",    required_argument, 0, 's'},
-			{"printformula",    no_argument, 0, 'f'},
-			{"printall",    no_argument, 0, 'p'},
-			{"skipnonlinear",    no_argument, 0, 'L'},
-			{"quiet",    no_argument, 0, 'q'},
-			{"no-undefined-check",    no_argument, 0, 'v'},
-			{"force-old-output",    no_argument, 0, 'S'},
-			{"annotated",    required_argument, 0, 'a'},
-			{"timeout",    required_argument, 0, 'k'},
-			{"log-smt",    no_argument, 0, 'l'},
-			{"output-bc",  required_argument, 0, 'b'},
-			{"output-bc-v2",  required_argument, 0, 'B'},
-			{"svcomp",  no_argument, 0, 'V'},
-			{"optimize",  no_argument, 0, 'O'},
-			{"noinline",  no_argument, 0, 'I'},
-			{"loop-unroll",  no_argument, 0, 'U'},
-			{"dump-ll",  no_argument, 0, 'z'},
-			{"wcet",  no_argument, 0, 'w'},
-			{"pointers",  no_argument, 0, 'P'},
-			{"instcombining",  no_argument, 0, 'G'},
-			{NULL, 0, 0, 0}
-		};
-	/* getopt_long stores the option index here. */
-	int option_index = 0;
 
-	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:UP",long_options,&option_index)) != -1) {
-        switch (o) {
-		case 0:
-			assert(false);
-			break;
-		case 'G':
-			instcombining = true;
-			break;
-		case 'q':
-			quiet = true;
-       		 	break;
-		case 'V':
-				{ 
-					setMain("main");
-					svcomp = true;
-					oflcheck = false;
-					technique = PATH_FOCUSING;
-				}
-        	    break;
-		case 'l':
-		    log_smt = true;
-        	    break;
-        	case 'S':
-        	    force_old_output = true;
-        	    break;
-        	case 'h':
-        	    help = true;
-        	    break;
-        	case 'D':
-        	    debug = true;
-        	    break;
-        	case 'v':
-        	    oflcheck = false;
-        	    break;
-        	case 'P':
-        	    handlepointers = true;
-        	    break;
-        	case 'I':
-        	    withinlining = false;
-        	    break;
-        	case 'U':
-        	    withbrutalunrolling = true;
-        	    break;
-        	case 'z':
-				onlydumpll = true;
-        	    break;
-        	case 'b':
-        	    arg = optarg;
-				annotatedBCFilename.assign(arg);
-        	    break;
-        	case 'B':
-        	    arg = optarg;
-				annotatedBCFilename.assign(arg);
-				invasmetadata = true;
-        	    break;
-        	case 'c':
-        	    compare = true;
-        	    arg = optarg;
-				{ 
-					std::string d;
-					d.assign(arg);
-					enum Techniques technique = TechniqueFromString(bad_use,d);
-					TechniquesToCompare.push_back(technique);
-				}
-        	    break;
-        	case 'C':
-        	    compare_Domain = true;
-        	    break;
-        	case 't':
-        	    arg = optarg;
-				if (setTechnique(arg)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'm':
-        	    arg = optarg;
-				if (setMain(arg)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'k':
-				if (setTimeout(optarg)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'd':
-        	    arg = optarg;
-				if (setApronManager(arg,0)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'e':
-        	    arg = optarg;
-				if (setApronManager(arg,1)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'i':
-        	    filename = optarg;
-        	    break;
-        	case 'n':
-				Narrowing[0] = true;
-        	    break;
-        	case 'N':
-				Narrowing[1] = true;
-        	    break;
-        	case 'T':
-				Threshold[0] = true;
-        	    break;
-        	case 'M':
-				Narrowing[0] = true;
-				Narrowing[1] = false;
-				compare_Narrowing = true;
-        	    break;
-        	case 'o':
-        	    outputname = optarg;
-        	    break;
-        	case 'O':
-        	    optimize = true;
-        	    break;
-        	case 'a':
-				output_annotated = true;
-        	    use_source_name = true;
-        	    annotatedFilename = optarg;
-        	    break;
-        	case 's':
-        	    arg = optarg;
-				if (setSolver(arg)) {
-					bad_use = true;
-				}
-        	    break;
-        	case 'f':
-        	    onlyrho = true;
-        	    break;
-        	case 'L':
-				skipnonlinear = true;
-        	    break;
-			case 'p':
-				printAll = true;
-				break;
-        	case 'w':
-				// settings for computing WCET with counters
-        	    force_old_output = true;
-				printAll = true;
-        	    oflcheck = false;
-				//technique = PATH_FOCUSING;
-				wcet_settings = true;
-        	    break;
-        	case '?':
-        	    std::cout << "Error : Unknown option " << optopt << "\n";
-        	    bad_use = true;
-				break;
-        }   
-    }
-    if (!help) {
-        if (!filename) {
-            std::cout << "No input file specified\n";
-            bad_use = true;
-        }
+    po::options_description desc("Options"); 
+    desc.add_options()
+      ("input,i", po::value<std::string>()->required(), "input")
+      ("help,h", "Print help messages") 
+      ("include-path,I", po::value< std::vector<std::string> >(&include_paths), "include path (same as -I for clang)")
+      ("solver,s", po::value<std::string>()->default_value("z3_api"), solver_help())
+      ("domain,d", po::value<std::string>()->default_value("pk"), domain_help())
+      ("technique,t", po::value<std::string>()->default_value("lw+pf"), technique_help())
+      ("new-narrowing", "When the decreasing sequence fails (SAS12)") 
+      ("main", po::value<std::string>(), "label name of the entry point") 
+      ("no-undefined-check", "no undefined check") 
+      ("pointers", "pointers") 
+      ("optimize", "optimize") 
+      ("instcombining", "instcombining") 
+      ("loop-unroll", "unroll loops") 
+      ("skipnonlinear", "ignore non linear arithmetic") 
+      ("noinline", "do not inline functions") 
+      ("output,o", po::value<std::string>()->default_value(""), "C output")
+      ("output-bc", po::value<std::string>(&annotatedBCFilename), "LLVM IR output")
+      ("output-bc-v2", po::value<std::string>(&annotatedBCFilename), "LLVM IR output (v2)")
+      ("svcomp", "SV-Comp mode") 
+      ("wcet", "wcet mode") 
+      ("debug", "debug") 
+      ("compare,c", po::value< std::vector<std::string> >(&compare_list), "compare list of techniques")
+      ("comparedomains", "compare abstract domains") 
+      ("printformula", "print SMT formula") 
+      ("printall", "print all") 
+      ("quiet", "quiet mode") 
+      ("dump-ll", "dump analyzed ll file") 
+      ("timeout", po::value<std::string>(), "timeout")
+      ("log-smt", "write all the SMT requests into a log file") 
+      ("annotated", po::value<std::string>(&annotatedFilename), "name of the annotated C file")
+      ("domain2", po::value<std::string>(), "not for use")
+      ("new-narrowing2", "not for use") 
+      ;
 
-        if (bad_use) {
-            std::cout << "Bad use\n";
-            show_help();
-            exit(EXIT_FAILURE);
-        }
-    } else {
-        show_help();
-        exit(EXIT_SUCCESS);
+    po::positional_options_description positionalOptions; 
+    positionalOptions.add("input", 1); 
+
+    try {
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(positionalOptions).run(), vm); 
+    	po::notify(vm);    
+    } catch (std::exception& e) {
+
+	    std::cout << "ERROR\n" << e.what() << "\n" << desc << "\n";
+	    exit(1);
     }
 
-	run.exec(filename,outputname);
+    if (vm.count("help")) {
+	    std::cout << desc << "\n";
+        return 1;
+    }
+
+    setSolver(vm["solver"].as<std::string>());
+    setTechnique(vm["technique"].as<std::string>());
+    setApronManager(vm["domain"].as<std::string>(),0);
+    if (vm.count("timeout")) setTimeout(vm["timeout"].as<std::string>());
+    if (vm.count("main")) setMain(vm["main"].as<std::string>());
+    if (vm.count("domain2")) setApronManager(vm["domain2"].as<std::string>(),1);
+
+    if (vm.count("svcomp")) {
+	setMain("main");
+	oflcheck = false;
+	technique = PATH_FOCUSING;
+    }
+
+    if (vm.count("wcet")) {
+	// settings for computing WCET with counters
+	printAll = true;
+        oflcheck = false;
+	technique = PATH_FOCUSING;
+    }
+
+    for (std::vector<std::string>::iterator it = compare_list.begin(), et = compare_list.end(); it != et; it++) {
+	enum Techniques technique = TechniqueFromString(bad_use,*it);
+	TechniquesToCompare.push_back(technique);
+    }
+
+    //std::cout << vm["input"].as<std::string>() << "\n";
+
+
+//	static struct option long_options[] =
+//		{
+//			{"help", no_argument,       0, 'h'},
+//			{"debug",   no_argument,       0, 'D'},
+//			{"compare",     required_argument,       0, 'c'},
+//			{"technique",  required_argument,       0, 't'},
+//			{"comparedomains",  required_argument,       0, 'C'},
+//			{"domain",  required_argument, 0, 'd'},
+//			{"domain2",  required_argument, 0, 'e'},
+//			{"input",  required_argument, 0, 'i'},
+//			{"main",  required_argument, 0, 'm'},
+//			{"output",    required_argument, 0, 'o'},
+//			{"solver",    required_argument, 0, 's'},
+//			{"printformula",    no_argument, 0, 'f'},
+//			{"printall",    no_argument, 0, 'p'},
+//			{"skipnonlinear",    no_argument, 0, 'L'},
+//			{"quiet",    no_argument, 0, 'q'},
+//			{"no-undefined-check",    no_argument, 0, 'v'},
+//			{"force-old-output",    no_argument, 0, 'S'},
+//			{"annotated",    required_argument, 0, 'a'},
+//			{"timeout",    required_argument, 0, 'k'},
+//			{"log-smt",    no_argument, 0, 'l'},
+//			{"output-bc",  required_argument, 0, 'b'},
+//			{"output-bc-v2",  required_argument, 0, 'B'},
+//			{"svcomp",  no_argument, 0, 'V'},
+//			{"optimize",  no_argument, 0, 'O'},
+//			{"noinline",  no_argument, 0, 'I'},
+//			{"loop-unroll",  no_argument, 0, 'U'},
+//			{"dump-ll",  no_argument, 0, 'z'},
+//			{"wcet",  no_argument, 0, 'w'},
+//			{"pointers",  no_argument, 0, 'P'},
+//			{"instcombining",  no_argument, 0, 'G'},
+//			{NULL, 0, 0, 0}
+//		};
+//	/* getopt_long stores the option index here. */
+//	int option_index = 0;
+//
+//	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:UP",long_options,&option_index)) != -1) {
+//        switch (o) {
+//        	case 'c':
+//        	    compare = true;
+//        	    arg = optarg;
+//				{ 
+//					std::string d;
+//					d.assign(arg);
+//					enum Techniques technique = TechniqueFromString(bad_use,d);
+//					TechniquesToCompare.push_back(technique);
+//				}
+//        	    break;
+//        	case 'n':
+//				Narrowing[0] = true;
+//        	    break;
+//        	case 'N':
+//				Narrowing[1] = true;
+//        	    break;
+//        	case 'T':
+//				Threshold[0] = true;
+//        	    break;
+//        	case 'M':
+//				Narrowing[0] = true;
+//				Narrowing[1] = false;
+//				compare_Narrowing = true;
+//        	    break;
+//        	case 'o':
+//        	    outputname = optarg;
+//        	    break;
+//        	case 'a':
+//				output_annotated = true;
+//        	    use_source_name = true;
+//        	    annotatedFilename = optarg;
+//        	    break;
+//        	case 's':
+//        	    arg = optarg;
+//				if (setSolver(arg)) {
+//					bad_use = true;
+//				}
+//        	    break;
+//        	case 'f':
+//        	    onlyrho = true;
+//        	    break;
+//        	    break;
+//			case 'p':
+//				printAll = true;
+//				break;
+//        	case 'w':
+//				// settings for computing WCET with counters
+//        	    force_old_output = true;
+//				printAll = true;
+//        	    oflcheck = false;
+//				//technique = PATH_FOCUSING;
+//				wcet_settings = true;
+//        	    break;
+//        	case '?':
+//        	    std::cout << "Error : Unknown option " << optopt << "\n";
+//        	    bad_use = true;
+//				break;
+//        }   
+//    }
+//    if (!help) {
+//        if (!filename) {
+//            std::cout << "No input file specified\n";
+//            bad_use = true;
+//        }
+//
+//        if (bad_use) {
+//            std::cout << "Bad use\n";
+//            show_help();
+//            exit(EXIT_FAILURE);
+//        }
+//    } else {
+//        show_help();
+//        exit(EXIT_SUCCESS);
+//    }
+//
+//
+	run.exec(vm["input"].as<std::string>(),vm["output"].as<std::string>(), include_paths);
 	
 	return 0;
 }

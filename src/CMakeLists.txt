@@ -21,6 +21,8 @@ if(${PRINT_DEBUG_SMT})
   add_definitions(-DPRINT_DEBUG_SMT)
 endif()
 
+add_definitions(-DLLVM_INSTALL_PATH="${LLVM_PATH}")
+
 #find_package(Boost COMPONENTS system REQUIRED)
 find_package(Boost)
 
@@ -86,7 +88,7 @@ if(${ENABLE_Z3})
 endif()
 
 
-target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES})
+target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES} boost_program_options)
 
 if(${ENABLE_Z3})
 	if (${STATIC_LINK})

@@ -7,6 +7,7 @@
 #define _EXECUTE_H
 
 #include <string>
+#include <vector>
 
 #include "llvm/Support/FormattedStream.h"
 
@@ -18,7 +19,7 @@ using namespace llvm;
  */
 class execute {
 public :
-	void exec(std::string InputFilename, std::string OutputFilename);
+	void exec(std::string InputFilename, std::string OutputFilename, std::vector<std::string> IncludePaths);
 };
 
 #endif

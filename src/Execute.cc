@@ -51,12 +51,14 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
+#include "clang/Basic/Version.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 #include "llvm/ADT/OwningPtr.h"
 #include "llvm/IR/Module.h"
 
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/Path.h"
 
 using namespace llvm;
 
@@ -68,10 +70,26 @@ DefaultDataLayout("default-data-layout",
 bool is_Cfile(std::string InputFilename) {
 	if (InputFilename.compare(InputFilename.size()-2,2,".c") == 0)
 		return true;
+	if (InputFilename.compare(InputFilename.size()-3,3,".cc") == 0)
+		return true;
+	if (InputFilename.compare(InputFilename.size()-4,4,".cpp") == 0)
+		return true;
 	return false;
 }
 
-void execute::exec(std::string InputFilename, std::string OutputFilename) {
+// This function isn't referenced outside its translation unit, but it
+// can't use the "static" keyword because its address is used for
+// GetMainExecutable (since some platforms don't support taking the
+// address of main, and some platforms can't implement GetMainExecutable
+// without being given the address of a function in the main executable).
+std::string GetExecutablePath(const char *Argv0) {
+  // This just needs to be some symbol in the binary; C++ doesn't
+  // allow taking the address of ::main however.
+  void *MainAddr = (void*) (intptr_t) GetExecutablePath;
+  return llvm::sys::fs::getMainExecutable(Argv0, MainAddr);
+}
+
+void execute::exec(std::string InputFilename, std::string OutputFilename, std::vector<std::string> IncludePaths) {
 
 	raw_fd_ostream *FDOut = NULL;
 
@@ -97,54 +115,80 @@ void execute::exec(std::string InputFilename, std::string OutputFilename) {
 	llvm::Module * M;
 	std::auto_ptr<Module> M_ptr;
 
-		// Arguments to pass to the clang frontend
-		std::vector<const char *> args;
-		args.push_back(InputFilename.c_str());
-		args.push_back("-g");
-		if (check_overflow()) {
-			//args.push_back("-ftrapv");
-			args.push_back("-fsanitize=bool");
-			args.push_back("-fsanitize=enum");
-			args.push_back("-fsanitize=null");
-			args.push_back("-fsanitize=signed-integer-overflow");
-			//args.push_back("-fsanitize=unsigned-integer-overflow");
-			args.push_back("-fsanitize=integer-divide-by-zero");
-			args.push_back("-fsanitize=float-divide-by-zero");
-			args.push_back("-fsanitize=float-cast-overflow");
-			args.push_back("-fsanitize=array-bounds");
-			args.push_back("-fsanitize=local-bounds");
-			//args.push_back("-fsanitize=local-bounds");
-		}
+	// Arguments to pass to the clang frontend
+	std::vector<const char *> args;
+	args.push_back(InputFilename.c_str());
+	args.push_back("-g");
+	if (check_overflow()) {
+		//args.push_back("-ftrapv");
+		args.push_back("-fsanitize=bool");
+		args.push_back("-fsanitize=enum");
+		args.push_back("-fsanitize=null");
+		args.push_back("-fsanitize=signed-integer-overflow");
+		//args.push_back("-fsanitize=unsigned-integer-overflow");
+		args.push_back("-fsanitize=integer-divide-by-zero");
+		args.push_back("-fsanitize=float-divide-by-zero");
+		args.push_back("-fsanitize=float-cast-overflow");
+		args.push_back("-fsanitize=array-bounds");
+		args.push_back("-fsanitize=local-bounds");
+		//args.push_back("-fsanitize=local-bounds");
+	}
+	
+	args.push_back("-I");
+	args.push_back("/usr/local/include");
+	args.push_back("-I");
+	args.push_back("/usr/include");
+	for (std::vector<std::string>::iterator it = IncludePaths.begin(), et = IncludePaths.end(); it != et; it++) {
+	   args.push_back("-I");
+	   args.push_back(const_cast<const char*>(it->c_str()));
+	}
+	//args.push_back(IncludePaths.front().c_str());
 
-		llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
-		 
-		clang::DiagnosticOptions * Diagopt = new clang::DiagnosticOptions();
+	llvm::OwningPtr<clang::CodeGenAction> Act(new clang::EmitLLVMOnlyAction());
+	 
+	clang::DiagnosticOptions * Diagopt = new clang::DiagnosticOptions();
+	Diagopt->ShowColors=1;
+	Diagopt->ShowPresumedLoc=1;
 
-		clang::DiagnosticIDs *  DiagID = new clang::DiagnosticIDs();
-		clang::DiagnosticsEngine * Diags = new clang::DiagnosticsEngine(DiagID, Diagopt);
-		clang::DiagnosticConsumer * client = new clang::DiagnosticConsumer();
-		Diags->setClient(client);
+	clang::DiagnosticIDs *  DiagID = new clang::DiagnosticIDs();
+	clang::DiagnosticsEngine * Diags = new clang::DiagnosticsEngine(DiagID, Diagopt);
+	clang::DiagnosticConsumer * client = new clang::TextDiagnosticPrinter(*Out,Diagopt);
+	Diags->setClient(client);
 
-		// Create the compiler invocation
-		llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
-		clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
-		
-		clang::CompilerInstance Clang;
-		// equivalent to the -gcolumn-info command line option for clang
-		CI->getCodeGenOpts().DebugColumnInfo = 1;
-		Clang.setInvocation(CI.take());
-		Clang.setDiagnostics(Diags);
+	// Create the compiler invocation
+	llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+	clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), *Diags);
+	
+	clang::CompilerInstance Clang;
+	// equivalent to the -gcolumn-info command line option for clang
+	CI->getCodeGenOpts().DebugColumnInfo = 1;
+	Clang.setInvocation(CI.take());
+	Clang.setDiagnostics(Diags);
+
+	Clang.getHeaderSearchOpts().UseStandardSystemIncludes=1;
+	Clang.getHeaderSearchOpts().UseStandardCXXIncludes=1;
+	Clang.getHeaderSearchOpts().UseBuiltinIncludes=1;
+	//Clang.getHeaderSearchOpts().UseLibcxx=1;
+	
+	std::string p = LLVM_INSTALL_PATH;
+	std::string sep;
+	if (llvm::sys::path::is_separator('/'))
+		sep = "/";
+	else 
+		sep = "\\";
+	p += sep + "lib" + sep + "clang" + sep + CLANG_VERSION_STRING;
+	//*Out << "path is " << p.c_str() << "\n";
+    	Clang.getHeaderSearchOpts().ResourceDir = p;
+
+    	//*Out << "Resource dir " << Clang.getHeaderSearchOpts().ResourceDir  << "\n";
 
 	if (!is_Cfile(InputFilename)) {
 		SMDiagnostic SM;
 		LLVMContext & Context = getGlobalContext();
 		M = ParseIRFile(InputFilename,SM,Context); 
 	} else {
-
-		//Clang.createDiagnostics(args.size(), &args[0]);
-		
 		if (!Clang.ExecuteAction(*Act)) {
-			*Out << "Unable to produce LLVM bitcode. Please use Clang with the appropriate options.\n";
+		//*Out << "Unable to produce LLVM bitcode. Please use Clang with the appropriate options.\n";
 		    return;
 		}
 		llvm::Module *module = Act->takeModule();

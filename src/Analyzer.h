@@ -108,10 +108,10 @@ bool useSourceName();
 void set_useSourceName(bool b);
 
 bool OutputAnnotatedFile();
-char* getAnnotatedFilename();
-char* getSourceFilename();
+std::string getAnnotatedFilename();
+std::string getSourceFilename();
 
-char* getFilename();
+std::string getFilename();
 
 int getTimeout();
 bool hasTimeout();

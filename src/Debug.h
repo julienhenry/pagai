@@ -32,6 +32,10 @@
 #define Z3(X)  
 #endif
 
+#ifndef LLVM_INSTALL_PATH
+#define LLVM_INSTALL_PATH ""
+#endif
+
 
 #include <time.h>
 #include <map>
