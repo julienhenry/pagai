@@ -3,6 +3,7 @@
  * \brief Implementation of the Execute class
  * \author Julien Henry
  */
+#include <fstream>
 #include "llvm/IR/Module.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Pass.h"
@@ -89,6 +90,24 @@ std::string GetExecutablePath(const char *Argv0) {
   return llvm::sys::fs::getMainExecutable(Argv0, MainAddr);
 }
 
+std::string parse_conf() {
+	std::ifstream conffile;
+	std::map<std::string,std::string> conf;
+	try {
+		conffile.open("pagai.conf");
+		std::string key,value;
+		while (conffile >> key >> value){
+			conf[key] = value;
+		}
+		if (conf.count("ResourceDir"))
+			return conf["ResourceDir"];
+
+    	} catch (std::exception& e) {
+		*Out << "error while parsing pagai.conf\n";
+	}
+	return "";
+}
+
 void execute::exec(std::string InputFilename, std::string OutputFilename, std::vector<std::string> IncludePaths) {
 
 	raw_fd_ostream *FDOut = NULL;
@@ -170,15 +189,18 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 	Clang.getHeaderSearchOpts().UseBuiltinIncludes=1;
 	//Clang.getHeaderSearchOpts().UseLibcxx=1;
 	
-	std::string p = LLVM_INSTALL_PATH;
+	std::string p = parse_conf();
+	if (p.size() == 0) std::string p = LLVM_INSTALL_PATH;
+
 	std::string sep;
 	if (llvm::sys::path::is_separator('/'))
 		sep = "/";
 	else 
 		sep = "\\";
 	p += sep + "lib" + sep + "clang" + sep + CLANG_VERSION_STRING;
-	//*Out << "path is " << p.c_str() << "\n";
     	Clang.getHeaderSearchOpts().ResourceDir = p;
+	
+	*Out << "// ResourceDir is " << Clang.getHeaderSearchOpts().ResourceDir << "\n";
 
     	//*Out << "Resource dir " << Clang.getHeaderSearchOpts().ResourceDir  << "\n";
 

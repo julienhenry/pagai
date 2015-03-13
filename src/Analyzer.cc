@@ -57,7 +57,7 @@ bool WCETSettings() {return vm.count("wcet");}
 bool generateMetadata() {return annotatedBCFilename.size();}
 bool InvariantAsMetadata() {return vm.count("output-bc-v2");}
 std::string getAnnotatedBCFilename() {return annotatedBCFilename;}
-void set_useSourceName(bool b) {use_source_name = (b && !vm.count("force_old_output"));}
+void set_useSourceName(bool b) {use_source_name = (b && !vm.count("force-old-output"));}
 enum outputs preferedOutput() {if (vm.count("force_old_output")) return LLVM_OUTPUT; else return C_OUTPUT;}
 bool OutputAnnotatedFile() {return output_annotated;}
 std::string getAnnotatedFilename() {return annotatedFilename;}
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 	Threshold[1] = false;
 	technique = LW_WITH_PF;
 	defined_main = false;
-	use_source_name = false;
+	use_source_name = true;
 	printAll = false;
 	output_annotated = false;
 	n_totalpaths = 0;
@@ -366,6 +366,7 @@ int main(int argc, char* argv[]) {
       ("printall", "print all") 
       ("quiet", "quiet mode") 
       ("dump-ll", "dump analyzed ll file") 
+      ("force-old-output", "use old output") 
       ("timeout", po::value<std::string>(), "timeout")
       ("log-smt", "write all the SMT requests into a log file") 
       ("annotated", po::value<std::string>(&annotatedFilename), "name of the annotated C file")
