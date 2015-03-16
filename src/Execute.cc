@@ -94,7 +94,8 @@ std::string parse_conf() {
 	std::ifstream conffile;
 	std::map<std::string,std::string> conf;
 	try {
-		conffile.open("pagai.conf");
+		std::string c = GetExecutablePath("pagai") + ".conf" ;
+		conffile.open(c.c_str());
 		std::string key,value;
 		while (conffile >> key >> value){
 			conf[key] = value;
