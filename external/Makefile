@@ -19,7 +19,7 @@ DEST_LINKS=.
 CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.40
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_VERSION=2012-12-21
+Z3_COMMIT=29606b5179f76783ffb0c2ca0ed9d614847064b3
 LLVM_VERSION=3.4
 APRON_VERSION=2012-11-19
 PPL_VERSION=1.0
@@ -57,7 +57,7 @@ endif
 
 CUDD_COMPILED=$(DEST)/cudd-$(CUDD_VERSION)/cudd/libcudd.a
 YICES_COMPILED=$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a
-Z3_COMPILED=$(DEST)/z3_$(Z3_VERSION)/install/lib/libz3$(SOEXTENSION)
+Z3_COMPILED=$(DEST)/z3-$(Z3_COMMIT)/install/lib/libz3$(SOEXTENSION)
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
@@ -73,7 +73,7 @@ install-ppl: $(PPL_COMPILED) $(DEST_LINKS)/ppl
 
 CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
 YICES_ARCHIVE=yices-$(YICES_VERSION)-$(YICES_ARCH).tar.gz
-Z3_ARCHIVE=z3_$(Z3_VERSION).tar.bz2
+Z3_ARCHIVE=z3-$(Z3_COMMIT).tar.gz
 LLVM_ARCHIVE=llvm-$(LLVM_VERSION).src.tar.gz
 CLANG_ARCHIVE=clang-$(LLVM_VERSION).src.tar.gz
 APRON_ARCHIVE=apron_$(APRON_VERSION).tar.gz
@@ -102,7 +102,7 @@ $(DEST_LINKS)/cudd: $(MAKEFILE_LIST)
 $(DEST_LINKS)/yices: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/yices-$(YICES_VERSION) $@
 $(DEST_LINKS)/z3: $(MAKEFILE_LIST)
-	ln -sf $(DEST_ABS)/z3_$(Z3_VERSION)/install $@
+	ln -sf $(DEST_ABS)/z3-$(Z3_COMMIT)/install $@
 $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/llvm-$(LLVM_VERSION)/install $@
 $(DEST_LINKS)/apron: $(MAKEFILE_LIST)
@@ -140,23 +140,17 @@ $(YICES_COMPILED): $(DEST)/$(YICES_ARCHIVE)
 
 #### Z3 Installation
 $(DEST)/$(Z3_ARCHIVE):
-	$(DOWNLOAD) "http://forge.imag.fr/frs/download.php/343/$(Z3_ARCHIVE)" "$@"
+	$(DOWNLOAD) "https://github.com/Z3Prover/z3/archive/$(Z3_COMMIT).tar.gz" "$@"
 
-$(DEST)/z3_$(Z3_VERSION)/README: $(DEST)/$(Z3_ARCHIVE)
-	tar -x -C $(DEST) -jvf $(DEST)/$(Z3_ARCHIVE)
-	rm -rf $(DEST)/z3_$(Z3_VERSION)
-	mv $(DEST)/z3 $(DEST)/z3_$(Z3_VERSION)
-	touch -c $@
+$(DEST)/z3-$(Z3_COMMIT)/README: $(DEST)/$(Z3_ARCHIVE)
+	tar -x -C $(DEST) -zvf $(DEST)/$(Z3_ARCHIVE)
 
-$(Z3_COMPILED): $(DEST)/z3_$(Z3_VERSION)/README
-	cd $(DEST)/z3_$(Z3_VERSION)/ && autoconf && \
-		./configure \
-			--prefix $(DEST_ABS)/z3_$(Z3_VERSION)/install/ && \
-		python scripts/mk_make.py && \
-		sed -i -e 's@.*-packages.*@@' build/Makefile && \
+$(Z3_COMPILED): $(DEST)/z3-$(Z3_COMMIT)/README
+	cd $(DEST)/z3-$(Z3_COMMIT)/ && \
+		python scripts/mk_make.py --prefix $(DEST_ABS)/z3-$(Z3_COMMIT)/install/ && \
 		cd build && \
-		$(MAKE) $(PARALLEL_MAKE_OPTS) CXXFLAGS="-D_MP_INTERNAL -msse -msse2 -msse3 -fPIC -fopenmp -fno-strict-aliasing -c -O3 -D _EXTERNAL_RELEASE"
-	- cd $(DEST)/z3_$(Z3_VERSION)/build && $(MAKE) install
+		$(MAKE) $(PARALLEL_MAKE_OPTS) 
+	cd $(DEST)/z3-$(Z3_COMMIT)/build && $(MAKE) install
 
 #### LLVM + Clang Installation
 $(DEST)/$(LLVM_ARCHIVE):
