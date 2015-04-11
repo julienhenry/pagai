@@ -27,6 +27,9 @@
 	
 	from the toplevel. This will download and compile most dependencies
 	for you (it takes time, and ~550Mb of disk space).
+
+	PARALLEL_MAKE_OPTS=-j4 ./autoinstall.sh will compile dependencies
+	trying to use 4 cores (adjust as needed).
 	
 	If you don't want the dependencies to be installed for you, run:
 	
