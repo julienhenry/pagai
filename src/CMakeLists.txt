@@ -24,7 +24,7 @@ endif()
 add_definitions(-DLLVM_INSTALL_PATH="${LLVM_PATH}")
 
 #find_package(Boost COMPONENTS system REQUIRED)
-find_package(Boost)
+find_package(Boost COMPONENTS program_options)
 
 # TODO: we could do configure-time checks with find_file(FOO NAMES foo.h PATH ...)
 include_directories(
@@ -88,7 +88,7 @@ if(${ENABLE_Z3})
 endif()
 
 
-target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES} boost_program_options)
+target_link_libraries(pagai mpfr gmpxx gmp ${Boost_LIBRARIES} )
 
 if(${ENABLE_Z3})
 	if (${STATIC_LINK})
