@@ -366,12 +366,9 @@ void AbstractClassic::insert_as_LLVM_invariant(llvm::Instruction * Inst) {
 	}
 
 	Constant * invFn = Inst->getParent()->getParent()->getParent()->getOrInsertFunction(
-			"llvm.invariant", 
+			"pagai.invariant", 
 			Type::getVoidTy(Context), 
 			Type::getInt1Ty(Context),
 			NULL);
-	if (Function *f = dyn_cast<Function>(invFn)) {
-		f->setAttributes(AttributeSet::get(Context,AttributeSet::FunctionIndex,Attribute::ReadNone));
-	}
 	Builder.CreateCall(invFn,invariant);	
 }
