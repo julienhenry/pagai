@@ -1,7 +1,7 @@
 %skeleton "lalr1.cc"
 %defines "SMTlib2parser.hh"
 
-%define parser_class_name "SMTlib2parser"
+%define parser_class_name { SMTlib2parser }
 
 %code requires {
      # include <string>
