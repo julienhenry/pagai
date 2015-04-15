@@ -76,6 +76,7 @@ void AbstractClassic::widening(Abstract * X) {
 
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
+	canonicalize();
 }
 
 void AbstractClassic::widening_threshold(Abstract * X, Constraint_array* cons) {
@@ -88,6 +89,7 @@ void AbstractClassic::widening_threshold(Abstract * X, Constraint_array* cons) {
 
 	ap_abstract1_clear(man,main);
 	*main = Xmain_widening;
+	canonicalize();
 }
 
 void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
@@ -106,6 +108,7 @@ void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	    *main = new_main;
 	}
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
+	canonicalize();
 }
 
 bool has_huge_coeffs(ap_texpr0_t * expr) {
@@ -142,7 +145,7 @@ void AbstractClassic::canonicalize() {
 		ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,i);
 		ap_texpr1_t expr = ap_tcons1_texpr1ref(&cons);
 		if (has_huge_coeffs(expr.texpr0)) {
-			DEBUG(*Out << "Deleting a constraint with huge coefficients");
+			DEBUG(*Out << "Deleting a constraint with huge coefficients\n";);
 			ap_scalar_t * one = ap_scalar_alloc();
 			ap_scalar_set_int(one,1);
 			ap_tcons1_t true_constraint = ap_tcons1_make(

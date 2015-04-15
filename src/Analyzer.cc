@@ -48,7 +48,7 @@ bool onlyOutputsRho() {return vm.count("printformula");}
 bool skipNonLinear() {return vm.count("skipnonlinear");}
 bool useSourceName() {return use_source_name;}
 bool printAllInvariants() {return printAll;}
-bool check_overflow() {return oflcheck && !vm.count("no-undefined-check");}
+bool check_overflow() {return oflcheck && vm.count("undefined-check");}
 bool pointer_arithmetic() {return vm.count("pointers");}
 bool inline_functions() {return !vm.count("noinline");}
 bool brutal_unrolling() {return vm.count("loop-unroll");}
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
       ("technique,t", po::value<std::string>()->default_value("lw+pf"), technique_help().c_str())
       ("new-narrowing", "When the decreasing sequence fails (SAS12)") 
       ("main", po::value<std::string>(), "label name of the entry point") 
-      ("no-undefined-check", "no undefined check") 
+      ("undefined-check", "check for some undefined behaviors") 
       ("pointers", "pointers") 
       ("optimize", "optimize") 
       ("instcombining", "instcombining") 
