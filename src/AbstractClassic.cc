@@ -108,7 +108,56 @@ void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	*main = ap_abstract1_meet_tcons_array(man,true,main,tcons->to_tcons1_array());
 }
 
+bool has_huge_coeffs(ap_texpr0_t * expr) {
+	if (expr == NULL) return false;
+	switch (expr->discr) {
+		case AP_TEXPR_CST:
+			{
+				ap_scalar_t * scalar = expr->val.cst.val.scalar;
+				double d;
+				mp_rnd_t rnd = (mp_rnd_t)1;
+				ap_double_set_scalar(&d,scalar,rnd);
+				const double limit = 10000000000;
+				if (d > limit || d < -limit) { return true; }
+			}
+		case AP_TEXPR_DIM:
+			return false;
+		case AP_TEXPR_NODE:
+			return has_huge_coeffs(expr->val.node->exprA) 
+				|| has_huge_coeffs(expr->val.node->exprB);
+	}
+	return false;
+}
+
 void AbstractClassic::canonicalize() {
+	// 
+	//  iterate over the constraints forming the abstract value; 
+	//  if a constraint is "too complicated", delete it
+	//  
+	//  "too complicated" == the constraints coefficients are huge
+	//
+	ap_tcons1_array_t tcons_array = ap_abstract1_to_tcons_array(man,main);
+	size_t size = ap_tcons1_array_size (&tcons_array);
+	for (int i = 0; i < size; i++) {
+		ap_tcons1_t cons = ap_tcons1_array_get(&tcons_array,i);
+		ap_texpr1_t expr = ap_tcons1_texpr1ref(&cons);
+		if (has_huge_coeffs(expr.texpr0)) {
+			DEBUG(*Out << "Deleting a constraint with huge coefficients");
+			ap_scalar_t * one = ap_scalar_alloc();
+			ap_scalar_set_int(one,1);
+			ap_tcons1_t true_constraint = ap_tcons1_make(
+					AP_CONS_EQ,
+					ap_texpr1_cst_scalar(main->env,one),
+					one
+					);
+			ap_tcons1_array_set(&tcons_array,i,&true_constraint);
+		}
+	}
+	// TODO: memory leak ?
+	*main = ap_abstract1_of_tcons_array(man,main->env,&tcons_array);
+	ap_tcons1_array_clear(&tcons_array);
+	
+	// APRON canonicalize
 	ap_abstract1_canonicalize(man,main);
 }
 
