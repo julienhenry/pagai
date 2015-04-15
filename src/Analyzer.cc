@@ -246,7 +246,7 @@ bool isMain(llvm::Function * F) {
 
 
 
-const char * solver_help() {
+std::string solver_help() {
 
    std::string doc = 
 	"\
@@ -266,10 +266,10 @@ const char * solver_help() {
 	"\
 	* yices_api\n";
 #endif
-   return doc.c_str();
+   return doc;
 }
 
-const char * domain_help() {
+std::string domain_help() {
    std::string doc = 
 "abstract domain\n\
 	* box (Apron boxes)\n\
@@ -287,7 +287,7 @@ const char * domain_help() {
    return doc.c_str();
 }
 
-const char * technique_help() {
+std::string technique_help() {
    std::string doc = "technique\n\
 	* lw (Lookahead Widening, SAS'06)\n\
 	* g (Guided Static Analysis, SAS'07)\n\
@@ -297,7 +297,7 @@ const char * technique_help() {
 	* dis (lw+pf, using disjunctive invariants)\n\
 	* pf_incr\n\
 	* incr";
-   return doc.c_str();
+   return doc;
 }
 
 int main(int argc, char* argv[]) {
@@ -342,9 +342,9 @@ int main(int argc, char* argv[]) {
       ("input,i", po::value<std::string>()->required(), "input")
       ("help,h", "Print help messages") 
       ("include-path,I", po::value< std::vector<std::string> >(&include_paths), "include path (same as -I for clang)")
-      ("solver,s", po::value<std::string>()->default_value("z3_api"), solver_help())
-      ("domain,d", po::value<std::string>()->default_value("pk"), domain_help())
-      ("technique,t", po::value<std::string>()->default_value("lw+pf"), technique_help())
+      ("solver,s", po::value<std::string>()->default_value("z3_api"), solver_help().c_str())
+      ("domain,d", po::value<std::string>()->default_value("pk"), domain_help().c_str())
+      ("technique,t", po::value<std::string>()->default_value("lw+pf"), technique_help().c_str())
       ("new-narrowing", "When the decreasing sequence fails (SAS12)") 
       ("main", po::value<std::string>(), "label name of the entry point") 
       ("no-undefined-check", "no undefined check") 
