@@ -44,6 +44,7 @@
 #include "taginline.h"
 #include "RemoveUndet.h"
 #include "expandequalities.h"
+#include "expandassume.h"
 #include "NameAllValues.h"
 #include "IdentifyLoops.h"
 
@@ -247,6 +248,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 	InitialPasses.add(createLowerSwitchPass());	
 	InitialPasses.add(createLowerInvokePass());
 	InitialPasses.add(LoopInfoPass);
+	InitialPasses.add(new ExpandAssume());
 	if (InstCombining()) {
 		InitialPasses.add(createInstructionCombiningPass());
 	}
