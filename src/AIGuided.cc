@@ -43,7 +43,7 @@ bool AIGuided::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 
-	*Out << "// analysis: G\n";
+	*Dbg << "// analysis: G\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -188,11 +188,11 @@ void AIGuided::computeNewPaths(Node * n) {
 	}
 
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing new paths: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing new paths: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 	is_computed[n] = true;
@@ -216,9 +216,9 @@ void AIGuided::computeNewPaths(Node * n) {
 		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -246,7 +246,7 @@ void AIGuided::computeNewPaths(Node * n) {
 			delete Xtemp;
 		}
 		DEBUG(
-			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
+			*Dbg << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
 			Succ->X_s[passID]->print();
 		);
 	}
@@ -270,11 +270,11 @@ void AIGuided::computeNode(Node * n) {
 	}
 	
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing node: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 	
@@ -294,9 +294,9 @@ void AIGuided::computeNode(Node * n) {
 		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -308,7 +308,7 @@ void AIGuided::computeNode(Node * n) {
 		Pr * FPr = Pr::getInstance(b->getParent());
 		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
-				*Out << "WIDENING\n";
+				*Dbg << "WIDENING\n";
 			);
 			if (use_threshold) {
 				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
@@ -337,7 +337,7 @@ void AIGuided::computeNode(Node * n) {
 			delete Xtemp;
 		}
 		DEBUG(
-			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
+			*Dbg << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
 			Succ->X_s[passID]->print();
 		);
 	}
@@ -353,17 +353,17 @@ void AIGuided::narrowNode(Node * n) {
 	}
 
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "narrowing node: " << n->bb << "\n";
-		Out->resetColor();
-		*Out << *(n->bb) << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "narrowing node: " << n->bb << "\n";
+		resetColor();
+		*Dbg << *(n->bb) << "\n";
 	);
 
 	is_computed[n] = true;
 
 	DEBUG(
-		*Out << "STARTING POLYHEDRON\n";
+		*Dbg << "STARTING POLYHEDRON\n";
 		n->X_s[passID]->print();
 	);
 
@@ -381,7 +381,7 @@ void AIGuided::narrowNode(Node * n) {
 		desc_iterations[passID][n->bb->getParent()]++;
 
 		DEBUG(
-			*Out << "POLYHEDRON TO JOIN\n";
+			*Dbg << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 

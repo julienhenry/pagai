@@ -43,7 +43,7 @@ bool AIdis::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 
-	*Out << "// analysis: DISJUNCTIVE\n";
+	*Dbg << "// analysis: DISJUNCTIVE\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -116,12 +116,12 @@ void AIdis::computeFunction(Function * F) {
 	LSMT->push_context();
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "Computing Rho...";
+		*Dbg << "Computing Rho...";
 		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "OK\n";
+		*Dbg << "OK\n";
 		);
 
 	// add all function's arguments into the environment of the first bb
@@ -226,9 +226,9 @@ void AIdis::computeNewPaths(Node * n) {
 	}
 	while (true) {
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "COMPUTENEWPATHS------ NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "COMPUTENEWPATHS------ NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
@@ -260,12 +260,12 @@ void AIdis::computeNewPaths(Node * n) {
 		Xtemp = Xdisj->man_disj->NewAbstract(Xdisj->getDisjunct(index));
 
 		DEBUG(
-			*Out << "START\n";
+			*Dbg << "START\n";
 			Xtemp->print();
 		);
 		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		DEBUG(
-			*Out << "XTEMP\n";
+			*Dbg << "XTEMP\n";
 			Xtemp->print();
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
@@ -281,9 +281,9 @@ void AIdis::computeNewPaths(Node * n) {
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,false);
 		DEBUG(
-			*Out << "INSERTING INTO P THE PATH\n";
+			*Dbg << "INSERTING INTO P THE PATH\n";
 			printPath(path);
-			*Out << "RESULT\n";
+			*Dbg << "RESULT\n";
 			Succ->X_s[passID]->print();
 		);
 		A.push(n);
@@ -321,15 +321,15 @@ void AIdis::loopiter(
 			Xtemp->join_array(&Xtemp_env,Join);
 
 			DEBUG(
-				*Out << "BEFORE MINIWIDENING\n";	
-				*Out << "Succ->X:\n";
+				*Dbg << "BEFORE MINIWIDENING\n";	
+				*Dbg << "Succ->X:\n";
 				SuccDis->print();
-				*Out << "Xtemp:\n";
+				*Dbg << "Xtemp:\n";
 				Xtemp->print();
 			);
 
 			DEBUG(
-				*Out << "THRESHOLD:\n";
+				*Dbg << "THRESHOLD:\n";
 				threshold->print();
 			);
 			if (use_threshold)
@@ -337,21 +337,21 @@ void AIdis::loopiter(
 			else
 				Xtemp->widening(SuccDis->getDisjunct(Sigma));
 			DEBUG(
-				*Out << "MINIWIDENING!\n";	
+				*Dbg << "MINIWIDENING!\n";	
 			);
 			delete SuccDis->getDisjunct(Sigma);
 			SuccDis->setDisjunct(Sigma,Xtemp);
 			DEBUG(
-				*Out << "AFTER MINIWIDENING\n";	
+				*Dbg << "AFTER MINIWIDENING\n";	
 				Xtemp->print();
 			);
 
 			Xtemp = SuccDis->man_disj->NewAbstract(SuccDis->getDisjunct(Sigma));
 			computeTransform(SuccDis->man_disj,n,*path,Xtemp);
 			DEBUG(
-				*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+				*Dbg << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
 				SuccDis->print();
-				*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+				*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
 				Xtemp->print();
 			);
 			
@@ -380,19 +380,19 @@ void AIdis::computeNode(Node * n) {
 	std::map<int,PathTree*> V;
 
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing node: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 	while (true) {
 		is_computed[n] = true;
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "COMPUTENODE------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "COMPUTENODE------- NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -429,9 +429,9 @@ void AIdis::computeNode(Node * n) {
 		computeTransform(Xdisj->man_disj,n,path,Xtemp);
 		int Sigma = sigma(path,index,Xtemp,true);
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 		AbstractDisj * SuccDisj = dynamic_cast<AbstractDisj*>(Succ->X_s[passID]);
@@ -458,19 +458,19 @@ void AIdis::computeNode(Node * n) {
 				Xtemp->widening_threshold(SuccDisj->getDisjunct(Sigma),threshold);
 			else
 				Xtemp->widening(SuccDisj->getDisjunct(Sigma));
-			DEBUG(*Out << "WIDENING! \n";);
+			DEBUG(*Dbg << "WIDENING! \n";);
 		} else {
-			DEBUG(*Out << "PATH NEVER SEEN BEFORE !!\n";);
+			DEBUG(*Dbg << "PATH NEVER SEEN BEFORE !!\n";);
 		}
 		DEBUG(
-			*Out << "BEFORE:\n";
+			*Dbg << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
 		delete SuccDisj->getDisjunct(Sigma);
 		SuccDisj->setDisjunct(Sigma,Xtemp);
 		Xtemp = NULL;
 		DEBUG(
-			*Out << "RESULT:\n";
+			*Dbg << "RESULT:\n";
 			Succ->X_s[passID]->print();
 		);
 		A.push(Succ);
@@ -503,9 +503,9 @@ void AIdis::narrowNode(Node * n) {
 		is_computed[n] = true;
 
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -542,7 +542,7 @@ void AIdis::narrowNode(Node * n) {
 		int Sigma = sigma(path,index,Xtemp,false);
 
 		DEBUG(
-			*Out << "POLYHEDRON TO JOIN\n";
+			*Dbg << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 

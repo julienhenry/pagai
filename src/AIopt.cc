@@ -49,7 +49,7 @@ bool AIopt::runOnModule(Module &M) {
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
 
-	*Out << "// analysis: " << getPassName() << "\n";
+	*Dbg << "// analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -129,7 +129,7 @@ void AIopt::computeFunction(Function * F) {
 	
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "Computing Rho...";
+		*Dbg << "Computing Rho...";
 		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
 
@@ -143,7 +143,7 @@ void AIopt::computeFunction(Function * F) {
 
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "OK\n";
+		*Dbg << "OK\n";
 		);
 	
 	// add all function's arguments into the environment of the first bb
@@ -275,9 +275,9 @@ void AIopt::computeNewPaths(Node * n) {
 	while (true) {
 		is_computed[n] = true;
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "COMPUTENEWPATHS-------------- SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "COMPUTENEWPATHS-------------- SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		// creating the SMTpass formula we want to check
 		LSMT->push_context();
@@ -285,7 +285,7 @@ void AIopt::computeNewPaths(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,useXd,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
-			*Out
+			*Dbg
 				<< "\n"
 				<< "FORMULA"
 				<< "(COMPUTENEWPATHS)"
@@ -338,9 +338,9 @@ void AIopt::computeNewPaths(Node * n) {
 		// there is a new path that has to be explored
 		pathtree[n->bb]->insert(path,false);
 		DEBUG(
-			*Out << "THE FOLLOWING PATH IS INSERTED INTO P'\n";	
+			*Dbg << "THE FOLLOWING PATH IS INSERTED INTO P'\n";	
 			printPath(path);
-			*Out << "NEW SUCC:" << *SuccX << "\n";	
+			*Dbg << "NEW SUCC:" << *SuccX << "\n";	
 		);
 		A.push(n);
 		A.push(Succ);
@@ -372,19 +372,19 @@ void AIopt::computeNode(Node * n) {
 	}
 	
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing node: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 	while (true) {
 		is_computed[n] = true;
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "COMPUTENODE-------------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "COMPUTENODE-------------- NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -392,7 +392,7 @@ void AIopt::computeNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(b,false,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
-			*Out
+			*Dbg
 				<< "\n"
 				<< "FORMULA"
 				<< "(COMPUTENODE)"
@@ -425,9 +425,9 @@ void AIopt::computeNode(Node * n) {
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		computeTransform(aman,n,path,Xtemp);
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 		
@@ -450,16 +450,16 @@ void AIopt::computeNode(Node * n) {
 						Xtemp->widening_threshold(Succ->X_s[passID],threshold);
 					else
 						Xtemp->widening(Succ->X_s[passID]);
-					DEBUG(*Out << "WIDENING! \n";);
+					DEBUG(*Dbg << "WIDENING! \n";);
 					W->clear();
 				} else {
 					W->insert(path);
 				}
 		} else {
-			DEBUG(*Out << "NO WIDENING\n";);
+			DEBUG(*Dbg << "NO WIDENING\n";);
 		}
 		DEBUG(
-			*Out << "BEFORE:\n";
+			*Dbg << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
 		delete Succ->X_s[passID];
@@ -475,7 +475,7 @@ void AIopt::computeNode(Node * n) {
 		Succ->X_s[passID] = Xtemp;
 		Xtemp = NULL;
 		DEBUG(
-			*Out << "RESULT:\n";
+			*Dbg << "RESULT:\n";
 			Succ->X_s[passID]->print();
 		);
 		A.push(Succ);
@@ -504,9 +504,9 @@ void AIopt::narrowNode(Node * n) {
 		is_computed[n] = true;
 
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "NARROWING----------- NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -514,7 +514,7 @@ void AIopt::narrowNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,pathtree_smt);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
-			*Out
+			*Dbg
 				<< "\n"
 				<< "FORMULA"
 				<< "(NARROWNODE)"
@@ -546,9 +546,9 @@ void AIopt::narrowNode(Node * n) {
 		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRON TO JOIN\n";
+			*Dbg << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
-			*Out << "POLYHEDRON TO JOIN WITH\n";
+			*Dbg << "POLYHEDRON TO JOIN WITH\n";
 			Succ->X_d[passID]->print();
 		);
 
@@ -563,7 +563,7 @@ void AIopt::narrowNode(Node * n) {
 			Succ->X_d[passID]->join_array(&Xtemp_env,Join);
 		}
 		DEBUG(
-			*Out << "RESULT\n";
+			*Dbg << "RESULT\n";
 			Succ->X_d[passID]->print();
 		);
 		Xtemp = NULL;

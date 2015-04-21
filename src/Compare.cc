@@ -112,11 +112,11 @@ int Compare::compareAbstract(SMTpass * LSMT, Abstract * A, Abstract * B) {
 		return 1;
 	} else if (f && !g) {
 		DEBUG(
-			*Out << "############################\n";
+			*Dbg << "############################\n";
 			B->print();
-			*Out << "is leq than \n";
+			*Dbg << "is leq than \n";
 			A->print();
-			*Out << "############################\n";
+			*Dbg << "############################\n";
 		);
 		return -1;
 	} else {
@@ -207,7 +207,7 @@ void Compare::printTime(Techniques t) {
 		sys::TimeValue * zero = new sys::TimeValue((double)0);
 		Time_SMT[t] = zero;
 	}
-	*Out 
+	*Dbg 
 		<< Time[t]->seconds() 
 		<< " " << Time[t]->microseconds() 
 		<< " " << Time_SMT[t]->seconds() 
@@ -222,7 +222,7 @@ void Compare::printWarnings(Techniques t) {
 		Warnings[t] = 0;
 	}
 
-	*Out 
+	*Dbg 
 		<< Warnings[t] 
 		<< "  \t// " << TechniquesToString(t) 
 		<< "\n";
@@ -234,7 +234,7 @@ void Compare::printSafeProperties(Techniques t) {
 		Safe_properties[t] = 0;
 	}
 
-	*Out 
+	*Dbg 
 		<< Safe_properties[t] 
 		<< "  \t// " << TechniquesToString(t) 
 		<< "\n";
@@ -247,7 +247,7 @@ void Compare::printNumberSkipped(Techniques t) {
 	P.N = useNewNarrowing();
 	P.TH = useThreshold();
 
-	*Out 
+	*Dbg 
 		<< ignoreFunction[P].size() 
 		<< "  \t// " << TechniquesToString(t) 
 		<< "\n";
@@ -256,48 +256,48 @@ void Compare::printNumberSkipped(Techniques t) {
 void Compare::printResults(Techniques t1, Techniques t2) {
 
 	Out->changeColor(raw_ostream::MAGENTA,true);
-	*Out << TechniquesToString(t1) << " - " << TechniquesToString(t2) << "\n";
-	Out->resetColor();
-	*Out << "\n";
-	*Out << "EQ " << results[t1][t2].eq << "\n";
-	*Out << "LT " << results[t1][t2].lt << "\n";
-	*Out << "GT " << results[t1][t2].gt << "\n";
-	*Out << "UN " << results[t1][t2].un << "\n";
+	*Dbg << TechniquesToString(t1) << " - " << TechniquesToString(t2) << "\n";
+	resetColor();
+	*Dbg << "\n";
+	*Dbg << "EQ " << results[t1][t2].eq << "\n";
+	*Dbg << "LT " << results[t1][t2].lt << "\n";
+	*Dbg << "GT " << results[t1][t2].gt << "\n";
+	*Dbg << "UN " << results[t1][t2].un << "\n";
 }
 
 void Compare::printAllResults() {
 
-	*Out << "\nSKIPPED:\n";
+	*Dbg << "\nSKIPPED:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printNumberSkipped(ComparedTechniques[i]);
 	}
-	*Out << "SKIPPED_END\n";
+	*Dbg << "SKIPPED_END\n";
 
-	*Out << "\nTIME:\n";
+	*Dbg << "\nTIME:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printTime(ComparedTechniques[i]);
 	}
-	*Out << "TIME_END\n";
+	*Dbg << "TIME_END\n";
 
-	*Out << "\nWARNINGS:\n";
+	*Dbg << "\nWARNINGS:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printWarnings(ComparedTechniques[i]);
 	}
-	*Out << "WARNINGS_END\n";
+	*Dbg << "WARNINGS_END\n";
 
-	*Out << "\nSAFE_PROPERTIES:\n";
+	*Dbg << "\nSAFE_PROPERTIES:\n";
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		printSafeProperties(ComparedTechniques[i]);
 	}
-	*Out << "SAFE_PROPERTIES_END\n";
+	*Dbg << "SAFE_PROPERTIES_END\n";
 
 
-	*Out	<< "\n";
-	*Out	<< "MATRIX:\n";
+	*Dbg	<< "\n";
+	*Dbg	<< "MATRIX:\n";
 
 	for (int i = 0; i < ComparedTechniques.size(); i++) {
 		for (int j = i+1; j < ComparedTechniques.size(); j++) {
-			*Out	<< results[ComparedTechniques[i]][ComparedTechniques[j]].eq << " "
+			*Dbg	<< results[ComparedTechniques[i]][ComparedTechniques[j]].eq << " "
 					<< results[ComparedTechniques[i]][ComparedTechniques[j]].lt << " "
 					<< results[ComparedTechniques[i]][ComparedTechniques[j]].gt << " "
 					<< results[ComparedTechniques[i]][ComparedTechniques[j]].un << " "
@@ -305,7 +305,7 @@ void Compare::printAllResults() {
 					<< "\n";
 		}
 	}
-	*Out	<< "MATRIX_END\n";
+	*Dbg	<< "MATRIX_END\n";
 }
 
 void Compare::CompareTechniquesByPair(Node * n) {
@@ -361,11 +361,11 @@ bool Compare::runOnModule(Module &M) {
 	LSMT = SMTpass::getInstanceForAbstract();
 
 	Out->changeColor(raw_ostream::BLUE,true);
-	*Out << "\n\n\n"
+	*Dbg << "\n\n\n"
 			<< "------------------------------------------\n"
 			<< "-         COMPARING RESULTS              -\n"
 			<< "------------------------------------------\n";
-	Out->resetColor();
+	resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		//LSMT->reset_SMTcontext();
@@ -397,10 +397,10 @@ bool Compare::runOnModule(Module &M) {
 	}
 	PrintResultsByPair();
 
-	*Out << "\nFUNCTIONS:\n";
-	*Out << Function_number << "\nFUNCTIONS_END\n";
-	*Out << "\nIGNORED:\n";
-	*Out << nb_ignored() << "\nIGNORED_END\n";
+	*Dbg << "\nFUNCTIONS:\n";
+	*Dbg << Function_number << "\nFUNCTIONS_END\n";
+	*Dbg << "\nIGNORED:\n";
+	*Dbg << nb_ignored() << "\nIGNORED_END\n";
 	printAllResults();
 	return true;
 }

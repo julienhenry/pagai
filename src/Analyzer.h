@@ -143,6 +143,16 @@ bool brutal_unrolling();
 bool InstCombining();
 bool dumpll();
 
+// stream used to write the output file
 extern llvm::raw_ostream *Out;
+// stream with debug printing and warning messages
+extern llvm::raw_ostream *Dbg;
+
+inline void changeColor(llvm::raw_ostream::Colors color, llvm::raw_ostream * oss = Dbg) {
+		if (oss->has_colors()) oss->changeColor(color,true);
+}
+inline void resetColor(llvm::raw_ostream * oss = Dbg) {
+		if (oss->has_colors()) oss->resetColor();
+}
 
 #endif

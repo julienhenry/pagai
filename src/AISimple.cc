@@ -56,7 +56,7 @@ void AISimple::computeFunc(Function * F) {
 		copy_Xs_to_Xf(F);
 		if (!computeNarrowingSeed(F)) {
 			DEBUG(
-				*Out << "NO SEEDS\n";
+				*Dbg << "NO SEEDS\n";
 			);
 			copy_Xf_to_Xs(F);
 			return;
@@ -102,7 +102,7 @@ bool AISimple::runOnModule(Module &M) {
 	Function * F;
 	BasicBlock * b;
 	Node * n;
-	*Out << "// analysis: " << getPassName() << "\n";
+	*Dbg << "// analysis: " << getPassName() << "\n";
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
@@ -144,11 +144,11 @@ void AISimple::computeNode(Node * n) {
 	}
 
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing node: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 
@@ -165,9 +165,9 @@ void AISimple::computeNode(Node * n) {
 		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -179,7 +179,7 @@ void AISimple::computeNode(Node * n) {
 		Pr * FPr = Pr::getInstance(b->getParent());
 		if (FPr->inPw(Succ->bb)) {
 			DEBUG(
-				*Out << "WIDENING\n";
+				*Dbg << "WIDENING\n";
 			);
 			if (use_threshold) {
 				Xtemp->widening_threshold(Succ->X_s[passID],threshold);
@@ -207,7 +207,7 @@ void AISimple::computeNode(Node * n) {
 			delete Xtemp;
 		}
 		DEBUG(
-			*Out << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
+			*Dbg << "RESULT FOR BASICBLOCK " << Succ->bb << ":\n";
 			Succ->X_s[passID]->print();
 		);
 	}
@@ -223,17 +223,17 @@ void AISimple::narrowNode(Node * n) {
 	}
 
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "narrowing node: " << n->bb << "\n";
-		Out->resetColor();
-		*Out << *(n->bb) << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "narrowing node: " << n->bb << "\n";
+		resetColor();
+		*Dbg << *(n->bb) << "\n";
 	);
 
 	is_computed[n] = true;
 
 	DEBUG(
-		*Out << "STARTING POLYHEDRON\n";
+		*Dbg << "STARTING POLYHEDRON\n";
 		n->X_s[passID]->print();
 	);
 
@@ -250,7 +250,7 @@ void AISimple::narrowNode(Node * n) {
 		desc_iterations[passID][n->bb->getParent()]++;
 
 		DEBUG(
-			*Out << "POLYHEDRON TO JOIN\n";
+			*Dbg << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 

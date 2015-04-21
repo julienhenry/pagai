@@ -246,12 +246,12 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 	P1.TH = useThreshold(0);
 	P2.TH = useThreshold(1);
 
-	Out->changeColor(raw_ostream::BLUE,true);
-	*Out << "\n\n\n"
+	changeColor(raw_ostream::BLUE);
+	*Dbg << "\n\n\n"
 			<< "---------------------------------\n"
 			<< "-      COMPARING NARROWING      -\n"
 			<< "---------------------------------\n";
-	Out->resetColor();
+	resetColor();
 
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		LSMT->reset_SMTcontext();
@@ -319,10 +319,10 @@ bool CompareNarrowing<T>::runOnModule(Module &M) {
 		}
 	}
 
-	Out->changeColor(raw_ostream::MAGENTA,true);
+	changeColor(raw_ostream::MAGENTA);
 	*Out << ApronManagerToString(getApronManager(0)) << " ABSTRACT DOMAIN\n\n\n" 
 		<< "IMPROVED NARROWING -- CLASSIC" << "\n";
-	Out->resetColor();
+	resetColor();
 	*Out << "\nTIME:\n";
 	printTime(P1);
 	printTime(P2);

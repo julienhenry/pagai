@@ -42,7 +42,7 @@ bool AIpf::runOnModule(Module &M) {
 	Node * n;
 	int N_Pr = 0;
 	LSMT = SMTpass::getInstance();
-	*Out << "// analysis: " << getPassName() << "\n";
+	*Dbg << "// analysis: " << getPassName() << "\n";
 	for (Module::iterator mIt = M.begin() ; mIt != M.end() ; ++mIt) {
 		F = mIt;
 
@@ -109,7 +109,7 @@ void AIpf::computeFunction(Function * F) {
 
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "Computing Rho...";
+		*Dbg << "Computing Rho...";
 		);
 	LSMT->SMT_assert(LSMT->getRho(*F));
 
@@ -123,7 +123,7 @@ void AIpf::computeFunction(Function * F) {
 
 	DEBUG(
 	if (!quiet_mode())
-		*Out << "OK\n";
+		*Dbg << "OK\n";
 		);
 
 	
@@ -183,11 +183,11 @@ void AIpf::computeNode(Node * n) {
 		return;
 	}
 	DEBUG (
-		Out->changeColor(raw_ostream::GREEN,true);
-		*Out << "#######################################################\n";
-		*Out << "Computing node: " << b << "\n";
-		Out->resetColor();
-		*Out << *b << "\n";
+		changeColor(raw_ostream::GREEN);
+		*Dbg << "#######################################################\n";
+		*Dbg << "Computing node: " << b << "\n";
+		resetColor();
+		*Dbg << *b << "\n";
 	);
 
 	if (U.count(b)) {
@@ -202,9 +202,9 @@ void AIpf::computeNode(Node * n) {
 	while (true) {
 		is_computed[n] = true;
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "--------------- NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "--------------- NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -212,7 +212,7 @@ void AIpf::computeNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,false,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
-			*Out
+			*Dbg
 				<< "\n"
 				<< "FORMULA"
 				<< "(COMPUTENODE)"
@@ -248,9 +248,9 @@ void AIpf::computeNode(Node * n) {
 		computeTransform(aman,n,path,Xtemp);
 		
 		DEBUG(
-			*Out << "POLYHEDRON AT THE STARTING NODE\n";
+			*Dbg << "POLYHEDRON AT THE STARTING NODE\n";
 			n->X_s[passID]->print();
-			*Out << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
+			*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION\n";
 			Xtemp->print();
 		);
 
@@ -276,16 +276,16 @@ void AIpf::computeNode(Node * n) {
 			else
 				Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
-				*Out << "WIDENING! \n";
+				*Dbg << "WIDENING! \n";
 			);
 		} else {
 			DEBUG(
-				*Out << "NO WIDENING\n";
+				*Dbg << "NO WIDENING\n";
 			);
 		}
 		
 		DEBUG(
-			*Out << "BEFORE:\n";
+			*Dbg << "BEFORE:\n";
 			Succ->X_s[passID]->print();
 		);
 		delete Succ->X_s[passID];
@@ -305,7 +305,7 @@ void AIpf::computeNode(Node * n) {
 		Succ->X_s[passID] = Xtemp;
 
 		DEBUG(
-			*Out << "RESULT:\n";
+			*Dbg << "RESULT:\n";
 			Succ->X_s[passID]->print();
 		);
 
@@ -326,9 +326,9 @@ void AIpf::narrowNode(Node * n) {
 		is_computed[n] = true;
 
 		DEBUG(
-			Out->changeColor(raw_ostream::RED,true);
-			*Out << "NARROWING------ NEW SMT SOLVE -------------------------\n";
-			Out->resetColor();
+			changeColor(raw_ostream::RED);
+			*Dbg << "NARROWING------ NEW SMT SOLVE -------------------------\n";
+			resetColor();
 		);
 		LSMT->push_context();
 		// creating the SMTpass formula we want to check
@@ -336,7 +336,7 @@ void AIpf::narrowNode(Node * n) {
 		SMT_expr smtexpr = LSMT->createSMTformula(n->bb,true,passID,T);
 		std::list<BasicBlock*> path;
 		DEBUG_SMT(
-			*Out
+			*Dbg
 				<< "\n"
 				<< "FORMULA"
 				<< "(NARROWNODE)"
@@ -366,13 +366,13 @@ void AIpf::narrowNode(Node * n) {
 		// computing the image of the abstract value by the path's tranformation
 		Xtemp = aman->NewAbstract(n->X_s[passID]);
 		DEBUG(
-			*Out << "STARTING POLYHEDRON\n";
+			*Dbg << "STARTING POLYHEDRON\n";
 			Xtemp->print();
 		);
 		computeTransform(aman,n,path,Xtemp);
 
 		DEBUG(
-			*Out << "POLYHEDRON TO JOIN\n";
+			*Dbg << "POLYHEDRON TO JOIN\n";
 			Xtemp->print();
 		);
 

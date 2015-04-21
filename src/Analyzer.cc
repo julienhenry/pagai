@@ -25,12 +25,12 @@ bool bagnara_widening;
 bool defined_main;
 bool use_source_name;
 bool printAll;
-bool output_annotated;
 std::string main_function;
 Apron_Manager_Type ap_manager[2];
 bool Narrowing[2];
 bool Threshold[2];
 llvm::raw_ostream *Out;
+llvm::raw_ostream *Dbg;
 std::string filename;
 std::string annotatedFilename;
 std::string annotatedBCFilename;
@@ -59,7 +59,7 @@ bool InvariantAsMetadata() {return vm.count("output-bc-v2");}
 std::string getAnnotatedBCFilename() {return annotatedBCFilename;}
 void set_useSourceName(bool b) {use_source_name = (b && !vm.count("force-old-output"));}
 enum outputs preferedOutput() {if (vm.count("force_old_output")) return LLVM_OUTPUT; else return C_OUTPUT;}
-bool OutputAnnotatedFile() {return output_annotated;}
+bool OutputAnnotatedFile() {return annotatedFilename.length() > 0;}
 std::string getAnnotatedFilename() {return annotatedFilename;}
 int getTimeout() {return timeout;}
 bool hasTimeout() {return vm.count("timeout");}
@@ -324,7 +324,6 @@ int main(int argc, char* argv[]) {
 	defined_main = false;
 	use_source_name = true;
 	printAll = false;
-	output_annotated = false;
 	n_totalpaths = 0;
 	n_paths = 0;
 	npass = 0;
@@ -369,7 +368,7 @@ int main(int argc, char* argv[]) {
       ("force-old-output", "use old output") 
       ("timeout", po::value<std::string>(), "timeout")
       ("log-smt", "write all the SMT requests into a log file") 
-      ("annotated", po::value<std::string>(&annotatedFilename), "name of the annotated C file")
+      //("annotated", po::value<std::string>(&annotatedFilename), "name of the annotated C file")
       ("domain2", po::value<std::string>(), "not for use")
       ("new-narrowing2", "not for use") 
       ;

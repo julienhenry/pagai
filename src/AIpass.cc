@@ -112,9 +112,9 @@ void AIPass::initFunction(Function * F) {
 
 	//if (!quiet_mode()) {
 	if (1) {
-		Out->changeColor(raw_ostream::BLUE,true);
-		*Out  	<< "/* processing Function "<<F->getName()<< " */\n";
-		Out->resetColor();
+		changeColor(raw_ostream::BLUE);
+		*Dbg  	<< "/* processing Function "<<F->getName()<< " */\n";
+		resetColor();
 		//if (!useSourceName()) {
 		//	for (Function::iterator i = F->begin(), e = F->end(); i != e; ++i)
 		//		printBasicBlock(i);
@@ -190,43 +190,43 @@ void AIPass::printInvariant(BasicBlock * b, std::string left, llvm::raw_ostream 
 		format_string(left);
 		if (FPr->getAssert()->count(b)) {
 			if (Nodes[b]->X_s[passID]->is_bottom()) {
-				oss->changeColor(raw_ostream::GREEN,true);
+				changeColor(raw_ostream::GREEN,oss);
 				*oss << "/* assert OK */\n"; 
-				oss->resetColor();
+				resetColor(oss);
 			} else {
-				oss->changeColor(raw_ostream::RED,true);
+				changeColor(raw_ostream::RED,oss);
 				*oss << "/* assert not proved */\n"; 
-				oss->resetColor();
+				resetColor(oss);
 			}
 			*oss << left;
 		} else if (FPr->getUndefinedBehaviour()->count(b)) {
 			if (Nodes[b]->X_s[passID]->is_bottom()) {
-				oss->changeColor(raw_ostream::GREEN,true);
+				changeColor(raw_ostream::GREEN,oss);
 				*oss << "// safe\n"; 
-				oss->resetColor();
+				resetColor(oss);
 				*oss << left;
 			} else {
-				oss->changeColor(raw_ostream::RED,true);
+				changeColor(raw_ostream::RED,oss);
 				*oss << "// unsafe: "; 
 				*oss << getUndefinedBehaviourMessage(b) << "\n";
-				oss->resetColor();
+				resetColor(oss);
 				*oss << left;
 			}
 		} else {
 			if (Nodes[b]->X_s[passID]->is_bottom()) {
-				oss->changeColor(raw_ostream::MAGENTA,true);
+				changeColor(raw_ostream::MAGENTA,oss);
 				*oss << "/* UNREACHABLE */\n"; 
-				oss->resetColor();
+				resetColor(oss);
 			} else if (Nodes[b]->X_s[passID]->is_top()) {
-				oss->changeColor(raw_ostream::MAGENTA,true);
+				changeColor(raw_ostream::MAGENTA,oss);
 				*oss << "/* reachable */\n"; 
-				oss->resetColor();
+				resetColor(oss);
 			} else {
-				oss->changeColor(raw_ostream::MAGENTA,true);
+				changeColor(raw_ostream::MAGENTA,oss);
 				*oss << "/* invariant:\n"; 
 				Nodes[b]->X_s[passID]->display(*oss,&left);
 				*oss << left << "*/\n";
-				oss->resetColor();
+				resetColor(oss);
 			}
 			*oss << left;
 		}
@@ -259,38 +259,38 @@ void AIPass::InstrumentLLVMBitcode(Function * F) {
 
 void AIPass::printBasicBlock(BasicBlock* b) {
 	Node * n = Nodes[b];
-	*Out << "\n(SCC=" << n->sccId << ")" << *b;
+	*Dbg << "\n(SCC=" << n->sccId << ")" << *b;
 }
 
 void AIPass::printPath(std::list<BasicBlock*> path) {
 	std::list<BasicBlock*>::iterator i = path.begin(), e = path.end();
-	Out->changeColor(raw_ostream::MAGENTA,true);
+	changeColor(raw_ostream::MAGENTA);
 	bool start = true;
-	*Out << "PATH: ";
+	*Dbg << "PATH: ";
 	while (i != e) {
-		*Out << *i;
-		Out->changeColor(raw_ostream::CYAN,true);
-		*Out << "[" << SMTpass::getNodeName(*i,start) << "]";
-		Out->changeColor(raw_ostream::MAGENTA,true);
+		*Dbg << *i;
+		changeColor(raw_ostream::CYAN);
+		*Dbg << "[" << SMTpass::getNodeName(*i,start) << "]";
+		changeColor(raw_ostream::MAGENTA);
 		start = false;
 		++i;
-		if (i != e) *Out << " --> ";
+		if (i != e) *Dbg << " --> ";
 	}
-	*Out << "\n";
+	*Dbg << "\n";
 	//
 	i = path.begin();
 	start = true;
 	while (i != e) {
-		Out->changeColor(raw_ostream::CYAN,true);
-		*Out << "[" << SMTpass::getNodeName(*i,start) << "]";
-		Out->changeColor(raw_ostream::MAGENTA,true);
-		*Out << **i;
+		changeColor(raw_ostream::CYAN);
+		*Dbg << "[" << SMTpass::getNodeName(*i,start) << "]";
+		changeColor(raw_ostream::MAGENTA);
+		*Dbg << **i;
 		start = false;
 		++i;
 	}
-	*Out << "\n";
+	*Dbg << "\n";
 	//
-	Out->resetColor();
+	resetColor();
 }
 
 void AIPass::assert_invariant(
@@ -394,15 +394,15 @@ void AIPass::loopiter(
 			Xtemp->join_array(&Xtemp_env,Join);
 
 			DEBUG(
-					*Out << "BEFORE MINIWIDENING\n";	
-					*Out << "Succ->X:\n";
+					*Dbg << "BEFORE MINIWIDENING\n";	
+					*Dbg << "Succ->X:\n";
 					Succ->X_s[passID]->print();
-					*Out << "Xtemp:\n";
+					*Dbg << "Xtemp:\n";
 					Xtemp->print();
 			     );
 
 			//DEBUG(
-			//	*Out << "THRESHOLD:\n";
+			//	*Dbg << "THRESHOLD:\n";
 			//	fflush(stdout);
 			//	ap_lincons1_array_fprint(stdout,&threshold);
 			//	fflush(stdout);
@@ -413,21 +413,21 @@ void AIPass::loopiter(
 			else
 				Xtemp->widening(Succ->X_s[passID]);
 			DEBUG(
-					*Out << "MINIWIDENING!\n";	
+					*Dbg << "MINIWIDENING!\n";	
 			     );
 			delete Succ->X_s[passID];
 			Succ->X_s[passID] = Xtemp;
 			DEBUG(
-					*Out << "AFTER MINIWIDENING\n";	
+					*Dbg << "AFTER MINIWIDENING\n";	
 					Xtemp->print();
 			     );
 
 			Xtemp = aman->NewAbstract(n->X_s[passID]);
 			computeTransform(aman,n,*path,Xtemp);
 			DEBUG(
-					*Out << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
+					*Dbg << "POLYHEDRON AT THE STARTING NODE (AFTER MINIWIDENING)\n";
 					n->X_s[passID]->print();
-					*Out << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
+					*Dbg << "POLYHEDRON AFTER PATH TRANSFORMATION (AFTER MINIWIDENING)\n";
 					Xtemp->print();
 			     );
 
@@ -580,22 +580,22 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	for (i = constraints.begin(), e = constraints.end(); i!=e; ++i) {
 		if ((*i)->size() == 1) {
 			DEBUG(
-					*Out << "Constraint: ";
+					*Dbg << "Constraint: ";
 					((*i)->front())->print();
-					*Out << "\n";
+					*Dbg << "\n";
 			     );
 			//Xtemp->meet_tcons_array((*i)->front());
 			intersect.add_constraint((*i)->front());
-			//*Out << "constraint : \n";
+			//*Dbg << "constraint : \n";
 			//(*i)->front()->print();
-			//*Out << "\n";
+			//*Dbg << "\n";
 			//computeThreshold((*i)->front(),&cons,ConstraintsAbstract,env2);
 
 			// delete the single Constraint_array*
 			//delete (*i)->front();
 		} else {
 			DEBUG(
-					*Out << "multiple contraints:\n";
+					*Dbg << "multiple contraints:\n";
 			     );
 			std::vector<Abstract*> A;
 			// A_Constraints is used by ConstraintsAbstract
@@ -612,7 +612,7 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			Environment Xtemp_env(Xtemp);
 			Xtemp->join_array(&Xtemp_env,A);
 			DEBUG(
-					*Out << "multiple contraints OK\n";
+					*Dbg << "multiple contraints OK\n";
 			     );
 		}
 		// delete the vector
@@ -620,13 +620,13 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 	}
 	if (intersect.size() > 0) {
 		DEBUG(
-				*Out << "intersecting with constraints\n";
+				*Dbg << "intersecting with constraints\n";
 				intersect.print();
-				*Out << "\n";
+				*Dbg << "\n";
 		     );
 		Xtemp->meet_tcons_array(&intersect);
 		DEBUG(
-				*Out << "intersecting with constraints OK\n";
+				*Dbg << "intersecting with constraints OK\n";
 		     );
 	}
 
@@ -635,9 +635,9 @@ void AIPass::computeTransform (AbstractMan * aman, Node * n, std::list<BasicBloc
 			for (unsigned i = 0; i < PHIvars_prime.name.size(); i++) {
 			ap_var_t name = PHIvars_prime.name[i];
 			Expr expr = PHIvars_prime.expr[i];
-			*Out << "Assigning " << ap_var_to_string(name) << " = ";
+			*Dbg << "Assigning " << ap_var_to_string(name) << " = ";
 			expr.print();
-			*Out << "\n";
+			*Dbg << "\n";
 			}
 	     );
 	Xtemp->assign_texpr_array(&PHIvars_prime.name,&PHIvars_prime.expr,NULL);
@@ -712,13 +712,13 @@ bool AIPass::computeNarrowingSeed(Function * F) {
 
 				if (Xseed->compare(XSucc) == 1) {
 					DEBUG(
-							*Out << "n\n";
+							*Dbg << "n\n";
 							n->X_s[passID]->print();
-							*Out << "Xtemp\n";
+							*Dbg << "Xtemp\n";
 							Xtemp->print();
-							*Out << "Succ\n";
+							*Dbg << "Succ\n";
 							Succ->X_s[passID]->print();
-							*Out << "SEED FOUND: " << *(n->bb) << "\n";
+							*Dbg << "SEED FOUND: " << *(n->bb) << "\n";
 					     );
 					Join.clear();
 					Join.push_back(aman->NewAbstract(Xtemp));
@@ -800,7 +800,7 @@ bool AIPass::computeCastCondition(CastInst * inst,
 		std::vector< std::vector<Constraint*> * > * cons) {
 
 	DEBUG(
-			*Out << "CAST CONDITION\n";
+			*Dbg << "CAST CONDITION\n";
 	     );
 	if(inst->getSrcTy()->isIntegerTy() && inst->getDestTy()->isIntegerTy(1)) {
 		// we cast an integer to a boolean
@@ -900,7 +900,7 @@ bool AIPass::computeCmpCondition(	CmpInst * inst,
 		case CmpInst::FCMP_UNO:
 		case CmpInst::BAD_ICMP_PREDICATE:
 		case CmpInst::BAD_FCMP_PREDICATE:
-			*Out << "ERROR : Unknown predicate\n";
+			*Dbg << "ERROR : Unknown predicate\n";
 			break;
 		default:
 			// unreachable
@@ -1019,15 +1019,15 @@ bool AIPass::computePHINodeCondition(PHINode * inst,
 }
 
 void AIPass::visitReturnInst (ReturnInst &I){
-	//*Out << "returnInst\n" << I << "\n";
+	//*Dbg << "returnInst\n" << I << "\n";
 }
 
 void AIPass::visitBranchInst (BranchInst &I){
-	//*Out << "BranchInst\n" << I << "\n";	
+	//*Dbg << "BranchInst\n" << I << "\n";	
 	bool test;
 	bool res;
 
-	//*Out << "BranchInst\n" << I << "\n";	
+	//*Dbg << "BranchInst\n" << I << "\n";	
 	if (I.isUnconditional()) {
 		/* no constraints */
 		return;
@@ -1064,52 +1064,52 @@ void AIPass::visitBranchInst (BranchInst &I){
  * interpretation.
  */
 void AIPass::visitSwitchInst (SwitchInst &I){
-	//*Out << "SwitchInst\n" << I << "\n";	
+	//*Dbg << "SwitchInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitIndirectBrInst (IndirectBrInst &I){
-	//*Out << "IndirectBrInst\n" << I << "\n";	
+	//*Dbg << "IndirectBrInst\n" << I << "\n";	
 	// TODO
 }
 
 void AIPass::visitInvokeInst (InvokeInst &I){
-	//*Out << "InvokeInst\n" << I << "\n";	
+	//*Dbg << "InvokeInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitUnreachableInst (UnreachableInst &I){
-	//*Out << "UnreachableInst\n" << I << "\n";	
+	//*Dbg << "UnreachableInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitICmpInst (ICmpInst &I){
-	//*Out << "ICmpInst\n" << I << "\n";	
+	//*Dbg << "ICmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitFCmpInst (FCmpInst &I){
-	//*Out << "FCmpInst\n" << I << "\n";	
+	//*Dbg << "FCmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitAllocaInst (AllocaInst &I){
-	//*Out << "AllocaInst\n" << I << "\n";	
+	//*Dbg << "AllocaInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitLoadInst (LoadInst &I){
-	//*Out << "LoadInst\n" << I << "\n";	
+	//*Dbg << "LoadInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitStoreInst (StoreInst &I){
-	//*Out << "StoreInst\n" << I << "\n";	
+	//*Dbg << "StoreInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitGetElementPtrInst (GetElementPtrInst &I){
-	//*Out << "GetElementPtrInst\n" << I << "\n";	
+	//*Dbg << "GetElementPtrInst\n" << I << "\n";	
 
 	if (pointer_arithmetic()) {
 		Node * n = Nodes[focuspath.back()];
@@ -1125,7 +1125,7 @@ void AIPass::visitGetElementPtrInst (GetElementPtrInst &I){
 
 void AIPass::visitPHINode (PHINode &I){
 	Node * n = Nodes[focuspath.back()];
-	//*Out << "PHINode\n" << I << "\n";
+	//*Dbg << "PHINode\n" << I << "\n";
 	// we only consider one single predecessor: the predecessor from the path
 	BasicBlock * pred = focuspath[focusblock-1];
 
@@ -1135,7 +1135,7 @@ void AIPass::visitPHINode (PHINode &I){
 	ap_texpr_rtype_t ap_type;
 	if (Expr::get_ap_type((Value*)&I, ap_type)) return;
 	DEBUG(
-			*Out << I << "\n";
+			*Dbg << I << "\n";
 	     );
 
 	// if the PHINode has actually one single incoming edge, we just say the
@@ -1167,16 +1167,16 @@ void AIPass::visitPHINode (PHINode &I){
 					insert_env_vars_into_node_vars(env,n,(Value*)&I);
 					delete env;
 					DEBUG(
-							*Out << I << " is equal to ";
+							*Dbg << I << " is equal to ";
 							expr.print();
-							*Out << "\n";
+							*Dbg << "\n";
 					     );
 				}
 			} else {
 				DEBUG(
-						*Out << I << " is equal to ";
+						*Dbg << I << " is equal to ";
 						expr.print();
-						*Out << "\n";
+						*Dbg << "\n";
 				     );
 				if (LV->isLiveByLinearityInBlock(&I,n->bb,true)) {
 					n->add_var(&I);
@@ -1195,12 +1195,12 @@ void AIPass::visitPHINode (PHINode &I){
 }
 
 void AIPass::visitTruncInst (TruncInst &I){
-	//*Out << "TruncInst\n" << I << "\n";	
+	//*Dbg << "TruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitZExtInst (ZExtInst &I){
-	//*Out << "ZExtInst\n" << I << "\n";	
+	//*Dbg << "ZExtInst\n" << I << "\n";	
 	Value * pv;
 	Node * nb;
 	Node * n = Nodes[focuspath.back()];
@@ -1224,42 +1224,42 @@ void AIPass::visitZExtInst (ZExtInst &I){
 }
 
 void AIPass::visitSExtInst (SExtInst &I){
-	//*Out << "SExtInst\n" << I << "\n";	
+	//*Dbg << "SExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitFPTruncInst (FPTruncInst &I){
-	//*Out << "FPTruncInst\n" << I << "\n";	
+	//*Dbg << "FPTruncInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitFPExtInst (FPExtInst &I){
-	//*Out << "FPExtInst\n" << I << "\n";	
+	//*Dbg << "FPExtInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitFPToUIInst (FPToUIInst &I){
-	//*Out << "FPToUIInst\n" << I << "\n";	
+	//*Dbg << "FPToUIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitFPToSIInst (FPToSIInst &I){
-	//*Out << "FPToSIInst\n" << I << "\n";	
+	//*Dbg << "FPToSIInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitUIToFPInst (UIToFPInst &I){
-	//*Out << "UIToFPInst\n" << I << "\n";	
+	//*Dbg << "UIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitSIToFPInst (SIToFPInst &I){
-	//*Out << "SIToFPInst\n" << I << "\n";	
+	//*Dbg << "SIToFPInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitPtrToIntInst (PtrToIntInst &I){
-	//*Out << "PtrToIntInst\n" << I << "\n";	
+	//*Dbg << "PtrToIntInst\n" << I << "\n";	
 
 	if (pointer_arithmetic()) {
 		Node * n = Nodes[focuspath.back()];
@@ -1274,7 +1274,7 @@ void AIPass::visitPtrToIntInst (PtrToIntInst &I){
 }
 
 void AIPass::visitIntToPtrInst (IntToPtrInst &I){
-	//*Out << "IntToPtrInst\n" << I << "\n";	
+	//*Dbg << "IntToPtrInst\n" << I << "\n";	
 
 	if (pointer_arithmetic()) {
 		Node * n = Nodes[focuspath.back()];
@@ -1289,12 +1289,12 @@ void AIPass::visitIntToPtrInst (IntToPtrInst &I){
 }
 
 void AIPass::visitBitCastInst (BitCastInst &I){
-	//*Out << "BitCastInst\n" << I << "\n";	
+	//*Dbg << "BitCastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitSelectInst (SelectInst &I){
-	//*Out << "SelectInst\n" << I << "\n";	
+	//*Dbg << "SelectInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -1303,47 +1303,47 @@ void AIPass::visitSelectInst (SelectInst &I){
 // variable, and we the result returned by the function is a new variable of
 // type int or float, depending on the return type
 void AIPass::visitCallInst(CallInst &I){
-	//*Out << "CallInst\n" << I << "\n";	
+	//*Dbg << "CallInst\n" << I << "\n";	
 
 	//Function * F = I.getCalledFunction();
 	//std::string fname = F->getName();
-	//*Out << "FOUND FUNCTION " << fname << "\n";
+	//*Dbg << "FOUND FUNCTION " << fname << "\n";
 
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitVAArgInst (VAArgInst &I){
-	//*Out << "VAArgInst\n" << I << "\n";	
+	//*Dbg << "VAArgInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitExtractElementInst (ExtractElementInst &I){
-	//*Out << "ExtractElementInst\n" << I << "\n";	
+	//*Dbg << "ExtractElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitInsertElementInst (InsertElementInst &I){
-	//*Out << "InsertElementInst\n" << I << "\n";	
+	//*Dbg << "InsertElementInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitShuffleVectorInst (ShuffleVectorInst &I){
-	//*Out << "ShuffleVectorInst\n" << I << "\n";	
+	//*Dbg << "ShuffleVectorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitExtractValueInst (ExtractValueInst &I){
-	//*Out << "ExtractValueInst\n" << I << "\n";	
+	//*Dbg << "ExtractValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitInsertValueInst (InsertValueInst &I){
-	//*Out << "InsertValueInst\n" << I << "\n";	
+	//*Dbg << "InsertValueInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitTerminatorInst (TerminatorInst &I){
-	//*Out << "TerminatorInst\n" << I << "\n";	
+	//*Dbg << "TerminatorInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 
@@ -1364,12 +1364,12 @@ void AIPass::visitBinaryOperator (BinaryOperator &I){
 }
 
 void AIPass::visitCmpInst (CmpInst &I){
-	//*Out << "CmpInst\n" << I << "\n";	
+	//*Dbg << "CmpInst\n" << I << "\n";	
 	//visitInstAndAddVarIfNecessary(I);
 }
 
 void AIPass::visitCastInst (CastInst &I){
-	//*Out << "CastInst\n" << I << "\n";	
+	//*Dbg << "CastInst\n" << I << "\n";	
 	visitInstAndAddVarIfNecessary(I);
 }
 

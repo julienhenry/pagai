@@ -133,7 +133,7 @@ void AnalysisPass::printResult_oldoutput(Function * F) {
 		n = Nodes[b];
 		if ((!printAllInvariants() && FPr->inPr(b) && !ignored(F)) ||
 		(printAllInvariants() && n->X_s.count(passID) && n->X_s[passID] != NULL && !ignored(F))) {
-			Out->changeColor(raw_ostream::MAGENTA,true);
+			changeColor(raw_ostream::MAGENTA);
 			Instruction * Inst = b->getFirstNonPHI();
 			//Instruction * Inst = &b->front();
 			std::vector<Value*> arr;
@@ -146,31 +146,31 @@ void AnalysisPass::printResult_oldoutput(Function * F) {
 			}
 
 			*Out << "\n\nRESULT FOR BASICBLOCK: -------------------" << *b << "-----\n";
-			Out->resetColor();
+			resetColor();
 			//n->X_i[passID]->print(true);
 			n->X_s[passID]->print(true);
 			if (FPr->inAssert(b)) {
 				if (n->X_s[passID]->is_bottom()) {
-					Out->changeColor(raw_ostream::GREEN,true);
+					changeColor(raw_ostream::GREEN);
 					*Out << "assert OK\n";
 				} else {
-					Out->changeColor(raw_ostream::RED,true);
+					changeColor(raw_ostream::RED);
 					*Out << "assert not proved\n";
 				}
-				Out->resetColor();
+				resetColor();
 			}
 			if (FPr->inUndefBehaviour(b)) {
 				//
 				//
 				if (n->X_s[passID]->is_bottom()) {
-					Out->changeColor(raw_ostream::GREEN,true);
+					changeColor(raw_ostream::GREEN);
 					*Out << "safe\n";
 				} else {
-					Out->changeColor(raw_ostream::RED,true);
+					changeColor(raw_ostream::RED);
 					*Out << "unsafe\n";
 					*Out << getUndefinedBehaviourMessage(b) << "\n";
 				}
-				Out->resetColor();
+				resetColor();
 			}
 		}
 	}

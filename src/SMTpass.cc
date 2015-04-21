@@ -450,7 +450,7 @@ const std::string SMTpass::getVarName(Value * v) {
 	}
 
 	std::string & name = s->str();
-	//*Out << name << "\n";
+	//*Dbg << name << "\n";
 	size_t found;
 	found=name.find_first_of("%");
 	if (found!=std::string::npos) {
@@ -556,7 +556,7 @@ SMT_expr SMTpass::getValueExpr(Value * v, bool primed) {
 				return cond;
 			}
 		case 1: // this value is not of interesting type
-			*Out << "ERROR: getValueExpr returns NULL for the following value:\n" << *v << "\n";
+			*Dbg << "ERROR: getValueExpr returns NULL for the following value:\n" << *v << "\n";
 			assert(false && "ERROR: getValueExpr returns NULL");
 	}
 	return NULL_res;

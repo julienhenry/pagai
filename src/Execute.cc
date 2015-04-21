@@ -104,7 +104,7 @@ std::string parse_conf() {
 			return conf["ResourceDir"];
 
     	} catch (std::exception& e) {
-		*Out << "error while parsing pagai.conf\n";
+		*Dbg << "error while parsing pagai.conf\n";
 	}
 	return "";
 }
@@ -123,7 +123,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 			return;
 		}
 		Out = new formatted_raw_ostream(*FDOut, formatted_raw_ostream::DELETE_STREAM);
-
 		// Make sure that the Output file gets unlinked from the disk if we get a
 		// SIGINT
 		//sys::RemoveFileOnSignal(sys::Path(OutputFilename));
@@ -131,6 +130,10 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 		Out = &llvm::outs();
 		Out->SetUnbuffered();
 	}
+	//Dbg = &llvm::fdbgs();
+	Dbg = &llvm::outs();
+
+	*Dbg << "THIS IS DEBUG PRINTING\n";
 	
 	llvm::Module * M;
 	std::auto_ptr<Module> M_ptr;
@@ -172,7 +175,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 
 	clang::DiagnosticIDs *  DiagID = new clang::DiagnosticIDs();
 	clang::DiagnosticsEngine * Diags = new clang::DiagnosticsEngine(DiagID, Diagopt);
-	clang::DiagnosticConsumer * client = new clang::TextDiagnosticPrinter(*Out,Diagopt);
+	clang::DiagnosticConsumer * client = new clang::TextDiagnosticPrinter(*Dbg,Diagopt);
 	Diags->setClient(client);
 
 	// Create the compiler invocation
@@ -201,9 +204,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 	p += sep + "lib" + sep + "clang" + sep + CLANG_VERSION_STRING;
     	Clang.getHeaderSearchOpts().ResourceDir = p;
 	
-	*Out << "// ResourceDir is " << Clang.getHeaderSearchOpts().ResourceDir << "\n";
-
-    	//*Out << "Resource dir " << Clang.getHeaderSearchOpts().ResourceDir  << "\n";
+	*Dbg << "// ResourceDir is " << Clang.getHeaderSearchOpts().ResourceDir << "\n";
 
 	if (!is_Cfile(InputFilename)) {
 		SMDiagnostic SM;
@@ -211,7 +212,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 		M = ParseIRFile(InputFilename,SM,Context); 
 	} else {
 		if (!Clang.ExecuteAction(*Act)) {
-		//*Out << "Unable to produce LLVM bitcode. Please use Clang with the appropriate options.\n";
+		//*Dbg << "Unable to produce LLVM bitcode. Please use Clang with the appropriate options.\n";
 		    return;
 		}
 		llvm::Module *module = Act->takeModule();
@@ -219,7 +220,7 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 	}
 
 	if (M == NULL) {
-		*Out << "ERROR: Unable to read bitcode file.\n";
+		*Dbg << "ERROR: Unable to read bitcode file.\n";
 		return;
 	}
 

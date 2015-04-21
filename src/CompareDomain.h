@@ -200,12 +200,12 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 	int eq = 0;
 	int un = 0;
 
-	Out->changeColor(raw_ostream::BLUE,true);
+	changeColor(raw_ostream::BLUE);
 	*Out << "\n\n\n"
 			<< "---------------------------------\n"
 			<< "-   COMPARING ABSTRACT DOMAINS  -\n"
 			<< "---------------------------------\n";
-	Out->resetColor();
+	resetColor();
 
 	params P1, P2;
 	P1.T = T;
@@ -261,10 +261,10 @@ bool CompareDomain<T>::runOnModule(Module &M) {
 		}
 	}
 
-	Out->changeColor(raw_ostream::MAGENTA,true);
+	changeColor(raw_ostream::MAGENTA);
 	*Out << ApronManagerToString(getApronManager(0)) << " - " 
 		<< ApronManagerToString(getApronManager(1)) << "\n";
-	Out->resetColor();
+	resetColor();
 	*Out << "\n";
 	*Out << "EQ " << eq << "\n";
 	*Out << "LT " << lt << "\n";
