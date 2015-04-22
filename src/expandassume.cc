@@ -47,6 +47,8 @@ bool ExpandAssume::visitCallInst(CallInst &CI) {
 	seen.insert(cond);
 	if (ZExtInst * zext = dyn_cast<ZExtInst>(cond)) {
 		cond = zext->getOperand(0);
+	} else {
+		return false;
 	}
 	SplitBlockAndInsertIfThen(cond,&CI,true);
 	return true;
