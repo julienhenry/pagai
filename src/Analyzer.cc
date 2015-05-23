@@ -359,7 +359,7 @@ int main(int argc, char* argv[]) {
       ("noinline", "do not inline functions") 
       ("output,o", po::value<std::string>()->default_value(""), "C output")
       ("output-bc", po::value<std::string>(&annotatedBCFilename), "LLVM IR output")
-      ("output-bc-v2", po::value<std::string>(&annotatedBCFilename), "LLVM IR output (v2)")
+      ("output-bc-v2,b", po::value<std::string>(&annotatedBCFilename), "LLVM IR output (v2)")
       ("svcomp", "SV-Comp mode") 
       ("wcet", "wcet mode") 
       ("debug", "debug") 
