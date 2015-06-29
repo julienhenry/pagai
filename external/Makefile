@@ -7,8 +7,18 @@ GMP_PREFIX = /usr
 MPFR_PREFIX = /usr
 
 # PPL is not enabled by default
-# PPL_ENABLED should be set to 1 for compiling apron with PPL
+# PPL_ENABLED should be set to 1 for compiling Apron with PPL
 PPL_ENABLED=
+
+# OptOctagons from ETHZ are not enabled by default
+# OPT_OCT_ENABLED should be set to 1 for compiling Apron with OptOctagons
+# Maybe works only on 64-bit arch
+OPT_OCT_ENABLED=
+
+# OPT_OCT_OPTIONS
+OPT_OCT_OPTIONS="IS_VECTOR=-DVECTOR" # if machine supports AVX (see in /proc/cpuinfo)
+OPT_OCT_OPTIONS="IS_VECTOR=-DVECTOR IS_SSE=-DSSE" # if machine supports SSE but not AVX
+OPT_OCT_OPTIONS= # otherwise
 
 .SUFFIXES:
 
@@ -61,14 +71,25 @@ Z3_COMPILED=$(DEST)/z3-$(Z3_COMMIT)/install/lib/libz3$(SOEXTENSION)
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
 APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
+
 PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/installdir/lib/libppl$(SOEXTENSION)
+
+ifeq ($(OPT_OCT_ENABLED), 1)
+OPT_OCT_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/liboptoct$(SOEXTENSION)
+
+$(OPT_OCT_COMPILED): $(DEST)/apron-$(APRON_VERSION)/optoctagons/README $(DEST)/apron-$(APRON_VERSION)/apron/README
+	cd $(DEST)/apron-$(APRON_VERSION)/optoctagons/ && make $(OPT_OCT_OPTIONS) $(PARALLEL_MAKE_OPTS) && make install
+
+else
+OPT_OCT_COMPILED=
+endif
 
 install-cudd: $(CUDD_COMPILED) $(DEST_LINKS)/cudd
 install-yices: $(YICES_COMPILED) $(DEST_LINKS)/yices
 install-z3: $(Z3_COMPILED) $(DEST_LINKS)/z3
 install-llvm: $(LLVM_COMPILED) $(DEST_LINKS)/llvm
 install-clang: $(CLANG_COMPILED) $(DEST_LINKS)/llvm
-install-apron: $(APRON_COMPILED) $(DEST_LINKS)/apron
+install-apron: $(APRON_COMPILED) $(OPT_OCT_COMPILED) $(DEST_LINKS)/apron
 install-ppl: $(PPL_COMPILED) $(DEST_LINKS)/ppl
 
 CUDD_ARCHIVE=cudd-$(CUDD_VERSION).tar.gz
@@ -200,11 +221,18 @@ else
 APRON_PPL_DEP=
 endif
 
-# -e 's?^ *\(#\|\) *HAS_OCAML *=.*$$?HAS_OCAML =?'
-# -e 's?^ *\(#\|\) *HAS_OCAMLOPT *=.*$$?HAS_OCAMLOPT =?'
+ifeq ($(OPT_OCT_ENABLED), 1)
+APRON_OPT_OCT_DEP=$(DEST)/apron-$(APRON_VERSION)/optoctagons/README
+else
+APRON_OPT_OCT_DEP=
+endif
+
+$(DEST)/apron-$(APRON_VERSION)/optoctagons/README: $(DEST)/apron-$(APRON_VERSION)/apron/README
+	cd $(DEST) && rm -rf OptOctagon && git clone https://github.com/eth-srl/OptOctagon
+	cp -a $(DEST)/OptOctagon/optoctagons $(DEST)/apron-$(APRON_VERSION)/
 
 # DM Trying to use ocamlfind when unavailable causes numerous problems.
-$(APRON_COMPILED): $(DEST)/apron-$(APRON_VERSION)/apron/README $(APRON_PPL_DEP) 
+$(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP)
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
 	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
