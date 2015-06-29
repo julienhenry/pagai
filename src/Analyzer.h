@@ -36,6 +36,9 @@ enum Apron_Manager_Type {
 	BOX,
 	OCT,
 	PK,
+#ifdef OPT_OCT_ENABLED
+        OPT_OCT,
+#endif
 #ifdef PPL_ENABLED
 	PPL_POLY,
 	PPL_POLY_BAGNARA,

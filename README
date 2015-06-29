@@ -66,6 +66,11 @@
 	when linking.
 
 
+* Optional APRON extensions
+PAGAI can use APRON linked with
+- the Parma Polyhedra Library http://bugseng.com/products/ppl/ (-DENABLE_PPL)
+- OptOptagons, from ETHZ https://github.com/eth-srl/OptOctagon (-DENABLE_OPT_OCT)
+
 * USAGE: 
 
 	- With a C input

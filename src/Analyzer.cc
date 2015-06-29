@@ -113,6 +113,10 @@ bool setApronManager(std::string d, int i) {
 		ap_manager[i] = PK;
 	} else if (!d.compare("pkeq")) {
 		ap_manager[i] = PKEQ;
+#ifdef OPT_OCT_ENABLED
+        } else if (!d.compare("opt_oct")) {
+	        ap_manager[i] = OPT_OCT;
+#endif
 #ifdef PPL_ENABLED
 	} else if (!d.compare("ppl_poly_bagnara")) {
 		ap_manager[i] = PPL_POLY_BAGNARA;
@@ -140,6 +144,10 @@ std::string ApronManagerToString(Apron_Manager_Type D) {
 			return "PK";
 		case PKEQ:
 			return "PKEQ";
+#ifdef OPT_OCT_ENABLED
+	        case OPT_OCT:
+		        return "OPT_OCT";
+#endif
 #ifdef PPL_ENABLED
 		case PPL_POLY:
 			return "PPL_POLY";
