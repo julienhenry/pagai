@@ -143,6 +143,8 @@ bool optimizeBC();
 bool WCETSettings();
 bool inline_functions();
 bool brutal_unrolling();
+bool global2local();
+bool loop_rotate();
 bool InstCombining();
 bool dumpll();
 

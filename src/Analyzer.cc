@@ -52,6 +52,8 @@ bool check_overflow() {return oflcheck && vm.count("undefined-check");}
 bool pointer_arithmetic() {return vm.count("pointers");}
 bool inline_functions() {return !vm.count("noinline");}
 bool brutal_unrolling() {return vm.count("loop-unroll");}
+bool loop_rotate() {return !vm.count("no-loop-rotate");}
+bool global2local() {return !vm.count("no-global2local");}
 bool dumpll() {return vm.count("dump-ll");}
 bool WCETSettings() {return vm.count("wcet");}
 bool generateMetadata() {return annotatedBCFilename.size();}
@@ -359,10 +361,12 @@ int main(int argc, char* argv[]) {
       ("optimize", "optimize") 
       ("instcombining", "instcombining") 
       ("loop-unroll", "unroll loops") 
+      ("no-loop-rotate", "do not rotate loops") 
+      ("no-globals2locals", "do not turn global variables into local variables") 
       ("skipnonlinear", "ignore non linear arithmetic") 
       ("noinline", "do not inline functions") 
       ("output,o", po::value<std::string>()->default_value(""), "C output")
-      ("output-bc", po::value<std::string>(&annotatedBCFilename), "LLVM IR output")
+      ("output-bc,b", po::value<std::string>(&annotatedBCFilename), "LLVM IR output")
       ("output-bc-v2", po::value<std::string>(&annotatedBCFilename), "LLVM IR output (v2)")
       ("svcomp", "SV-Comp mode") 
       ("wcet", "wcet mode") 
@@ -423,125 +427,7 @@ int main(int argc, char* argv[]) {
 	TechniquesToCompare.push_back(technique);
     }
 
-    //std::cout << vm["input"].as<std::string>() << "\n";
-
-
-//	static struct option long_options[] =
-//		{
-//			{"help", no_argument,       0, 'h'},
-//			{"debug",   no_argument,       0, 'D'},
-//			{"compare",     required_argument,       0, 'c'},
-//			{"technique",  required_argument,       0, 't'},
-//			{"comparedomains",  required_argument,       0, 'C'},
-//			{"domain",  required_argument, 0, 'd'},
-//			{"domain2",  required_argument, 0, 'e'},
-//			{"input",  required_argument, 0, 'i'},
-//			{"main",  required_argument, 0, 'm'},
-//			{"output",    required_argument, 0, 'o'},
-//			{"solver",    required_argument, 0, 's'},
-//			{"printformula",    no_argument, 0, 'f'},
-//			{"printall",    no_argument, 0, 'p'},
-//			{"skipnonlinear",    no_argument, 0, 'L'},
-//			{"quiet",    no_argument, 0, 'q'},
-//			{"no-undefined-check",    no_argument, 0, 'v'},
-//			{"force-old-output",    no_argument, 0, 'S'},
-//			{"annotated",    required_argument, 0, 'a'},
-//			{"timeout",    required_argument, 0, 'k'},
-//			{"log-smt",    no_argument, 0, 'l'},
-//			{"output-bc",  required_argument, 0, 'b'},
-//			{"output-bc-v2",  required_argument, 0, 'B'},
-//			{"svcomp",  no_argument, 0, 'V'},
-//			{"optimize",  no_argument, 0, 'O'},
-//			{"noinline",  no_argument, 0, 'I'},
-//			{"loop-unroll",  no_argument, 0, 'U'},
-//			{"dump-ll",  no_argument, 0, 'z'},
-//			{"wcet",  no_argument, 0, 'w'},
-//			{"pointers",  no_argument, 0, 'P'},
-//			{"instcombining",  no_argument, 0, 'G'},
-//			{NULL, 0, 0, 0}
-//		};
-//	/* getopt_long stores the option index here. */
-//	int option_index = 0;
-//
-//	 while ((o = getopt_long(argc, argv, "qa:ShDi:o:s:c:Cft:d:e:nNMTm:k:pvb:VOIzwB:UP",long_options,&option_index)) != -1) {
-//        switch (o) {
-//        	case 'c':
-//        	    compare = true;
-//        	    arg = optarg;
-//				{ 
-//					std::string d;
-//					d.assign(arg);
-//					enum Techniques technique = TechniqueFromString(bad_use,d);
-//					TechniquesToCompare.push_back(technique);
-//				}
-//        	    break;
-//        	case 'n':
-//				Narrowing[0] = true;
-//        	    break;
-//        	case 'N':
-//				Narrowing[1] = true;
-//        	    break;
-//        	case 'T':
-//				Threshold[0] = true;
-//        	    break;
-//        	case 'M':
-//				Narrowing[0] = true;
-//				Narrowing[1] = false;
-//				compare_Narrowing = true;
-//        	    break;
-//        	case 'o':
-//        	    outputname = optarg;
-//        	    break;
-//        	case 'a':
-//				output_annotated = true;
-//        	    use_source_name = true;
-//        	    annotatedFilename = optarg;
-//        	    break;
-//        	case 's':
-//        	    arg = optarg;
-//				if (setSolver(arg)) {
-//					bad_use = true;
-//				}
-//        	    break;
-//        	case 'f':
-//        	    onlyrho = true;
-//        	    break;
-//        	    break;
-//			case 'p':
-//				printAll = true;
-//				break;
-//        	case 'w':
-//				// settings for computing WCET with counters
-//        	    force_old_output = true;
-//				printAll = true;
-//        	    oflcheck = false;
-//				//technique = PATH_FOCUSING;
-//				wcet_settings = true;
-//        	    break;
-//        	case '?':
-//        	    std::cout << "Error : Unknown option " << optopt << "\n";
-//        	    bad_use = true;
-//				break;
-//        }   
-//    }
-//    if (!help) {
-//        if (!filename) {
-//            std::cout << "No input file specified\n";
-//            bad_use = true;
-//        }
-//
-//        if (bad_use) {
-//            std::cout << "Bad use\n";
-//            show_help();
-//            exit(EXIT_FAILURE);
-//        }
-//    } else {
-//        show_help();
-//        exit(EXIT_SUCCESS);
-//    }
-//
-//
-	run.exec(vm["input"].as<std::string>(),vm["output"].as<std::string>(), include_paths);
+    run.exec(vm["input"].as<std::string>(),vm["output"].as<std::string>(), include_paths);
 	
 	return 0;
 }
