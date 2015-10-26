@@ -16,6 +16,9 @@ endif()
 if(${ENABLE_PPL})
   add_definitions(-DPPL_ENABLED)
 endif()
+if(${ENABLE_OPT_OCT})
+  add_definitions(-DOPT_OCT_ENABLED)
+endif()
 
 if(${PRINT_DEBUG_SMT})
   add_definitions(-DPRINT_DEBUG_SMT)
@@ -75,7 +78,12 @@ if(${ENABLE_PPL})
 	add_apron_library(pagai ap_ppl)
 	add_ppl_library(pagai ppl)
 endif()
+if(${ENABLE_OPT_OCT})
+        add_apron_library(pagai optoct)
+endif()
+
 add_apron_library(pagai apron)
+
 # SMT solvers
 if(${ENABLE_YICES})
 	add_yices_library(pagai)

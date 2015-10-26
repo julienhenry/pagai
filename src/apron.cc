@@ -14,6 +14,9 @@
 #include "oct.h"
 #include "pk.h"
 #include "pkeq.h"
+#ifdef OPT_OCT_ENABLED
+#include "opt_oct.h"
+#endif
 #ifdef PPL_ENABLED
 #include "ap_ppl.h"
 #include "ap_pkgrid.h"
@@ -98,8 +101,13 @@ ap_manager_t * create_manager(Apron_Manager_Type man) {
 	switch (man) {
 		case BOX:
 			return box_manager_alloc(); // Apron boxes
-		case OCT: 
+		case OCT:
 			return oct_manager_alloc(); // Octagons
+#ifdef OPT_OCT_ENABLED
+	        case OPT_OCT:
+		        return opt_oct_manager_alloc(); // ETHZ optimized octagons
+#endif
+
 		case PK: 
 			return pk_manager_alloc(true); // NewPolka strict polyhedra
 		case PKEQ: 

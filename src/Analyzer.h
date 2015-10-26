@@ -36,6 +36,9 @@ enum Apron_Manager_Type {
 	BOX,
 	OCT,
 	PK,
+#ifdef OPT_OCT_ENABLED
+        OPT_OCT,
+#endif
 #ifdef PPL_ENABLED
 	PPL_POLY,
 	PPL_POLY_BAGNARA,
@@ -140,6 +143,8 @@ bool optimizeBC();
 bool WCETSettings();
 bool inline_functions();
 bool brutal_unrolling();
+bool global2local();
+bool loop_rotate();
 bool InstCombining();
 bool dumpll();
 

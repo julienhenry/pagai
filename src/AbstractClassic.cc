@@ -111,28 +111,14 @@ void AbstractClassic::meet_tcons_array(Constraint_array* tcons) {
 	canonicalize();
 }
 
-bool has_huge_coeffs(ap_texpr0_t * expr) {
-	if (expr == NULL) return false;
-	switch (expr->discr) {
-		case AP_TEXPR_CST:
-			{
-				ap_scalar_t * scalar = expr->val.cst.val.scalar;
-				double d;
-				mp_rnd_t rnd = (mp_rnd_t)1;
-				ap_double_set_scalar(&d,scalar,rnd);
-				const double limit = 10000000000;
-				if (d > limit || d < -limit) { return true; }
-			}
-		case AP_TEXPR_DIM:
-			return false;
-		case AP_TEXPR_NODE:
-			return has_huge_coeffs(expr->val.node->exprA) 
-				|| has_huge_coeffs(expr->val.node->exprB);
-	}
-	return false;
-}
-
 void AbstractClassic::canonicalize() {
+  /*DM: this code, from JH, was supposed to
+    "delete from the abstract values the constraints with very large coefficients, to prevent some very high analysis time".
+    Unfortunately it tends to create UNREACHABLE values where there should not be.
+    Temporarily disabled until we find the reason.
+  */
+
+#ifdef SIMPLIFY_CONSTRAINTS
 	// 
 	//  iterate over the constraints forming the abstract value; 
 	//  if a constraint is "too complicated", delete it
@@ -161,6 +147,7 @@ void AbstractClassic::canonicalize() {
 	ap_tcons1_array_clear(&tcons_array);
 	
 	// APRON canonicalize
+#endif
 	ap_abstract1_canonicalize(man,main);
 }
 
