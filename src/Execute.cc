@@ -133,8 +133,6 @@ void execute::exec(std::string InputFilename, std::string OutputFilename, std::v
 	//Dbg = &llvm::fdbgs();
 	Dbg = &llvm::outs();
 
-	*Dbg << "THIS IS DEBUG PRINTING\n";
-	
 	llvm::Module * M;
 	std::auto_ptr<Module> M_ptr;
 
