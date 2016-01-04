@@ -262,4 +262,4 @@ $(PPL_COMPILED): $(DEST)/ppl-$(PPL_VERSION)/README
 			--prefix $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir/ \
 			--with-gmp=$(GMP_PREFIX) \
 			--enable-interfaces=c,c++ && \
-		$(MAKE) && $(MAKE) install
+		$(MAKE) $(PARALLEL_MAKE_OPTS) && $(MAKE) install
