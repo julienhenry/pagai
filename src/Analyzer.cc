@@ -288,7 +288,7 @@ std::string domain_help() {
 	* pkeq (NewPolka linear equalities)";
 #ifdef PPL_ENABLED
    doc += 
-	"\n
+	"\n\
 	* ppl_poly (PPL strict polyhedra)\n \
 	* ppl_poly_bagnara (ppl_poly + widening from Bagnara & al, SAS2003)\n \
 	* ppl_grid (PPL grids)\n \
