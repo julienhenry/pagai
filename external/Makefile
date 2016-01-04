@@ -31,7 +31,7 @@ YICES_VERSION=1.0.40
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
 Z3_COMMIT=29606b5179f76783ffb0c2ca0ed9d614847064b3
 LLVM_VERSION=3.4
-APRON_VERSION=2012-11-19
+APRON_VERSION=2016-01-05
 PPL_VERSION=1.1
 CUDD_XCFLAGS=
 
@@ -70,15 +70,15 @@ YICES_COMPILED=$(DEST)/yices-$(YICES_VERSION)/lib/libyices.a
 Z3_COMPILED=$(DEST)/z3-$(Z3_COMMIT)/install/lib/libz3$(SOEXTENSION)
 LLVM_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/lib/libLLVMBitReader.a
 CLANG_COMPILED=$(DEST)/llvm-$(LLVM_VERSION)/install/bin/clang
-APRON_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
+APRON_COMPILED=$(DEST)/apron_$(APRON_VERSION)/install/lib/libapron$(SOEXTENSION)
 
 PPL_COMPILED=$(DEST)/ppl-$(PPL_VERSION)/installdir/lib/libppl$(SOEXTENSION)
 
 ifeq ($(OPT_OCT_ENABLED), 1)
-OPT_OCT_COMPILED=$(DEST)/apron-$(APRON_VERSION)/install/lib/liboptoct$(SOEXTENSION)
+OPT_OCT_COMPILED=$(DEST)/apron_$(APRON_VERSION)/install/lib/liboptoct$(SOEXTENSION)
 
-$(OPT_OCT_COMPILED): $(DEST)/apron-$(APRON_VERSION)/optoctagons/README $(DEST)/apron-$(APRON_VERSION)/apron/README
-	cd $(DEST)/apron-$(APRON_VERSION)/optoctagons/ && make $(OPT_OCT_OPTIONS) $(PARALLEL_MAKE_OPTS) && make install
+$(OPT_OCT_COMPILED): $(DEST)/apron_$(APRON_VERSION)/optoctagons/README $(DEST)/apron_$(APRON_VERSION)/apron/README
+	cd $(DEST)/apron_$(APRON_VERSION)/optoctagons/ && make $(OPT_OCT_OPTIONS) $(PARALLEL_MAKE_OPTS) && make install
 
 else
 OPT_OCT_COMPILED=
@@ -127,7 +127,7 @@ $(DEST_LINKS)/z3: $(MAKEFILE_LIST)
 $(DEST_LINKS)/llvm: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/llvm-$(LLVM_VERSION)/install $@
 $(DEST_LINKS)/apron: $(MAKEFILE_LIST)
-	ln -sf $(DEST_ABS)/apron-$(APRON_VERSION)/install $@
+	ln -sf $(DEST_ABS)/apron_$(APRON_VERSION)/install $@
 $(DEST_LINKS)/ppl: $(MAKEFILE_LIST)
 	ln -sf $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir $@
 
@@ -199,11 +199,11 @@ $(DEST)/llvm-$(LLVM_VERSION)/tools/clang/README.txt: $(DEST)/$(CLANG_ARCHIVE) \
 
 #### Apron
 $(DEST)/$(APRON_ARCHIVE):
-	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/333/$(APRON_ARCHIVE)' "$@"
+	$(DOWNLOAD) 'http://forge.imag.fr/frs/download.php/702/$(APRON_ARCHIVE)' "$@"
 
-$(DEST)/apron-$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
-	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)" && mv apron apron-$(APRON_VERSION)
-	cd $(DEST)/apron-$(APRON_VERSION) && patch -p4 < $(SOURCE)/apron-2012-11-19.patch && patch -p0 < $(SOURCE)/apron-2012-11-19-environment.patch
+$(DEST)/apron_$(APRON_VERSION)/apron/README: $(DEST)/$(APRON_ARCHIVE)
+	cd $(DEST) && $(TAR) xzvf "$(DEST_ABS)/$(APRON_ARCHIVE)"
+	cd $(DEST)/apron_$(APRON_VERSION)
 	touch -c "$@"
 
 APRON_HAS_SHARED=1
@@ -222,20 +222,20 @@ APRON_PPL_DEP=
 endif
 
 ifeq ($(OPT_OCT_ENABLED), 1)
-APRON_OPT_OCT_DEP=$(DEST)/apron-$(APRON_VERSION)/optoctagons/README
+APRON_OPT_OCT_DEP=$(DEST)/apron_$(APRON_VERSION)/optoctagons/README
 else
 APRON_OPT_OCT_DEP=
 endif
 
-$(DEST)/apron-$(APRON_VERSION)/optoctagons/README: $(DEST)/apron-$(APRON_VERSION)/apron/README
+$(DEST)/apron_$(APRON_VERSION)/optoctagons/README: $(DEST)/apron_$(APRON_VERSION)/apron/README
 	cd $(DEST) && rm -rf OptOctagon && git clone https://github.com/eth-srl/OptOctagon
-	cp -a $(DEST)/OptOctagon/optoctagons $(DEST)/apron-$(APRON_VERSION)/
+	cp -a $(DEST)/OptOctagon/optoctagons $(DEST)/apron_$(APRON_VERSION)/
 
 # DM Trying to use ocamlfind when unavailable causes numerous problems.
-$(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP) $(DEST)/apron-$(APRON_VERSION)/apron/README
-	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
-	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
-	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
+$(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP) $(DEST)/apron_$(APRON_VERSION)/apron/README
+	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron_$(APRON_VERSION)/install?' \
+	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir/?' \
+	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron_$(APRON_VERSION)/install?' \
 	    -e 's?^ *\(#\|\) *HAS_PPL *=.*$$?HAS_PPL = $(PPL_ENABLED)?' \
 		-e 's/^OCAMLFIND *=.*/OCAMLFIND =/' \
 		-e 's/^HAS_SHARED *=.*/HAS_SHARED = $(APRON_HAS_SHARED)/' \
@@ -244,9 +244,9 @@ $(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP) $(DEST)/apron-$(APRON_V
 		-e 's/^# *HAS_PPL *=.*/HAS_PPL = $(PPL_ENABLED)/' \
 		-e 's@^GMP_PREFIX *=.*@GMP_PREFIX = $(GMP_PREFIX)@' \
 		-e 's@^MPFR_PREFIX *=.*@MPFR_PREFIX = $(MPFR_PREFIX)@' \
-		< $(DEST)/apron-$(APRON_VERSION)/Makefile.config.model \
-		> $(DEST)/apron-$(APRON_VERSION)/Makefile.config
-	cd $(DEST)/apron-$(APRON_VERSION) && $(MAKE) $(PARALLEL_MAKE_OPTS) && $(MAKE) install		
+		< $(DEST)/apron_$(APRON_VERSION)/Makefile.config.model \
+		> $(DEST)/apron_$(APRON_VERSION)/Makefile.config
+	cd $(DEST)/apron_$(APRON_VERSION) && $(MAKE) $(PARALLEL_MAKE_OPTS) && $(MAKE) install		
 
 #### PPL Library
 $(DEST)/$(PPL_ARCHIVE):
