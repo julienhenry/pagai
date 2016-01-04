@@ -197,8 +197,10 @@ endif()
 find_package(BISON 3.0)
 find_package(FLEX 2.5.35)
 
-#find_package(Boost COMPONENTS thread system REQUIRED)
-find_package(Boost)
+#set(Boost_USE_STATIC_LIBS OFF) 
+#set(Boost_USE_MULTITHREADED OFF)
+#set(Boost_USE_STATIC_RUNTIME OFF) 
+find_package(Boost REQUIRED COMPONENTS program_options)
 
 option(PRINT_DEBUG "Activate debug traces" OFF)
 option(PRINT_DEBUG_SMT "Print the SMT formulae during the analysis" OFF)
