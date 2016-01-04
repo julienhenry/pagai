@@ -232,7 +232,7 @@ $(DEST)/apron-$(APRON_VERSION)/optoctagons/README: $(DEST)/apron-$(APRON_VERSION
 	cp -a $(DEST)/OptOctagon/optoctagons $(DEST)/apron-$(APRON_VERSION)/
 
 # DM Trying to use ocamlfind when unavailable causes numerous problems.
-$(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP)
+$(APRON_COMPILED): $(APRON_PPL_DEP) $(APRON_OPT_OCT_DEP) $(DEST)/apron-$(APRON_VERSION)/apron/README
 	sed -e 's?^\(APRON_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
 	    -e 's?^\(PPL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/ppl-$(PPL_VERSION)/installdir?' \
 	    -e 's?^\(MLGMPIDL_PREFIX *= *\).*$$?\1 $(DEST_ABS)/apron-$(APRON_VERSION)/install?' \
