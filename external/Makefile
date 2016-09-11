@@ -23,19 +23,22 @@ OPT_OCT_OPTIONS= # otherwise
 .SUFFIXES:
 
 DEST=build
-SOURCE=$(PWD)
+SOURCE=/home/monniaux/pagai/external
 DEST_LINKS=.
 
 CUDD_VERSION=2.5.0
 YICES_VERSION=1.0.40
 YICES_ARCH=i686-pc-linux-gnu-static-gmp
-Z3_COMMIT=29606b5179f76783ffb0c2ca0ed9d614847064b3
+Z3_COMMIT=5a86815f3413bf1acf3dbfa79162888b3be32dc9
 LLVM_VERSION=3.4
 APRON_VERSION=2016-01-05
 PPL_VERSION=1.1
 CUDD_XCFLAGS=
 
 ARCH=${shell uname -m | sed -e 's/i.86/iX86/'}
+ifeq ($(ARCH), amd64)
+ARCH=x86_64
+endif
 ifeq ($(ARCH), x86_64)
 YICES_ARCH=x86_64-unknown-linux-gnu-static-gmp
 Z3_ARCH=-x64
@@ -137,7 +140,7 @@ $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h Â$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE)
-	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < $(SOURCE)/cudd-$(CUDD_VERSION).patch
+	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < $(SOURCE)/cudd-$(CUDD_VERSION).patch && sed -i -e 's/make /$(MAKE) /' Makefile
 	touch -c $@
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
