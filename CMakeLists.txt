@@ -88,8 +88,8 @@ macro(configure_llvm PROG)
   # between LDFLAGS and CMake use of target_link_libraries => remove
   # -lfoo and use target_link_libraries() instead.
   STRING(REGEX REPLACE " *-lpthread *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
-  STRING(REGEX REPLACE " *-ldl *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
-  target_link_libraries("${PROG}" dl)
+  # STRING(REGEX REPLACE " *-ldl *" " " LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+  # target_link_libraries("${PROG}" dl)
   target_link_libraries("${PROG}" pthread)
   target_link_libraries("${PROG}" ncurses)
 
