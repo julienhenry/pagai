@@ -23,7 +23,7 @@ OPT_OCT_OPTIONS= # otherwise
 .SUFFIXES:
 
 DEST=build
-SOURCE=/home/monniaux/pagai/external
+SOURCE=$(PWD)
 DEST_LINKS=.
 
 CUDD_VERSION=2.5.0
