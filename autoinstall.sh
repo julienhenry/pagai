@@ -7,4 +7,4 @@ set -e
 
 (cd external/ && make)
 cmake .
-make
+make $PARALLEL_MAKE_OPTS

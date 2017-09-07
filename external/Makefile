@@ -56,7 +56,7 @@ TAR=tar
 #endif
 
 .PHONY: all install-cudd install-z3 install-llvm install-clang install-apron install-ppl install-yices
-all: install-cudd install-z3 install-llvm install-clang install-apron install-yices
+all: install-cudd install-z3 install-llvm install-clang install-apron
 
 ifeq ($(OS), Darwin)
 SOEXTENSION=.dylib
