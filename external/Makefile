@@ -140,7 +140,7 @@ $(DEST)/$(CUDD_ARCHIVE):
 	$(DOWNLOAD) "ftp://vlsi.colorado.edu/pub/$(CUDD_ARCHIVE)" "$@"
 
 $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h Â$(DEST)/cudd-$(CUDD_VERSION)/Makefile: $(DEST)/$(CUDD_ARCHIVE)
-	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < $(SOURCE)/cudd-$(CUDD_VERSION).patch && sed -i -e 's/make /$(MAKE) /' Makefile
+	cd $(DEST) && $(TAR) xzvf "$(CUDD_ARCHIVE)" && cd cudd-$(CUDD_VERSION) && patch -p1 < $(SOURCE)/cudd-$(CUDD_VERSION).patch && sed -i -e 's@make @$(MAKE) @' Makefile
 	touch -c $@
 
 $(CUDD_COMPILED): $(DEST)/cudd-$(CUDD_VERSION)/cudd/cudd.h
